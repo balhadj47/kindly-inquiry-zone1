@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,13 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Search, Building2 } from 'lucide-react';
 import CompanyModal from './CompanyModal';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
+  const { t } = useLanguage();
 
   // Mock data - in a real app, this would come from your backend
   const companies = [
@@ -54,9 +55,9 @@ const Companies = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Companies</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.companies}</h1>
         <Button onClick={handleAddCompany} className="mt-4 md:mt-0">
-          Add New Company
+          {t.addNewCompany}
         </Button>
       </div>
 
@@ -66,7 +67,7 @@ const Companies = () => {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search companies..."
+              placeholder={t.searchCompanies}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -93,13 +94,13 @@ const Companies = () => {
                     handleEditCompany(company);
                   }}
                 >
-                  Edit
+                  {t.edit}
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Branches ({company.branches.length})</h4>
+                <h4 className="text-sm font-medium text-gray-700 mb-2">{t.branches} ({company.branches.length})</h4>
                 <div className="flex flex-wrap gap-1">
                   {company.branches.slice(0, 3).map((branch, index) => (
                     <Badge key={index} variant="secondary" className="text-xs">
@@ -116,10 +117,10 @@ const Companies = () => {
               
               <div className="flex justify-between items-center pt-2 border-t border-gray-100">
                 <div className="text-sm text-gray-600">
-                  <span className="font-medium text-gray-900">{company.totalTrips}</span> total trips
+                  <span className="font-medium text-gray-900">{company.totalTrips}</span> {t.totalTrips.toLowerCase()}
                 </div>
                 <div className="text-xs text-gray-500">
-                  Active {company.lastActivity}
+                  {t.lastActivity} {company.lastActivity}
                 </div>
               </div>
             </CardContent>

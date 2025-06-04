@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapIcon, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const TripLogger = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +15,7 @@ const TripLogger = () => {
     branchId: '',
     notes: '',
   });
+  const { t } = useLanguage();
 
   // Mock data - in a real app, this would come from your backend
   const vans = [
@@ -41,7 +42,7 @@ const TripLogger = () => {
     
     if (!formData.vanId || !formData.companyId || !formData.branchId) {
       toast({
-        title: "Error",
+        title: t.error,
         description: "Please fill in all required fields.",
         variant: "destructive",
       });
@@ -89,8 +90,8 @@ const TripLogger = () => {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="text-center">
-        <h1 className="text-3xl font-bold text-gray-900">Trip Logger</h1>
-        <p className="text-gray-500 mt-2">Record van visits to company branches</p>
+        <h1 className="text-3xl font-bold text-gray-900">{t.tripLogger}</h1>
+        <p className="text-gray-500 mt-2">{t.recordVanVisits}</p>
       </div>
 
       {/* Current Time Display */}
@@ -98,7 +99,7 @@ const TripLogger = () => {
         <CardContent className="pt-6">
           <div className="flex items-center justify-center space-x-2 text-blue-800">
             <Clock className="h-5 w-5" />
-            <span className="font-medium">Current Time: {currentTime}</span>
+            <span className="font-medium">{t.currentTime}: {currentTime}</span>
           </div>
         </CardContent>
       </Card>
@@ -108,16 +109,16 @@ const TripLogger = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             <MapIcon className="h-5 w-5" />
-            <span>Log New Trip</span>
+            <span>{t.logNewTrip}</span>
           </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="van">Select Van</Label>
+              <Label htmlFor="van">{t.selectVan}</Label>
               <Select value={formData.vanId} onValueChange={(value) => handleInputChange('vanId', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a van" />
+                  <SelectValue placeholder={t.chooseVan} />
                 </SelectTrigger>
                 <SelectContent>
                   {vans.map((van) => (
@@ -130,10 +131,10 @@ const TripLogger = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company">Select Company</Label>
+              <Label htmlFor="company">{t.selectCompany}</Label>
               <Select value={formData.companyId} onValueChange={(value) => handleInputChange('companyId', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a company" />
+                  <SelectValue placeholder={t.chooseCompany} />
                 </SelectTrigger>
                 <SelectContent>
                   {companies.map((company) => (
@@ -146,14 +147,14 @@ const TripLogger = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="branch">Select Branch</Label>
+              <Label htmlFor="branch">{t.selectBranch}</Label>
               <Select 
                 value={formData.branchId} 
                 onValueChange={(value) => handleInputChange('branchId', value)}
                 disabled={!formData.companyId}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={formData.companyId ? "Choose a branch" : "Select company first"} />
+                  <SelectValue placeholder={formData.companyId ? t.chooseBranch : t.selectCompanyFirst} />
                 </SelectTrigger>
                 <SelectContent>
                   {formData.companyId && branches[formData.companyId]?.map((branch, index) => (
@@ -166,17 +167,17 @@ const TripLogger = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Label htmlFor="notes">{t.notes}</Label>
               <Input
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleInputChange('notes', e.target.value)}
-                placeholder="Any additional notes about this trip..."
+                placeholder={t.notesPlaceholder}
               />
             </div>
 
             <Button type="submit" className="w-full text-lg py-6">
-              Log Trip Visit
+              {t.logTripVisit}
             </Button>
           </form>
         </CardContent>
@@ -187,19 +188,19 @@ const TripLogger = () => {
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-blue-600">47</div>
-            <div className="text-sm text-gray-600">Trips Today</div>
+            <div className="text-sm text-gray-600">{t.tripsToday}</div>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-green-600">23</div>
-            <div className="text-sm text-gray-600">Active Vans</div>
+            <div className="text-sm text-gray-600">{t.activeVans}</div>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="pt-6">
             <div className="text-2xl font-bold text-purple-600">68</div>
-            <div className="text-sm text-gray-600">Total Branches</div>
+            <div className="text-sm text-gray-600">{t.totalBranches}</div>
           </CardContent>
         </Card>
       </div>

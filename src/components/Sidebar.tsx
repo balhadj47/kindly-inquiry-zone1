@@ -10,34 +10,37 @@ import {
   Map as MapIcon,
   User
 } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const location = useLocation();
+  const { t } = useLanguage();
 
   const menuItems = [
     {
-      title: 'Dashboard',
+      title: t.dashboard,
       href: '/',
       icon: Database,
     },
     {
-      title: 'Companies',
+      title: t.companies,
       href: '/companies',
       icon: Building2,
     },
     {
-      title: 'Vans & Drivers',
+      title: t.vansDrivers,
       href: '/vans',
       icon: User,
     },
     {
-      title: 'Log Trip',
+      title: t.logTrip,
       href: '/trip-logger',
       icon: MapIcon,
     },
     {
-      title: 'Trip History',
+      title: t.tripHistory,
       href: '/trip-history',
       icon: List,
     },
@@ -81,6 +84,12 @@ const Sidebar = () => {
           );
         })}
       </nav>
+
+      {!isCollapsed && (
+        <div className="absolute bottom-4 left-4 right-4">
+          <LanguageSelector />
+        </div>
+      )}
     </div>
   );
 };

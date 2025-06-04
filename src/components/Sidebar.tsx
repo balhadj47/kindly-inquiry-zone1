@@ -9,11 +9,12 @@ import {
   List, 
   Map as MapIcon,
   Car,
-  User,
+  Users,
   Menu,
   X
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRBAC } from '@/contexts/RBACContext';
 import LanguageSelector from './LanguageSelector';
 
 const Sidebar = () => {
@@ -21,39 +22,48 @@ const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
+  const { hasPermission } = useRBAC();
 
   const menuItems = [
     {
       title: t.dashboard,
       href: '/',
       icon: Database,
+      permission: 'dashboard.view',
     },
     {
       title: t.companies,
       href: '/companies',
       icon: Building2,
+      permission: 'companies.view',
     },
     {
       title: 'Vans',
       href: '/vans',
       icon: Car,
+      permission: 'vans.view',
     },
     {
-      title: 'Drivers',
-      href: '/drivers',
-      icon: User,
+      title: 'Users',
+      href: '/users',
+      icon: Users,
+      permission: 'users.view',
     },
     {
       title: t.logTrip,
       href: '/trip-logger',
       icon: MapIcon,
+      permission: 'trips.log',
     },
     {
       title: t.tripHistory,
       href: '/trip-history',
       icon: List,
+      permission: 'trips.view',
     },
   ];
+
+  const visibleMenuItems = menuItems.filter(item => hasPermission(item.permission));
 
   const handleMobileMenuToggle = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -104,7 +114,7 @@ const Sidebar = () => {
         </div>
         
         <nav className="mt-6">
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href;
             

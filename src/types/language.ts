@@ -6,6 +6,7 @@ export interface TranslationKeys {
   dashboard: string;
   companies: string;
   vansDrivers: string;
+  users: string;
   logTrip: string;
   tripHistory: string;
   

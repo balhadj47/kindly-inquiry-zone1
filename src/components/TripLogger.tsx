@@ -1,0 +1,210 @@
+
+import React, { useState } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapIcon, Clock } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+
+const TripLogger = () => {
+  const [formData, setFormData] = useState({
+    vanId: '',
+    companyId: '',
+    branchId: '',
+    notes: '',
+  });
+
+  // Mock data - in a real app, this would come from your backend
+  const vans = [
+    { id: '1', plateNumber: 'VAN-001', driver: 'John Smith' },
+    { id: '2', plateNumber: 'VAN-002', driver: 'Sarah Johnson' },
+    { id: '3', plateNumber: 'VAN-003', driver: 'Mike Wilson' },
+    { id: '4', plateNumber: 'VAN-004', driver: 'Lisa Chen' },
+  ];
+
+  const companies = [
+    { id: '1', name: 'ABC Corporation' },
+    { id: '2', name: 'XYZ Logistics Ltd' },
+    { id: '3', name: 'DEF Industries Inc' },
+  ];
+
+  const branches = {
+    '1': ['Downtown', 'Industrial Park', 'North Side'],
+    '2': ['South Branch', 'East Terminal'],
+    '3': ['West Warehouse', 'Central Hub', 'Port Office', 'Airport Branch'],
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    
+    if (!formData.vanId || !formData.companyId || !formData.branchId) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // In a real app, you would submit this data to your backend
+    const selectedVan = vans.find(v => v.id === formData.vanId);
+    const selectedCompany = companies.find(c => c.id === formData.companyId);
+    const selectedBranch = branches[formData.companyId]?.[parseInt(formData.branchId)];
+
+    console.log('Logging trip:', {
+      van: selectedVan,
+      company: selectedCompany,
+      branch: selectedBranch,
+      timestamp: new Date(),
+      notes: formData.notes,
+    });
+
+    toast({
+      title: "Trip Logged Successfully!",
+      description: `${selectedVan?.plateNumber} visit to ${selectedBranch} (${selectedCompany?.name}) has been recorded.`,
+    });
+
+    // Reset form
+    setFormData({
+      vanId: '',
+      companyId: '',
+      branchId: '',
+      notes: '',
+    });
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field === 'companyId') {
+      // Reset branch when company changes
+      setFormData(prev => ({ ...prev, [field]: value, branchId: '' }));
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const currentTime = new Date().toLocaleString();
+
+  return (
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900">Trip Logger</h1>
+        <p className="text-gray-500 mt-2">Record van visits to company branches</p>
+      </div>
+
+      {/* Current Time Display */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-center space-x-2 text-blue-800">
+            <Clock className="h-5 w-5" />
+            <span className="font-medium">Current Time: {currentTime}</span>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Trip Logging Form */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <MapIcon className="h-5 w-5" />
+            <span>Log New Trip</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="van">Select Van</Label>
+              <Select value={formData.vanId} onValueChange={(value) => handleInputChange('vanId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a van" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vans.map((van) => (
+                    <SelectItem key={van.id} value={van.id}>
+                      {van.plateNumber} - {van.driver}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company">Select Company</Label>
+              <Select value={formData.companyId} onValueChange={(value) => handleInputChange('companyId', value)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a company" />
+                </SelectTrigger>
+                <SelectContent>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.id}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="branch">Select Branch</Label>
+              <Select 
+                value={formData.branchId} 
+                onValueChange={(value) => handleInputChange('branchId', value)}
+                disabled={!formData.companyId}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={formData.companyId ? "Choose a branch" : "Select company first"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {formData.companyId && branches[formData.companyId]?.map((branch, index) => (
+                    <SelectItem key={index} value={index.toString()}>
+                      {branch}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Input
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Any additional notes about this trip..."
+              />
+            </div>
+
+            <Button type="submit" className="w-full text-lg py-6">
+              Log Trip Visit
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-blue-600">47</div>
+            <div className="text-sm text-gray-600">Trips Today</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-green-600">23</div>
+            <div className="text-sm text-gray-600">Active Vans</div>
+          </CardContent>
+        </Card>
+        <Card className="text-center">
+          <CardContent className="pt-6">
+            <div className="text-2xl font-bold text-purple-600">68</div>
+            <div className="text-sm text-gray-600">Total Branches</div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default TripLogger;

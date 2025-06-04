@@ -8,6 +8,7 @@ import {
   Database, 
   List, 
   Map as MapIcon,
+  Car,
   User
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -30,8 +31,13 @@ const Sidebar = () => {
       icon: Building2,
     },
     {
-      title: t.vansDrivers,
+      title: 'Vans',
       href: '/vans',
+      icon: Car,
+    },
+    {
+      title: 'Drivers',
+      href: '/drivers',
       icon: User,
     },
     {

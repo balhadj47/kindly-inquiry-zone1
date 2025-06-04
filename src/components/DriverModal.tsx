@@ -6,36 +6,39 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-const VanModal = ({ isOpen, onClose, van }) => {
+const DriverModal = ({ isOpen, onClose, driver }) => {
   const [formData, setFormData] = useState({
-    plateNumber: '',
-    carNumberPlate: '',
-    model: '',
-    status: 'Active',
+    name: '',
+    licenseNumber: '',
+    phone: '',
+    email: '',
+    status: 'Available',
   });
 
   useEffect(() => {
-    if (van) {
+    if (driver) {
       setFormData({
-        plateNumber: van.plateNumber,
-        carNumberPlate: van.carNumberPlate || '',
-        model: van.model,
-        status: van.status,
+        name: driver.name,
+        licenseNumber: driver.licenseNumber,
+        phone: driver.phone,
+        email: driver.email,
+        status: driver.status,
       });
     } else {
       setFormData({
-        plateNumber: '',
-        carNumberPlate: '',
-        model: '',
-        status: 'Active',
+        name: '',
+        licenseNumber: '',
+        phone: '',
+        email: '',
+        status: 'Available',
       });
     }
-  }, [van]);
+  }, [driver]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // In a real app, you would submit this data to your backend
-    console.log('Submitting van data:', formData);
+    console.log('Submitting driver data:', formData);
     onClose();
   };
 
@@ -48,40 +51,52 @@ const VanModal = ({ isOpen, onClose, van }) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {van ? 'Edit Van' : 'Add New Van'}
+            {driver ? 'Edit Driver' : 'Add New Driver'}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="plate-number">Plate Number</Label>
+            <Label htmlFor="name">Driver Name</Label>
             <Input
-              id="plate-number"
-              value={formData.plateNumber}
-              onChange={(e) => handleInputChange('plateNumber', e.target.value)}
-              placeholder="e.g., VAN-001"
+              id="name"
+              value={formData.name}
+              onChange={(e) => handleInputChange('name', e.target.value)}
+              placeholder="e.g., John Smith"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="car-number-plate">Car Number Plate</Label>
+            <Label htmlFor="license-number">License Number</Label>
             <Input
-              id="car-number-plate"
-              value={formData.carNumberPlate}
-              onChange={(e) => handleInputChange('carNumberPlate', e.target.value)}
-              placeholder="e.g., ABC-123"
+              id="license-number"
+              value={formData.licenseNumber}
+              onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
+              placeholder="e.g., DL123456789"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="model">Van Model</Label>
+            <Label htmlFor="phone">Phone Number</Label>
             <Input
-              id="model"
-              value={formData.model}
-              onChange={(e) => handleInputChange('model', e.target.value)}
-              placeholder="e.g., Ford Transit"
+              id="phone"
+              value={formData.phone}
+              onChange={(e) => handleInputChange('phone', e.target.value)}
+              placeholder="e.g., +1 (555) 123-4567"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="email">Email Address</Label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleInputChange('email', e.target.value)}
+              placeholder="e.g., john.smith@company.com"
               required
             />
           </div>
@@ -93,10 +108,9 @@ const VanModal = ({ isOpen, onClose, van }) => {
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="In Transit">In Transit</SelectItem>
-                <SelectItem value="Maintenance">Maintenance</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
+                <SelectItem value="Available">Available</SelectItem>
+                <SelectItem value="On Trip">On Trip</SelectItem>
+                <SelectItem value="Unavailable">Unavailable</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -106,7 +120,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
               Cancel
             </Button>
             <Button type="submit">
-              {van ? 'Update Van' : 'Create Van'}
+              {driver ? 'Update Driver' : 'Create Driver'}
             </Button>
           </div>
         </form>
@@ -115,4 +129,4 @@ const VanModal = ({ isOpen, onClose, van }) => {
   );
 };
 
-export default VanModal;
+export default DriverModal;

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, User } from 'lucide-react';
+import { Search, Car } from 'lucide-react';
 import VanModal from './VanModal';
 
 const Vans = () => {
@@ -17,8 +17,8 @@ const Vans = () => {
     {
       id: 1,
       plateNumber: 'VAN-001',
+      carNumberPlate: 'ABC-123',
       model: 'Ford Transit',
-      driver: 'John Smith',
       status: 'Active',
       totalTrips: 45,
       lastTrip: '2 hours ago',
@@ -27,8 +27,8 @@ const Vans = () => {
     {
       id: 2,
       plateNumber: 'VAN-002',
+      carNumberPlate: 'XYZ-456',
       model: 'Mercedes Sprinter',
-      driver: 'Sarah Johnson',
       status: 'In Transit',
       totalTrips: 38,
       lastTrip: '30 mins ago',
@@ -37,8 +37,8 @@ const Vans = () => {
     {
       id: 3,
       plateNumber: 'VAN-003',
+      carNumberPlate: 'DEF-789',
       model: 'Iveco Daily',
-      driver: 'Mike Wilson',
       status: 'Maintenance',
       totalTrips: 52,
       lastTrip: '1 day ago',
@@ -47,8 +47,8 @@ const Vans = () => {
     {
       id: 4,
       plateNumber: 'VAN-004',
+      carNumberPlate: 'GHI-012',
       model: 'Ford Transit',
-      driver: 'Lisa Chen',
       status: 'Active',
       totalTrips: 29,
       lastTrip: '1 hour ago',
@@ -58,7 +58,7 @@ const Vans = () => {
 
   const filteredVans = vans.filter(van =>
     van.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    van.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    van.carNumberPlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
     van.model.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
@@ -84,7 +84,7 @@ const Vans = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Vans & Drivers</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Vans Management</h1>
         <Button onClick={handleAddVan} className="mt-4 md:mt-0">
           Add New Van
         </Button>
@@ -96,7 +96,7 @@ const Vans = () => {
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by plate number, driver, or model..."
+              placeholder="Search by plate number, car number plate, or model..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
@@ -122,8 +122,8 @@ const Vans = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center space-x-2">
-                <User className="h-4 w-4 text-gray-500" />
-                <span className="text-sm font-medium">{van.driver}</span>
+                <Car className="h-4 w-4 text-gray-500" />
+                <span className="text-sm font-medium">{van.carNumberPlate}</span>
               </div>
               
               <div className="text-sm text-gray-600">

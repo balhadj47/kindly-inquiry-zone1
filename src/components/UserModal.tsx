@@ -27,6 +27,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     licenseNumber: '',
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   useEffect(() => {
     if (user) {
       setFormData({
@@ -51,22 +53,29 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     }
   }, [user, groups]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    const userData = {
-      ...formData,
-      createdAt: user?.createdAt || new Date().toISOString(),
-      licenseNumber: (formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') ? formData.licenseNumber : undefined,
-    };
+    try {
+      const userData = {
+        ...formData,
+        createdAt: user?.createdAt || new Date().toISOString(),
+        licenseNumber: (formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') ? formData.licenseNumber : undefined,
+      };
 
-    if (user) {
-      updateUser(user.id, userData);
-    } else {
-      addUser(userData);
+      if (user) {
+        await updateUser(user.id, userData);
+      } else {
+        await addUser(userData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving user:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -91,6 +100,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="e.g., Jean Dupont"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -103,6 +113,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               onChange={(e) => handleInputChange('email', e.target.value)}
               placeholder="e.g., jean.dupont@company.com"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -114,12 +125,13 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               onChange={(e) => handleInputChange('phone', e.target.value)}
               placeholder="e.g., +33 1 23 45 67 89"
               required
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>
-            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)}>
+            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Select role" />
               </SelectTrigger>
@@ -138,7 +150,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 
           <div className="space-y-2">
             <Label htmlFor="group">User Group</Label>
-            <Select value={formData.groupId} onValueChange={(value) => handleInputChange('groupId', value)}>
+            <Select value={formData.groupId} onValueChange={(value) => handleInputChange('groupId', value)} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Select group" />
               </SelectTrigger>
@@ -160,13 +172,14 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
                 value={formData.licenseNumber}
                 onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
                 placeholder="e.g., DL123456789"
+                disabled={isSubmitting}
               />
             </div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
+            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
@@ -179,11 +192,11 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              {user ? 'Update User' : 'Create User'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : (user ? 'Update User' : 'Create User')}
             </Button>
           </div>
         </form>

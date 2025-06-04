@@ -17,6 +17,7 @@ interface GroupPermissionsModalProps {
 const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, onClose, group }) => {
   const { permissions, updateGroup } = useRBAC();
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (group) {
@@ -24,14 +25,21 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
     }
   }, [group]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    if (group) {
-      updateGroup(group.id, { permissions: selectedPermissions });
+    try {
+      if (group) {
+        await updateGroup(group.id, { permissions: selectedPermissions });
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error updating permissions:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handlePermissionChange = (permissionId: string, checked: boolean) => {
@@ -88,6 +96,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
                         variant="outline"
                         size="sm"
                         onClick={() => handleSelectAll(category, categoryPermissions)}
+                        disabled={isSubmitting}
                       >
                         {allSelected ? 'Deselect All' : 'Select All'}
                       </Button>
@@ -102,6 +111,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
                           onCheckedChange={(checked) => 
                             handlePermissionChange(permission.id, checked as boolean)
                           }
+                          disabled={isSubmitting}
                         />
                         <div className="grid gap-1.5 leading-none">
                           <Label
@@ -127,11 +137,11 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
               {selectedPermissions.length} of {permissions.length} permissions selected
             </p>
             <div className="flex space-x-2">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
                 Cancel
               </Button>
-              <Button type="submit">
-                Save Permissions
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Saving...' : 'Save Permissions'}
               </Button>
             </div>
           </div>

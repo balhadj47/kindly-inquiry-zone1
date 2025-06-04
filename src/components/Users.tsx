@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings } from 'lucide-react';
+import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2 } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
@@ -19,7 +19,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   
-  const { users, groups, getUserGroup, hasPermission } = useRBAC();
+  const { users, groups, getUserGroup, hasPermission, loading } = useRBAC();
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,6 +60,15 @@ const Users = () => {
     setSelectedGroup(group);
     setIsPermissionsModalOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Loading users...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -179,6 +188,16 @@ const Users = () => {
               );
             })}
           </div>
+
+          {filteredUsers.length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                <p className="text-gray-500">Try adjusting your search terms or add a new user.</p>
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
 
         {hasPermission('users.manage_groups') && (
@@ -225,6 +244,16 @@ const Users = () => {
                 </Card>
               ))}
             </div>
+
+            {groups.length === 0 && (
+              <Card>
+                <CardContent className="text-center py-8">
+                  <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No groups found</h3>
+                  <p className="text-gray-500">Create your first user group to get started.</p>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         )}
       </Tabs>

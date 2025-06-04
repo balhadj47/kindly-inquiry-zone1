@@ -24,6 +24,8 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
     color: 'bg-blue-100 text-blue-800',
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const colorOptions = [
     { value: 'bg-blue-100 text-blue-800', label: 'Blue' },
     { value: 'bg-green-100 text-green-800', label: 'Green' },
@@ -49,21 +51,28 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
     }
   }, [group]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
     
-    const groupData = {
-      ...formData,
-      permissions: group?.permissions || [],
-    };
+    try {
+      const groupData = {
+        ...formData,
+        permissions: group?.permissions || [],
+      };
 
-    if (group) {
-      updateGroup(group.id, groupData);
-    } else {
-      addGroup(groupData);
+      if (group) {
+        await updateGroup(group.id, groupData);
+      } else {
+        await addGroup(groupData);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving group:', error);
+    } finally {
+      setIsSubmitting(false);
     }
-    
-    onClose();
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -88,6 +97,7 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
               onChange={(e) => handleInputChange('name', e.target.value)}
               placeholder="e.g., Managers"
               required
+              disabled={isSubmitting}
             />
           </div>
 
@@ -99,12 +109,13 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
               onChange={(e) => handleInputChange('description', e.target.value)}
               placeholder="e.g., Management team with elevated permissions"
               rows={3}
+              disabled={isSubmitting}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="color">Badge Color</Label>
-            <Select value={formData.color} onValueChange={(value) => handleInputChange('color', value)}>
+            <Select value={formData.color} onValueChange={(value) => handleInputChange('color', value)} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Select color" />
               </SelectTrigger>
@@ -122,11 +133,11 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
           </div>
 
           <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
-              {group ? 'Update Group' : 'Create Group'}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : (group ? 'Update Group' : 'Create Group')}
             </Button>
           </div>
         </form>

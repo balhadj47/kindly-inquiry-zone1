@@ -148,7 +148,7 @@ const Users = () => {
                       </div>
                     </div>
                     
-                    {user.role === 'Driver' && user.totalTrips && (
+                    {(user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé') && user.totalTrips && (
                       <div className="text-sm text-gray-600">
                         <p><span className="font-medium">Total Trips:</span> {user.totalTrips}</p>
                         <p><span className="font-medium">Last Trip:</span> {user.lastTrip}</p>

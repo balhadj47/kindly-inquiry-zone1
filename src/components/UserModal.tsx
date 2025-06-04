@@ -21,7 +21,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     name: '',
     email: '',
     phone: '',
-    role: 'Driver' as UserRole,
+    role: 'Chauffeur Armé' as UserRole,
     groupId: '',
     status: 'Active' as 'Active' | 'Inactive' | 'Suspended',
     licenseNumber: '',
@@ -43,7 +43,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         name: '',
         email: '',
         phone: '',
-        role: 'Driver',
+        role: 'Chauffeur Armé',
         groupId: groups.length > 0 ? groups[0].id : '',
         status: 'Active',
         licenseNumber: '',
@@ -57,7 +57,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     const userData = {
       ...formData,
       createdAt: user?.createdAt || new Date().toISOString(),
-      licenseNumber: formData.role === 'Driver' ? formData.licenseNumber : undefined,
+      licenseNumber: (formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') ? formData.licenseNumber : undefined,
     };
 
     if (user) {
@@ -89,7 +89,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               id="name"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="e.g., John Smith"
+              placeholder="e.g., Jean Dupont"
               required
             />
           </div>
@@ -101,7 +101,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               type="email"
               value={formData.email}
               onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="e.g., john.smith@company.com"
+              placeholder="e.g., jean.dupont@company.com"
               required
             />
           </div>
@@ -112,7 +112,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               id="phone"
               value={formData.phone}
               onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="e.g., +1 (555) 123-4567"
+              placeholder="e.g., +33 1 23 45 67 89"
               required
             />
           </div>
@@ -126,7 +126,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
               <SelectContent>
                 <SelectItem value="Administrator">Administrator</SelectItem>
                 <SelectItem value="Employee">Employee</SelectItem>
-                <SelectItem value="Driver">Driver</SelectItem>
+                <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
+                <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
+                <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
+                <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
+                <SelectItem value="APS Armé">APS Armé</SelectItem>
+                <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -147,7 +152,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
             </Select>
           </div>
 
-          {formData.role === 'Driver' && (
+          {(formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') && (
             <div className="space-y-2">
               <Label htmlFor="license-number">License Number</Label>
               <Input

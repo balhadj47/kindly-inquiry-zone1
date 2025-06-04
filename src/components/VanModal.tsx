@@ -45,51 +45,54 @@ const VanModal = ({ isOpen, onClose, van }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">
             {van ? 'Edit Van' : 'Add New Van'}
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="plate-number">Plate Number</Label>
+            <Label htmlFor="plate-number" className="text-sm sm:text-base">Plate Number</Label>
             <Input
               id="plate-number"
               value={formData.plateNumber}
               onChange={(e) => handleInputChange('plateNumber', e.target.value)}
               placeholder="e.g., VAN-001"
+              className="text-base touch-manipulation"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="car-number-plate">Car Number Plate</Label>
+            <Label htmlFor="car-number-plate" className="text-sm sm:text-base">Car Number Plate</Label>
             <Input
               id="car-number-plate"
               value={formData.carNumberPlate}
               onChange={(e) => handleInputChange('carNumberPlate', e.target.value)}
               placeholder="e.g., ABC-123"
+              className="text-base touch-manipulation"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="model">Van Model</Label>
+            <Label htmlFor="model" className="text-sm sm:text-base">Van Model</Label>
             <Input
               id="model"
               value={formData.model}
               onChange={(e) => handleInputChange('model', e.target.value)}
               placeholder="e.g., Ford Transit"
+              className="text-base touch-manipulation"
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
+            <Label htmlFor="status" className="text-sm sm:text-base">Status</Label>
             <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-              <SelectTrigger>
+              <SelectTrigger className="text-base touch-manipulation">
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
@@ -101,11 +104,21 @@ const VanModal = ({ isOpen, onClose, van }) => {
             </Select>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose}>
+          <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-2 pt-4">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={onClose}
+              className="order-2 sm:order-1 touch-manipulation"
+              size="lg"
+            >
               Cancel
             </Button>
-            <Button type="submit">
+            <Button 
+              type="submit"
+              className="order-1 sm:order-2 touch-manipulation"
+              size="lg"
+            >
               {van ? 'Update Van' : 'Create Van'}
             </Button>
           </div>

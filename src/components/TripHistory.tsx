@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,7 +83,7 @@ const TripHistory = () => {
   const getTimeAgo = (timestamp) => {
     const now = new Date();
     const tripTime = new Date(timestamp);
-    const diffInMinutes = Math.floor((now - tripTime) / (1000 * 60));
+    const diffInMinutes = Math.floor((now.getTime() - tripTime.getTime()) / (1000 * 60));
     
     if (diffInMinutes < 60) {
       return `${diffInMinutes} mins ago`;

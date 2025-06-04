@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Company as CompanyIcon } from 'lucide-react';
+import { Search, Building2 } from 'lucide-react';
 import CompanyModal from './CompanyModal';
 
 const Companies = () => {
@@ -82,7 +82,7 @@ const Companies = () => {
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
                 <div className="flex items-center space-x-2">
-                  <CompanyIcon className="h-5 w-5 text-blue-600" />
+                  <Building2 className="h-5 w-5 text-blue-600" />
                   <CardTitle className="text-lg">{company.name}</CardTitle>
                 </div>
                 <Button

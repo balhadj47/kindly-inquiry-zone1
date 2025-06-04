@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   Calendar, 
-  Company, 
+  Building2, 
   Database, 
   List, 
   Map as MapIcon,
@@ -24,7 +24,7 @@ const Sidebar = () => {
     {
       title: 'Companies',
       href: '/companies',
-      icon: Company,
+      icon: Building2,
     },
     {
       title: 'Vans & Drivers',

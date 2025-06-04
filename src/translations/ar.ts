@@ -6,6 +6,7 @@ export const ar: TranslationKeys = {
   dashboard: 'لوحة التحكم',
   companies: 'الشركات',
   vansDrivers: 'الشاحنات والسائقين',
+  users: 'المستخدمين',
   logTrip: 'تسجيل الرحلة',
   tripHistory: 'تاريخ الرحلات',
   

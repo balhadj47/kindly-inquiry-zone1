@@ -1,5 +1,5 @@
 
-export type UserRole = 'Administrator' | 'Employee' | 'Driver';
+export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
 
 export interface Permission {
   id: string;
@@ -70,15 +70,15 @@ export const DEFAULT_PERMISSIONS: Permission[] = [
 export const DEFAULT_GROUPS: UserGroup[] = [
   {
     id: 'admin',
-    name: 'Administrators',
-    description: 'Full system access with all permissions',
+    name: 'Administrateurs',
+    description: 'Accès complet au système avec toutes les permissions',
     color: 'bg-red-100 text-red-800',
     permissions: DEFAULT_PERMISSIONS.map(p => p.id),
   },
   {
     id: 'employee',
-    name: 'Employees',
-    description: 'Office staff with limited administrative access',
+    name: 'Employés',
+    description: 'Personnel de bureau avec accès administratif limité',
     color: 'bg-blue-100 text-blue-800',
     permissions: [
       'dashboard.view',
@@ -96,14 +96,81 @@ export const DEFAULT_GROUPS: UserGroup[] = [
     ],
   },
   {
-    id: 'driver',
-    name: 'Drivers',
-    description: 'Field staff with trip logging capabilities',
+    id: 'chef_groupe_arme',
+    name: 'Chef de Groupe Armé',
+    description: 'Chef d\'équipe avec responsabilités de sécurité armée',
+    color: 'bg-purple-100 text-purple-800',
+    permissions: [
+      'dashboard.view',
+      'dashboard.analytics',
+      'companies.view',
+      'vans.view',
+      'users.view',
+      'trips.view',
+      'trips.log',
+      'trips.edit',
+    ],
+  },
+  {
+    id: 'chef_groupe_sans_arme',
+    name: 'Chef de Groupe Sans Armé',
+    description: 'Chef d\'équipe avec responsabilités de sécurité non armée',
+    color: 'bg-indigo-100 text-indigo-800',
+    permissions: [
+      'dashboard.view',
+      'companies.view',
+      'vans.view',
+      'users.view',
+      'trips.view',
+      'trips.log',
+    ],
+  },
+  {
+    id: 'chauffeur_arme',
+    name: 'Chauffeur Armé',
+    description: 'Chauffeur avec certification de sécurité armée',
+    color: 'bg-orange-100 text-orange-800',
+    permissions: [
+      'dashboard.view',
+      'companies.view',
+      'vans.view',
+      'trips.view',
+      'trips.log',
+    ],
+  },
+  {
+    id: 'chauffeur_sans_arme',
+    name: 'Chauffeur Sans Armé',
+    description: 'Chauffeur standard sans certification armée',
     color: 'bg-green-100 text-green-800',
     permissions: [
       'dashboard.view',
       'companies.view',
       'vans.view',
+      'trips.view',
+      'trips.log',
+    ],
+  },
+  {
+    id: 'aps_arme',
+    name: 'APS Armé',
+    description: 'Agent de Protection et de Sécurité avec certification armée',
+    color: 'bg-yellow-100 text-yellow-800',
+    permissions: [
+      'dashboard.view',
+      'companies.view',
+      'trips.view',
+      'trips.log',
+    ],
+  },
+  {
+    id: 'aps_sans_arme',
+    name: 'APS Sans Armé',
+    description: 'Agent de Protection et de Sécurité sans certification armée',
+    color: 'bg-gray-100 text-gray-800',
+    permissions: [
+      'dashboard.view',
+      'companies.view',
       'trips.view',
       'trips.log',
     ],

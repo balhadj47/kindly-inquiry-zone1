@@ -6,6 +6,7 @@ export const en: TranslationKeys = {
   dashboard: 'Dashboard',
   companies: 'Companies',
   vansDrivers: 'Vans & Drivers',
+  users: 'Users',
   logTrip: 'Log Trip',
   tripHistory: 'Trip History',
   

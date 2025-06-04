@@ -6,6 +6,7 @@ export const fr: TranslationKeys = {
   dashboard: 'Tableau de Bord',
   companies: 'Entreprises',
   vansDrivers: 'Camionnettes et Chauffeurs',
+  users: 'Utilisateurs',
   logTrip: 'Enregistrer Voyage',
   tripHistory: 'Historique des Voyages',
   

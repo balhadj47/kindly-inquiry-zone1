@@ -15,21 +15,23 @@ import TripHistory from '@/components/TripHistory';
 const Index = () => {
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full bg-background">
         <AppSidebar />
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 flex flex-col">
           <TopBar />
-          <div className="p-3 sm:p-4 md:p-6">
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/companies" element={<Companies />} />
-              <Route path="/vans" element={<Vans />} />
-              <Route path="/drivers" element={<Drivers />} />
-              <Route path="/users" element={<Users />} />
-              <Route path="/trip-logger" element={<TripLogger />} />
-              <Route path="/trip-history" element={<TripHistory />} />
-            </Routes>
-          </div>
+          <main className="flex-1 overflow-auto">
+            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/companies" element={<Companies />} />
+                <Route path="/vans" element={<Vans />} />
+                <Route path="/drivers" element={<Drivers />} />
+                <Route path="/users" element={<Users />} />
+                <Route path="/trip-logger" element={<TripLogger />} />
+                <Route path="/trip-history" element={<TripHistory />} />
+              </Routes>
+            </div>
+          </main>
         </SidebarInset>
       </div>
     </SidebarProvider>

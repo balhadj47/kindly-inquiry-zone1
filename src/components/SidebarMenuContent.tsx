@@ -20,9 +20,9 @@ const SidebarMenuContent = () => {
     <>
       {/* Show debug info when no visible items */}
       {filteredMenuItems.length === 0 && (
-        <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg mb-4 group-data-[collapsible=icon]:hidden">
+        <div className="p-3 text-sm text-destructive bg-destructive/10 rounded-lg mb-4 group-data-[collapsible=icon]:hidden">
           <div className="font-medium mb-2">No menu items visible</div>
-          <div className="space-y-1 text-xs">
+          <div className="space-y-1 text-xs opacity-75">
             <div>User: {currentUser?.name || 'None'}</div>
             <div>Group: {currentUser?.groupId || 'None'}</div>
             <div>Groups loaded: {groups.length}</div>
@@ -30,7 +30,7 @@ const SidebarMenuContent = () => {
         </div>
       )}
       
-      <SidebarMenu className="space-y-1">
+      <SidebarMenu className="space-y-1 px-2">
         {filteredMenuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = location.pathname === item.href;
@@ -41,21 +41,25 @@ const SidebarMenuContent = () => {
                 asChild 
                 isActive={isActive} 
                 tooltip={item.title}
-                className="group relative hover:bg-sidebar-accent data-[active=true]:bg-sidebar-primary data-[active=true]:text-sidebar-primary-foreground transition-all duration-200"
+                className="relative group transition-colors duration-200 hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground"
               >
-                <Link to={item.href} className="flex items-center gap-3">
-                  <IconComponent className="h-4 w-4 flex-shrink-0" />
-                  <span className="flex-1 truncate">{item.title}</span>
+                <Link to={item.href} className="flex items-center gap-3 w-full">
+                  <div className="flex-shrink-0">
+                    <IconComponent className="h-4 w-4" />
+                  </div>
+                  <span className="flex-1 truncate group-data-[collapsible=icon]:hidden">
+                    {item.title}
+                  </span>
                   {item.badge && (
                     <Badge 
                       variant="secondary" 
-                      className="h-5 px-1.5 text-xs group-data-[collapsible=icon]:hidden"
+                      className="h-5 px-1.5 text-xs flex-shrink-0 group-data-[collapsible=icon]:hidden"
                     >
                       {item.badge}
                     </Badge>
                   )}
                   {isActive && (
-                    <ChevronRight className="h-3 w-3 flex-shrink-0 group-data-[collapsible=icon]:hidden" />
+                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-primary rounded-l-md group-data-[collapsible=icon]:hidden" />
                   )}
                 </Link>
               </SidebarMenuButton>

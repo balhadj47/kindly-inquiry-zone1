@@ -34,36 +34,48 @@ const Sidebar = () => {
       href: '/',
       icon: Database,
       permission: 'dashboard.view',
+      color: 'bg-blue-500',
+      hoverColor: 'hover:bg-blue-600',
     },
     {
       title: t.companies,
       href: '/companies',
       icon: Building2,
       permission: 'companies.view',
+      color: 'bg-purple-500',
+      hoverColor: 'hover:bg-purple-600',
     },
     {
       title: 'Vans',
       href: '/vans',
       icon: Car,
       permission: 'vans.view',
+      color: 'bg-green-500',
+      hoverColor: 'hover:bg-green-600',
     },
     {
       title: 'Users',
       href: '/users',
       icon: Users,
       permission: 'users.view',
+      color: 'bg-orange-500',
+      hoverColor: 'hover:bg-orange-600',
     },
     {
       title: t.logTrip,
       href: '/trip-logger',
       icon: MapIcon,
       permission: 'trips.log',
+      color: 'bg-red-500',
+      hoverColor: 'hover:bg-red-600',
     },
     {
       title: t.tripHistory,
       href: '/trip-history',
       icon: List,
       permission: 'trips.view',
+      color: 'bg-indigo-500',
+      hoverColor: 'hover:bg-indigo-600',
     },
   ];
 
@@ -119,17 +131,17 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <div className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300",
+        "fixed left-0 top-0 z-40 h-screen bg-gradient-to-b from-gray-50 to-gray-100 border-r border-gray-200 transition-all duration-300",
         // Desktop behavior
         "hidden lg:block",
-        isCollapsed ? "lg:w-16" : "lg:w-64",
+        isCollapsed ? "lg:w-20" : "lg:w-72",
         // Mobile behavior
         "lg:translate-x-0",
-        isMobileOpen ? "block w-64 translate-x-0" : "block w-64 -translate-x-full lg:translate-x-0"
+        isMobileOpen ? "block w-72 translate-x-0" : "block w-72 -translate-x-full lg:translate-x-0"
       )}>
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
           {!isCollapsed && (
-            <h1 className="text-lg sm:text-xl font-bold text-gray-800">Van Fleet</h1>
+            <h1 className="text-xl font-bold text-gray-800 tracking-tight">Van Fleet</h1>
           )}
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
@@ -139,7 +151,7 @@ const Sidebar = () => {
           </button>
         </div>
         
-        <nav className="mt-6">
+        <nav className="p-4 space-y-2">
           {/* Show debug info when no visible items */}
           {visibleMenuItems.length === 0 && (
             <div className="px-4 py-2 text-sm text-red-600">
@@ -160,13 +172,42 @@ const Sidebar = () => {
                 to={item.href}
                 onClick={handleLinkClick}
                 className={cn(
-                  "flex items-center px-4 py-4 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-colors touch-manipulation",
-                  isActive && "bg-blue-100 text-blue-600 border-r-2 border-blue-600",
-                  isCollapsed && "lg:justify-center lg:px-2"
+                  "group relative flex items-center p-3 rounded-xl transition-all duration-200 transform hover:scale-105",
+                  isActive 
+                    ? "bg-white shadow-lg border border-gray-200" 
+                    : "hover:bg-white hover:shadow-md",
+                  isCollapsed && "lg:justify-center lg:px-3"
                 )}
               >
-                <IconComponent className="h-5 w-5 flex-shrink-0" />
-                {(!isCollapsed || isMobileOpen) && <span className="ml-3 text-sm sm:text-base">{item.title}</span>}
+                {/* Icon background circle */}
+                <div className={cn(
+                  "flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-200",
+                  isActive 
+                    ? cn(item.color, "text-white shadow-md") 
+                    : cn("bg-gray-200 text-gray-600 group-hover:bg-gray-300")
+                )}>
+                  <IconComponent className="h-5 w-5" />
+                </div>
+                
+                {/* Active indicator */}
+                {isActive && (
+                  <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full"></div>
+                )}
+                
+                {/* Text content */}
+                {(!isCollapsed || isMobileOpen) && (
+                  <div className="ml-4 flex-1">
+                    <span className={cn(
+                      "text-sm font-medium transition-colors duration-200",
+                      isActive ? "text-gray-900" : "text-gray-700 group-hover:text-gray-900"
+                    )}>
+                      {item.title}
+                    </span>
+                  </div>
+                )}
+                
+                {/* Hover effect overlay */}
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent to-gray-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
               </Link>
             );
           })}

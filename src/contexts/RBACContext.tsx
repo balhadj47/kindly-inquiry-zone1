@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserGroup, Permission, DEFAULT_PERMISSIONS, DEFAULT_GROUPS } from '@/types/rbac';
 import { supabase } from '@/integrations/supabase/client';
@@ -39,9 +38,9 @@ const DEMO_ADMIN_USER: User = {
   name: 'Admin User',
   email: 'admin@company.com',
   phone: '+1234567890',
-  role: 'admin',
+  role: 'Administrator',
   groupId: 'admin',
-  status: 'active',
+  status: 'Active',
   createdAt: new Date().toISOString(),
 };
 
@@ -79,7 +78,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUsers(dbUsers);
         setGroups(dbGroups);
         // Set the first admin user as current user
-        const adminUser = dbUsers.find(user => user.role === 'admin') || dbUsers[0];
+        const adminUser = dbUsers.find(user => user.role === 'Administrator') || dbUsers[0];
         if (adminUser) {
           setCurrentUser(adminUser);
         }

@@ -5,6 +5,7 @@ import Sidebar from '@/components/Sidebar';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
+import Drivers from '@/components/Drivers';
 import Users from '@/components/Users';
 import TripLogger from '@/components/TripLogger';
 import TripHistory from '@/components/TripHistory';
@@ -19,6 +20,7 @@ const Index = () => {
             <Route path="/" element={<Dashboard />} />
             <Route path="/companies" element={<Companies />} />
             <Route path="/vans" element={<Vans />} />
+            <Route path="/drivers" element={<Drivers />} />
             <Route path="/users" element={<Users />} />
             <Route path="/trip-logger" element={<TripLogger />} />
             <Route path="/trip-history" element={<TripHistory />} />

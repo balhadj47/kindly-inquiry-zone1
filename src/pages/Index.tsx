@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
@@ -11,6 +10,7 @@ import Drivers from '@/components/Drivers';
 import Users from '@/components/Users';
 import TripLogger from '@/components/TripLogger';
 import TripHistory from '@/components/TripHistory';
+import UserSettings from '../pages/UserSettings';
 
 const Index = () => {
   return (
@@ -28,6 +28,7 @@ const Index = () => {
               <Route path="/users" element={<Users />} />
               <Route path="/trip-logger" element={<TripLogger />} />
               <Route path="/trip-history" element={<TripHistory />} />
+              <Route path="/settings" element={<UserSettings />} />
             </Routes>
           </main>
         </SidebarInset>

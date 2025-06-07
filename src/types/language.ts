@@ -9,6 +9,7 @@ export interface TranslationKeys {
   users: string;
   logTrip: string;
   tripHistory: string;
+  settings: string;
   
   // Common
   search: string;

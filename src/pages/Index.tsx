@@ -11,9 +11,9 @@ import TripHistory from '@/components/TripHistory';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gray-50 flex">
+    <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="flex-1 ml-0 lg:ml-64 transition-all duration-300">
+      <main className="pt-16">
         <div className="p-3 sm:p-4 md:p-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />

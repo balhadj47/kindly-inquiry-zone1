@@ -20,13 +20,14 @@ export const useVans = () => {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('vans')
+          .from('vans' as any)
           .select('*');
 
         if (error) throw error;
 
         setVans(data || []);
       } catch (err) {
+        console.error('Error fetching vans:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);

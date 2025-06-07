@@ -45,14 +45,14 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('trips')
+          .from('trips' as any)
           .select('*')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
 
         // Transform database data to match our Trip interface
-        const transformedTrips = data.map(trip => ({
+        const transformedTrips = (data || []).map((trip: any) => ({
           id: trip.id,
           van: trip.van,
           driver: trip.driver,
@@ -65,6 +65,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
 
         setTrips(transformedTrips);
       } catch (err) {
+        console.error('Error fetching trips:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
       } finally {
         setLoading(false);
@@ -77,7 +78,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
     try {
       const { data, error } = await supabase
-        .from('trips')
+        .from('trips' as any)
         .insert({
           van: tripData.van,
           driver: tripData.driver,
@@ -92,19 +93,22 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       if (error) throw error;
 
       // Transform and add the new trip to the local state
-      const newTrip: Trip = {
-        id: data.id,
-        van: data.van,
-        driver: data.driver,
-        company: data.company,
-        branch: data.branch,
-        timestamp: data.created_at,
-        notes: data.notes || '',
-        userIds: data.user_ids || []
-      };
+      if (data) {
+        const newTrip: Trip = {
+          id: data.id,
+          van: data.van,
+          driver: data.driver,
+          company: data.company,
+          branch: data.branch,
+          timestamp: data.created_at,
+          notes: data.notes || '',
+          userIds: data.user_ids || []
+        };
 
-      setTrips(prevTrips => [newTrip, ...prevTrips]);
+        setTrips(prevTrips => [newTrip, ...prevTrips]);
+      }
     } catch (err) {
+      console.error('Error adding trip:', err);
       setError(err instanceof Error ? err.message : 'Failed to add trip');
       throw err;
     }

@@ -16,7 +16,7 @@ const Index = () => {
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset className="flex-1">
           <div className="p-3 sm:p-4 md:p-6">
             <Routes>
               <Route path="/" element={<Dashboard />} />

@@ -1,3 +1,4 @@
+
 import { TranslationKeys } from '@/types/language';
 
 export const en: TranslationKeys = {
@@ -60,5 +61,13 @@ export const en: TranslationKeys = {
     minsAgo: 'mins ago',
     hoursAgo: 'hours ago',
     daysAgo: 'days ago',
+  },
+  
+  // User Status
+  userStatus: {
+    active: 'Active',
+    recovery: 'Recovery',
+    leave: 'Leave',
+    sickLeave: 'Sick Leave',
   },
 };

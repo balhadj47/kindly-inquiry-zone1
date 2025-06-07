@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2 } from 'lucide-react';
+import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2, Trash2 } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
@@ -19,7 +19,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   
-  const { users, groups, getUserGroup, hasPermission, loading } = useRBAC();
+  const { users, groups, getUserGroup, hasPermission, loading, deleteGroup } = useRBAC();
 
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -63,6 +63,27 @@ const Users = () => {
   const handleManagePermissions = (group) => {
     setSelectedGroup(group);
     setIsPermissionsModalOpen(true);
+  };
+
+  const handleDeleteGroup = async (group) => {
+    // Check if any users are assigned to this group
+    const usersInGroup = users.filter(user => user.groupId === group.id);
+    
+    if (usersInGroup.length > 0) {
+      alert(`Cannot delete group "${group.name}" because it has ${usersInGroup.length} user(s) assigned to it. Please reassign these users to another group first.`);
+      return;
+    }
+
+    // Prevent deletion of default groups
+    const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
+    if (defaultGroupIds.includes(group.id)) {
+      alert(`Cannot delete the default group "${group.name}".`);
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete the group "${group.name}"? This action cannot be undone.`)) {
+      await deleteGroup(group.id);
+    }
   };
 
   if (loading) {
@@ -207,46 +228,72 @@ const Users = () => {
         {hasPermission('users.manage_groups') && (
           <TabsContent value="groups" className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {groups.map((group) => (
-                <Card key={group.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <CardTitle className="text-lg">{group.name}</CardTitle>
-                        <p className="text-sm text-gray-600">{group.description}</p>
+              {groups.map((group) => {
+                const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
+                const isDefaultGroup = defaultGroupIds.includes(group.id);
+                const usersInGroup = users.filter(u => u.groupId === group.id).length;
+                const canDelete = !isDefaultGroup && usersInGroup === 0;
+
+                return (
+                  <Card key={group.id} className="hover:shadow-lg transition-shadow">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg">{group.name}</CardTitle>
+                          <p className="text-sm text-gray-600">{group.description}</p>
+                        </div>
+                        <Badge className={group.color}>
+                          {usersInGroup} users
+                        </Badge>
                       </div>
-                      <Badge className={group.color}>
-                        {users.filter(u => u.groupId === group.id).length} users
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="text-sm text-gray-600">
-                      <p><span className="font-medium">Permissions:</span> {group.permissions.length}</p>
-                    </div>
-                    
-                    <div className="flex space-x-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditGroup(group)}
-                        className="flex-1"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleManagePermissions(group)}
-                        className="flex-1"
-                      >
-                        <Settings className="h-4 w-4 mr-1" />
-                        Permissions
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="text-sm text-gray-600">
+                        <p><span className="font-medium">Permissions:</span> {group.permissions.length}</p>
+                      </div>
+                      
+                      <div className="flex space-x-2 pt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditGroup(group)}
+                          className="flex-1"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleManagePermissions(group)}
+                          className="flex-1"
+                        >
+                          <Settings className="h-4 w-4 mr-1" />
+                          Permissions
+                        </Button>
+                        {canDelete && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteGroup(group)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      {!canDelete && (
+                        <p className="text-xs text-gray-500 mt-2">
+                          {isDefaultGroup 
+                            ? "This is a default group and cannot be deleted."
+                            : `Cannot delete: ${usersInGroup} user(s) assigned to this group.`
+                          }
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
 
             {groups.length === 0 && (

@@ -14,7 +14,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Sidebar />
-      <main className="pt-16">
+      <main className="pt-16 md:pl-64">
         <div className="p-3 sm:p-4 md:p-6">
           <Routes>
             <Route path="/" element={<Dashboard />} />

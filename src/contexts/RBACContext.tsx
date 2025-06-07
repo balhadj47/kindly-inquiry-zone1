@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserGroup, Permission, DEFAULT_PERMISSIONS, DEFAULT_GROUPS } from '@/types/rbac';
+import { User, UserGroup, Permission, DEFAULT_PERMISSIONS } from '@/types/rbac';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -32,6 +32,17 @@ export const useRBAC = () => {
   return context;
 };
 
+// Only admin group as default
+const DEFAULT_GROUPS: UserGroup[] = [
+  {
+    id: 'admin',
+    name: 'Administrateurs',
+    description: 'Accès complet au système avec toutes les permissions',
+    color: 'bg-red-100 text-red-800',
+    permissions: DEFAULT_PERMISSIONS.map(p => p.id),
+  },
+];
+
 // Demo data for fallback
 const DEMO_ADMIN_USER: User = {
   id: 1,
@@ -44,9 +55,8 @@ const DEMO_ADMIN_USER: User = {
   createdAt: new Date().toISOString(),
 };
 
-// Algerian sample users for each group
+// All sample users now assigned to admin group only
 const SAMPLE_ARABIC_USERS: User[] = [
-  // Administrators
   {
     id: 2,
     name: 'Ahmed Mohamed Benali',
@@ -67,14 +77,13 @@ const SAMPLE_ARABIC_USERS: User[] = [
     status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
-  // Employees
   {
     id: 4,
     name: 'Khaled Abderrahmane',
     email: 'khaled.abderrahmane@company.com',
     phone: '+966502345678',
     role: 'Employee',
-    groupId: 'employee',
+    groupId: 'admin',
     status: 'Active',
     createdAt: new Date().toISOString(),
   },
@@ -84,18 +93,17 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'nora.boukhari@company.com',
     phone: '+966508765432',
     role: 'Employee',
-    groupId: 'employee',
+    groupId: 'admin',
     status: 'Congé',
     createdAt: new Date().toISOString(),
   },
-  // Chef de Groupe Armé
   {
     id: 6,
     name: 'Abdellah Mohamed Hamdani',
     email: 'abdellah.hamdani@company.com',
     phone: '+966503456789',
     role: 'Chef de Groupe Armé',
-    groupId: 'chef_groupe_arme',
+    groupId: 'admin',
     status: 'Active',
     createdAt: new Date().toISOString(),
   },
@@ -105,18 +113,17 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'sarah.mansouri@company.com',
     phone: '+966509876543',
     role: 'Chef de Groupe Armé',
-    groupId: 'chef_groupe_arme',
+    groupId: 'admin',
     status: 'Congé maladie',
     createdAt: new Date().toISOString(),
   },
-  // Chef de Groupe Sans Armé
   {
     id: 8,
     name: 'Mohamed Ali Benaissa',
     email: 'mohammed.benaissa@company.com',
     phone: '+966504567890',
     role: 'Chef de Groupe Sans Armé',
-    groupId: 'chef_groupe_sans_arme',
+    groupId: 'admin',
     status: 'Active',
     createdAt: new Date().toISOString(),
   },
@@ -126,18 +133,17 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'amina.belkacem@company.com',
     phone: '+966500987654',
     role: 'Chef de Groupe Sans Armé',
-    groupId: 'chef_groupe_sans_arme',
+    groupId: 'admin',
     status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
-  // Chauffeur Armé
   {
     id: 10,
     name: 'Omar Said Meziane',
     email: 'omar.meziane@company.com',
     phone: '+966505678901',
     role: 'Chauffeur Armé',
-    groupId: 'chauffeur_arme',
+    groupId: 'admin',
     status: 'Active',
     licenseNumber: 'DL-AR-001234',
     totalTrips: 45,
@@ -150,21 +156,20 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'leila.boudjemaa@company.com',
     phone: '+966501098765',
     role: 'Chauffeur Armé',
-    groupId: 'chauffeur_arme',
+    groupId: 'admin',
     status: 'Congé',
     licenseNumber: 'DL-AR-005678',
     totalTrips: 38,
     lastTrip: '2024-01-18',
     createdAt: new Date().toISOString(),
   },
-  // Chauffeur Sans Armé
   {
     id: 12,
     name: 'Youcef Ibrahim Belaidi',
     email: 'youcef.belaidi@company.com',
     phone: '+966506789012',
     role: 'Chauffeur Sans Armé',
-    groupId: 'chauffeur_sans_arme',
+    groupId: 'admin',
     status: 'Active',
     licenseNumber: 'DL-SA-009876',
     totalTrips: 52,
@@ -177,21 +182,20 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'houda.cherif@company.com',
     phone: '+966502109876',
     role: 'Chauffeur Sans Armé',
-    groupId: 'chauffeur_sans_arme',
+    groupId: 'admin',
     status: 'Congé maladie',
     licenseNumber: 'DL-SA-543210',
     totalTrips: 29,
     lastTrip: '2024-01-17',
     createdAt: new Date().toISOString(),
   },
-  // APS Armé
   {
     id: 14,
     name: 'Slimane Rachid Benamar',
     email: 'slimane.benamar@company.com',
     phone: '+966507890123',
     role: 'APS Armé',
-    groupId: 'aps_arme',
+    groupId: 'admin',
     status: 'Active',
     createdAt: new Date().toISOString(),
   },
@@ -201,18 +205,17 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'rim.kadri@company.com',
     phone: '+966503210987',
     role: 'APS Armé',
-    groupId: 'aps_arme',
+    groupId: 'admin',
     status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
-  // APS Sans Armé
   {
     id: 16,
     name: 'Hocine Abdellah Hamidi',
     email: 'hocine.hamidi@company.com',
     phone: '+966508901234',
     role: 'APS Sans Armé',
-    groupId: 'aps_sans_arme',
+    groupId: 'admin',
     status: 'Active',
     createdAt: new Date().toISOString(),
   },
@@ -222,7 +225,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     email: 'mona.touati@company.com',
     phone: '+966504321098',
     role: 'APS Sans Armé',
-    groupId: 'aps_sans_arme',
+    groupId: 'admin',
     status: 'Congé',
     createdAt: new Date().toISOString(),
   },
@@ -252,9 +255,9 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchGroupsFromDB()
       ]);
       
-      // If database is empty or has issues, use demo data with Arabic users
+      // If database is empty or has issues, use demo data with only admin group
       if (dbUsers.length === 0 || dbGroups.length === 0) {
-        console.log('Database is empty or has issues, using demo data with Arabic users...');
+        console.log('Database is empty or has issues, using demo data with admin group only...');
         const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS];
         setUsers(allDemoUsers);
         setGroups(DEFAULT_GROUPS);

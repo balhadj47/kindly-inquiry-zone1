@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRBAC } from '@/contexts/RBACContext';
-import { User, UserRole } from '@/types/rbac';
+import { User, UserRole, UserStatus } from '@/types/rbac';
 
 interface UserModalProps {
   isOpen: boolean;
@@ -23,7 +23,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     phone: '',
     role: 'Chauffeur Armé' as UserRole,
     groupId: '',
-    status: 'Active' as 'Active' | 'Inactive' | 'Suspended',
+    status: 'Active' as UserStatus,
     licenseNumber: '',
   });
 
@@ -41,12 +41,13 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: user.licenseNumber || '',
       });
     } else {
+      // Default to admin group only
       setFormData({
         name: '',
         email: '',
         phone: '',
-        role: 'Chauffeur Armé',
-        groupId: groups.length > 0 ? groups[0].id : '',
+        role: 'Administrator',
+        groupId: 'admin',
         status: 'Active',
         licenseNumber: '',
       });
@@ -155,11 +156,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
                 <SelectValue placeholder="Select group" />
               </SelectTrigger>
               <SelectContent>
-                {groups.map((group) => (
-                  <SelectItem key={group.id} value={group.id}>
-                    {group.name}
-                  </SelectItem>
-                ))}
+                {/* Only show admin group as default option */}
+                <SelectItem value="admin">Administrateurs</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -179,14 +177,15 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)} disabled={isSubmitting}>
+            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value as UserStatus)} disabled={isSubmitting}>
               <SelectTrigger>
                 <SelectValue placeholder="Select status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Active">Active</SelectItem>
-                <SelectItem value="Inactive">Inactive</SelectItem>
-                <SelectItem value="Suspended">Suspended</SelectItem>
+                <SelectItem value="Récupération">Récupération</SelectItem>
+                <SelectItem value="Congé">Congé</SelectItem>
+                <SelectItem value="Congé maladie">Congé maladie</SelectItem>
               </SelectContent>
             </Select>
           </div>

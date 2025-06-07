@@ -1,12 +1,11 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { MapIcon, Clock, Users } from 'lucide-react';
+import { MapIcon, Clock, Users, Search } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTripContext } from '@/contexts/TripContext';
@@ -19,6 +18,7 @@ const TripLogger = () => {
     branchId: '',
     notes: '',
   });
+  const [userSearchQuery, setUserSearchQuery] = useState('');
   const { t } = useLanguage();
   const { addTrip, trips } = useTripContext();
 
@@ -52,6 +52,16 @@ const TripLogger = () => {
     '2': ['South Branch', 'East Terminal'],
     '3': ['West Warehouse', 'Central Hub', 'Port Office', 'Airport Branch'],
   };
+
+  // Filter users based on search query
+  const filteredUsers = useMemo(() => {
+    if (!userSearchQuery.trim()) {
+      return users;
+    }
+    return users.filter(user => 
+      user.name.toLowerCase().includes(userSearchQuery.toLowerCase())
+    );
+  }, [userSearchQuery]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -105,6 +115,7 @@ const TripLogger = () => {
       branchId: '',
       notes: '',
     });
+    setUserSearchQuery('');
   };
 
   const handleInputChange = (field, value) => {
@@ -179,28 +190,53 @@ const TripLogger = () => {
                 <Users className="h-4 w-4" />
                 <span>Select Users ({formData.selectedUserIds.length} selected)</span>
               </Label>
-              <div className="max-h-48 overflow-y-auto border rounded-md p-3 space-y-3">
-                {users.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-3">
-                    <Checkbox
-                      id={`user-${user.id}`}
-                      checked={formData.selectedUserIds.includes(user.id)}
-                      onCheckedChange={(checked) => handleUserSelection(user.id, checked)}
-                    />
-                    <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <span className="font-medium">{user.name}</span>
-                          <span className="text-sm text-gray-500 ml-2">({user.role})</span>
-                        </div>
-                        {user.licenseNumber && (
-                          <span className="text-xs text-gray-400">{user.licenseNumber}</span>
-                        )}
-                      </div>
-                    </label>
-                  </div>
-                ))}
+              
+              {/* User Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search users by name..."
+                  value={userSearchQuery}
+                  onChange={(e) => setUserSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
               </div>
+
+              <div className="max-h-48 overflow-y-auto border rounded-md p-3 space-y-3">
+                {filteredUsers.length === 0 ? (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
+                  </p>
+                ) : (
+                  filteredUsers.map((user) => (
+                    <div key={user.id} className="flex items-center space-x-3">
+                      <Checkbox
+                        id={`user-${user.id}`}
+                        checked={formData.selectedUserIds.includes(user.id)}
+                        onCheckedChange={(checked) => handleUserSelection(user.id, checked)}
+                      />
+                      <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <span className="font-medium">{user.name}</span>
+                            <span className="text-sm text-gray-500 ml-2">({user.role})</span>
+                          </div>
+                          {user.licenseNumber && (
+                            <span className="text-xs text-gray-400">{user.licenseNumber}</span>
+                          )}
+                        </div>
+                      </label>
+                    </div>
+                  ))
+                )}
+              </div>
+              
+              {userSearchQuery && (
+                <p className="text-xs text-gray-500">
+                  Showing {filteredUsers.length} of {users.length} users
+                </p>
+              )}
+              
               {formData.selectedUserIds.length === 0 && (
                 <p className="text-sm text-gray-500">Please select at least one user for the trip.</p>
               )}

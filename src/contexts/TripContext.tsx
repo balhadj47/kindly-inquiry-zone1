@@ -45,7 +45,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('trips' as any)
+          .from('trips')
           .select('*')
           .order('created_at', { ascending: false });
 
@@ -78,7 +78,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
     try {
       const { data, error } = await supabase
-        .from('trips' as any)
+        .from('trips')
         .insert({
           van: tripData.van,
           driver: tripData.driver,

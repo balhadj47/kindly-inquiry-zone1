@@ -26,14 +26,14 @@ export const useCompanies = () => {
         
         // Fetch companies
         const { data: companiesData, error: companiesError } = await supabase
-          .from('companies' as any)
+          .from('companies')
           .select('*');
 
         if (companiesError) throw companiesError;
 
         // Fetch branches
         const { data: branchesData, error: branchesError } = await supabase
-          .from('branches' as any)
+          .from('branches')
           .select('*');
 
         if (branchesError) throw branchesError;

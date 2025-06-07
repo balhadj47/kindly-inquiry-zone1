@@ -44,6 +44,190 @@ const DEMO_ADMIN_USER: User = {
   createdAt: new Date().toISOString(),
 };
 
+// Arabic sample users for each group
+const SAMPLE_ARABIC_USERS: User[] = [
+  // Administrators
+  {
+    id: 2,
+    name: 'أحمد محمد العلي',
+    email: 'ahmed.ali@company.com',
+    phone: '+966501234567',
+    role: 'Administrator',
+    groupId: 'admin',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 3,
+    name: 'فاطمة سالم النور',
+    email: 'fatima.nour@company.com',
+    phone: '+966507654321',
+    role: 'Administrator',
+    groupId: 'admin',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  // Employees
+  {
+    id: 4,
+    name: 'خالد عبد الرحمن',
+    email: 'khalid.abdulrahman@company.com',
+    phone: '+966502345678',
+    role: 'Employee',
+    groupId: 'employee',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 5,
+    name: 'نورا أحمد الزهراني',
+    email: 'nora.zahrani@company.com',
+    phone: '+966508765432',
+    role: 'Employee',
+    groupId: 'employee',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  // Chef de Groupe Armé
+  {
+    id: 6,
+    name: 'عبد الله محمد الحربي',
+    email: 'abdullah.harbi@company.com',
+    phone: '+966503456789',
+    role: 'Chef de Groupe Armé',
+    groupId: 'chef_groupe_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 7,
+    name: 'سارة يوسف القحطاني',
+    email: 'sara.qahtani@company.com',
+    phone: '+966509876543',
+    role: 'Chef de Groupe Armé',
+    groupId: 'chef_groupe_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  // Chef de Groupe Sans Armé
+  {
+    id: 8,
+    name: 'محمد علي السلمي',
+    email: 'mohammed.selmi@company.com',
+    phone: '+966504567890',
+    role: 'Chef de Groupe Sans Armé',
+    groupId: 'chef_groupe_sans_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 9,
+    name: 'آمنة حسن الشهري',
+    email: 'amna.shahri@company.com',
+    phone: '+966500987654',
+    role: 'Chef de Groupe Sans Armé',
+    groupId: 'chef_groupe_sans_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  // Chauffeur Armé
+  {
+    id: 10,
+    name: 'عمر سعد الغامدي',
+    email: 'omar.ghamdi@company.com',
+    phone: '+966505678901',
+    role: 'Chauffeur Armé',
+    groupId: 'chauffeur_arme',
+    status: 'Active',
+    licenseNumber: 'DL-AR-001234',
+    totalTrips: 45,
+    lastTrip: '2024-01-15',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 11,
+    name: 'ليلى عبد العزيز',
+    email: 'layla.abdulaziz@company.com',
+    phone: '+966501098765',
+    role: 'Chauffeur Armé',
+    groupId: 'chauffeur_arme',
+    status: 'Active',
+    licenseNumber: 'DL-AR-005678',
+    totalTrips: 38,
+    lastTrip: '2024-01-18',
+    createdAt: new Date().toISOString(),
+  },
+  // Chauffeur Sans Armé
+  {
+    id: 12,
+    name: 'يوسف إبراهيم العتيبي',
+    email: 'youssef.otaibi@company.com',
+    phone: '+966506789012',
+    role: 'Chauffeur Sans Armé',
+    groupId: 'chauffeur_sans_arme',
+    status: 'Active',
+    licenseNumber: 'DL-SA-009876',
+    totalTrips: 52,
+    lastTrip: '2024-01-20',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 13,
+    name: 'هدى محمد البقمي',
+    email: 'huda.bogmi@company.com',
+    phone: '+966502109876',
+    role: 'Chauffeur Sans Armé',
+    groupId: 'chauffeur_sans_arme',
+    status: 'Active',
+    licenseNumber: 'DL-SA-543210',
+    totalTrips: 29,
+    lastTrip: '2024-01-17',
+    createdAt: new Date().toISOString(),
+  },
+  // APS Armé
+  {
+    id: 14,
+    name: 'سلمان راشد الدوسري',
+    email: 'salman.dosari@company.com',
+    phone: '+966507890123',
+    role: 'APS Armé',
+    groupId: 'aps_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 15,
+    name: 'ريم سليمان المطيري',
+    email: 'reem.mutairi@company.com',
+    phone: '+966503210987',
+    role: 'APS Armé',
+    groupId: 'aps_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  // APS Sans Armé
+  {
+    id: 16,
+    name: 'حسام عبد الله الجهني',
+    email: 'hussam.johani@company.com',
+    phone: '+966508901234',
+    role: 'APS Sans Armé',
+    groupId: 'aps_sans_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+  {
+    id: 17,
+    name: 'منى أحمد الشمري',
+    email: 'mona.shamri@company.com',
+    phone: '+966504321098',
+    role: 'APS Sans Armé',
+    groupId: 'aps_sans_arme',
+    status: 'Active',
+    createdAt: new Date().toISOString(),
+  },
+];
+
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -68,10 +252,11 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         fetchGroupsFromDB()
       ]);
       
-      // If database is empty or has issues, use demo data
+      // If database is empty or has issues, use demo data with Arabic users
       if (dbUsers.length === 0 || dbGroups.length === 0) {
-        console.log('Database is empty or has issues, using demo data...');
-        setUsers([DEMO_ADMIN_USER]);
+        console.log('Database is empty or has issues, using demo data with Arabic users...');
+        const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS];
+        setUsers(allDemoUsers);
         setGroups(DEFAULT_GROUPS);
         setCurrentUser(DEMO_ADMIN_USER);
       } else {
@@ -88,7 +273,8 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error loading initial data, using demo data:', error);
       // Fallback to demo data on any error
-      setUsers([DEMO_ADMIN_USER]);
+      const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS];
+      setUsers(allDemoUsers);
       setGroups(DEFAULT_GROUPS);
       setCurrentUser(DEMO_ADMIN_USER);
     } finally {

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +26,7 @@ const TripLoggerForm = () => {
     if (!formData.vanId || !formData.companyId || !formData.branchId) {
       toast({
         title: t.error,
-        description: t.fillRequiredFields,
+        description: "Please fill in all required fields",
         variant: "destructive",
       });
       return;
@@ -63,7 +64,7 @@ const TripLoggerForm = () => {
       company: selectedCompany.name,
       branch: selectedBranch.name,
       notes: formData.notes,
-      userIds: formData.selectedUserIds, // Include userIds to fix the build error
+      userIds: formData.selectedUserIds,
     };
 
     addTrip(tripData);
@@ -71,7 +72,7 @@ const TripLoggerForm = () => {
     
     toast({
       title: t.success,
-      description: t.tripLoggedSuccessfully,
+      description: "Trip logged successfully",
     });
   };
 
@@ -139,13 +140,15 @@ const TripLoggerForm = () => {
           <UserSelectionSection
             selectedUserIds={formData.selectedUserIds}
             onUserSelection={handleUserSelection}
+            userSearchQuery=""
+            setUserSearchQuery={() => {}}
           />
 
           <div>
             <Label htmlFor="notes">{t.notes}</Label>
             <Textarea
               id="notes"
-              placeholder={t.addNotesOptional}
+              placeholder="Add notes (optional)"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               rows={3}

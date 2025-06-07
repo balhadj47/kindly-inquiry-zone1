@@ -1,12 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import CurrentTimeCard from './CurrentTimeCard';
 import TripLoggerForm from './TripLoggerForm';
 import QuickStatsSection from './QuickStatsSection';
 
 const TripLogger = () => {
-  const [userSearchQuery, setUserSearchQuery] = useState('');
   const { t } = useLanguage();
 
   return (
@@ -18,10 +17,7 @@ const TripLogger = () => {
 
       <CurrentTimeCard />
 
-      <TripLoggerForm 
-        userSearchQuery={userSearchQuery}
-        setUserSearchQuery={setUserSearchQuery}
-      />
+      <TripLoggerForm />
 
       <QuickStatsSection />
     </div>

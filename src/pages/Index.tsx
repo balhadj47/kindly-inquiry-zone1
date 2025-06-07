@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
@@ -19,18 +19,16 @@ const Index = () => {
         <AppSidebar />
         <SidebarInset className="flex-1 flex flex-col">
           <TopBar />
-          <main className="flex-1 overflow-auto">
-            <div className="container mx-auto p-4 sm:p-6 lg:p-8">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/companies" element={<Companies />} />
-                <Route path="/vans" element={<Vans />} />
-                <Route path="/drivers" element={<Drivers />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/trip-logger" element={<TripLogger />} />
-                <Route path="/trip-history" element={<TripHistory />} />
-              </Routes>
-            </div>
+          <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/companies" element={<Companies />} />
+              <Route path="/vans" element={<Vans />} />
+              <Route path="/drivers" element={<Drivers />} />
+              <Route path="/users" element={<Users />} />
+              <Route path="/trip-logger" element={<TripLogger />} />
+              <Route path="/trip-history" element={<TripHistory />} />
+            </Routes>
           </main>
         </SidebarInset>
       </div>

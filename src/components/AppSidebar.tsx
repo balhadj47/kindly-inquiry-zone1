@@ -23,9 +23,9 @@ const AppSidebar = () => {
     return (
       <Sidebar collapsible="icon">
         <SidebarContent>
-          <div className="flex items-center justify-center p-4">
-            <div className="animate-pulse">
-              <div className="h-4 bg-muted rounded w-24 mb-2"></div>
+          <div className="flex items-center justify-center p-6">
+            <div className="animate-pulse space-y-2">
+              <div className="h-4 bg-muted rounded w-24"></div>
               <div className="h-3 bg-muted rounded w-16"></div>
             </div>
           </div>
@@ -38,7 +38,7 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader />
       
-      <SidebarContent className="px-2">
+      <SidebarContent className="py-4">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenuContent />
@@ -46,7 +46,7 @@ const AppSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border p-2">
+      <SidebarFooter className="border-t border-sidebar-border p-4">
         <UserProfile />
       </SidebarFooter>
     </Sidebar>

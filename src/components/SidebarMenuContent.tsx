@@ -29,7 +29,7 @@ const SidebarMenuContent = () => {
         </div>
       )}
       
-      <SidebarMenu className="space-y-2 px-3">
+      <SidebarMenu className="space-y-1 px-2">
         {filteredMenuItems.map((item) => {
           const IconComponent = item.icon;
           const isActive = location.pathname === item.href;
@@ -40,25 +40,22 @@ const SidebarMenuContent = () => {
                 asChild 
                 isActive={isActive} 
                 tooltip={item.title}
-                className="relative group transition-all duration-200 hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground rounded-lg h-11"
+                className="relative group transition-all duration-200 hover:bg-sidebar-accent data-[active=true]:bg-sidebar-accent data-[active=true]:text-sidebar-accent-foreground rounded-lg h-10"
               >
                 <Link to={item.href} className="flex items-center gap-3 w-full px-3">
-                  <div className="flex-shrink-0">
-                    <IconComponent className="h-5 w-5" />
+                  <div className="flex-shrink-0 flex items-center justify-center">
+                    <IconComponent className="h-4 w-4" />
                   </div>
-                  <span className="flex-1 truncate group-data-[collapsible=icon]:hidden font-medium">
+                  <span className="flex-1 truncate group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 font-medium transition-all duration-200">
                     {item.title}
                   </span>
                   {item.badge && (
                     <Badge 
                       variant="secondary" 
-                      className="h-5 px-2 text-xs flex-shrink-0 group-data-[collapsible=icon]:hidden"
+                      className="h-5 px-2 text-xs flex-shrink-0 group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:w-0 transition-all duration-200"
                     >
                       {item.badge}
                     </Badge>
-                  )}
-                  {isActive && (
-                    <div className="absolute right-0 top-1/2 transform -translate-y-1/2 w-1 h-6 bg-primary rounded-l-md group-data-[collapsible=icon]:hidden" />
                   )}
                 </Link>
               </SidebarMenuButton>

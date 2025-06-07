@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserGroup, Permission, DEFAULT_PERMISSIONS } from '@/types/rbac';
+import { User, UserGroup, Permission, DEFAULT_PERMISSIONS, DEFAULT_GROUPS } from '@/types/rbac';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -49,22 +49,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadInitialData = async () => {
     try {
       setLoading(true);
+      console.log('Loading initial RBAC data...');
+      
       await Promise.all([
         fetchUsers(),
         fetchGroups()
       ]);
       
-      // Set mock admin user for demo
-      setCurrentUser({
-        id: 1,
-        name: 'Utilisateur Admin',
-        email: 'admin@company.com',
-        phone: '+1 (555) 000-0000',
-        role: 'Administrator',
-        groupId: 'admin',
-        status: 'Active',
-        createdAt: new Date().toISOString(),
-      });
+      console.log('RBAC data loaded successfully');
     } catch (error) {
       console.error('Error loading initial data:', error);
       toast({
@@ -79,7 +71,8 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUsers = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      console.log('Fetching users...');
+      const { data, error } = await supabase
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
@@ -88,6 +81,8 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error fetching users:', error);
         return;
       }
+
+      console.log('Raw user data from DB:', data);
 
       const formattedUsers: User[] = (data || []).map((user: any) => ({
         id: user.id,
@@ -103,7 +98,15 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: user.created_at,
       }));
 
+      console.log('Formatted users:', formattedUsers);
       setUsers(formattedUsers);
+
+      // Set the demo admin user as current user if available
+      const adminUser = formattedUsers.find(user => user.email === 'admin@company.com');
+      if (adminUser && !currentUser) {
+        console.log('Setting admin user as current user:', adminUser);
+        setCurrentUser(adminUser);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     }
@@ -111,7 +114,8 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchGroups = async () => {
     try {
-      const { data, error } = await (supabase as any)
+      console.log('Fetching groups...');
+      const { data, error } = await supabase
         .from('user_groups')
         .select('*')
         .order('name');
@@ -121,14 +125,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
+      console.log('Raw group data from DB:', data);
+
       const formattedGroups: UserGroup[] = (data || []).map((group: any) => ({
         id: group.id,
         name: group.name,
         description: group.description,
-        permissions: group.permissions,
+        permissions: group.permissions || [],
         color: group.color,
       }));
 
+      console.log('Formatted groups:', formattedGroups);
       setGroups(formattedGroups);
     } catch (error) {
       console.error('Error fetching groups:', error);
@@ -140,9 +147,26 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const hasPermission = (permissionId: string): boolean => {
-    if (!currentUser) return false;
+    console.log('Checking permission:', permissionId);
+    console.log('Current user:', currentUser);
+    
+    if (!currentUser) {
+      console.log('No current user, permission denied');
+      return false;
+    }
+    
     const userGroup = groups.find(g => g.id === currentUser.groupId);
-    return userGroup?.permissions.includes(permissionId) || false;
+    console.log('User group:', userGroup);
+    
+    if (!userGroup) {
+      console.log('No user group found, permission denied');
+      return false;
+    }
+    
+    const hasPermission = userGroup.permissions.includes(permissionId);
+    console.log(`Permission ${permissionId}: ${hasPermission}`);
+    
+    return hasPermission;
   };
 
   const hasAnyPermission = (permissionIds: string[]): boolean => {
@@ -155,7 +179,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addUser = async (user: Omit<User, 'id'>) => {
     try {
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('users')
         .insert({
           name: user.name,
@@ -190,7 +214,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUser = async (id: number, userUpdate: Partial<User>) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('users')
         .update({
           name: userUpdate.name,
@@ -223,7 +247,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteUser = async (id: number) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('users')
         .delete()
         .eq('id', id);
@@ -248,7 +272,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const addGroup = async (group: Omit<UserGroup, 'id'>) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('user_groups')
         .insert({
           id: group.name.toLowerCase().replace(/\s+/g, '_'),
@@ -278,7 +302,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateGroup = async (id: string, groupUpdate: Partial<UserGroup>) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('user_groups')
         .update({
           name: groupUpdate.name,
@@ -308,7 +332,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteGroup = async (id: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('user_groups')
         .delete()
         .eq('id', id);

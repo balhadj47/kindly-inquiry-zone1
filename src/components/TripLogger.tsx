@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -64,6 +63,17 @@ const TripLogger = () => {
 
     return grouped;
   }, [users, userSearchQuery]);
+
+  // Sort groups with admin and employee groups at the end
+  const sortedGroupEntries = useMemo(() => {
+    const entries = Object.entries(groupedUsers);
+    const adminAndEmployeeGroups = ['admin', 'employee'];
+    
+    const regularGroups = entries.filter(([groupId]) => !adminAndEmployeeGroups.includes(groupId));
+    const adminEmployeeGroups = entries.filter(([groupId]) => adminAndEmployeeGroups.includes(groupId));
+    
+    return [...regularGroups, ...adminEmployeeGroups];
+  }, [groupedUsers]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -209,12 +219,12 @@ const TripLogger = () => {
 
               {/* Users grouped by their groups */}
               <div className="max-h-96 overflow-y-auto border rounded-md">
-                {Object.keys(groupedUsers).length === 0 ? (
+                {sortedGroupEntries.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-8">
                     {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
                   </p>
                 ) : (
-                  Object.entries(groupedUsers).map(([groupId, groupUsers]) => {
+                  sortedGroupEntries.map(([groupId, groupUsers]) => {
                     const group = groups.find(g => g.id === groupId);
                     if (!group || groupUsers.length === 0) return null;
 

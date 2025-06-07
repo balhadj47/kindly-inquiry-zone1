@@ -21,7 +21,7 @@ export const useTripForm = () => {
   const handleInputChange = (field: keyof TripFormData, value: string | string[]) => {
     if (field === 'companyId') {
       // Reset branch when company changes
-      setFormData(prev => ({ ...prev, [field]: value, branchId: '' }));
+      setFormData(prev => ({ ...prev, [field]: value as string, branchId: '' }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }

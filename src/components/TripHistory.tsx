@@ -1,17 +1,20 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Calendar, Clock, MapIcon } from 'lucide-react';
+import { Search, Filter, Calendar, Clock, MapIcon, Eye } from 'lucide-react';
 import { useTripContext } from '@/contexts/TripContext';
+import TripDetailsDialog from './TripDetailsDialog';
+import type { Trip } from '@/contexts/TripContext';
 
 const TripHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [dateRange, setDateRange] = useState('today');
+  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { trips } = useTripContext();
 
   const filteredTrips = trips.filter(trip => {
@@ -29,12 +32,12 @@ const TripHistory = () => {
     return matchesSearch;
   });
 
-  const formatTime = (timestamp) => {
+  const formatTime = (timestamp: string) => {
     const date = new Date(timestamp);
     return date.toLocaleString();
   };
 
-  const getTimeAgo = (timestamp) => {
+  const getTimeAgo = (timestamp: string) => {
     const now = new Date();
     const tripTime = new Date(timestamp);
     const diffInMinutes = Math.floor((now.getTime() - tripTime.getTime()) / (1000 * 60));
@@ -46,6 +49,11 @@ const TripHistory = () => {
     } else {
       return `${Math.floor(diffInMinutes / 1440)} days ago`;
     }
+  };
+
+  const handleViewDetails = (trip: Trip) => {
+    setSelectedTrip(trip);
+    setDialogOpen(true);
   };
 
   return (
@@ -176,10 +184,19 @@ const TripHistory = () => {
                       )}
                     </div>
                     
-                    <div className="mt-2 md:mt-0 md:text-right">
+                    <div className="mt-2 md:mt-0 md:text-right flex items-center space-x-4">
                       <div className="text-sm font-medium text-gray-900">
                         {formatTime(trip.timestamp)}
                       </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleViewDetails(trip)}
+                        className="flex items-center space-x-1"
+                      >
+                        <Eye className="h-4 w-4" />
+                        <span>View Details</span>
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -188,6 +205,12 @@ const TripHistory = () => {
           </div>
         </CardContent>
       </Card>
+
+      <TripDetailsDialog
+        trip={selectedTrip}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 };

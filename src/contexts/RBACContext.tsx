@@ -80,13 +80,13 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('users' as any)
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      const formattedUsers: User[] = data.map(user => ({
+      const formattedUsers: User[] = (data || []).map((user: any) => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -109,13 +109,13 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchGroups = async () => {
     try {
       const { data, error } = await supabase
-        .from('user_groups')
+        .from('user_groups' as any)
         .select('*')
         .order('name');
 
       if (error) throw error;
 
-      const formattedGroups: UserGroup[] = data.map(group => ({
+      const formattedGroups: UserGroup[] = (data || []).map((group: any) => ({
         id: group.id,
         name: group.name,
         description: group.description,
@@ -150,7 +150,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addUser = async (user: Omit<User, 'id'>) => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('users' as any)
         .insert({
           name: user.name,
           email: user.email,
@@ -160,7 +160,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: user.status,
           license_number: user.licenseNumber,
           created_at: user.createdAt,
-        })
+        } as any)
         .select()
         .single();
 
@@ -185,7 +185,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateUser = async (id: number, userUpdate: Partial<User>) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('users' as any)
         .update({
           name: userUpdate.name,
           email: userUpdate.email,
@@ -194,7 +194,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
           group_id: userUpdate.groupId,
           status: userUpdate.status,
           license_number: userUpdate.licenseNumber,
-        })
+        } as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -218,7 +218,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteUser = async (id: number) => {
     try {
       const { error } = await supabase
-        .from('users')
+        .from('users' as any)
         .delete()
         .eq('id', id);
 
@@ -243,14 +243,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addGroup = async (group: Omit<UserGroup, 'id'>) => {
     try {
       const { error } = await supabase
-        .from('user_groups')
+        .from('user_groups' as any)
         .insert({
           id: group.name.toLowerCase().replace(/\s+/g, '_'),
           name: group.name,
           description: group.description,
           permissions: group.permissions || [],
           color: group.color,
-        });
+        } as any);
 
       if (error) throw error;
 
@@ -273,13 +273,13 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateGroup = async (id: string, groupUpdate: Partial<UserGroup>) => {
     try {
       const { error } = await supabase
-        .from('user_groups')
+        .from('user_groups' as any)
         .update({
           name: groupUpdate.name,
           description: groupUpdate.description,
           permissions: groupUpdate.permissions,
           color: groupUpdate.color,
-        })
+        } as any)
         .eq('id', id);
 
       if (error) throw error;
@@ -303,7 +303,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteGroup = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('user_groups')
+        .from('user_groups' as any)
         .delete()
         .eq('id', id);
 

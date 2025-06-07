@@ -22,7 +22,11 @@ const Sidebar = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const location = useLocation();
   const { t } = useLanguage();
-  const { hasPermission } = useRBAC();
+  const { hasPermission, currentUser, groups, loading } = useRBAC();
+
+  console.log('Sidebar render - currentUser:', currentUser);
+  console.log('Sidebar render - groups:', groups);
+  console.log('Sidebar render - loading:', loading);
 
   const menuItems = [
     {
@@ -63,7 +67,19 @@ const Sidebar = () => {
     },
   ];
 
-  const visibleMenuItems = menuItems.filter(item => hasPermission(item.permission));
+  // Debug permissions for each menu item
+  menuItems.forEach(item => {
+    const permission = hasPermission(item.permission);
+    console.log(`Permission for ${item.title} (${item.permission}):`, permission);
+  });
+
+  const visibleMenuItems = menuItems.filter(item => {
+    const permission = hasPermission(item.permission);
+    console.log(`Filtering ${item.title}: has permission = ${permission}`);
+    return permission;
+  });
+
+  console.log('Visible menu items:', visibleMenuItems);
 
   const handleMobileMenuToggle = () => {
     setIsMobileOpen(!isMobileOpen);
@@ -72,6 +88,16 @@ const Sidebar = () => {
   const handleLinkClick = () => {
     setIsMobileOpen(false);
   };
+
+  if (loading) {
+    return (
+      <div className="fixed left-0 top-0 z-40 h-screen w-64 bg-white border-r border-gray-200 hidden lg:block">
+        <div className="flex items-center justify-center h-full">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -114,6 +140,16 @@ const Sidebar = () => {
         </div>
         
         <nav className="mt-6">
+          {/* Show debug info when no visible items */}
+          {visibleMenuItems.length === 0 && (
+            <div className="px-4 py-2 text-sm text-red-600">
+              <div>No menu items visible</div>
+              <div>User: {currentUser?.name || 'None'}</div>
+              <div>Group: {currentUser?.groupId || 'None'}</div>
+              <div>Groups loaded: {groups.length}</div>
+            </div>
+          )}
+          
           {visibleMenuItems.map((item) => {
             const IconComponent = item.icon;
             const isActive = location.pathname === item.href;

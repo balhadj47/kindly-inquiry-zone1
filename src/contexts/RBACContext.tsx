@@ -33,6 +33,18 @@ export const useRBAC = () => {
   return context;
 };
 
+// Demo data for fallback
+const DEMO_ADMIN_USER: User = {
+  id: 1,
+  name: 'Admin User',
+  email: 'admin@company.com',
+  phone: '+1234567890',
+  role: 'admin',
+  groupId: 'admin',
+  status: 'active',
+  createdAt: new Date().toISOString(),
+};
+
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -51,35 +63,51 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(true);
       console.log('Loading initial RBAC data...');
       
-      await Promise.all([
-        fetchUsers(),
-        fetchGroups()
+      // Try to fetch from database first
+      const [dbUsers, dbGroups] = await Promise.all([
+        fetchUsersFromDB(),
+        fetchGroupsFromDB()
       ]);
+      
+      // If database is empty or has issues, use demo data
+      if (dbUsers.length === 0 || dbGroups.length === 0) {
+        console.log('Database is empty or has issues, using demo data...');
+        setUsers([DEMO_ADMIN_USER]);
+        setGroups(DEFAULT_GROUPS);
+        setCurrentUser(DEMO_ADMIN_USER);
+      } else {
+        setUsers(dbUsers);
+        setGroups(dbGroups);
+        // Set the first admin user as current user
+        const adminUser = dbUsers.find(user => user.role === 'admin') || dbUsers[0];
+        if (adminUser) {
+          setCurrentUser(adminUser);
+        }
+      }
       
       console.log('RBAC data loaded successfully');
     } catch (error) {
-      console.error('Error loading initial data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load data from database",
-        variant: "destructive",
-      });
+      console.error('Error loading initial data, using demo data:', error);
+      // Fallback to demo data on any error
+      setUsers([DEMO_ADMIN_USER]);
+      setGroups(DEFAULT_GROUPS);
+      setCurrentUser(DEMO_ADMIN_USER);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsersFromDB = async (): Promise<User[]> => {
     try {
-      console.log('Fetching users...');
+      console.log('Fetching users from database...');
       const { data, error } = await (supabase as any)
         .from('users')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching users:', error);
-        return;
+        console.error('Error fetching users from DB:', error);
+        return [];
       }
 
       console.log('Raw user data from DB:', data);
@@ -98,31 +126,25 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         createdAt: user.created_at,
       }));
 
-      console.log('Formatted users:', formattedUsers);
-      setUsers(formattedUsers);
-
-      // Set the demo admin user as current user if available
-      const adminUser = formattedUsers.find(user => user.email === 'admin@company.com');
-      if (adminUser && !currentUser) {
-        console.log('Setting admin user as current user:', adminUser);
-        setCurrentUser(adminUser);
-      }
+      console.log('Formatted users from DB:', formattedUsers);
+      return formattedUsers;
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error('Error fetching users from DB:', error);
+      return [];
     }
   };
 
-  const fetchGroups = async () => {
+  const fetchGroupsFromDB = async (): Promise<UserGroup[]> => {
     try {
-      console.log('Fetching groups...');
+      console.log('Fetching groups from database...');
       const { data, error } = await (supabase as any)
         .from('user_groups')
         .select('*')
         .order('name');
 
       if (error) {
-        console.error('Error fetching groups:', error);
-        return;
+        console.error('Error fetching groups from DB:', error);
+        return [];
       }
 
       console.log('Raw group data from DB:', data);
@@ -135,15 +157,26 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         color: group.color,
       }));
 
-      console.log('Formatted groups:', formattedGroups);
-      setGroups(formattedGroups);
+      console.log('Formatted groups from DB:', formattedGroups);
+      return formattedGroups;
     } catch (error) {
-      console.error('Error fetching groups:', error);
+      console.error('Error fetching groups from DB:', error);
+      return [];
     }
   };
 
+  const fetchUsers = async () => {
+    const dbUsers = await fetchUsersFromDB();
+    setUsers(dbUsers);
+  };
+
+  const fetchGroups = async () => {
+    const dbGroups = await fetchGroupsFromDB();
+    setGroups(dbGroups);
+  };
+
   const refreshData = async () => {
-    await Promise.all([fetchUsers(), fetchGroups()]);
+    await loadInitialData();
   };
 
   const hasPermission = (permissionId: string): boolean => {

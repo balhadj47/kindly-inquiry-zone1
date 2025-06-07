@@ -1,5 +1,6 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Trip {
   id: number;
@@ -9,12 +10,14 @@ export interface Trip {
   branch: string;
   timestamp: string;
   notes: string;
-  userIds: string[]; // Add this field to track employees who worked on the trip
+  userIds: string[];
 }
 
 interface TripContextType {
   trips: Trip[];
-  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'>) => void;
+  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'>) => Promise<void>;
+  loading: boolean;
+  error: string | null;
 }
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -32,72 +35,83 @@ interface TripProviderProps {
 }
 
 export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
-  // Initial mock data with userIds
-  const [trips, setTrips] = useState<Trip[]>([
-    {
-      id: 1,
-      van: 'VAN-001',
-      driver: 'John Smith',
-      company: 'ABC Corporation',
-      branch: 'Downtown',
-      timestamp: '2024-06-04 14:30:00',
-      notes: 'Routine delivery',
-      userIds: ['10', '14', '16'], // Sample user IDs
-    },
-    {
-      id: 2,
-      van: 'VAN-002',
-      driver: 'Sarah Johnson',
-      company: 'XYZ Logistics Ltd',
-      branch: 'Industrial Park',
-      timestamp: '2024-06-04 13:45:00',
-      notes: 'Emergency pickup',
-      userIds: ['11', '15'],
-    },
-    {
-      id: 3,
-      van: 'VAN-003',
-      driver: 'Mike Wilson',
-      company: 'DEF Industries Inc',
-      branch: 'West Warehouse',
-      timestamp: '2024-06-04 12:15:00',
-      notes: '',
-      userIds: ['12', '16', '17'],
-    },
-    {
-      id: 4,
-      van: 'VAN-001',
-      driver: 'John Smith',
-      company: 'ABC Corporation',
-      branch: 'North Side',
-      timestamp: '2024-06-04 11:00:00',
-      notes: 'Multiple packages',
-      userIds: ['10', '13', '14'],
-    },
-    {
-      id: 5,
-      van: 'VAN-004',
-      driver: 'Lisa Chen',
-      company: 'XYZ Logistics Ltd',
-      branch: 'South Branch',
-      timestamp: '2024-06-04 10:30:00',
-      notes: 'Document delivery',
-      userIds: ['12', '15'],
-    },
-  ]);
+  const [trips, setTrips] = useState<Trip[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const addTrip = (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
-    const newTrip: Trip = {
-      ...tripData,
-      id: Math.max(...trips.map(t => t.id), 0) + 1,
-      timestamp: new Date().toISOString().replace('T', ' ').substring(0, 19),
+  // Fetch trips from database
+  useEffect(() => {
+    const fetchTrips = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('trips')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        // Transform database data to match our Trip interface
+        const transformedTrips = data.map(trip => ({
+          id: trip.id,
+          van: trip.van,
+          driver: trip.driver,
+          company: trip.company,
+          branch: trip.branch,
+          timestamp: trip.created_at,
+          notes: trip.notes || '',
+          userIds: trip.user_ids || []
+        }));
+
+        setTrips(transformedTrips);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      } finally {
+        setLoading(false);
+      }
     };
-    
-    setTrips(prevTrips => [newTrip, ...prevTrips]);
+
+    fetchTrips();
+  }, []);
+
+  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
+    try {
+      const { data, error } = await supabase
+        .from('trips')
+        .insert({
+          van: tripData.van,
+          driver: tripData.driver,
+          company: tripData.company,
+          branch: tripData.branch,
+          notes: tripData.notes,
+          user_ids: tripData.userIds
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Transform and add the new trip to the local state
+      const newTrip: Trip = {
+        id: data.id,
+        van: data.van,
+        driver: data.driver,
+        company: data.company,
+        branch: data.branch,
+        timestamp: data.created_at,
+        notes: data.notes || '',
+        userIds: data.user_ids || []
+      };
+
+      setTrips(prevTrips => [newTrip, ...prevTrips]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to add trip');
+      throw err;
+    }
   };
 
   return (
-    <TripContext.Provider value={{ trips, addTrip }}>
+    <TripContext.Provider value={{ trips, addTrip, loading, error }}>
       {children}
     </TripContext.Provider>
   );

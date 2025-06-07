@@ -17,7 +17,7 @@ const TripHistory = () => {
   const [dateRange, setDateRange] = useState('today');
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const { trips } = useTripContext();
+  const { trips, loading, error } = useTripContext();
 
   const filteredTrips = trips.filter(trip => {
     const matchesSearch = 
@@ -38,6 +38,28 @@ const TripHistory = () => {
     setSelectedTrip(trip);
     setDialogOpen(true);
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
+          <p className="text-gray-500 mt-2">Loading trips...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
+          <p className="text-red-500 mt-2">Error loading trips: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

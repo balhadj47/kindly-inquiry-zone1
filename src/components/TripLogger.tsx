@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -60,6 +61,18 @@ const TripLogger = () => {
       acc[groupId].push(user);
       return acc;
     }, {} as Record<string, typeof users>);
+
+    // Sort users within each group: active users first, then inactive users
+    Object.keys(grouped).forEach(groupId => {
+      grouped[groupId].sort((a, b) => {
+        const aIsActive = a.status === 'Active';
+        const bIsActive = b.status === 'Active';
+        
+        if (aIsActive && !bIsActive) return -1;
+        if (!aIsActive && bIsActive) return 1;
+        return 0;
+      });
+    });
 
     return grouped;
   }, [users, userSearchQuery]);
@@ -234,34 +247,43 @@ const TripLogger = () => {
                           {group.name} ({groupUsers.length} users)
                         </div>
                         <div className="p-3 space-y-3">
-                          {groupUsers.map((user) => (
-                            <div key={user.id} className="flex items-center space-x-3">
-                              <Checkbox
-                                id={`user-${user.id}`}
-                                checked={formData.selectedUserIds.includes(user.id.toString())}
-                                onCheckedChange={(checked) => handleUserSelection(user.id.toString(), checked)}
-                              />
-                              <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
-                                <div className="flex justify-between items-center">
-                                  <div>
-                                    <span className="font-medium">{user.name}</span>
-                                    <span className="text-sm text-gray-500 ml-2">({user.role})</span>
-                                    <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                      user.status === 'Active' ? 'bg-green-100 text-green-800' :
-                                      user.status === 'Récupération' ? 'bg-yellow-100 text-yellow-800' :
-                                      user.status === 'Congé' ? 'bg-blue-100 text-blue-800' :
-                                      'bg-red-100 text-red-800'
-                                    }`}>
-                                      {user.status}
-                                    </span>
+                          {groupUsers.map((user) => {
+                            const isActive = user.status === 'Active';
+                            const isDisabled = !isActive;
+                            
+                            return (
+                              <div key={user.id} className={`flex items-center space-x-3 ${isDisabled ? 'opacity-50' : ''}`}>
+                                <Checkbox
+                                  id={`user-${user.id}`}
+                                  checked={formData.selectedUserIds.includes(user.id.toString())}
+                                  onCheckedChange={(checked) => handleUserSelection(user.id.toString(), checked)}
+                                  disabled={isDisabled}
+                                />
+                                <label 
+                                  htmlFor={`user-${user.id}`} 
+                                  className={`flex-1 ${isDisabled ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                >
+                                  <div className="flex justify-between items-center">
+                                    <div>
+                                      <span className="font-medium">{user.name}</span>
+                                      <span className="text-sm text-gray-500 ml-2">({user.role})</span>
+                                      <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
+                                        user.status === 'Active' ? 'bg-green-100 text-green-800' :
+                                        user.status === 'Récupération' ? 'bg-yellow-100 text-yellow-800' :
+                                        user.status === 'Congé' ? 'bg-blue-100 text-blue-800' :
+                                        'bg-red-100 text-red-800'
+                                      }`}>
+                                        {user.status}
+                                      </span>
+                                    </div>
+                                    {user.licenseNumber && (
+                                      <span className="text-xs text-gray-400">{user.licenseNumber}</span>
+                                    )}
                                   </div>
-                                  {user.licenseNumber && (
-                                    <span className="text-xs text-gray-400">{user.licenseNumber}</span>
-                                  )}
-                                </div>
-                              </label>
-                            </div>
-                          ))}
+                                </label>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     );

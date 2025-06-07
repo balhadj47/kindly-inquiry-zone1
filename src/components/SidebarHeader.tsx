@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { SidebarHeader as UISidebarHeader, SidebarTrigger } from '@/components/ui/sidebar';
-import LanguageSelector from './LanguageSelector';
 import SidebarBranding from './SidebarBranding';
 
 const SidebarHeader = () => {
@@ -11,9 +10,6 @@ const SidebarHeader = () => {
         <div className="flex items-center gap-2">
           <SidebarTrigger className="hover:bg-sidebar-accent" />
           <SidebarBranding />
-        </div>
-        <div className="group-data-[collapsible=icon]:hidden">
-          <LanguageSelector />
         </div>
       </div>
     </UISidebarHeader>

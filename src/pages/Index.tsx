@@ -3,6 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
+import TopBar from '@/components/TopBar';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
@@ -17,6 +18,7 @@ const Index = () => {
       <div className="min-h-screen flex w-full">
         <AppSidebar />
         <SidebarInset className="flex-1">
+          <TopBar />
           <div className="p-3 sm:p-4 md:p-6">
             <Routes>
               <Route path="/" element={<Dashboard />} />

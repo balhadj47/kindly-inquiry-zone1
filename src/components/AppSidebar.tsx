@@ -28,14 +28,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import LanguageSelector from './LanguageSelector';
 import UserProfile from './UserProfile';
-import SidebarSearch from './SidebarSearch';
 import SidebarBranding from './SidebarBranding';
 
 const AppSidebar = () => {
   const location = useLocation();
   const { t } = useLanguage();
   const { hasPermission, currentUser, groups, loading } = useRBAC();
-  const [searchQuery, setSearchQuery] = useState('');
 
   console.log('AppSidebar render - currentUser:', currentUser);
   console.log('AppSidebar render - groups:', groups);
@@ -86,16 +84,13 @@ const AppSidebar = () => {
     },
   ];
 
-  // Filter menu items based on permissions and search query
+  // Filter menu items based on permissions only (no search query)
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter(item => {
       const hasPermissionForItem = hasPermission(item.permission);
-      const matchesSearch = searchQuery === '' || 
-        item.title.toLowerCase().includes(searchQuery);
-      
-      return hasPermissionForItem && matchesSearch;
+      return hasPermissionForItem;
     });
-  }, [menuItems, hasPermission, searchQuery]);
+  }, [menuItems, hasPermission]);
 
   // Debug permissions for each menu item
   menuItems.forEach(item => {
@@ -132,16 +127,13 @@ const AppSidebar = () => {
             <LanguageSelector />
           </div>
         </div>
-        <div className="px-4 pb-4">
-          <SidebarSearch onSearch={setSearchQuery} />
-        </div>
       </SidebarHeader>
       
       <SidebarContent className="px-2">
         <SidebarGroup>
           <SidebarGroupContent>
             {/* Show debug info when no visible items */}
-            {filteredMenuItems.length === 0 && !searchQuery && (
+            {filteredMenuItems.length === 0 && (
               <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg mb-4 group-data-[collapsible=icon]:hidden">
                 <div className="font-medium mb-2">No menu items visible</div>
                 <div className="space-y-1 text-xs">
@@ -149,13 +141,6 @@ const AppSidebar = () => {
                   <div>Group: {currentUser?.groupId || 'None'}</div>
                   <div>Groups loaded: {groups.length}</div>
                 </div>
-              </div>
-            )}
-
-            {/* Show no search results message */}
-            {filteredMenuItems.length === 0 && searchQuery && (
-              <div className="p-4 text-sm text-muted-foreground text-center group-data-[collapsible=icon]:hidden">
-                No results for "{searchQuery}"
               </div>
             )}
             

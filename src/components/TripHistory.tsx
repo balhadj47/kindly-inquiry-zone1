@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,60 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Calendar, Clock, MapIcon } from 'lucide-react';
+import { useTripContext } from '@/contexts/TripContext';
 
 const TripHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [dateRange, setDateRange] = useState('today');
-
-  // Mock data - in a real app, this would come from your backend
-  const trips = [
-    {
-      id: 1,
-      van: 'VAN-001',
-      driver: 'John Smith',
-      company: 'ABC Corporation',
-      branch: 'Downtown',
-      timestamp: '2024-06-04 14:30:00',
-      notes: 'Routine delivery',
-    },
-    {
-      id: 2,
-      van: 'VAN-002',
-      driver: 'Sarah Johnson',
-      company: 'XYZ Logistics Ltd',
-      branch: 'Industrial Park',
-      timestamp: '2024-06-04 13:45:00',
-      notes: 'Emergency pickup',
-    },
-    {
-      id: 3,
-      van: 'VAN-003',
-      driver: 'Mike Wilson',
-      company: 'DEF Industries Inc',
-      branch: 'West Warehouse',
-      timestamp: '2024-06-04 12:15:00',
-      notes: '',
-    },
-    {
-      id: 4,
-      van: 'VAN-001',
-      driver: 'John Smith',
-      company: 'ABC Corporation',
-      branch: 'North Side',
-      timestamp: '2024-06-04 11:00:00',
-      notes: 'Multiple packages',
-    },
-    {
-      id: 5,
-      van: 'VAN-004',
-      driver: 'Lisa Chen',
-      company: 'XYZ Logistics Ltd',
-      branch: 'South Branch',
-      timestamp: '2024-06-04 10:30:00',
-      notes: 'Document delivery',
-    },
-  ];
+  const { trips } = useTripContext();
 
   const filteredTrips = trips.filter(trip => {
     const matchesSearch = 
@@ -190,41 +144,47 @@ const TripHistory = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredTrips.map((trip) => (
-              <div key={trip.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-2">
-                      <Badge variant="outline" className="font-mono">
-                        {trip.van}
-                      </Badge>
-                      <span className="font-medium text-gray-900">{trip.driver}</span>
-                      <div className="flex items-center space-x-1 text-gray-500">
-                        <Clock className="h-3 w-3" />
-                        <span className="text-xs">{getTimeAgo(trip.timestamp)}</span>
+            {filteredTrips.length === 0 ? (
+              <div className="text-center py-8 text-gray-500">
+                No trips found. Try logging a new trip!
+              </div>
+            ) : (
+              filteredTrips.map((trip) => (
+                <div key={trip.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-4 mb-2">
+                        <Badge variant="outline" className="font-mono">
+                          {trip.van}
+                        </Badge>
+                        <span className="font-medium text-gray-900">{trip.driver}</span>
+                        <div className="flex items-center space-x-1 text-gray-500">
+                          <Clock className="h-3 w-3" />
+                          <span className="text-xs">{getTimeAgo(trip.timestamp)}</span>
+                        </div>
                       </div>
+                      
+                      <div className="flex items-center space-x-2 text-sm text-gray-600">
+                        <MapIcon className="h-4 w-4" />
+                        <span><strong>{trip.branch}</strong> ({trip.company})</span>
+                      </div>
+                      
+                      {trip.notes && (
+                        <div className="mt-2 text-sm text-gray-500">
+                          <span className="font-medium">Notes:</span> {trip.notes}
+                        </div>
+                      )}
                     </div>
                     
-                    <div className="flex items-center space-x-2 text-sm text-gray-600">
-                      <MapIcon className="h-4 w-4" />
-                      <span><strong>{trip.branch}</strong> ({trip.company})</span>
-                    </div>
-                    
-                    {trip.notes && (
-                      <div className="mt-2 text-sm text-gray-500">
-                        <span className="font-medium">Notes:</span> {trip.notes}
+                    <div className="mt-2 md:mt-0 md:text-right">
+                      <div className="text-sm font-medium text-gray-900">
+                        {formatTime(trip.timestamp)}
                       </div>
-                    )}
-                  </div>
-                  
-                  <div className="mt-2 md:mt-0 md:text-right">
-                    <div className="text-sm font-medium text-gray-900">
-                      {formatTime(trip.timestamp)}
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapIcon, Clock } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTripContext } from '@/contexts/TripContext';
 
 const TripLogger = () => {
   const [formData, setFormData] = useState({
@@ -18,6 +19,7 @@ const TripLogger = () => {
     notes: '',
   });
   const { t } = useLanguage();
+  const { addTrip, trips } = useTripContext();
 
   // Mock data - in a real app, this would come from your backend
   const vans = [
@@ -58,13 +60,21 @@ const TripLogger = () => {
       return;
     }
 
-    // In a real app, you would submit this data to your backend
     const selectedVan = vans.find(v => v.id === formData.vanId);
     const selectedDriver = drivers.find(d => d.id === formData.driverId);
     const selectedCompany = companies.find(c => c.id === formData.companyId);
     const selectedBranch = branches[formData.companyId]?.[parseInt(formData.branchId)];
 
-    console.log('Logging trip:', {
+    // Add the trip to the context
+    addTrip({
+      van: selectedVan?.plateNumber || '',
+      driver: selectedDriver?.name || '',
+      company: selectedCompany?.name || '',
+      branch: selectedBranch || '',
+      notes: formData.notes,
+    });
+
+    console.log('Trip saved:', {
       van: selectedVan,
       driver: selectedDriver,
       company: selectedCompany,
@@ -98,6 +108,10 @@ const TripLogger = () => {
   };
 
   const currentTime = new Date().toLocaleString();
+
+  // Calculate today's trips
+  const today = new Date().toISOString().split('T')[0];
+  const todaysTrips = trips.filter(trip => trip.timestamp.startsWith(today));
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -215,19 +229,23 @@ const TripLogger = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="text-center">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-blue-600">47</div>
+            <div className="text-2xl font-bold text-blue-600">{todaysTrips.length}</div>
             <div className="text-sm text-gray-600">{t.tripsToday}</div>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-green-600">23</div>
+            <div className="text-2xl font-bold text-green-600">
+              {new Set(trips.map(t => t.van)).size}
+            </div>
             <div className="text-sm text-gray-600">{t.activeVans}</div>
           </CardContent>
         </Card>
         <Card className="text-center">
           <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-purple-600">68</div>
+            <div className="text-2xl font-bold text-purple-600">
+              {new Set(trips.map(t => t.company)).size}
+            </div>
             <div className="text-sm text-gray-600">{t.totalBranches}</div>
           </CardContent>
         </Card>

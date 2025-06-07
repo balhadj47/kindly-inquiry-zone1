@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RBACProvider } from "@/contexts/RBACContext";
+import { TripProvider } from "@/contexts/TripContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 
@@ -16,14 +17,16 @@ const App = () => (
     <TooltipProvider>
       <LanguageProvider>
         <RBACProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/*" element={<Index />} />
-              <Route path="/404" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
+          <TripProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/*" element={<Index />} />
+                <Route path="/404" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TripProvider>
         </RBACProvider>
       </LanguageProvider>
     </TooltipProvider>

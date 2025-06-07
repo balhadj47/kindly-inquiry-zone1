@@ -9,8 +9,9 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Calendar, Clock, MapIcon, User, Truck, Building2, StickyNote } from 'lucide-react';
+import { Calendar, Clock, MapIcon, User, Truck, Building2, StickyNote, Users } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface TripDetailsDialogProps {
   trip: Trip | null;
@@ -23,6 +24,8 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
   open,
   onOpenChange,
 }) => {
+  const { users, getUserGroup } = useRBAC();
+
   if (!trip) return null;
 
   const formatDateTime = (timestamp: string) => {
@@ -46,6 +49,11 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
       return `${Math.floor(diffInMinutes / 1440)} days ago`;
     }
   };
+
+  // Get employees who worked on this trip
+  const tripEmployees = users.filter(user => 
+    trip.userIds.includes(user.id.toString())
+  );
 
   const { date, time } = formatDateTime(trip.timestamp);
 
@@ -115,6 +123,60 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
             </CardContent>
           </Card>
 
+          {/* Employees Section */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-start space-x-3">
+                <div className="p-2 bg-emerald-100 rounded-lg">
+                  <Users className="h-5 w-5 text-emerald-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-gray-500 mb-3">Employees on Trip</p>
+                  {tripEmployees.length > 0 ? (
+                    <div className="space-y-3">
+                      {tripEmployees.map((employee) => {
+                        const group = getUserGroup(employee.groupId);
+                        return (
+                          <div key={employee.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div className="flex items-center space-x-3">
+                              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                <User className="h-4 w-4 text-gray-600" />
+                              </div>
+                              <div>
+                                <p className="font-medium text-gray-900">{employee.name}</p>
+                                <p className="text-sm text-gray-500">{employee.role}</p>
+                              </div>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <Badge 
+                                variant="outline" 
+                                style={{ 
+                                  backgroundColor: group?.color + '20',
+                                  borderColor: group?.color,
+                                  color: group?.color 
+                                }}
+                              >
+                                {group?.name}
+                              </Badge>
+                              <Badge 
+                                variant={employee.status === 'Active' ? 'default' : 'secondary'}
+                                className="text-xs"
+                              >
+                                {employee.status}
+                              </Badge>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-gray-500 italic">No employees assigned to this trip</p>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Time Information */}
           <Card>
             <CardContent className="pt-6">
@@ -177,6 +239,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                 <h3 className="font-semibold text-lg text-blue-800 mb-2">Trip Summary</h3>
                 <p className="text-blue-600">
                   {trip.driver} completed a trip to {trip.branch} ({trip.company}) using van {trip.van}
+                  {tripEmployees.length > 0 && ` with ${tripEmployees.length} employee${tripEmployees.length === 1 ? '' : 's'}`}
                 </p>
               </div>
             </CardContent>

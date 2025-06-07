@@ -9,6 +9,7 @@ export interface Trip {
   branch: string;
   timestamp: string;
   notes: string;
+  userIds: string[]; // Add this field to track employees who worked on the trip
 }
 
 interface TripContextType {
@@ -31,7 +32,7 @@ interface TripProviderProps {
 }
 
 export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
-  // Initial mock data
+  // Initial mock data with userIds
   const [trips, setTrips] = useState<Trip[]>([
     {
       id: 1,
@@ -41,6 +42,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       branch: 'Downtown',
       timestamp: '2024-06-04 14:30:00',
       notes: 'Routine delivery',
+      userIds: ['10', '14', '16'], // Sample user IDs
     },
     {
       id: 2,
@@ -50,6 +52,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       branch: 'Industrial Park',
       timestamp: '2024-06-04 13:45:00',
       notes: 'Emergency pickup',
+      userIds: ['11', '15'],
     },
     {
       id: 3,
@@ -59,6 +62,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       branch: 'West Warehouse',
       timestamp: '2024-06-04 12:15:00',
       notes: '',
+      userIds: ['12', '16', '17'],
     },
     {
       id: 4,
@@ -68,6 +72,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       branch: 'North Side',
       timestamp: '2024-06-04 11:00:00',
       notes: 'Multiple packages',
+      userIds: ['10', '13', '14'],
     },
     {
       id: 5,
@@ -77,6 +82,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       branch: 'South Branch',
       timestamp: '2024-06-04 10:30:00',
       notes: 'Document delivery',
+      userIds: ['12', '15'],
     },
   ]);
 

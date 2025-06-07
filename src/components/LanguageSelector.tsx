@@ -16,12 +16,9 @@ const LanguageSelector = () => {
 
   return (
     <Select value={language} onValueChange={(value: SupportedLanguage) => setLanguage(value)}>
-      <SelectTrigger className="w-40">
+      <SelectTrigger className="w-10 h-10 p-0 border-0 hover:bg-accent rounded-full">
         <SelectValue>
-          <div className="flex items-center space-x-2">
-            <Earth className="h-4 w-4" />
-            <span>{languages.find(lang => lang.code === language)?.name}</span>
-          </div>
+          <Earth className="h-4 w-4 mx-auto" />
         </SelectValue>
       </SelectTrigger>
       <SelectContent>

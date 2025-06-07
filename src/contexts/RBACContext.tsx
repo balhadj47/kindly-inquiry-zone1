@@ -44,13 +44,13 @@ const DEMO_ADMIN_USER: User = {
   createdAt: new Date().toISOString(),
 };
 
-// Arabic sample users for each group
+// Algerian sample users for each group
 const SAMPLE_ARABIC_USERS: User[] = [
   // Administrators
   {
     id: 2,
-    name: 'أحمد محمد العلي',
-    email: 'ahmed.ali@company.com',
+    name: 'Ahmed Mohamed Benali',
+    email: 'ahmed.benali@company.com',
     phone: '+966501234567',
     role: 'Administrator',
     groupId: 'admin',
@@ -59,8 +59,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 3,
-    name: 'فاطمة سالم النور',
-    email: 'fatima.nour@company.com',
+    name: 'Fatima Salem Khelifi',
+    email: 'fatima.khelifi@company.com',
     phone: '+966507654321',
     role: 'Administrator',
     groupId: 'admin',
@@ -70,8 +70,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // Employees
   {
     id: 4,
-    name: 'خالد عبد الرحمن',
-    email: 'khalid.abdulrahman@company.com',
+    name: 'Khaled Abderrahmane',
+    email: 'khaled.abderrahmane@company.com',
     phone: '+966502345678',
     role: 'Employee',
     groupId: 'employee',
@@ -80,8 +80,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 5,
-    name: 'نورا أحمد الزهراني',
-    email: 'nora.zahrani@company.com',
+    name: 'Nora Ahmed Boukhari',
+    email: 'nora.boukhari@company.com',
     phone: '+966508765432',
     role: 'Employee',
     groupId: 'employee',
@@ -91,8 +91,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // Chef de Groupe Armé
   {
     id: 6,
-    name: 'عبد الله محمد الحربي',
-    email: 'abdullah.harbi@company.com',
+    name: 'Abdellah Mohamed Hamdani',
+    email: 'abdellah.hamdani@company.com',
     phone: '+966503456789',
     role: 'Chef de Groupe Armé',
     groupId: 'chef_groupe_arme',
@@ -101,8 +101,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 7,
-    name: 'سارة يوسف القحطاني',
-    email: 'sara.qahtani@company.com',
+    name: 'Sarah Youcef Mansouri',
+    email: 'sarah.mansouri@company.com',
     phone: '+966509876543',
     role: 'Chef de Groupe Armé',
     groupId: 'chef_groupe_arme',
@@ -112,8 +112,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // Chef de Groupe Sans Armé
   {
     id: 8,
-    name: 'محمد علي السلمي',
-    email: 'mohammed.selmi@company.com',
+    name: 'Mohamed Ali Benaissa',
+    email: 'mohammed.benaissa@company.com',
     phone: '+966504567890',
     role: 'Chef de Groupe Sans Armé',
     groupId: 'chef_groupe_sans_arme',
@@ -122,8 +122,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 9,
-    name: 'آمنة حسن الشهري',
-    email: 'amna.shahri@company.com',
+    name: 'Amina Hassan Belkacem',
+    email: 'amina.belkacem@company.com',
     phone: '+966500987654',
     role: 'Chef de Groupe Sans Armé',
     groupId: 'chef_groupe_sans_arme',
@@ -133,8 +133,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // Chauffeur Armé
   {
     id: 10,
-    name: 'عمر سعد الغامدي',
-    email: 'omar.ghamdi@company.com',
+    name: 'Omar Said Meziane',
+    email: 'omar.meziane@company.com',
     phone: '+966505678901',
     role: 'Chauffeur Armé',
     groupId: 'chauffeur_arme',
@@ -146,8 +146,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 11,
-    name: 'ليلى عبد العزيز',
-    email: 'layla.abdulaziz@company.com',
+    name: 'Leila Abdelaziz Boudjemaa',
+    email: 'leila.boudjemaa@company.com',
     phone: '+966501098765',
     role: 'Chauffeur Armé',
     groupId: 'chauffeur_arme',
@@ -160,8 +160,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // Chauffeur Sans Armé
   {
     id: 12,
-    name: 'يوسف إبراهيم العتيبي',
-    email: 'youssef.otaibi@company.com',
+    name: 'Youcef Ibrahim Belaidi',
+    email: 'youcef.belaidi@company.com',
     phone: '+966506789012',
     role: 'Chauffeur Sans Armé',
     groupId: 'chauffeur_sans_arme',
@@ -173,8 +173,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 13,
-    name: 'هدى محمد البقمي',
-    email: 'huda.bogmi@company.com',
+    name: 'Houda Mohamed Cherif',
+    email: 'houda.cherif@company.com',
     phone: '+966502109876',
     role: 'Chauffeur Sans Armé',
     groupId: 'chauffeur_sans_arme',
@@ -187,8 +187,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // APS Armé
   {
     id: 14,
-    name: 'سلمان راشد الدوسري',
-    email: 'salman.dosari@company.com',
+    name: 'Slimane Rachid Benamar',
+    email: 'slimane.benamar@company.com',
     phone: '+966507890123',
     role: 'APS Armé',
     groupId: 'aps_arme',
@@ -197,8 +197,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 15,
-    name: 'ريم سليمان المطيري',
-    email: 'reem.mutairi@company.com',
+    name: 'Rim Slimane Kadri',
+    email: 'rim.kadri@company.com',
     phone: '+966503210987',
     role: 'APS Armé',
     groupId: 'aps_arme',
@@ -208,8 +208,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   // APS Sans Armé
   {
     id: 16,
-    name: 'حسام عبد الله الجهني',
-    email: 'hussam.johani@company.com',
+    name: 'Hocine Abdellah Hamidi',
+    email: 'hocine.hamidi@company.com',
     phone: '+966508901234',
     role: 'APS Sans Armé',
     groupId: 'aps_sans_arme',
@@ -218,8 +218,8 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
   {
     id: 17,
-    name: 'منى أحمد الشمري',
-    email: 'mona.shamri@company.com',
+    name: 'Mona Ahmed Touati',
+    email: 'mona.touati@company.com',
     phone: '+966504321098',
     role: 'APS Sans Armé',
     groupId: 'aps_sans_arme',

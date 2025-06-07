@@ -13,12 +13,52 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import UserSelectionSection from './UserSelectionSection';
 
+// Mock data for companies and vans since they don't exist in RBAC context yet
+const MOCK_COMPANIES = [
+  {
+    id: 'company-1',
+    name: 'SecuriTransport SA',
+    branches: [
+      { id: 'branch-1', name: 'Alger Centre' },
+      { id: 'branch-2', name: 'Oran Port' },
+    ]
+  },
+  {
+    id: 'company-2',
+    name: 'GuardShield Corp',
+    branches: [
+      { id: 'branch-3', name: 'Constantine North' },
+      { id: 'branch-4', name: 'Annaba Industrial' },
+    ]
+  }
+];
+
+const MOCK_VANS = [
+  {
+    id: 'van-1',
+    licensePlate: '16-12345-01',
+    model: 'Mercedes Sprinter',
+    driverId: '10' // Omar Said Meziane
+  },
+  {
+    id: 'van-2',
+    licensePlate: '31-67890-02',
+    model: 'Ford Transit',
+    driverId: '12' // Youcef Ibrahim Belaidi
+  }
+];
+
 const TripLoggerForm = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { addTrip } = useTripContext();
-  const { companies, vans, drivers } = useRBAC();
+  const { users } = useRBAC();
   const { formData, handleInputChange, handleUserSelection, resetForm, getTripData } = useTripForm();
+
+  // Get drivers from users data (those with driver roles)
+  const drivers = users.filter(user => 
+    user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé'
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,8 +73,8 @@ const TripLoggerForm = () => {
     }
 
     // Find the selected driver
-    const selectedVan = vans.find(van => van.id === formData.vanId);
-    const selectedDriver = drivers.find(driver => driver.id === selectedVan?.driverId);
+    const selectedVan = MOCK_VANS.find(van => van.id === formData.vanId);
+    const selectedDriver = drivers.find(driver => driver.id.toString() === selectedVan?.driverId);
     
     if (!selectedDriver) {
       toast({
@@ -46,7 +86,7 @@ const TripLoggerForm = () => {
     }
 
     // Find the selected company and branch names
-    const selectedCompany = companies.find(company => company.id === formData.companyId);
+    const selectedCompany = MOCK_COMPANIES.find(company => company.id === formData.companyId);
     const selectedBranch = selectedCompany?.branches.find(branch => branch.id === formData.branchId);
 
     if (!selectedCompany || !selectedBranch) {
@@ -91,7 +131,7 @@ const TripLoggerForm = () => {
                   <SelectValue placeholder={t.selectVan} />
                 </SelectTrigger>
                 <SelectContent>
-                  {vans.map((van) => (
+                  {MOCK_VANS.map((van) => (
                     <SelectItem key={van.id} value={van.id}>
                       {van.licensePlate} - {van.model}
                     </SelectItem>
@@ -107,7 +147,7 @@ const TripLoggerForm = () => {
                   <SelectValue placeholder={t.selectCompany} />
                 </SelectTrigger>
                 <SelectContent>
-                  {companies.map((company) => (
+                  {MOCK_COMPANIES.map((company) => (
                     <SelectItem key={company.id} value={company.id}>
                       {company.name}
                     </SelectItem>
@@ -125,7 +165,7 @@ const TripLoggerForm = () => {
                   <SelectValue placeholder={t.selectBranch} />
                 </SelectTrigger>
                 <SelectContent>
-                  {companies
+                  {MOCK_COMPANIES
                     .find(c => c.id === formData.companyId)
                     ?.branches.map((branch) => (
                       <SelectItem key={branch.id} value={branch.id}>

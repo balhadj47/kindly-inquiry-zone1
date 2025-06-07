@@ -41,13 +41,14 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: user.licenseNumber || '',
       });
     } else {
-      // Default to admin group only
+      // Default to first available group
+      const defaultGroupId = groups.length > 0 ? groups[0].id : '';
       setFormData({
         name: '',
         email: '',
         phone: '',
         role: 'Administrator',
-        groupId: 'admin',
+        groupId: defaultGroupId,
         status: 'Active',
         licenseNumber: '',
       });
@@ -156,8 +157,11 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
                 <SelectValue placeholder="Select group" />
               </SelectTrigger>
               <SelectContent>
-                {/* Only show admin group as default option */}
-                <SelectItem value="admin">Administrateurs</SelectItem>
+                {groups.map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

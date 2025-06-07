@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Clock, MapIcon, User, Truck, Building2, StickyNote, Users } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { formatDateTimeParts, getTimeAgo } from '@/utils/dateUtils';
 
 interface TripDetailsDialogProps {
   trip: Trip | null;
@@ -28,34 +29,12 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
 
   if (!trip) return null;
 
-  const formatDateTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return {
-      date: date.toLocaleDateString(),
-      time: date.toLocaleTimeString(),
-    };
-  };
-
-  const getTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const tripTime = new Date(timestamp);
-    const diffInMinutes = Math.floor((now.getTime() - tripTime.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} minutes ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)} hours ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)} days ago`;
-    }
-  };
-
   // Get employees who worked on this trip
   const tripEmployees = users.filter(user => 
     trip.userIds.includes(user.id.toString())
   );
 
-  const { date, time } = formatDateTime(trip.timestamp);
+  const { date, time } = formatDateTimeParts(trip.timestamp);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

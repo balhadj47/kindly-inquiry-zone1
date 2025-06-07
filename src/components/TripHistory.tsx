@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,7 @@ import { Search, Filter, Calendar, Clock, MapIcon, Eye } from 'lucide-react';
 import { useTripContext } from '@/contexts/TripContext';
 import TripDetailsDialog from './TripDetailsDialog';
 import type { Trip } from '@/contexts/TripContext';
+import { formatDateTime, getTimeAgo } from '@/utils/dateUtils';
 
 const TripHistory = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,25 +33,6 @@ const TripHistory = () => {
 
     return matchesSearch;
   });
-
-  const formatTime = (timestamp: string) => {
-    const date = new Date(timestamp);
-    return date.toLocaleString();
-  };
-
-  const getTimeAgo = (timestamp: string) => {
-    const now = new Date();
-    const tripTime = new Date(timestamp);
-    const diffInMinutes = Math.floor((now.getTime() - tripTime.getTime()) / (1000 * 60));
-    
-    if (diffInMinutes < 60) {
-      return `${diffInMinutes} mins ago`;
-    } else if (diffInMinutes < 1440) {
-      return `${Math.floor(diffInMinutes / 60)} hours ago`;
-    } else {
-      return `${Math.floor(diffInMinutes / 1440)} days ago`;
-    }
-  };
 
   const handleViewDetails = (trip: Trip) => {
     setSelectedTrip(trip);
@@ -186,7 +169,7 @@ const TripHistory = () => {
                     
                     <div className="mt-2 md:mt-0 md:text-right flex items-center space-x-4">
                       <div className="text-sm font-medium text-gray-900">
-                        {formatTime(trip.timestamp)}
+                        {formatDateTime(trip.timestamp)}
                       </div>
                       <Button
                         variant="outline"

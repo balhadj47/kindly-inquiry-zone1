@@ -3,10 +3,11 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Clock } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { formatDateTime } from '@/utils/dateUtils';
 
 const CurrentTimeCard = () => {
   const { t } = useLanguage();
-  const currentTime = new Date().toLocaleString();
+  const currentTime = formatDateTime(new Date().toISOString());
 
   return (
     <Card className="bg-blue-50 border-blue-200">

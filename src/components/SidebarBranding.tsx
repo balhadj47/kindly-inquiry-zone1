@@ -9,8 +9,8 @@ const SidebarBranding = () => {
         <Truck className="h-4 w-4" />
       </div>
       <div>
-        <h1 className="text-lg font-bold text-foreground group-data-[collapsible=icon]:hidden">Van Fleet</h1>
-        <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">Management System</p>
+        <h1 className="text-lg font-bold text-foreground group-data-[collapsible=icon]:hidden">SSB</h1>
+        <p className="text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">transport de fonds</p>
       </div>
     </div>
   );

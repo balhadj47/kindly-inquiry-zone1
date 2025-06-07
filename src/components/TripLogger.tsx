@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapIcon, Clock } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { MapIcon, Clock, Users } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useTripContext } from '@/contexts/TripContext';
@@ -13,7 +14,7 @@ import { useTripContext } from '@/contexts/TripContext';
 const TripLogger = () => {
   const [formData, setFormData] = useState({
     vanId: '',
-    driverId: '',
+    selectedUserIds: [] as string[],
     companyId: '',
     branchId: '',
     notes: '',
@@ -29,11 +30,15 @@ const TripLogger = () => {
     { id: '4', plateNumber: 'VAN-004', carNumberPlate: 'GHI-012' },
   ];
 
-  const drivers = [
-    { id: '1', name: 'John Smith', licenseNumber: 'DL123456789' },
-    { id: '2', name: 'Sarah Johnson', licenseNumber: 'DL987654321' },
-    { id: '3', name: 'Mike Wilson', licenseNumber: 'DL456789123' },
-    { id: '4', name: 'Lisa Chen', licenseNumber: 'DL789123456' },
+  const users = [
+    { id: '1', name: 'John Smith', licenseNumber: 'DL123456789', role: 'Driver' },
+    { id: '2', name: 'Sarah Johnson', licenseNumber: 'DL987654321', role: 'Driver' },
+    { id: '3', name: 'Mike Wilson', licenseNumber: 'DL456789123', role: 'Assistant' },
+    { id: '4', name: 'Lisa Chen', licenseNumber: 'DL789123456', role: 'Security' },
+    { id: '5', name: 'David Brown', role: 'Manager' },
+    { id: '6', name: 'Emily Davis', role: 'Coordinator' },
+    { id: '7', name: 'Robert Taylor', licenseNumber: 'DL321654987', role: 'Driver' },
+    { id: '8', name: 'Jennifer Wilson', role: 'Assistant' },
   ];
 
   const companies = [
@@ -51,24 +56,27 @@ const TripLogger = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    if (!formData.vanId || !formData.driverId || !formData.companyId || !formData.branchId) {
+    if (!formData.vanId || formData.selectedUserIds.length === 0 || !formData.companyId || !formData.branchId) {
       toast({
         title: t.error,
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields and select at least one user.",
         variant: "destructive",
       });
       return;
     }
 
     const selectedVan = vans.find(v => v.id === formData.vanId);
-    const selectedDriver = drivers.find(d => d.id === formData.driverId);
+    const selectedUsers = users.filter(u => formData.selectedUserIds.includes(u.id));
     const selectedCompany = companies.find(c => c.id === formData.companyId);
     const selectedBranch = branches[formData.companyId]?.[parseInt(formData.branchId)];
+
+    // For backward compatibility, use the first selected user as the driver
+    const primaryUser = selectedUsers[0];
 
     // Add the trip to the context
     addTrip({
       van: selectedVan?.plateNumber || '',
-      driver: selectedDriver?.name || '',
+      driver: primaryUser?.name || '',
       company: selectedCompany?.name || '',
       branch: selectedBranch || '',
       notes: formData.notes,
@@ -76,22 +84,23 @@ const TripLogger = () => {
 
     console.log('Trip saved:', {
       van: selectedVan,
-      driver: selectedDriver,
+      users: selectedUsers,
       company: selectedCompany,
       branch: selectedBranch,
       timestamp: new Date(),
       notes: formData.notes,
     });
 
+    const userNames = selectedUsers.map(u => u.name).join(', ');
     toast({
       title: "Trip Logged Successfully!",
-      description: `${selectedVan?.plateNumber} with driver ${selectedDriver?.name} visit to ${selectedBranch} (${selectedCompany?.name}) has been recorded.`,
+      description: `${selectedVan?.plateNumber} with users ${userNames} visit to ${selectedBranch} (${selectedCompany?.name}) has been recorded.`,
     });
 
     // Reset form
     setFormData({
       vanId: '',
-      driverId: '',
+      selectedUserIds: [],
       companyId: '',
       branchId: '',
       notes: '',
@@ -105,6 +114,15 @@ const TripLogger = () => {
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
+  };
+
+  const handleUserSelection = (userId, checked) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedUserIds: checked 
+        ? [...prev.selectedUserIds, userId]
+        : prev.selectedUserIds.filter(id => id !== userId)
+    }));
   };
 
   const currentTime = new Date().toLocaleString();
@@ -157,19 +175,35 @@ const TripLogger = () => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="driver">Select Driver</Label>
-              <Select value={formData.driverId} onValueChange={(value) => handleInputChange('driverId', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose a driver" />
-                </SelectTrigger>
-                <SelectContent>
-                  {drivers.map((driver) => (
-                    <SelectItem key={driver.id} value={driver.id}>
-                      {driver.name} - {driver.licenseNumber}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="flex items-center space-x-2">
+                <Users className="h-4 w-4" />
+                <span>Select Users ({formData.selectedUserIds.length} selected)</span>
+              </Label>
+              <div className="max-h-48 overflow-y-auto border rounded-md p-3 space-y-3">
+                {users.map((user) => (
+                  <div key={user.id} className="flex items-center space-x-3">
+                    <Checkbox
+                      id={`user-${user.id}`}
+                      checked={formData.selectedUserIds.includes(user.id)}
+                      onCheckedChange={(checked) => handleUserSelection(user.id, checked)}
+                    />
+                    <label htmlFor={`user-${user.id}`} className="flex-1 cursor-pointer">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="font-medium">{user.name}</span>
+                          <span className="text-sm text-gray-500 ml-2">({user.role})</span>
+                        </div>
+                        {user.licenseNumber && (
+                          <span className="text-xs text-gray-400">{user.licenseNumber}</span>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              {formData.selectedUserIds.length === 0 && (
+                <p className="text-sm text-gray-500">Please select at least one user for the trip.</p>
+              )}
             </div>
 
             <div className="space-y-2">

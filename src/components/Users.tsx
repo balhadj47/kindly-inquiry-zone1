@@ -3,9 +3,10 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2, Trash2 } from 'lucide-react';
+import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2, Trash2, Filter, X } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
@@ -13,6 +14,9 @@ import GroupPermissionsModal from './GroupPermissionsModal';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [roleFilter, setRoleFilter] = useState('all');
+  const [groupFilter, setGroupFilter] = useState('all');
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
@@ -21,11 +25,31 @@ const Users = () => {
   
   const { users, groups, getUserGroup, hasPermission, loading, deleteGroup } = useRBAC();
 
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (user.licenseNumber && user.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    setRoleFilter('all');
+    setGroupFilter('all');
+  };
+
+  const hasActiveFilters = searchTerm || statusFilter !== 'all' || roleFilter !== 'all' || groupFilter !== 'all';
+
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = 
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.licenseNumber && user.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
+    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
+    const matchesGroup = groupFilter === 'all' || user.groupId === groupFilter;
+
+    return matchesSearch && matchesStatus && matchesRole && matchesGroup;
+  });
+
+  // Get unique statuses and roles from users
+  const uniqueStatuses = [...new Set(users.map(user => user.status))];
+  const uniqueRoles = [...new Set(users.map(user => user.role))];
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -128,17 +152,86 @@ const Users = () => {
         </TabsList>
 
         <TabsContent value="users" className="space-y-4">
-          {/* Search Bar */}
+          {/* Search and Filters */}
           <Card>
             <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search by name, email, or license number..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="space-y-4">
+                {/* Search Bar */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by name, email, or license number..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Filter Row */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <Filter className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by status" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">All Statuses</SelectItem>
+                      {uniqueStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={roleFilter} onValueChange={setRoleFilter}>
+                    <SelectTrigger>
+                      <Shield className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by role" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">All Roles</SelectItem>
+                      {uniqueRoles.map(role => (
+                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={groupFilter} onValueChange={setGroupFilter}>
+                    <SelectTrigger>
+                      <UsersIcon className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filter by group" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">All Groups</SelectItem>
+                      {groups.map(group => (
+                        <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={clearFilters} className="flex items-center space-x-2">
+                      <X className="h-4 w-4" />
+                      <span>Clear Filters</span>
+                    </Button>
+                  )}
+                </div>
+
+                {/* Results Summary */}
+                <div className="flex items-center justify-between text-sm text-gray-600">
+                  <span>
+                    Showing {filteredUsers.length} of {users.length} users
+                    {hasActiveFilters && " (filtered)"}
+                  </span>
+                  {hasActiveFilters && (
+                    <div className="flex items-center space-x-2">
+                      <span>Active filters:</span>
+                      {searchTerm && <Badge variant="secondary">Search: "{searchTerm}"</Badge>}
+                      {statusFilter !== 'all' && <Badge variant="secondary">Status: {statusFilter}</Badge>}
+                      {roleFilter !== 'all' && <Badge variant="secondary">Role: {roleFilter}</Badge>}
+                      {groupFilter !== 'all' && <Badge variant="secondary">Group: {groups.find(g => g.id === groupFilter)?.name}</Badge>}
+                    </div>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -219,7 +312,17 @@ const Users = () => {
               <CardContent className="text-center py-8">
                 <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
-                <p className="text-gray-500">Try adjusting your search terms or add a new user.</p>
+                <p className="text-gray-500">
+                  {hasActiveFilters 
+                    ? "Try adjusting your filters or search terms." 
+                    : "Try adjusting your search terms or add a new user."
+                  }
+                </p>
+                {hasActiveFilters && (
+                  <Button variant="outline" onClick={clearFilters} className="mt-4">
+                    Clear all filters
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

@@ -1,6 +1,8 @@
 
 export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
 
+export type UserStatus = 'Active' | 'Récupération' | 'Congé' | 'Congé maladie';
+
 export interface Permission {
   id: string;
   name: string;
@@ -23,7 +25,7 @@ export interface User {
   phone: string;
   role: UserRole;
   groupId: string;
-  status: 'Active' | 'Inactive' | 'Suspended';
+  status: UserStatus;
   lastLogin?: string;
   createdAt: string;
   // Driver-specific fields (for backward compatibility)

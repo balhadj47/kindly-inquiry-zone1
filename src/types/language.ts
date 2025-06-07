@@ -62,4 +62,12 @@ export interface TranslationKeys {
     hoursAgo: string;
     daysAgo: string;
   };
+  
+  // User Status
+  userStatus: {
+    active: string;
+    recovery: string;
+    leave: string;
+    sickLeave: string;
+  };
 }

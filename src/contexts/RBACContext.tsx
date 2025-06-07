@@ -64,7 +64,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966507654321',
     role: 'Administrator',
     groupId: 'admin',
-    status: 'Active',
+    status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
   // Employees
@@ -85,7 +85,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966508765432',
     role: 'Employee',
     groupId: 'employee',
-    status: 'Active',
+    status: 'Congé',
     createdAt: new Date().toISOString(),
   },
   // Chef de Groupe Armé
@@ -106,7 +106,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966509876543',
     role: 'Chef de Groupe Armé',
     groupId: 'chef_groupe_arme',
-    status: 'Active',
+    status: 'Congé maladie',
     createdAt: new Date().toISOString(),
   },
   // Chef de Groupe Sans Armé
@@ -127,7 +127,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966500987654',
     role: 'Chef de Groupe Sans Armé',
     groupId: 'chef_groupe_sans_arme',
-    status: 'Active',
+    status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
   // Chauffeur Armé
@@ -151,7 +151,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966501098765',
     role: 'Chauffeur Armé',
     groupId: 'chauffeur_arme',
-    status: 'Active',
+    status: 'Congé',
     licenseNumber: 'DL-AR-005678',
     totalTrips: 38,
     lastTrip: '2024-01-18',
@@ -178,7 +178,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966502109876',
     role: 'Chauffeur Sans Armé',
     groupId: 'chauffeur_sans_arme',
-    status: 'Active',
+    status: 'Congé maladie',
     licenseNumber: 'DL-SA-543210',
     totalTrips: 29,
     lastTrip: '2024-01-17',
@@ -202,7 +202,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966503210987',
     role: 'APS Armé',
     groupId: 'aps_arme',
-    status: 'Active',
+    status: 'Récupération',
     createdAt: new Date().toISOString(),
   },
   // APS Sans Armé
@@ -223,7 +223,7 @@ const SAMPLE_ARABIC_USERS: User[] = [
     phone: '+966504321098',
     role: 'APS Sans Armé',
     groupId: 'aps_sans_arme',
-    status: 'Active',
+    status: 'Congé',
     createdAt: new Date().toISOString(),
   },
 ];

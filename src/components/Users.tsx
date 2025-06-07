@@ -30,6 +30,10 @@ const Users = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
+      case 'Récupération': return 'bg-yellow-100 text-yellow-800';
+      case 'Congé': return 'bg-blue-100 text-blue-800';
+      case 'Congé maladie': return 'bg-red-100 text-red-800';
+      // Legacy support for English statuses
       case 'Inactive': return 'bg-gray-100 text-gray-800';
       case 'Suspended': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';

@@ -107,4 +107,59 @@ export interface TranslationKeys {
   createFirstGroup: string;
   isDefaultGroup: string;
   cannotDelete: string;
+
+  // Van Management
+  addNewVan: string;
+  editVan: string;
+  plateNumber: string;
+  carNumberPlate: string;
+  vanModel: string;
+  status: string;
+  insuranceDate: string;
+  controlDate: string;
+  insurer: string;
+  pickInsuranceDate: string;
+  pickControlDate: string;
+  additionalNotes: string;
+  createVan: string;
+  updateVan: string;
+  vanStatuses: {
+    active: string;
+    inTransit: string;
+    maintenance: string;
+    inactive: string;
+  };
+  
+  // Common placeholders and labels
+  required: string;
+  optional: string;
+  pleaseSelect: string;
+  selectStatus: string;
+  addNotesPlaceholder: string;
+  fillRequiredFields: string;
+  vanNotFound: string;
+  companyNotFound: string;
+  branchNotFound: string;
+  tripLoggedSuccessfully: string;
+  
+  // Trip History additional
+  searchTrips: string;
+  filterBy: string;
+  allTrips: string;
+  byVan: string;
+  byCompany: string;
+  byBranch: string;
+  dateRange: string;
+  today: string;
+  thisWeek: string;
+  thisMonth: string;
+  allTime: string;
+  export: string;
+  totalTripsCount: string;
+  uniqueVans: string;
+  companiesCount: string;
+  branchesCount: string;
+  recentTrips: string;
+  noTripsFoundMessage: string;
+  viewDetails: string;
 }

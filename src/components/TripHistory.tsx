@@ -7,11 +7,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Search, Filter, Calendar, Clock, MapIcon, Eye } from 'lucide-react';
 import { useTripContext } from '@/contexts/TripContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import TripDetailsDialog from './TripDetailsDialog';
 import type { Trip } from '@/contexts/TripContext';
 import { formatDateTime, getTimeAgo } from '@/utils/dateUtils';
 
 const TripHistory = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('all');
   const [dateRange, setDateRange] = useState('today');
@@ -43,8 +45,8 @@ const TripHistory = () => {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
-          <p className="text-gray-500 mt-2">Loading trips...</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
+          <p className="text-gray-500 mt-2">{t.loading}...</p>
         </div>
       </div>
     );
@@ -54,8 +56,8 @@ const TripHistory = () => {
     return (
       <div className="space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
-          <p className="text-red-500 mt-2">Error loading trips: {error}</p>
+          <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
+          <p className="text-red-500 mt-2">{t.error}: {error}</p>
         </div>
       </div>
     );
@@ -64,11 +66,11 @@ const TripHistory = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Trip History</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
         <div className="flex space-x-2 mt-4 md:mt-0">
           <Button variant="outline">
             <Calendar className="h-4 w-4 mr-2" />
-            Export
+            {t.export}
           </Button>
         </div>
       </div>
@@ -80,7 +82,7 @@ const TripHistory = () => {
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search trips..."
+                placeholder={t.searchTrips}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -90,26 +92,26 @@ const TripHistory = () => {
             <Select value={filterType} onValueChange={setFilterType}>
               <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filter by..." />
+                <SelectValue placeholder={t.filterBy} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Trips</SelectItem>
-                <SelectItem value="van">By Van</SelectItem>
-                <SelectItem value="company">By Company</SelectItem>
-                <SelectItem value="branch">By Branch</SelectItem>
+                <SelectItem value="all">{t.allTrips}</SelectItem>
+                <SelectItem value="van">{t.byVan}</SelectItem>
+                <SelectItem value="company">{t.byCompany}</SelectItem>
+                <SelectItem value="branch">{t.byBranch}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={dateRange} onValueChange={setDateRange}>
               <SelectTrigger>
                 <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Date range..." />
+                <SelectValue placeholder={t.dateRange} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Today</SelectItem>
-                <SelectItem value="week">This Week</SelectItem>
-                <SelectItem value="month">This Month</SelectItem>
-                <SelectItem value="all">All Time</SelectItem>
+                <SelectItem value="today">{t.today}</SelectItem>
+                <SelectItem value="week">{t.thisWeek}</SelectItem>
+                <SelectItem value="month">{t.thisMonth}</SelectItem>
+                <SelectItem value="all">{t.allTime}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -121,7 +123,7 @@ const TripHistory = () => {
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-2xl font-bold text-blue-600">{filteredTrips.length}</div>
-            <div className="text-sm text-gray-600">Total Trips</div>
+            <div className="text-sm text-gray-600">{t.totalTripsCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -129,7 +131,7 @@ const TripHistory = () => {
             <div className="text-2xl font-bold text-green-600">
               {new Set(filteredTrips.map(t => t.van)).size}
             </div>
-            <div className="text-sm text-gray-600">Unique Vans</div>
+            <div className="text-sm text-gray-600">{t.uniqueVans}</div>
           </CardContent>
         </Card>
         <Card>
@@ -137,7 +139,7 @@ const TripHistory = () => {
             <div className="text-2xl font-bold text-purple-600">
               {new Set(filteredTrips.map(t => t.company)).size}
             </div>
-            <div className="text-sm text-gray-600">Companies</div>
+            <div className="text-sm text-gray-600">{t.companiesCount}</div>
           </CardContent>
         </Card>
         <Card>
@@ -145,7 +147,7 @@ const TripHistory = () => {
             <div className="text-2xl font-bold text-orange-600">
               {new Set(filteredTrips.map(t => t.branch)).size}
             </div>
-            <div className="text-sm text-gray-600">Branches</div>
+            <div className="text-sm text-gray-600">{t.branchesCount}</div>
           </CardContent>
         </Card>
       </div>
@@ -153,13 +155,13 @@ const TripHistory = () => {
       {/* Trip List */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Trips</CardTitle>
+          <CardTitle>{t.recentTrips}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredTrips.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No trips found. Try logging a new trip!
+                {t.noTripsFoundMessage}
               </div>
             ) : (
               filteredTrips.map((trip) => (
@@ -184,7 +186,7 @@ const TripHistory = () => {
                       
                       {trip.notes && (
                         <div className="mt-2 text-sm text-gray-500">
-                          <span className="font-medium">Notes:</span> {trip.notes}
+                          <span className="font-medium">{t.notes}:</span> {trip.notes}
                         </div>
                       )}
                     </div>
@@ -200,7 +202,7 @@ const TripHistory = () => {
                         className="flex items-center space-x-1"
                       >
                         <Eye className="h-4 w-4" />
-                        <span>View Details</span>
+                        <span>{t.viewDetails}</span>
                       </Button>
                     </div>
                   </div>

@@ -35,7 +35,7 @@ const TripLoggerForm = () => {
     if (!formData.vanId || !formData.companyId || !formData.branchId) {
       toast({
         title: t.error,
-        description: "Please fill in all required fields",
+        description: t.fillRequiredFields,
         variant: "destructive",
       });
       return;
@@ -47,7 +47,7 @@ const TripLoggerForm = () => {
     if (!selectedVan) {
       toast({
         title: t.error,
-        description: "Van not found",
+        description: t.vanNotFound,
         variant: "destructive",
       });
       return;
@@ -78,7 +78,7 @@ const TripLoggerForm = () => {
     if (!selectedCompany || !selectedBranch) {
       toast({
         title: t.error,
-        description: "Company or branch not found",
+        description: t.companyNotFound,
         variant: "destructive",
       });
       return;
@@ -100,7 +100,7 @@ const TripLoggerForm = () => {
     
     toast({
       title: t.success,
-      description: "Trip logged successfully",
+      description: t.tripLoggedSuccessfully,
     });
   };
 
@@ -108,7 +108,7 @@ const TripLoggerForm = () => {
     return (
       <Card className="w-full max-w-2xl mx-auto">
         <CardContent className="pt-6">
-          <div className="text-center">Loading...</div>
+          <div className="text-center">{t.loading}...</div>
         </CardContent>
       </Card>
     );
@@ -186,7 +186,7 @@ const TripLoggerForm = () => {
             <Label htmlFor="notes">{t.notes}</Label>
             <Textarea
               id="notes"
-              placeholder="Add notes (optional)"
+              placeholder={t.addNotesPlaceholder}
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
               rows={3}

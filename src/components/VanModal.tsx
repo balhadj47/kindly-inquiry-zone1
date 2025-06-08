@@ -11,8 +11,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const VanModal = ({ isOpen, onClose, van }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     plateNumber: '',
     carNumberPlate: '',
@@ -70,14 +72,14 @@ const VanModal = ({ isOpen, onClose, van }) => {
       <DialogContent className="sm:max-w-[600px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg sm:text-xl">
-            {van ? 'Edit Van' : 'Add New Van'}
+            {van ? t.editVan : t.addNewVan}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="plate-number" className="text-sm sm:text-base">Plate Number</Label>
+              <Label htmlFor="plate-number" className="text-sm sm:text-base">{t.plateNumber}</Label>
               <Input
                 id="plate-number"
                 value={formData.plateNumber}
@@ -89,7 +91,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="car-number-plate" className="text-sm sm:text-base">Car Number Plate</Label>
+              <Label htmlFor="car-number-plate" className="text-sm sm:text-base">{t.carNumberPlate}</Label>
               <Input
                 id="car-number-plate"
                 value={formData.carNumberPlate}
@@ -103,7 +105,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="model" className="text-sm sm:text-base">Van Model</Label>
+              <Label htmlFor="model" className="text-sm sm:text-base">{t.vanModel}</Label>
               <Input
                 id="model"
                 value={formData.model}
@@ -115,23 +117,23 @@ const VanModal = ({ isOpen, onClose, van }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="status" className="text-sm sm:text-base">Status</Label>
+              <Label htmlFor="status" className="text-sm sm:text-base">{t.status}</Label>
               <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
                 <SelectTrigger className="text-base touch-manipulation">
-                  <SelectValue placeholder="Select status" />
+                  <SelectValue placeholder={t.selectStatus} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">Active</SelectItem>
-                  <SelectItem value="In Transit">In Transit</SelectItem>
-                  <SelectItem value="Maintenance">Maintenance</SelectItem>
-                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Active">{t.vanStatuses.active}</SelectItem>
+                  <SelectItem value="In Transit">{t.vanStatuses.inTransit}</SelectItem>
+                  <SelectItem value="Maintenance">{t.vanStatuses.maintenance}</SelectItem>
+                  <SelectItem value="Inactive">{t.vanStatuses.inactive}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="insurer" className="text-sm sm:text-base">Insurer</Label>
+            <Label htmlFor="insurer" className="text-sm sm:text-base">{t.insurer}</Label>
             <Input
               id="insurer"
               value={formData.insurer}
@@ -143,7 +145,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm sm:text-base">Insurance Date</Label>
+              <Label className="text-sm sm:text-base">{t.insuranceDate}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -154,7 +156,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.insuranceDate ? format(formData.insuranceDate, "PPP") : <span>Pick insurance date</span>}
+                    {formData.insuranceDate ? format(formData.insuranceDate, "PPP") : <span>{t.pickInsuranceDate}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -170,7 +172,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm sm:text-base">Control Date</Label>
+              <Label className="text-sm sm:text-base">{t.controlDate}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -181,7 +183,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {formData.controlDate ? format(formData.controlDate, "PPP") : <span>Pick control date</span>}
+                    {formData.controlDate ? format(formData.controlDate, "PPP") : <span>{t.pickControlDate}</span>}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -198,12 +200,12 @@ const VanModal = ({ isOpen, onClose, van }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes" className="text-sm sm:text-base">Notes</Label>
+            <Label htmlFor="notes" className="text-sm sm:text-base">{t.notes}</Label>
             <Textarea
               id="notes"
               value={formData.notes}
               onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Additional notes about the van..."
+              placeholder={t.additionalNotes}
               className="text-base touch-manipulation min-h-[100px]"
               rows={4}
             />
@@ -217,14 +219,14 @@ const VanModal = ({ isOpen, onClose, van }) => {
               className="order-2 sm:order-1 touch-manipulation"
               size="lg"
             >
-              Cancel
+              {t.cancel}
             </Button>
             <Button 
               type="submit"
               className="order-1 sm:order-2 touch-manipulation"
               size="lg"
             >
-              {van ? 'Update Van' : 'Create Van'}
+              {van ? t.updateVan : t.createVan}
             </Button>
           </div>
         </form>

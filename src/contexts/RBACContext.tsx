@@ -220,6 +220,33 @@ const SAMPLE_ARABIC_USERS: User[] = [
   },
 ];
 
+// Helper functions for localStorage persistence
+const getDeletedUserIds = (): number[] => {
+  const stored = localStorage.getItem('rbac_deleted_users');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const addDeletedUserId = (id: number) => {
+  const deletedIds = getDeletedUserIds();
+  if (!deletedIds.includes(id)) {
+    deletedIds.push(id);
+    localStorage.setItem('rbac_deleted_users', JSON.stringify(deletedIds));
+  }
+};
+
+const getDeletedGroupIds = (): string[] => {
+  const stored = localStorage.getItem('rbac_deleted_groups');
+  return stored ? JSON.parse(stored) : [];
+};
+
+const addDeletedGroupId = (id: string) => {
+  const deletedIds = getDeletedGroupIds();
+  if (!deletedIds.includes(id)) {
+    deletedIds.push(id);
+    localStorage.setItem('rbac_deleted_groups', JSON.stringify(deletedIds));
+  }
+};
+
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -247,9 +274,20 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If database is empty or has issues, use demo data with all groups
       if (dbUsers.length === 0 || dbGroups.length === 0) {
         console.log('Database is empty or has issues, using demo data with all groups...');
-        const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS];
+        
+        // Filter out deleted demo users and groups
+        const deletedUserIds = getDeletedUserIds();
+        const deletedGroupIds = getDeletedGroupIds();
+        
+        const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS].filter(
+          user => !deletedUserIds.includes(user.id)
+        );
+        const filteredGroups = DEFAULT_GROUPS.filter(
+          group => !deletedGroupIds.includes(group.id)
+        );
+        
         setUsers(allDemoUsers);
-        setGroups(DEFAULT_GROUPS);
+        setGroups(filteredGroups);
         setCurrentUser(DEMO_ADMIN_USER);
       } else {
         setUsers(dbUsers);
@@ -265,9 +303,18 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error loading initial data, using demo data:', error);
       // Fallback to demo data on any error
-      const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS];
+      const deletedUserIds = getDeletedUserIds();
+      const deletedGroupIds = getDeletedGroupIds();
+      
+      const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS].filter(
+        user => !deletedUserIds.includes(user.id)
+      );
+      const filteredGroups = DEFAULT_GROUPS.filter(
+        group => !deletedGroupIds.includes(group.id)
+      );
+      
       setUsers(allDemoUsers);
-      setGroups(DEFAULT_GROUPS);
+      setGroups(filteredGroups);
       setCurrentUser(DEMO_ADMIN_USER);
     } finally {
       setLoading(false);
@@ -478,8 +525,9 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // For demo mode (when using local data), remove from local state
+      // For demo mode (when using local data), persist deletion in localStorage
       if (users.find(u => u.id === id && u.id <= 17)) {
+        addDeletedUserId(id);
         setUsers(prev => prev.filter(user => user.id !== id));
         toast({
           title: "Succès",
@@ -597,8 +645,9 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // For demo mode (when using default groups), remove from local state
+      // For demo mode (when using default groups), persist deletion in localStorage
       if (defaultGroupIds.includes(id) || groups.find(g => g.id === id && defaultGroupIds.includes(g.id))) {
+        addDeletedGroupId(id);
         setGroups(prev => prev.filter(group => group.id !== id));
         toast({
           title: "Succès",

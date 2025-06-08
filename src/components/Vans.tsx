@@ -26,6 +26,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useVans } from '@/hooks/useVans';
 import VanModal from './VanModal';
 
 const Vans = () => {
@@ -33,19 +34,23 @@ const Vans = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortField, setSortField] = useState('plateNumber');
+  const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState('asc');
-  const [viewMode, setViewMode] = useState('grid');
   const { toast } = useToast();
+  const { vans, loading, error } = useVans();
 
-  // Enhanced mock data with more properties
-  const vans = [
+  // Mock data for demonstration while database is being populated
+  const mockVans = [
     {
-      id: 1,
-      plateNumber: 'VAN-001',
-      carNumberPlate: 'ABC-123',
+      id: '1',
+      license_plate: 'VAN-001',
       model: 'Ford Transit',
       status: 'Active',
+      driver_id: 'driver-1',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      // Additional display properties for the UI
+      carNumberPlate: 'ABC-123',
       totalTrips: 45,
       lastTrip: '2 hours ago',
       currentLocation: 'Downtown Branch',
@@ -58,11 +63,14 @@ const Vans = () => {
       yearlyTrips: 156,
     },
     {
-      id: 2,
-      plateNumber: 'VAN-002',
-      carNumberPlate: 'XYZ-456',
+      id: '2',
+      license_plate: 'VAN-002',
       model: 'Mercedes Sprinter',
       status: 'In Transit',
+      driver_id: 'driver-2',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      carNumberPlate: 'XYZ-456',
       totalTrips: 38,
       lastTrip: '30 mins ago',
       currentLocation: 'En route to Industrial Park',
@@ -74,49 +82,32 @@ const Vans = () => {
       mileage: '38,450 km',
       yearlyTrips: 142,
     },
-    {
-      id: 3,
-      plateNumber: 'VAN-003',
-      carNumberPlate: 'DEF-789',
-      model: 'Iveco Daily',
-      status: 'Maintenance',
-      totalTrips: 52,
-      lastTrip: '1 day ago',
-      currentLocation: 'Service Center',
-      fuelLevel: 15,
-      nextMaintenance: 'In Progress',
-      driver: 'Unassigned',
-      image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80',
-      efficiency: 75,
-      mileage: '62,180 km',
-      yearlyTrips: 98,
-    },
-    {
-      id: 4,
-      plateNumber: 'VAN-004',
-      carNumberPlate: 'GHI-012',
-      model: 'Ford Transit',
-      status: 'Active',
-      totalTrips: 29,
-      lastTrip: '1 hour ago',
-      currentLocation: 'North Branch',
-      fuelLevel: 94,
-      nextMaintenance: '2024-02-01',
-      driver: 'Mike Wilson',
-      image: 'https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?auto=format&fit=crop&w=400&q=80',
-      efficiency: 95,
-      mileage: '28,950 km',
-      yearlyTrips: 189,
-    },
   ];
 
+  // Use database vans if available, otherwise fall back to mock data
+  const displayVans = vans.length > 0 ? vans.map(van => ({
+    ...van,
+    // Add mock display properties for demo
+    carNumberPlate: van.license_plate,
+    totalTrips: 0,
+    lastTrip: 'Never',
+    currentLocation: 'Unknown',
+    fuelLevel: 50,
+    nextMaintenance: 'TBD',
+    driver: 'Unassigned',
+    image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
+    efficiency: 85,
+    mileage: '0 km',
+    yearlyTrips: 0,
+  })) : mockVans;
+
   const filteredAndSortedVans = useMemo(() => {
-    let filtered = vans.filter(van => {
+    let filtered = displayVans.filter(van => {
       const matchesSearch = 
-        van.plateNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        van.carNumberPlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        van.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
         van.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        van.driver.toLowerCase().includes(searchTerm.toLowerCase());
+        (van.carNumberPlate && van.carNumberPlate.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (van.driver && van.driver.toLowerCase().includes(searchTerm.toLowerCase()));
       
       const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
       
@@ -125,12 +116,12 @@ const Vans = () => {
 
     // Sort vans
     filtered.sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
+      let aValue = a[sortField] || '';
+      let bValue = b[sortField] || '';
       
       if (sortField === 'totalTrips' || sortField === 'fuelLevel' || sortField === 'efficiency') {
-        aValue = Number(aValue);
-        bValue = Number(bValue);
+        aValue = Number(aValue) || 0;
+        bValue = Number(bValue) || 0;
       }
       
       if (sortDirection === 'asc') {
@@ -141,7 +132,7 @@ const Vans = () => {
     });
 
     return filtered;
-  }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [displayVans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -177,7 +168,7 @@ const Vans = () => {
   const handleQuickAction = (action, van) => {
     toast({
       title: "Action Performed",
-      description: `${action} action performed on ${van.plateNumber}`,
+      description: `${action} action performed on ${van.license_plate}`,
     });
   };
 
@@ -197,6 +188,22 @@ const Vans = () => {
     { value: 'Maintenance', label: 'Maintenance' },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Loading vans...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header with Stats */}
@@ -206,15 +213,21 @@ const Vans = () => {
           <div className="flex items-center space-x-6 mt-2">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">{vans.filter(v => v.status === 'Active').length} Active</span>
+              <span className="text-sm text-gray-600">
+                {displayVans.filter(v => v.status === 'Active').length} Active
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">{vans.filter(v => v.status === 'In Transit').length} In Transit</span>
+              <span className="text-sm text-gray-600">
+                {displayVans.filter(v => v.status === 'In Transit').length} In Transit
+              </span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-              <span className="text-sm text-gray-600">{vans.filter(v => v.status === 'Maintenance').length} Maintenance</span>
+              <span className="text-sm text-gray-600">
+                {displayVans.filter(v => v.status === 'Maintenance').length} Maintenance
+              </span>
             </div>
           </div>
         </div>
@@ -262,7 +275,7 @@ const Vans = () => {
                   <SelectValue placeholder="Sort by..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="plateNumber">Plate Number</SelectItem>
+                  <SelectItem value="license_plate">License Plate</SelectItem>
                   <SelectItem value="model">Model</SelectItem>
                   <SelectItem value="totalTrips">Total Trips</SelectItem>
                   <SelectItem value="fuelLevel">Fuel Level</SelectItem>
@@ -286,9 +299,9 @@ const Vans = () => {
       </Card>
 
       {/* Results Summary */}
-      {filteredAndSortedVans.length !== vans.length && (
+      {filteredAndSortedVans.length !== displayVans.length && (
         <div className="text-sm text-gray-600">
-          Showing {filteredAndSortedVans.length} of {vans.length} vans
+          Showing {filteredAndSortedVans.length} of {displayVans.length} vans
         </div>
       )}
 
@@ -323,7 +336,7 @@ const Vans = () => {
               <div className="relative h-48 overflow-hidden rounded-t-lg">
                 <img 
                   src={van.image} 
-                  alt={`${van.model} - ${van.plateNumber}`}
+                  alt={`${van.model} - ${van.license_plate}`}
                   className="w-full h-full object-cover"
                 />
                 <div className="absolute top-3 right-3">
@@ -344,7 +357,7 @@ const Vans = () => {
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <CardTitle className="text-lg">{van.plateNumber}</CardTitle>
+                    <CardTitle className="text-lg">{van.license_plate}</CardTitle>
                     <p className="text-sm text-gray-600">{van.model}</p>
                   </div>
                   <div className="flex items-center space-x-1">

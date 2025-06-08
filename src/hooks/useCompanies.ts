@@ -5,6 +5,8 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Company {
   id: string;
   name: string;
+  created_at: string;
+  updated_at: string;
   branches: Branch[];
 }
 
@@ -12,6 +14,8 @@ export interface Branch {
   id: string;
   name: string;
   company_id: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useCompanies = () => {
@@ -29,14 +33,23 @@ export const useCompanies = () => {
           .from('companies')
           .select('*');
 
-        if (companiesError) throw companiesError;
+        if (companiesError) {
+          console.error('Companies error:', companiesError);
+          throw companiesError;
+        }
 
         // Fetch branches
         const { data: branchesData, error: branchesError } = await supabase
           .from('branches')
           .select('*');
 
-        if (branchesError) throw branchesError;
+        if (branchesError) {
+          console.error('Branches error:', branchesError);
+          throw branchesError;
+        }
+
+        console.log('Fetched companies:', companiesData);
+        console.log('Fetched branches:', branchesData);
 
         // Group branches by company
         const companiesWithBranches = (companiesData || []).map((company: any) => ({

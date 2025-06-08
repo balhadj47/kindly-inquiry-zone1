@@ -6,7 +6,10 @@ export interface Van {
   id: string;
   license_plate: string;
   model: string;
-  driver_id: string;
+  driver_id: string | null;
+  status: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export const useVans = () => {
@@ -23,8 +26,12 @@ export const useVans = () => {
           .from('vans')
           .select('*');
 
-        if (error) throw error;
+        if (error) {
+          console.error('Supabase error:', error);
+          throw error;
+        }
 
+        console.log('Fetched vans data:', data);
         setVans(data || []);
       } catch (err) {
         console.error('Error fetching vans:', err);

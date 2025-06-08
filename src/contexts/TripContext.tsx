@@ -49,7 +49,12 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Trips error:', error);
+          throw error;
+        }
+
+        console.log('Fetched trips:', data);
 
         // Transform database data to match our Trip interface
         const transformedTrips = (data || []).map((trip: any) => ({
@@ -90,7 +95,12 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Insert trip error:', error);
+        throw error;
+      }
+
+      console.log('Trip added successfully:', data);
 
       // Transform and add the new trip to the local state
       if (data) {

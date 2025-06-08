@@ -8,11 +8,13 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2, Trash2, Filter, X } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
 import GroupPermissionsModal from './GroupPermissionsModal';
 
 const Users = () => {
+  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -94,18 +96,18 @@ const Users = () => {
     const usersInGroup = users.filter(user => user.groupId === group.id);
     
     if (usersInGroup.length > 0) {
-      alert(`Cannot delete group "${group.name}" because it has ${usersInGroup.length} user(s) assigned to it. Please reassign these users to another group first.`);
+      alert(`${t.cannotDeleteGroup} "${group.name}" ${t.usersAssigned.replace('user(s) assigned to it. Please reassign these users to another group first.', `${usersInGroup.length} ${t.usersAssigned}`)}`);
       return;
     }
 
     // Prevent deletion of default groups
     const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
     if (defaultGroupIds.includes(group.id)) {
-      alert(`Cannot delete the default group "${group.name}".`);
+      alert(`${t.cannotDeleteDefault} "${group.name}".`);
       return;
     }
 
-    if (confirm(`Are you sure you want to delete the group "${group.name}"? This action cannot be undone.`)) {
+    if (confirm(`${t.confirmDeleteGroup} "${group.name}"? ${t.actionCannotBeUndone}`)) {
       await deleteGroup(group.id);
     }
   };
@@ -114,7 +116,7 @@ const Users = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading users...</span>
+        <span className="ml-2">{t.loadingUsers}</span>
       </div>
     );
   }
@@ -122,16 +124,16 @@ const Users = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Users Management</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{t.usersManagement}</h1>
         <div className="flex space-x-2 mt-4 md:mt-0">
           {hasPermission('users.create') && (
             <Button onClick={handleAddUser}>
-              Add New User
+              {t.addNewUser}
             </Button>
           )}
           {hasPermission('users.manage_groups') && (
             <Button variant="outline" onClick={handleAddGroup}>
-              Add Group
+              {t.addGroup}
             </Button>
           )}
         </div>
@@ -141,12 +143,12 @@ const Users = () => {
         <TabsList>
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
-            <span>Users</span>
+            <span>{t.users}</span>
           </TabsTrigger>
           {hasPermission('users.manage_groups') && (
             <TabsTrigger value="groups" className="flex items-center space-x-2">
               <UsersIcon className="h-4 w-4" />
-              <span>Groups</span>
+              <span>{t.groups}</span>
             </TabsTrigger>
           )}
         </TabsList>
@@ -160,7 +162,7 @@ const Users = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder="Search by name, email, or license number..."
+                    placeholder={t.searchByNameEmailLicense}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -172,10 +174,10 @@ const Users = () => {
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by status" />
+                      <SelectValue placeholder={t.filterByStatus} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">All Statuses</SelectItem>
+                      <SelectItem value="all">{t.allStatuses}</SelectItem>
                       {uniqueStatuses.map(status => (
                         <SelectItem key={status} value={status}>{status}</SelectItem>
                       ))}
@@ -185,10 +187,10 @@ const Users = () => {
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger>
                       <Shield className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by role" />
+                      <SelectValue placeholder={t.filterByRole} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">All Roles</SelectItem>
+                      <SelectItem value="all">{t.allRoles}</SelectItem>
                       {uniqueRoles.map(role => (
                         <SelectItem key={role} value={role}>{role}</SelectItem>
                       ))}
@@ -198,10 +200,10 @@ const Users = () => {
                   <Select value={groupFilter} onValueChange={setGroupFilter}>
                     <SelectTrigger>
                       <UsersIcon className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filter by group" />
+                      <SelectValue placeholder={t.filterByGroup} />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">All Groups</SelectItem>
+                      <SelectItem value="all">{t.allGroups}</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
                       ))}
@@ -211,7 +213,7 @@ const Users = () => {
                   {hasActiveFilters && (
                     <Button variant="outline" onClick={clearFilters} className="flex items-center space-x-2">
                       <X className="h-4 w-4" />
-                      <span>Clear Filters</span>
+                      <span>{t.clearFilters}</span>
                     </Button>
                   )}
                 </div>
@@ -219,13 +221,13 @@ const Users = () => {
                 {/* Results Summary */}
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>
-                    Showing {filteredUsers.length} of {users.length} users
-                    {hasActiveFilters && " (filtered)"}
+                    {t.showingUsers} {filteredUsers.length} {t.of} {users.length} {t.users.toLowerCase()}
+                    {hasActiveFilters && ` ${t.filtered}`}
                   </span>
                   {hasActiveFilters && (
                     <div className="flex items-center space-x-2">
-                      <span>Active filters:</span>
-                      {searchTerm && <Badge variant="secondary">Search: "{searchTerm}"</Badge>}
+                      <span>{t.activeFilters}</span>
+                      {searchTerm && <Badge variant="secondary">{t.search}: "{searchTerm}"</Badge>}
                       {statusFilter !== 'all' && <Badge variant="secondary">Status: {statusFilter}</Badge>}
                       {roleFilter !== 'all' && <Badge variant="secondary">Role: {roleFilter}</Badge>}
                       {groupFilter !== 'all' && <Badge variant="secondary">Group: {groups.find(g => g.id === groupFilter)?.name}</Badge>}
@@ -277,8 +279,8 @@ const Users = () => {
                     
                     {(user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé') && user.totalTrips && (
                       <div className="text-sm text-gray-600">
-                        <p><span className="font-medium">Total Trips:</span> {user.totalTrips}</p>
-                        <p><span className="font-medium">Last Trip:</span> {user.lastTrip}</p>
+                        <p><span className="font-medium">{t.totalTripsLabel}</span> {user.totalTrips}</p>
+                        <p><span className="font-medium">{t.lastTripLabel}</span> {user.lastTrip}</p>
                       </div>
                     )}
                     
@@ -290,7 +292,7 @@ const Users = () => {
                           onClick={() => handleEditUser(user)}
                           className="flex-1"
                         >
-                          Edit
+                          {t.edit}
                         </Button>
                       )}
                       <Button
@@ -298,7 +300,7 @@ const Users = () => {
                         size="sm"
                         className="flex-1"
                       >
-                        View History
+                        {t.viewHistory}
                       </Button>
                     </div>
                   </CardContent>
@@ -311,16 +313,16 @@ const Users = () => {
             <Card>
               <CardContent className="text-center py-8">
                 <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No users found</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noUsersFound}</h3>
                 <p className="text-gray-500">
                   {hasActiveFilters 
-                    ? "Try adjusting your filters or search terms." 
-                    : "Try adjusting your search terms or add a new user."
+                    ? t.tryAdjustingFilters 
+                    : t.tryAdjustingSearch
                   }
                 </p>
                 {hasActiveFilters && (
                   <Button variant="outline" onClick={clearFilters} className="mt-4">
-                    Clear all filters
+                    {t.clearAllFilters}
                   </Button>
                 )}
               </CardContent>
@@ -346,13 +348,13 @@ const Users = () => {
                           <p className="text-sm text-gray-600">{group.description}</p>
                         </div>
                         <Badge className={group.color}>
-                          {usersInGroup} users
+                          {usersInGroup} {t.users.toLowerCase()}
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="text-sm text-gray-600">
-                        <p><span className="font-medium">Permissions:</span> {group.permissions.length}</p>
+                        <p><span className="font-medium">{t.permissions}:</span> {group.permissions.length}</p>
                       </div>
                       
                       <div className="flex space-x-2 pt-2">
@@ -362,7 +364,7 @@ const Users = () => {
                           onClick={() => handleEditGroup(group)}
                           className="flex-1"
                         >
-                          Edit
+                          {t.edit}
                         </Button>
                         <Button
                           variant="outline"
@@ -371,7 +373,7 @@ const Users = () => {
                           className="flex-1"
                         >
                           <Settings className="h-4 w-4 mr-1" />
-                          Permissions
+                          {t.permissions}
                         </Button>
                         {canDelete && (
                           <Button
@@ -388,8 +390,8 @@ const Users = () => {
                       {!canDelete && (
                         <p className="text-xs text-gray-500 mt-2">
                           {isDefaultGroup 
-                            ? "This is a default group and cannot be deleted."
-                            : `Cannot delete: ${usersInGroup} user(s) assigned to this group.`
+                            ? t.isDefaultGroup
+                            : `${t.cannotDelete} ${usersInGroup} ${t.users.toLowerCase()} ${t.usersAssigned.split('.')[0]}.`
                           }
                         </p>
                       )}
@@ -403,8 +405,8 @@ const Users = () => {
               <Card>
                 <CardContent className="text-center py-8">
                   <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No groups found</h3>
-                  <p className="text-gray-500">Create your first user group to get started.</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noGroupsFound}</h3>
+                  <p className="text-gray-500">{t.createFirstGroup}</p>
                 </CardContent>
               </Card>
             )}

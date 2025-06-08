@@ -70,4 +70,41 @@ export interface TranslationKeys {
     leave: string;
     sickLeave: string;
   };
+
+  // Users Management
+  usersManagement: string;
+  addNewUser: string;
+  addGroup: string;
+  groups: string;
+  filterByStatus: string;
+  filterByRole: string;
+  filterByGroup: string;
+  allStatuses: string;
+  allRoles: string;
+  allGroups: string;
+  clearFilters: string;
+  showingUsers: string;
+  of: string;
+  filtered: string;
+  activeFilters: string;
+  searchByNameEmailLicense: string;
+  noUsersFound: string;
+  tryAdjustingFilters: string;
+  tryAdjustingSearch: string;
+  clearAllFilters: string;
+  viewHistory: string;
+  totalTripsLabel: string;
+  lastTripLabel: string;
+  permissions: string;
+  cannotDeleteGroup: string;
+  usersAssigned: string;
+  reassignUsers: string;
+  cannotDeleteDefault: string;
+  confirmDeleteGroup: string;
+  actionCannotBeUndone: string;
+  loadingUsers: string;
+  noGroupsFound: string;
+  createFirstGroup: string;
+  isDefaultGroup: string;
+  cannotDelete: string;
 }

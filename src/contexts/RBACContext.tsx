@@ -1,32 +1,44 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { User, Group } from '@/types/rbac';
+import type { User, UserGroup as Group, Permission, DEFAULT_PERMISSIONS } from '@/types/rbac';
 
 interface RBACContextType {
   currentUser: User | null;
+  users: User[];
   groups: Group[];
+  permissions: Permission[];
   loading: boolean;
   hasPermission: (permission: string) => boolean;
   setUser: (user: User | null) => void;
+  addUser: (userData: Partial<User>) => Promise<void>;
+  updateUser: (id: number, userData: Partial<User>) => Promise<void>;
+  deleteUser: (id: number) => Promise<void>;
+  getUserGroup: (user: User) => Group | undefined;
+  addGroup: (groupData: Partial<Group>) => Promise<void>;
+  updateGroup: (id: string, groupData: Partial<Group>) => Promise<void>;
+  deleteGroup: (id: string) => Promise<void>;
 }
 
 const RBACContext = createContext<RBACContextType | undefined>(undefined);
 
 // Temporary development user for testing menu visibility
 const DEV_USER: User = {
-  id: 'dev-user-1',
+  id: 1,
   name: 'Development User',
   email: 'dev@example.com',
+  phone: '+33123456789',
   groupId: 'admin',
-  role: 'admin',
-  isActive: true,
+  role: 'Administrator',
+  status: 'Active',
   createdAt: new Date().toISOString(),
 };
 
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<Group[]>([]);
+  const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,17 +59,22 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: user.id,
           name: user.name,
           email: user.email,
+          phone: user.phone,
           groupId: user.group_id,
-          role: user.role || 'employee',
-          isActive: user.is_active !== false,
+          role: user.role,
+          status: user.status,
           createdAt: user.created_at,
+          licenseNumber: user.license_number,
+          totalTrips: user.total_trips,
+          lastTrip: user.last_trip,
         }));
 
         console.log('Formatted users from DB:', formattedUsers);
+        setUsers(formattedUsers);
 
         // Load groups
         const { data: groupsData, error: groupsError } = await supabase
-          .from('groups')
+          .from('user_groups')
           .select('*');
 
         if (groupsError) {
@@ -75,8 +92,11 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
 
         console.log('Formatted groups from DB:', formattedGroups);
-
         setGroups(formattedGroups);
+
+        // Set permissions from types
+        const { DEFAULT_PERMISSIONS } = await import('@/types/rbac');
+        setPermissions(DEFAULT_PERMISSIONS);
 
         // For development: if no users exist in DB, use dev user
         if (formattedUsers.length === 0) {
@@ -128,13 +148,187 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCurrentUser(user);
   };
 
+  const addUser = async (userData: Partial<User>) => {
+    const { data, error } = await supabase
+      .from('users')
+      .insert([{
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        group_id: userData.groupId,
+        role: userData.role,
+        status: userData.status,
+        license_number: userData.licenseNumber,
+      }])
+      .select();
+
+    if (error) {
+      console.error('Error adding user:', error);
+      throw error;
+    }
+
+    if (data && data[0]) {
+      const newUser = {
+        id: data[0].id,
+        name: data[0].name,
+        email: data[0].email,
+        phone: data[0].phone,
+        groupId: data[0].group_id,
+        role: data[0].role,
+        status: data[0].status,
+        createdAt: data[0].created_at,
+        licenseNumber: data[0].license_number,
+        totalTrips: data[0].total_trips,
+        lastTrip: data[0].last_trip,
+      };
+      setUsers(prev => [...prev, newUser]);
+    }
+  };
+
+  const updateUser = async (id: number, userData: Partial<User>) => {
+    const { data, error } = await supabase
+      .from('users')
+      .update({
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        group_id: userData.groupId,
+        role: userData.role,
+        status: userData.status,
+        license_number: userData.licenseNumber,
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
+
+    if (data && data[0]) {
+      const updatedUser = {
+        id: data[0].id,
+        name: data[0].name,
+        email: data[0].email,
+        phone: data[0].phone,
+        groupId: data[0].group_id,
+        role: data[0].role,
+        status: data[0].status,
+        createdAt: data[0].created_at,
+        licenseNumber: data[0].license_number,
+        totalTrips: data[0].total_trips,
+        lastTrip: data[0].last_trip,
+      };
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+    }
+  };
+
+  const deleteUser = async (id: number) => {
+    const { error } = await supabase
+      .from('users')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting user:', error);
+      throw error;
+    }
+
+    setUsers(prev => prev.filter(user => user.id !== id));
+  };
+
+  const getUserGroup = (user: User): Group | undefined => {
+    return groups.find(g => g.id === user.groupId);
+  };
+
+  const addGroup = async (groupData: Partial<Group>) => {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .insert([{
+        id: groupData.id,
+        name: groupData.name,
+        description: groupData.description,
+        permissions: groupData.permissions,
+        color: groupData.color,
+      }])
+      .select();
+
+    if (error) {
+      console.error('Error adding group:', error);
+      throw error;
+    }
+
+    if (data && data[0]) {
+      const newGroup = {
+        id: data[0].id,
+        name: data[0].name,
+        description: data[0].description,
+        permissions: data[0].permissions || [],
+        color: data[0].color,
+      };
+      setGroups(prev => [...prev, newGroup]);
+    }
+  };
+
+  const updateGroup = async (id: string, groupData: Partial<Group>) => {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .update({
+        name: groupData.name,
+        description: groupData.description,
+        permissions: groupData.permissions,
+        color: groupData.color,
+      })
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      console.error('Error updating group:', error);
+      throw error;
+    }
+
+    if (data && data[0]) {
+      const updatedGroup = {
+        id: data[0].id,
+        name: data[0].name,
+        description: data[0].description,
+        permissions: data[0].permissions || [],
+        color: data[0].color,
+      };
+      setGroups(prev => prev.map(group => group.id === id ? updatedGroup : group));
+    }
+  };
+
+  const deleteGroup = async (id: string) => {
+    const { error } = await supabase
+      .from('user_groups')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error deleting group:', error);
+      throw error;
+    }
+
+    setGroups(prev => prev.filter(group => group.id !== id));
+  };
+
   return (
     <RBACContext.Provider value={{
       currentUser,
+      users,
       groups,
+      permissions,
       loading,
       hasPermission,
       setUser,
+      addUser,
+      updateUser,
+      deleteUser,
+      getUserGroup,
+      addGroup,
+      updateGroup,
+      deleteGroup,
     }}>
       {children}
     </RBACContext.Provider>

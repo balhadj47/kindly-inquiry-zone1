@@ -9,13 +9,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import { Link } from 'react-router-dom';
 
 const UserProfile = () => {
-  const { currentUser, groups } = useRBAC();
+  const { user, signOut } = useAuth();
+  const { groups } = useRBAC();
 
-  if (!currentUser) {
+  const handleSignOut = async () => {
+    await signOut();
+  };
+
+  if (!user) {
     return (
       <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
         <Avatar className="h-8 w-8">
@@ -30,29 +36,29 @@ const UserProfile = () => {
     );
   }
 
-  const userGroup = groups.find(g => g.id === currentUser.groupId);
-  const userInitials = currentUser.name
-    .split(' ')
+  const userInitials = user.email
+    ?.split('@')[0]
+    .split('.')
     .map(n => n[0])
     .join('')
-    .toUpperCase();
+    .toUpperCase() || 'U';
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
           <Avatar className="h-8 w-8">
-            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${currentUser.name}`} />
+            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} />
             <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
               {userInitials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
             <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {currentUser.name}
+              {user.email}
             </p>
             <p className="text-xs text-muted-foreground truncate">
-              {userGroup?.name || currentUser.role}
+              Authenticated User
             </p>
           </div>
         </div>
@@ -69,7 +75,10 @@ const UserProfile = () => {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive focus:text-destructive">
+        <DropdownMenuItem 
+          className="text-destructive focus:text-destructive"
+          onClick={handleSignOut}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           Sign out
         </DropdownMenuItem>

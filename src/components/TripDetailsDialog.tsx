@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Calendar, Clock, MapIcon, User, Truck, Building2, StickyNote, Users } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { formatDateTimeParts, getTimeAgo } from '@/utils/dateUtils';
 
 interface TripDetailsDialogProps {
@@ -26,6 +27,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
   onOpenChange,
 }) => {
   const { users, getUserGroup } = useRBAC();
+  const { t } = useLanguage();
 
   if (!trip) return null;
 
@@ -42,7 +44,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Truck className="h-5 w-5" />
-            <span>Trip Details</span>
+            <span>Détails du Voyage</span>
             <Badge variant="outline" className="font-mono">
               #{trip.id}
             </Badge>
@@ -59,7 +61,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <Truck className="h-5 w-5 text-blue-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Van ID</p>
+                    <p className="text-sm text-gray-500">ID Camionnette</p>
                     <p className="font-semibold text-lg">{trip.van}</p>
                   </div>
                 </div>
@@ -68,7 +70,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <User className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Driver</p>
+                    <p className="text-sm text-gray-500">Chauffeur</p>
                     <p className="font-semibold text-lg">{trip.driver}</p>
                   </div>
                 </div>
@@ -85,7 +87,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <Building2 className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Company</p>
+                    <p className="text-sm text-gray-500">Entreprise</p>
                     <p className="font-semibold text-lg">{trip.company}</p>
                   </div>
                 </div>
@@ -94,7 +96,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <MapIcon className="h-5 w-5 text-orange-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Branch</p>
+                    <p className="text-sm text-gray-500">Succursale</p>
                     <p className="font-semibold text-lg">{trip.branch}</p>
                   </div>
                 </div>
@@ -110,7 +112,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                   <Users className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-gray-500 mb-3">Employees on Trip</p>
+                  <p className="text-sm text-gray-500 mb-3">Employés sur le Voyage</p>
                   {tripEmployees.length > 0 ? (
                     <div className="space-y-3">
                       {tripEmployees.map((employee) => {
@@ -141,7 +143,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                                 variant={employee.status === 'Active' ? 'default' : 'secondary'}
                                 className="text-xs"
                               >
-                                {employee.status}
+                                {t.userStatus[employee.status === 'Active' ? 'active' : employee.status === 'Recovery' ? 'recovery' : employee.status === 'Leave' ? 'leave' : 'sickLeave']}
                               </Badge>
                             </div>
                           </div>
@@ -149,7 +151,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                       })}
                     </div>
                   ) : (
-                    <p className="text-gray-500 italic">No employees assigned to this trip</p>
+                    <p className="text-gray-500 italic">Aucun employé assigné à ce voyage</p>
                   )}
                 </div>
               </div>
@@ -174,7 +176,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <Clock className="h-5 w-5 text-pink-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Time</p>
+                    <p className="text-sm text-gray-500">Heure</p>
                     <p className="font-semibold">{time}</p>
                   </div>
                 </div>
@@ -183,7 +185,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                     <Clock className="h-5 w-5 text-gray-600" />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Time Ago</p>
+                    <p className="text-sm text-gray-500">Il y a</p>
                     <p className="font-semibold">{getTimeAgo(trip.timestamp)}</p>
                   </div>
                 </div>
@@ -202,7 +204,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                       <StickyNote className="h-5 w-5 text-yellow-600" />
                     </div>
                     <div className="flex-1">
-                      <p className="text-sm text-gray-500 mb-2">Notes</p>
+                      <p className="text-sm text-gray-500 mb-2">{t.notes}</p>
                       <p className="text-gray-800 leading-relaxed">{trip.notes}</p>
                     </div>
                   </div>
@@ -215,10 +217,10 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
           <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
             <CardContent className="pt-6">
               <div className="text-center">
-                <h3 className="font-semibold text-lg text-blue-800 mb-2">Trip Summary</h3>
+                <h3 className="font-semibold text-lg text-blue-800 mb-2">Résumé du Voyage</h3>
                 <p className="text-blue-600">
-                  {trip.driver} completed a trip to {trip.branch} ({trip.company}) using van {trip.van}
-                  {tripEmployees.length > 0 && ` with ${tripEmployees.length} employee${tripEmployees.length === 1 ? '' : 's'}`}
+                  {trip.driver} a terminé un voyage vers {trip.branch} ({trip.company}) avec la camionnette {trip.van}
+                  {tripEmployees.length > 0 && ` avec ${tripEmployees.length} employé${tripEmployees.length === 1 ? '' : 's'}`}
                 </p>
               </div>
             </CardContent>

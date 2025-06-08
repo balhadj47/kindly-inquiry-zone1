@@ -89,6 +89,72 @@ export type Database = {
         }
         Relationships: []
       }
+      user_groups: {
+        Row: {
+          color: string
+          description: string
+          id: string
+          name: string
+          permissions: string[] | null
+        }
+        Insert: {
+          color: string
+          description: string
+          id: string
+          name: string
+          permissions?: string[] | null
+        }
+        Update: {
+          color?: string
+          description?: string
+          id?: string
+          name?: string
+          permissions?: string[] | null
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          email: string
+          group_id: string
+          id: number
+          last_trip: string | null
+          license_number: string | null
+          name: string
+          phone: string
+          role: string
+          status: string
+          total_trips: number | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          group_id: string
+          id?: number
+          last_trip?: string | null
+          license_number?: string | null
+          name: string
+          phone: string
+          role: string
+          status: string
+          total_trips?: number | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          group_id?: string
+          id?: number
+          last_trip?: string | null
+          license_number?: string | null
+          name?: string
+          phone?: string
+          role?: string
+          status?: string
+          total_trips?: number | null
+        }
+        Relationships: []
+      }
       vans: {
         Row: {
           created_at: string

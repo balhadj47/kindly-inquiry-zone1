@@ -1,9 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { useRBAC } from '@/contexts/RBACContext';
 import { User, UserRole, UserStatus } from '@/types/rbac';
 
@@ -11,6 +14,15 @@ interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
   user: User | null;
+}
+
+interface UserFormData {
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: UserStatus;
+  licenseNumber: string;
 }
 
 // Helper function to map roles to group IDs
@@ -40,20 +52,22 @@ const getGroupIdForRole = (role: UserRole): string => {
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const { addUser, updateUser } = useRBAC();
   
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    role: 'Employee' as UserRole,
-    status: 'Active' as UserStatus,
-    licenseNumber: '',
+  const form = useForm<UserFormData>({
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+      role: 'Employee',
+      status: 'Active',
+      licenseNumber: '',
+    }
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      form.reset({
         name: user.name,
         email: user.email,
         phone: user.phone,
@@ -62,7 +76,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: user.licenseNumber || '',
       });
     } else {
-      setFormData({
+      form.reset({
         name: '',
         email: '',
         phone: '',
@@ -71,18 +85,17 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: '',
       });
     }
-  }, [user]);
+  }, [user, form]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (data: UserFormData) => {
     setIsSubmitting(true);
     
     try {
       const userData = {
-        ...formData,
-        groupId: getGroupIdForRole(formData.role), // Automatically assign group based on role
+        ...data,
+        groupId: getGroupIdForRole(data.role),
         createdAt: user?.createdAt || new Date().toISOString(),
-        licenseNumber: (formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') ? formData.licenseNumber : undefined,
+        licenseNumber: (data.role === 'Chauffeur Armé' || data.role === 'Chauffeur Sans Armé') ? data.licenseNumber : undefined,
       };
 
       if (user) {
@@ -99,9 +112,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  const watchedRole = form.watch('role');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -112,100 +123,156 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nom Complet</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="ex: Jean Dupont"
-              required
-              disabled={isSubmitting}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              rules={{ required: 'Le nom est requis' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nom Complet</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="ex: Jean Dupont"
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="email">Adresse Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange('email', e.target.value)}
-              placeholder="ex: jean.dupont@entreprise.com"
-              required
-              disabled={isSubmitting}
+            <FormField
+              control={form.control}
+              name="email"
+              rules={{ 
+                required: 'L\'email est requis',
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: 'Adresse email invalide'
+                }
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Adresse Email</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="ex: jean.dupont@entreprise.com"
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="phone">Numéro de Téléphone</Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => handleInputChange('phone', e.target.value)}
-              placeholder="ex: +33 1 23 45 67 89"
-              required
-              disabled={isSubmitting}
+            <FormField
+              control={form.control}
+              name="phone"
+              rules={{ required: 'Le téléphone est requis' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Numéro de Téléphone</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="ex: +33 1 23 45 67 89"
+                      disabled={isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="role">Rôle</Label>
-            <Select value={formData.role} onValueChange={(value) => handleInputChange('role', value)} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un rôle" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Administrator">Administrateur</SelectItem>
-                <SelectItem value="Employee">Employé</SelectItem>
-                <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
-                <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
-                <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
-                <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
-                <SelectItem value="APS Armé">APS Armé</SelectItem>
-                <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+            <FormField
+              control={form.control}
+              name="role"
+              rules={{ required: 'Le rôle est requis' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Rôle</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un rôle" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Administrator">Administrateur</SelectItem>
+                      <SelectItem value="Employee">Employé</SelectItem>
+                      <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
+                      <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
+                      <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
+                      <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
+                      <SelectItem value="APS Armé">APS Armé</SelectItem>
+                      <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          {(formData.role === 'Chauffeur Armé' || formData.role === 'Chauffeur Sans Armé') && (
-            <div className="space-y-2">
-              <Label htmlFor="license-number">Numéro de Permis</Label>
-              <Input
-                id="license-number"
-                value={formData.licenseNumber}
-                onChange={(e) => handleInputChange('licenseNumber', e.target.value)}
-                placeholder="ex: DL123456789"
-                disabled={isSubmitting}
+            {(watchedRole === 'Chauffeur Armé' || watchedRole === 'Chauffeur Sans Armé') && (
+              <FormField
+                control={form.control}
+                name="licenseNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Numéro de Permis</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="ex: DL123456789"
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
+            )}
+
+            <FormField
+              control={form.control}
+              name="status"
+              rules={{ required: 'Le statut est requis' }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Statut</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un statut" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Active">Actif</SelectItem>
+                      <SelectItem value="Récupération">Récupération</SelectItem>
+                      <SelectItem value="Congé">Congé</SelectItem>
+                      <SelectItem value="Congé maladie">Congé maladie</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+                Annuler
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? 'Sauvegarde...' : (user ? 'Mettre à Jour l\'Utilisateur' : 'Créer l\'Utilisateur')}
+              </Button>
             </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Statut</Label>
-            <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value as UserStatus)} disabled={isSubmitting}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Active">Actif</SelectItem>
-                <SelectItem value="Récupération">Récupération</SelectItem>
-                <SelectItem value="Congé">Congé</SelectItem>
-                <SelectItem value="Congé maladie">Congé maladie</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Annuler
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Sauvegarde...' : (user ? 'Mettre à Jour l\'Utilisateur' : 'Créer l\'Utilisateur')}
-            </Button>
-          </div>
-        </form>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

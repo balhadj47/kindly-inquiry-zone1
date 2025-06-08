@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserGroup as Group, Permission, DEFAULT_PERMISSIONS, UserRole, UserStatus } from '@/types/rbac';
@@ -92,7 +91,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }));
 
         console.log('Formatted groups from DB:', formattedGroups);
-        setGroups(formattedGroups);
+        console.log('Available groups:', groups);
+
+        // If no groups in DB, load default groups
+        if (formattedGroups.length === 0) {
+          console.log('No groups found in database, loading default groups');
+          const { DEFAULT_GROUPS } = await import('@/types/rbac');
+          console.log('Default groups loaded:', DEFAULT_GROUPS);
+          setGroups(DEFAULT_GROUPS);
+        } else {
+          setGroups(formattedGroups);
+        }
 
         // Set permissions from types
         const { DEFAULT_PERMISSIONS } = await import('@/types/rbac');
@@ -111,8 +120,16 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('RBAC data loaded successfully');
       } catch (error) {
         console.error('Error loading RBAC data:', error);
-        // Fallback to dev user if there's an error
+        // Fallback to dev user and default groups if there's an error
         setCurrentUser(DEV_USER);
+        
+        try {
+          const { DEFAULT_GROUPS } = await import('@/types/rbac');
+          console.log('Loading default groups as fallback:', DEFAULT_GROUPS);
+          setGroups(DEFAULT_GROUPS);
+        } catch (importError) {
+          console.error('Error importing default groups:', importError);
+        }
       } finally {
         setLoading(false);
       }
@@ -132,6 +149,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const userGroup = groups.find(g => g.id === currentUser.groupId);
     console.log('User group:', userGroup);
+    console.log('Available groups:', groups);
     
     if (!userGroup) {
       console.log('No group found for user, permission denied');
@@ -140,6 +158,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const hasPermission = userGroup.permissions.includes(permission);
     console.log(`Permission ${permission} result:`, hasPermission);
+    console.log('User group permissions:', userGroup.permissions);
     
     return hasPermission;
   };

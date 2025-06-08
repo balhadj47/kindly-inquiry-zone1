@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -21,6 +22,15 @@ const Users = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   
   const { users, groups, hasPermission, loading, deleteGroup, deleteUser, currentUser } = useRBAC();
+
+  // Debug permissions
+  console.log('Users component - hasPermission check results:');
+  console.log('users.view:', hasPermission('users.view'));
+  console.log('users.create:', hasPermission('users.create'));
+  console.log('users.manage_groups:', hasPermission('users.manage_groups'));
+  console.log('Current user:', currentUser);
+  console.log('Current user group:', currentUser?.groupId);
+  console.log('Available groups:', groups);
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -95,6 +105,9 @@ const Users = () => {
     );
   }
 
+  const canManageGroups = hasPermission('users.manage_groups');
+  console.log('Can manage groups:', canManageGroups);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -105,7 +118,7 @@ const Users = () => {
               Ajouter un Nouvel Utilisateur
             </Button>
           )}
-          {hasPermission('users.manage_groups') && (
+          {canManageGroups && (
             <Button variant="outline" onClick={handleAddGroup}>
               Ajouter un Groupe
             </Button>
@@ -119,7 +132,7 @@ const Users = () => {
             <User className="h-4 w-4" />
             <span>Utilisateurs</span>
           </TabsTrigger>
-          {hasPermission('users.manage_groups') && (
+          {canManageGroups && (
             <TabsTrigger value="groups" className="flex items-center space-x-2">
               <UsersIcon className="h-4 w-4" />
               <span>Groupes</span>
@@ -144,7 +157,7 @@ const Users = () => {
           onDeleteUser={handleDeleteUser}
         />
 
-        {hasPermission('users.manage_groups') && (
+        {canManageGroups && (
           <GroupsTab
             groups={groups}
             users={users}

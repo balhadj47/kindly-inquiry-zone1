@@ -2,39 +2,63 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { useRBAC } from '@/contexts/RBACContext';
+import { useVans } from '@/hooks/useVans';
+import { useCompanies } from '@/hooks/useCompanies';
 
 const Dashboard = () => {
-  // Mock data - in a real app, this would come from your backend
+  const { users, loading: usersLoading } = useRBAC();
+  const { vans, loading: vansLoading } = useVans();
+  const { companies, loading: companiesLoading } = useCompanies();
+
+  // Calculate real statistics
+  const activeVans = vans.filter(van => van.status === 'Actif' || !van.status).length;
+  const totalUsers = users.length;
+  const totalCompanies = companies.length;
+  const totalBranches = companies.reduce((sum, company) => sum + company.branches.length, 0);
+
+  // Mock data for charts (to be replaced with real data when trip logging is implemented)
   const dailyTrips = [
-    { date: 'Mon', trips: 45 },
-    { date: 'Tue', trips: 52 },
-    { date: 'Wed', trips: 38 },
-    { date: 'Thu', trips: 61 },
-    { date: 'Fri', trips: 55 },
-    { date: 'Sat', trips: 28 },
-    { date: 'Sun', trips: 15 },
+    { date: 'Lun', trips: 0 },
+    { date: 'Mar', trips: 0 },
+    { date: 'Mer', trips: 0 },
+    { date: 'Jeu', trips: 0 },
+    { date: 'Ven', trips: 0 },
+    { date: 'Sam', trips: 0 },
+    { date: 'Dim', trips: 0 },
   ];
 
-  const topBranches = [
-    { name: 'Downtown Branch', visits: 125, color: '#3B82F6' },
-    { name: 'Industrial Park', visits: 98, color: '#10B981' },
-    { name: 'North Branch', visits: 87, color: '#F59E0B' },
-    { name: 'South Branch', visits: 65, color: '#EF4444' },
+  const topBranches = companies.length > 0 ? companies.slice(0, 4).map((company, index) => ({
+    name: company.name,
+    visits: 0, // To be replaced with real trip data
+    color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'][index] || '#3B82F6'
+  })) : [
+    { name: 'Aucune succursale', visits: 0, color: '#9CA3AF' }
   ];
 
   const stats = [
-    { title: 'Total Trips Today', value: '47', change: '+12%', color: 'text-green-600' },
-    { title: 'Active Vans', value: '23', change: '+2', color: 'text-blue-600' },
-    { title: 'Companies Served', value: '15', change: '0', color: 'text-gray-600' },
-    { title: 'Total Branches', value: '68', change: '+3', color: 'text-purple-600' },
+    { title: 'Voyages Aujourd\'hui', value: '0', change: '0', color: 'text-green-600' },
+    { title: 'Camionnettes Actives', value: activeVans.toString(), change: `${activeVans}`, color: 'text-blue-600' },
+    { title: 'Entreprises Servies', value: totalCompanies.toString(), change: `${totalCompanies}`, color: 'text-gray-600' },
+    { title: 'Total Succursales', value: totalBranches.toString(), change: `${totalBranches}`, color: 'text-purple-600' },
   ];
+
+  const isLoading = usersLoading || vansLoading || companiesLoading;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Chargement du tableau de bord...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-sm sm:text-base text-gray-500">Welcome back! Here's your fleet overview.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+        <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
       </div>
 
       {/* Stats Grid */}
@@ -49,7 +73,7 @@ const Dashboard = () => {
             <CardContent className="p-3 sm:p-6 pt-0">
               <div className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</div>
               <p className={`text-xs ${stat.color} font-medium mt-1`}>
-                {stat.change} from yesterday
+                Total: {stat.change}
               </p>
             </CardContent>
           </Card>
@@ -61,7 +85,7 @@ const Dashboard = () => {
         {/* Daily Trips Chart */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Daily Trips</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Voyages Quotidiens</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -83,10 +107,10 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Top Branches Chart */}
+        {/* Top Companies Chart */}
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
-            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Most Visited Branches</CardTitle>
+            <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Entreprises Principales</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={250}>
@@ -96,7 +120,7 @@ const Dashboard = () => {
                   cx="50%"
                   cy="50%"
                   labelLine={false}
-                  label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                  label={({ name }) => name}
                   outerRadius={80}
                   fill="#8884d8"
                   dataKey="visits"
@@ -112,32 +136,39 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Recent Activity */}
+      {/* System Status */}
       <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
-          <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Recent Trip Activity</CardTitle>
+          <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">État du Système</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3 sm:space-y-4">
-            {[
-              { van: 'VAN-001', driver: 'John Smith', branch: 'Downtown Branch', company: 'ABC Corp', time: '10 mins ago' },
-              { van: 'VAN-005', driver: 'Sarah Johnson', branch: 'Industrial Park', company: 'XYZ Ltd', time: '25 mins ago' },
-              { van: 'VAN-003', driver: 'Mike Wilson', branch: 'North Branch', company: 'DEF Inc', time: '1 hour ago' },
-            ].map((activity, index) => (
-              <div key={index} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
+                  <span className="font-medium text-gray-900 text-sm sm:text-base">Base de Données</span>
+                  <span className="text-gray-500 hidden sm:inline">•</span>
+                  <span className="text-green-700 text-sm sm:text-base">Connectée</span>
+                </div>
+                <div className="text-xs sm:text-sm text-gray-600 mt-1">
+                  {totalUsers} utilisateurs, {activeVans} camionnettes, {totalCompanies} entreprises
+                </div>
+              </div>
+              <div className="text-xs sm:text-sm text-gray-500 flex-shrink-0">Système opérationnel</div>
+            </div>
+            
+            {totalUsers === 0 && (
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-yellow-50 rounded-lg gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                    <span className="font-medium text-gray-900 text-sm sm:text-base">{activity.van}</span>
-                    <span className="text-gray-500 hidden sm:inline">•</span>
-                    <span className="text-gray-700 text-sm sm:text-base">{activity.driver}</span>
+                    <span className="font-medium text-yellow-900 text-sm sm:text-base">Configuration Requise</span>
                   </div>
-                  <div className="text-xs sm:text-sm text-gray-600 mt-1">
-                    Visited <span className="font-medium">{activity.branch}</span> ({activity.company})
+                  <div className="text-xs sm:text-sm text-yellow-700 mt-1">
+                    Ajoutez des utilisateurs et des camionnettes pour commencer
                   </div>
                 </div>
-                <div className="text-xs sm:text-sm text-gray-500 flex-shrink-0">{activity.time}</div>
               </div>
-            ))}
+            )}
           </div>
         </CardContent>
       </Card>

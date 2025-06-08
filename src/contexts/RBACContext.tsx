@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, UserGroup, Permission, DEFAULT_PERMISSIONS, DEFAULT_GROUPS } from '@/types/rbac';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,221 +33,6 @@ export const useRBAC = () => {
   return context;
 };
 
-// Demo data for fallback
-const DEMO_ADMIN_USER: User = {
-  id: 1,
-  name: 'Admin User',
-  email: 'admin@company.com',
-  phone: '+1234567890',
-  role: 'Administrator',
-  groupId: 'admin',
-  status: 'Active',
-  createdAt: new Date().toISOString(),
-};
-
-// Sample users distributed across different groups
-const SAMPLE_ARABIC_USERS: User[] = [
-  {
-    id: 2,
-    name: 'Ahmed Mohamed Benali',
-    email: 'ahmed.benali@company.com',
-    phone: '+966501234567',
-    role: 'Administrator',
-    groupId: 'admin',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 3,
-    name: 'Fatima Salem Khelifi',
-    email: 'fatima.khelifi@company.com',
-    phone: '+966507654321',
-    role: 'Employee',
-    groupId: 'employee',
-    status: 'Récupération',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 4,
-    name: 'Khaled Abderrahmane',
-    email: 'khaled.abderrahmane@company.com',
-    phone: '+966502345678',
-    role: 'Employee',
-    groupId: 'employee',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 5,
-    name: 'Nora Ahmed Boukhari',
-    email: 'nora.boukhari@company.com',
-    phone: '+966508765432',
-    role: 'Employee',
-    groupId: 'employee',
-    status: 'Congé',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 6,
-    name: 'Abdellah Mohamed Hamdani',
-    email: 'abdellah.hamdani@company.com',
-    phone: '+966503456789',
-    role: 'Chef de Groupe Armé',
-    groupId: 'chef_groupe_arme',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 7,
-    name: 'Sarah Youcef Mansouri',
-    email: 'sarah.mansouri@company.com',
-    phone: '+966509876543',
-    role: 'Chef de Groupe Armé',
-    groupId: 'chef_groupe_arme',
-    status: 'Congé maladie',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 8,
-    name: 'Mohamed Ali Benaissa',
-    email: 'mohammed.benaissa@company.com',
-    phone: '+966504567890',
-    role: 'Chef de Groupe Sans Armé',
-    groupId: 'chef_groupe_sans_arme',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 9,
-    name: 'Amina Hassan Belkacem',
-    email: 'amina.belkacem@company.com',
-    phone: '+966500987654',
-    role: 'Chef de Groupe Sans Armé',
-    groupId: 'chef_groupe_sans_arme',
-    status: 'Récupération',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 10,
-    name: 'Omar Said Meziane',
-    email: 'omar.meziane@company.com',
-    phone: '+966505678901',
-    role: 'Chauffeur Armé',
-    groupId: 'chauffeur_arme',
-    status: 'Active',
-    licenseNumber: 'DL-AR-001234',
-    totalTrips: 45,
-    lastTrip: '2024-01-15',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 11,
-    name: 'Leila Abdelaziz Boudjemaa',
-    email: 'leila.boudjemaa@company.com',
-    phone: '+966501098765',
-    role: 'Chauffeur Armé',
-    groupId: 'chauffeur_arme',
-    status: 'Congé',
-    licenseNumber: 'DL-AR-005678',
-    totalTrips: 38,
-    lastTrip: '2024-01-18',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 12,
-    name: 'Youcef Ibrahim Belaidi',
-    email: 'youcef.belaidi@company.com',
-    phone: '+966506789012',
-    role: 'Chauffeur Sans Armé',
-    groupId: 'chauffeur_sans_arme',
-    status: 'Active',
-    licenseNumber: 'DL-SA-009876',
-    totalTrips: 52,
-    lastTrip: '2024-01-20',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 13,
-    name: 'Houda Mohamed Cherif',
-    email: 'houda.cherif@company.com',
-    phone: '+966502109876',
-    role: 'Chauffeur Sans Armé',
-    groupId: 'chauffeur_sans_arme',
-    status: 'Congé maladie',
-    licenseNumber: 'DL-SA-543210',
-    totalTrips: 29,
-    lastTrip: '2024-01-17',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 14,
-    name: 'Slimane Rachid Benamar',
-    email: 'slimane.benamar@company.com',
-    phone: '+966507890123',
-    role: 'APS Armé',
-    groupId: 'aps_arme',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 15,
-    name: 'Rim Slimane Kadri',
-    email: 'rim.kadri@company.com',
-    phone: '+966503210987',
-    role: 'APS Armé',
-    groupId: 'aps_arme',
-    status: 'Récupération',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 16,
-    name: 'Hocine Abdellah Hamidi',
-    email: 'hocine.hamidi@company.com',
-    phone: '+966508901234',
-    role: 'APS Sans Armé',
-    groupId: 'aps_sans_arme',
-    status: 'Active',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    id: 17,
-    name: 'Mona Ahmed Touati',
-    email: 'mona.touati@company.com',
-    phone: '+966504321098',
-    role: 'APS Sans Armé',
-    groupId: 'aps_sans_arme',
-    status: 'Congé',
-    createdAt: new Date().toISOString(),
-  },
-];
-
-// Helper functions for localStorage persistence
-const getDeletedUserIds = (): number[] => {
-  const stored = localStorage.getItem('rbac_deleted_users');
-  return stored ? JSON.parse(stored) : [];
-};
-
-const addDeletedUserId = (id: number) => {
-  const deletedIds = getDeletedUserIds();
-  if (!deletedIds.includes(id)) {
-    deletedIds.push(id);
-    localStorage.setItem('rbac_deleted_users', JSON.stringify(deletedIds));
-  }
-};
-
-const getDeletedGroupIds = (): string[] => {
-  const stored = localStorage.getItem('rbac_deleted_groups');
-  return stored ? JSON.parse(stored) : [];
-};
-
-const addDeletedGroupId = (id: string) => {
-  const deletedIds = getDeletedGroupIds();
-  if (!deletedIds.includes(id)) {
-    deletedIds.push(id);
-    localStorage.setItem('rbac_deleted_groups', JSON.stringify(deletedIds));
-  }
-};
-
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
@@ -263,61 +49,57 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      console.log('Loading initial RBAC data...');
+      console.log('Loading RBAC data from database...');
       
-      // Try to fetch from database first
+      // Fetch data from database
       const [dbUsers, dbGroups] = await Promise.all([
         fetchUsersFromDB(),
         fetchGroupsFromDB()
       ]);
       
-      // If database is empty or has issues, use demo data with all groups
-      if (dbUsers.length === 0 || dbGroups.length === 0) {
-        console.log('Database is empty or has issues, using demo data with all groups...');
-        
-        // Filter out deleted demo users and groups
-        const deletedUserIds = getDeletedUserIds();
-        const deletedGroupIds = getDeletedGroupIds();
-        
-        const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS].filter(
-          user => !deletedUserIds.includes(user.id)
-        );
-        const filteredGroups = DEFAULT_GROUPS.filter(
-          group => !deletedGroupIds.includes(group.id)
-        );
-        
-        setUsers(allDemoUsers);
-        setGroups(filteredGroups);
-        setCurrentUser(DEMO_ADMIN_USER);
+      // If no groups exist, create default groups
+      if (dbGroups.length === 0) {
+        console.log('No groups found, creating default groups...');
+        await createDefaultGroups();
+        const newGroups = await fetchGroupsFromDB();
+        setGroups(newGroups);
       } else {
-        setUsers(dbUsers);
         setGroups(dbGroups);
-        // Set the first admin user as current user
-        const adminUser = dbUsers.find(user => user.role === 'Administrator') || dbUsers[0];
-        if (adminUser) {
-          setCurrentUser(adminUser);
-        }
+      }
+      
+      setUsers(dbUsers);
+      
+      // Set the first admin user as current user if exists
+      const adminUser = dbUsers.find(user => user.role === 'Administrator') || dbUsers[0];
+      if (adminUser) {
+        setCurrentUser(adminUser);
       }
       
       console.log('RBAC data loaded successfully');
     } catch (error) {
-      console.error('Error loading initial data, using demo data:', error);
-      // Fallback to demo data on any error
-      const deletedUserIds = getDeletedUserIds();
-      const deletedGroupIds = getDeletedGroupIds();
-      
-      const allDemoUsers = [DEMO_ADMIN_USER, ...SAMPLE_ARABIC_USERS].filter(
-        user => !deletedUserIds.includes(user.id)
-      );
-      const filteredGroups = DEFAULT_GROUPS.filter(
-        group => !deletedGroupIds.includes(group.id)
-      );
-      
-      setUsers(allDemoUsers);
-      setGroups(filteredGroups);
-      setCurrentUser(DEMO_ADMIN_USER);
+      console.error('Error loading RBAC data:', error);
+      toast({
+        title: "Erreur",
+        description: "Erreur lors du chargement des données",
+        variant: "destructive",
+      });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const createDefaultGroups = async () => {
+    try {
+      const { error } = await (supabase as any)
+        .from('user_groups')
+        .insert(DEFAULT_GROUPS);
+
+      if (error) {
+        console.error('Error creating default groups:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error creating default groups:', error);
     }
   };
 
@@ -389,16 +171,6 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const fetchUsers = async () => {
-    const dbUsers = await fetchUsersFromDB();
-    setUsers(dbUsers);
-  };
-
-  const fetchGroups = async () => {
-    const dbGroups = await fetchGroupsFromDB();
-    setGroups(dbGroups);
-  };
-
   const refreshData = async () => {
     await loadInitialData();
   };
@@ -453,17 +225,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchUsers();
+      await refreshData();
       
       toast({
-        title: "Success",
-        description: "User created successfully",
+        title: "Succès",
+        description: "Utilisateur créé avec succès",
       });
     } catch (error) {
       console.error('Error adding user:', error);
       toast({
-        title: "Error",
-        description: "Failed to create user",
+        title: "Erreur",
+        description: "Échec de la création de l'utilisateur",
         variant: "destructive",
       });
     }
@@ -486,17 +258,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchUsers();
+      await refreshData();
       
       toast({
-        title: "Success",
-        description: "User updated successfully",
+        title: "Succès",
+        description: "Utilisateur mis à jour avec succès",
       });
     } catch (error) {
       console.error('Error updating user:', error);
       toast({
-        title: "Error",
-        description: "Failed to update user",
+        title: "Erreur",
+        description: "Échec de la mise à jour de l'utilisateur",
         variant: "destructive",
       });
     }
@@ -504,7 +276,6 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteUser = async (id: number) => {
     try {
-      // Check if user is being used in any trips or important records
       const userToDelete = users.find(user => user.id === id);
       if (!userToDelete) {
         toast({
@@ -525,18 +296,6 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // For demo mode (when using local data), persist deletion in localStorage
-      if (users.find(u => u.id === id && u.id <= 17)) {
-        addDeletedUserId(id);
-        setUsers(prev => prev.filter(user => user.id !== id));
-        toast({
-          title: "Succès",
-          description: "Utilisateur supprimé avec succès",
-        });
-        return;
-      }
-
-      // Try database deletion
       const { error } = await (supabase as any)
         .from('users')
         .delete()
@@ -544,7 +303,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchUsers();
+      await refreshData();
       
       toast({
         title: "Succès",
@@ -574,17 +333,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchGroups();
+      await refreshData();
       
       toast({
-        title: "Success",
-        description: "Group created successfully",
+        title: "Succès",
+        description: "Groupe créé avec succès",
       });
     } catch (error) {
       console.error('Error adding group:', error);
       toast({
-        title: "Error",
-        description: "Failed to create group",
+        title: "Erreur",
+        description: "Échec de la création du groupe",
         variant: "destructive",
       });
     }
@@ -604,17 +363,17 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchGroups();
+      await refreshData();
       
       toast({
-        title: "Success",
-        description: "Group updated successfully",
+        title: "Succès",
+        description: "Groupe mis à jour avec succès",
       });
     } catch (error) {
       console.error('Error updating group:', error);
       toast({
-        title: "Error",
-        description: "Failed to update group",
+        title: "Erreur",
+        description: "Échec de la mise à jour du groupe",
         variant: "destructive",
       });
     }
@@ -634,29 +393,6 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Prevent deletion of default groups
-      const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
-      if (defaultGroupIds.includes(id)) {
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer un groupe par défaut",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // For demo mode (when using default groups), persist deletion in localStorage
-      if (defaultGroupIds.includes(id) || groups.find(g => g.id === id && defaultGroupIds.includes(g.id))) {
-        addDeletedGroupId(id);
-        setGroups(prev => prev.filter(group => group.id !== id));
-        toast({
-          title: "Succès",
-          description: "Groupe supprimé avec succès",
-        });
-        return;
-      }
-
-      // Try database deletion
       const { error } = await (supabase as any)
         .from('user_groups')
         .delete()
@@ -664,7 +400,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      await fetchGroups();
+      await refreshData();
       
       toast({
         title: "Succès",

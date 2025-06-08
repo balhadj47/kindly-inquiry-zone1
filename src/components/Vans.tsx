@@ -39,65 +39,22 @@ const Vans = () => {
   const { toast } = useToast();
   const { vans, loading, error } = useVans();
 
-  // Mock data for demonstration while database is being populated
-  const mockVans = [
-    {
-      id: '1',
-      license_plate: 'VAN-001',
-      model: 'Ford Transit',
-      status: 'Actif',
-      driver_id: 'driver-1',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      carNumberPlate: 'ABC-123',
-      totalTrips: 45,
-      lastTrip: 'Il y a 2 heures',
-      currentLocation: 'Succursale Centre-ville',
-      fuelLevel: 85,
-      nextMaintenance: '2024-01-15',
-      driver: 'Jean Dupont',
-      image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
-      efficiency: 92,
-      mileage: '45 230 km',
-      yearlyTrips: 156,
-    },
-    {
-      id: '2',
-      license_plate: 'VAN-002',
-      model: 'Mercedes Sprinter',
-      status: 'En Transit',
-      driver_id: 'driver-2',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      carNumberPlate: 'XYZ-456',
-      totalTrips: 38,
-      lastTrip: 'Il y a 30 min',
-      currentLocation: 'En route vers Zone Industrielle',
-      fuelLevel: 67,
-      nextMaintenance: '2024-01-20',
-      driver: 'Marie Martin',
-      image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=400&q=80',
-      efficiency: 88,
-      mileage: '38 450 km',
-      yearlyTrips: 142,
-    },
-  ];
-
-  // Use database vans if available, otherwise fall back to mock data
-  const displayVans = vans.length > 0 ? vans.map(van => ({
+  // Transform database vans to display format
+  const displayVans = vans.map(van => ({
     ...van,
     carNumberPlate: van.license_plate,
     totalTrips: 0,
     lastTrip: 'Jamais',
-    currentLocation: 'Inconnu',
-    fuelLevel: 50,
-    nextMaintenance: 'À déterminer',
-    driver: 'Non assigné',
+    currentLocation: 'Garage',
+    fuelLevel: 75, // Default fuel level
+    nextMaintenance: 'À planifier',
+    driver: van.driver_id ? `Chauffeur ${van.driver_id}` : 'Non assigné',
     image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
-    efficiency: 85,
+    efficiency: 85, // Default efficiency
     mileage: '0 km',
     yearlyTrips: 0,
-  })) : mockVans;
+    status: van.status || 'Actif'
+  }));
 
   const filteredAndSortedVans = useMemo(() => {
     let filtered = displayVans.filter(van => {

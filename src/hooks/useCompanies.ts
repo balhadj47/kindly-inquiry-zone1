@@ -29,7 +29,7 @@ export const useCompanies = () => {
         setLoading(true);
         
         // Fetch companies
-        const { data: companiesData, error: companiesError } = await supabase
+        const { data: companiesData, error: companiesError } = await (supabase as any)
           .from('companies')
           .select('*');
 
@@ -39,7 +39,7 @@ export const useCompanies = () => {
         }
 
         // Fetch branches
-        const { data: branchesData, error: branchesError } = await supabase
+        const { data: branchesData, error: branchesError } = await (supabase as any)
           .from('branches')
           .select('*');
 

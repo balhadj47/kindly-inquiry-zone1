@@ -22,7 +22,7 @@ export const useVans = () => {
       try {
         setLoading(true);
         
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('vans')
           .select('*');
 

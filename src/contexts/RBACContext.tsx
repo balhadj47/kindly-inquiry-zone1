@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { User, UserGroup as Group, Permission, DEFAULT_PERMISSIONS } from '@/types/rbac';
+import type { User, UserGroup as Group, Permission, DEFAULT_PERMISSIONS, UserRole, UserStatus } from '@/types/rbac';
 
 interface RBACContextType {
   currentUser: User | null;
@@ -55,14 +55,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         console.log('Raw user data from DB:', usersData || []);
 
-        const formattedUsers = (usersData || []).map(user => ({
+        const formattedUsers: User[] = (usersData || []).map(user => ({
           id: user.id,
           name: user.name,
           email: user.email,
           phone: user.phone,
           groupId: user.group_id,
-          role: user.role,
-          status: user.status,
+          role: user.role as UserRole,
+          status: user.status as UserStatus,
           createdAt: user.created_at,
           licenseNumber: user.license_number,
           totalTrips: user.total_trips,
@@ -168,14 +168,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (data && data[0]) {
-      const newUser = {
+      const newUser: User = {
         id: data[0].id,
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
         groupId: data[0].group_id,
-        role: data[0].role,
-        status: data[0].status,
+        role: data[0].role as UserRole,
+        status: data[0].status as UserStatus,
         createdAt: data[0].created_at,
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
@@ -206,14 +206,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     if (data && data[0]) {
-      const updatedUser = {
+      const updatedUser: User = {
         id: data[0].id,
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
         groupId: data[0].group_id,
-        role: data[0].role,
-        status: data[0].status,
+        role: data[0].role as UserRole,
+        status: data[0].status as UserStatus,
         createdAt: data[0].created_at,
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,

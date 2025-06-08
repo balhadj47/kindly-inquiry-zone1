@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -247,7 +246,7 @@ const Users = () => {
           {/* Users Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredUsers.map((user) => {
-              const userGroup = getUserGroup(user.groupId);
+              const userGroup = getUserGroup(user);
               const canDeleteThisUser = hasPermission('users.delete') && currentUser?.id !== user.id;
               
               return (

@@ -1,43 +1,60 @@
 
-import React from 'react';
+import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { RBACProvider } from '@/contexts/RBACContext';
+import { SidebarProvider } from '@/components/ui/sidebar';
+import { useRBAC } from '@/contexts/RBACContext';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
-import Drivers from '@/components/Drivers';
 import Users from '@/components/Users';
 import TripLogger from '@/components/TripLogger';
 import TripHistory from '@/components/TripHistory';
-import UserSettings from '../pages/UserSettings';
+import UserSettings from '@/pages/UserSettings';
 
 const Index = () => {
+  const { hasPermission, loading } = useRBAC();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
   return (
-    <RBACProvider>
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full bg-background">
-          <AppSidebar />
-          <SidebarInset className="flex-1 flex flex-col">
-            <TopBar />
-            <main className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">
+          <TopBar />
+          <main className="flex-1 p-6 bg-gray-50">
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              {hasPermission('companies.view') && (
                 <Route path="/companies" element={<Companies />} />
+              )}
+              {hasPermission('vans.view') && (
                 <Route path="/vans" element={<Vans />} />
-                <Route path="/drivers" element={<Drivers />} />
+              )}
+              {hasPermission('users.view') && (
                 <Route path="/users" element={<Users />} />
-                <Route path="/trip-logger" element={<TripLogger />} />
-                <Route path="/trip-history" element={<TripHistory />} />
-                <Route path="/settings" element={<UserSettings />} />
-              </Routes>
-            </main>
-          </SidebarInset>
+              )}
+              {hasPermission('trips.view') && (
+                <>
+                  <Route path="/trip-logger" element={<TripLogger />} />
+                  <Route path="/trip-history" element={<TripHistory />} />
+                </>
+              )}
+              <Route path="/settings" element={<UserSettings />} />
+            </Routes>
+          </main>
         </div>
-      </SidebarProvider>
-    </RBACProvider>
+      </div>
+    </SidebarProvider>
   );
 };
 

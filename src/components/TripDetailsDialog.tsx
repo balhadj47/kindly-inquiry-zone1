@@ -30,9 +30,9 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
   };
 
   const getAssignedUsers = () => {
-    if (!trip.user_ids || trip.user_ids.length === 0) return [];
+    if (!trip.userIds || trip.userIds.length === 0) return [];
     
-    return trip.user_ids.map(userId => {
+    return trip.userIds.map(userId => {
       const user = users.find(u => u.id.toString() === userId);
       return user || null;
     }).filter(Boolean);
@@ -57,7 +57,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">Date de création</p>
-                <p className="text-sm text-muted-foreground">{formatDate(trip.created_at)}</p>
+                <p className="text-sm text-muted-foreground">{formatDate(trip.createdAt)}</p>
               </div>
             </div>
 

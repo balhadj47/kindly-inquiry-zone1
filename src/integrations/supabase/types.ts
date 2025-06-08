@@ -115,6 +115,7 @@ export type Database = {
       }
       users: {
         Row: {
+          auth_user_id: string | null
           created_at: string
           email: string
           group_id: string
@@ -128,6 +129,7 @@ export type Database = {
           total_trips: number | null
         }
         Insert: {
+          auth_user_id?: string | null
           created_at?: string
           email: string
           group_id: string
@@ -141,6 +143,7 @@ export type Database = {
           total_trips?: number | null
         }
         Update: {
+          auth_user_id?: string | null
           created_at?: string
           email?: string
           group_id?: string
@@ -184,7 +187,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_current_user_rbac: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          auth_user_id: string | null
+          created_at: string
+          email: string
+          group_id: string
+          id: number
+          last_trip: string | null
+          license_number: string | null
+          name: string
+          phone: string
+          role: string
+          status: string
+          total_trips: number | null
+        }
+      }
     }
     Enums: {
       [_ in never]: never

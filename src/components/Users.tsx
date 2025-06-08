@@ -2,13 +2,15 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Users as UsersIcon, Loader2 } from 'lucide-react';
+import { User, Users as UsersIcon, Loader2, AlertTriangle } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useAuth } from '@/contexts/AuthContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
 import GroupPermissionsModal from './GroupPermissionsModal';
 import UsersTab from './users/UsersTab';
 import GroupsTab from './users/GroupsTab';
+import { Card, CardContent } from '@/components/ui/card';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +24,7 @@ const Users = () => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   
   const { users, groups, hasPermission, loading, deleteGroup, deleteUser, currentUser } = useRBAC();
+  const { user: authUser } = useAuth();
 
   // Debug permissions
   console.log('Users component - hasPermission check results:');
@@ -29,6 +32,7 @@ const Users = () => {
   console.log('users.create:', hasPermission('users.create'));
   console.log('users.manage_groups:', hasPermission('users.manage_groups'));
   console.log('Current user:', currentUser);
+  console.log('Auth user:', authUser);
   console.log('Current user group:', currentUser?.groupId);
   console.log('Available groups:', groups);
 
@@ -101,6 +105,42 @@ const Users = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin" />
         <span className="ml-2">Chargement des utilisateurs...</span>
+      </div>
+    );
+  }
+
+  // Show message if user is not authenticated
+  if (!authUser) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+        <Card>
+          <CardContent className="text-center py-12">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Authentification requise</h3>
+            <p className="text-gray-600">
+              Vous devez être connecté pour accéder à la gestion des utilisateurs.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Show message if current user data is not found
+  if (!currentUser) {
+    return (
+      <div className="space-y-6">
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+        <Card>
+          <CardContent className="text-center py-12">
+            <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Profil utilisateur introuvable</h3>
+            <p className="text-gray-600">
+              Votre profil utilisateur n'a pas été trouvé dans le système. Veuillez contacter un administrateur.
+            </p>
+          </CardContent>
+        </Card>
       </div>
     );
   }

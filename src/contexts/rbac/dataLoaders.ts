@@ -32,6 +32,45 @@ export const loadUsersFromDB = async (): Promise<User[]> => {
   return formattedUsers;
 };
 
+export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
+  try {
+    // Get the current authenticated user's RBAC data
+    const { data: currentUserData, error } = await supabase
+      .rpc('get_current_user_rbac');
+
+    if (error) {
+      console.error('Error fetching current user RBAC data:', error);
+      return null;
+    }
+
+    if (!currentUserData) {
+      console.log('No authenticated user found');
+      return null;
+    }
+
+    // Format the user data to match our User interface
+    const currentUser: User = {
+      id: currentUserData.id,
+      name: currentUserData.name,
+      email: currentUserData.email,
+      phone: currentUserData.phone,
+      groupId: currentUserData.group_id,
+      role: currentUserData.role as UserRole,
+      status: currentUserData.status as UserStatus,
+      createdAt: currentUserData.created_at,
+      licenseNumber: currentUserData.license_number,
+      totalTrips: currentUserData.total_trips,
+      lastTrip: currentUserData.last_trip,
+    };
+
+    console.log('Current authenticated user loaded:', currentUser);
+    return currentUser;
+  } catch (error) {
+    console.error('Error loading current user from auth:', error);
+    return null;
+  }
+};
+
 export const loadGroupsFromDB = async () => {
   const { data: groupsData, error: groupsError } = await supabase
     .from('user_groups')

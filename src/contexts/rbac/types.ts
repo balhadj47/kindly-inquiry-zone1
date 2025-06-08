@@ -17,15 +17,3 @@ export interface RBACContextType {
   updateGroup: (id: string, groupData: Partial<Group>) => Promise<void>;
   deleteGroup: (id: string) => Promise<void>;
 }
-
-// Temporary development user for testing menu visibility
-export const DEV_USER: User = {
-  id: 1,
-  name: 'Development User',
-  email: 'dev@example.com',
-  phone: '+33123456789',
-  groupId: 'admin',
-  role: 'Administrator',
-  status: 'Active',
-  createdAt: new Date().toISOString(),
-};

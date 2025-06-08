@@ -1,8 +1,8 @@
 
 import { useEffect } from 'react';
 import type { User, UserGroup, Permission } from '@/types/rbac';
-import { DEV_USER } from './types';
-import { loadUsersFromDB, loadGroupsFromDB, loadDefaultData } from './dataLoaders';
+import { useAuth } from '@/contexts/AuthContext';
+import { loadUsersFromDB, loadGroupsFromDB, loadDefaultData, loadCurrentUserFromAuth } from './dataLoaders';
 
 interface UseRBACDataInitProps {
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
@@ -19,7 +19,14 @@ export const useRBACDataInit = ({
   setCurrentUser,
   setLoading,
 }: UseRBACDataInitProps) => {
+  const { user: authUser, loading: authLoading } = useAuth();
+
   useEffect(() => {
+    // Don't load RBAC data if auth is still loading
+    if (authLoading) {
+      return;
+    }
+
     const loadRBACData = async () => {
       try {
         // Load default groups and permissions first
@@ -27,7 +34,7 @@ export const useRBACDataInit = ({
         setGroups(DEFAULT_GROUPS);
         setPermissions(DEFAULT_PERMISSIONS);
 
-        // Load users
+        // Load users from database
         const formattedUsers = await loadUsersFromDB();
         setUsers(formattedUsers);
 
@@ -37,21 +44,21 @@ export const useRBACDataInit = ({
           setGroups(dbGroups);
         }
 
-        // For development: if no users exist in DB, use dev user
-        if (formattedUsers.length === 0) {
-          console.log('No users found in database, using development user');
-          setCurrentUser(DEV_USER);
+        // Load current user from auth if authenticated
+        if (authUser) {
+          const currentUser = await loadCurrentUserFromAuth();
+          setCurrentUser(currentUser);
+          console.log('Authenticated user set as current user:', currentUser);
         } else {
-          // In a real app, you'd get the current user from auth
-          // For now, just use the first user or dev user
-          setCurrentUser(formattedUsers[0] || DEV_USER);
+          setCurrentUser(null);
+          console.log('No authenticated user, current user set to null');
         }
 
         console.log('RBAC data loaded successfully');
       } catch (error) {
         console.error('Error loading RBAC data:', error);
-        // Fallback to dev user and default groups if there's an error
-        setCurrentUser(DEV_USER);
+        // Clear current user on error
+        setCurrentUser(null);
         
         try {
           const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await loadDefaultData();
@@ -66,5 +73,5 @@ export const useRBACDataInit = ({
     };
 
     loadRBACData();
-  }, [setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
+  }, [authUser, authLoading, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
 };

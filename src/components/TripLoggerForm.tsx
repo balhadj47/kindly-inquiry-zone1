@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,7 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
-import UserSelectionSection from './UserSelectionSection';
+import RoleSelectionSection from './RoleSelectionSection';
 
 const TripLoggerForm = () => {
   const { t } = useLanguage();
@@ -22,7 +22,8 @@ const TripLoggerForm = () => {
   const { users } = useRBAC();
   const { companies, loading: companiesLoading } = useCompanies();
   const { vans, loading: vansLoading } = useVans();
-  const { formData, handleInputChange, handleUserSelection, resetForm } = useTripForm();
+  const { formData, handleInputChange, handleUserRoleSelection, resetForm, getTripData } = useTripForm();
+  const [userSearchQuery, setUserSearchQuery] = useState('');
 
   // Get drivers from users data (those with driver roles)
   const drivers = users.filter(user => 
@@ -84,19 +85,23 @@ const TripLoggerForm = () => {
       return;
     }
 
+    const tripDataWithRoles = getTripData(driverName);
+    
     const tripData = {
       van: selectedVan.license_plate,
       driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
       notes: formData.notes,
-      userIds: formData.selectedUserIds,
+      userIds: tripDataWithRoles.userIds,
     };
 
     console.log('Submitting trip data:', tripData);
+    console.log('User roles for this mission:', tripDataWithRoles.userRoles);
 
     addTrip(tripData);
     resetForm();
+    setUserSearchQuery('');
     
     toast({
       title: t.success,
@@ -175,11 +180,11 @@ const TripLoggerForm = () => {
             </div>
           )}
 
-          <UserSelectionSection
-            selectedUserIds={formData.selectedUserIds}
-            onUserSelection={handleUserSelection}
-            userSearchQuery=""
-            setUserSearchQuery={() => {}}
+          <RoleSelectionSection
+            userSearchQuery={userSearchQuery}
+            setUserSearchQuery={setUserSearchQuery}
+            selectedUsersWithRoles={formData.selectedUsersWithRoles}
+            onUserRoleSelection={handleUserRoleSelection}
           />
 
           <div>

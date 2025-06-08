@@ -143,7 +143,10 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                                 variant={employee.status === 'Active' ? 'default' : 'secondary'}
                                 className="text-xs"
                               >
-                                {t.userStatus[employee.status === 'Active' ? 'active' : employee.status === 'Recovery' ? 'recovery' : employee.status === 'Leave' ? 'leave' : 'sickLeave']}
+                                {employee.status === 'Active' ? t.userStatus.active : 
+                                 employee.status === 'Récupération' ? t.userStatus.recovery : 
+                                 employee.status === 'Congé' ? t.userStatus.leave : 
+                                 t.userStatus.sickLeave}
                               </Badge>
                             </div>
                           </div>

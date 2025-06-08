@@ -33,6 +33,15 @@ export const ar: TranslationKeys = {
   searchCompanies: 'البحث عن الشركات...',
   branches: 'الفروع',
   lastActivity: 'آخر نشاط',
+  companyName: 'اسم الشركة',
+  enterCompanyName: 'أدخل اسم الشركة',
+  currentBranches: 'الفروع الحالية',
+  enterBranchName: 'أدخل اسم الفرع',
+  addBranch: 'إضافة',
+  editCompany: 'تعديل الشركة',
+  createCompany: 'إنشاء الشركة',
+  updateCompany: 'تحديث الشركة',
+  more: 'أكثر',
   
   // Trip Logger
   tripLogger: 'مسجل الرحلات',

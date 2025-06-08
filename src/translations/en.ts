@@ -33,6 +33,15 @@ export const en: TranslationKeys = {
   searchCompanies: 'Search companies...',
   branches: 'Branches',
   lastActivity: 'Last Activity',
+  companyName: 'Company Name',
+  enterCompanyName: 'Enter company name',
+  currentBranches: 'Current Branches',
+  enterBranchName: 'Enter branch name',
+  addBranch: 'Add',
+  editCompany: 'Edit Company',
+  createCompany: 'Create Company',
+  updateCompany: 'Update Company',
+  more: 'more',
   
   // Trip Logger
   tripLogger: 'Trip Logger',

@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { X } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const CompanyModal = ({ isOpen, onClose, company }) => {
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     name: '',
     branches: [],
@@ -57,42 +59,42 @@ const CompanyModal = ({ isOpen, onClose, company }) => {
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {company ? 'Edit Company' : 'Add New Company'}
+            {company ? t.editCompany : t.addNewCompany}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company-name">Company Name</Label>
+            <Label htmlFor="company-name">{t.companyName}</Label>
             <Input
               id="company-name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              placeholder="Enter company name"
+              placeholder={t.enterCompanyName}
               required
             />
           </div>
 
           <div className="space-y-4">
-            <Label>Branches</Label>
+            <Label>{t.branches}</Label>
             
             {/* Add Branch Input */}
             <div className="flex space-x-2">
               <Input
                 value={newBranch}
                 onChange={(e) => setNewBranch(e.target.value)}
-                placeholder="Enter branch name"
+                placeholder={t.enterBranchName}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBranch())}
               />
               <Button type="button" onClick={handleAddBranch} variant="outline">
-                Add
+                {t.addBranch}
               </Button>
             </div>
 
             {/* Branches List */}
             {formData.branches.length > 0 && (
               <div className="space-y-2">
-                <Label className="text-sm text-gray-600">Current Branches:</Label>
+                <Label className="text-sm text-gray-600">{t.currentBranches}:</Label>
                 <div className="flex flex-wrap gap-2">
                   {formData.branches.map((branch, index) => (
                     <Badge key={index} variant="secondary" className="flex items-center gap-1">
@@ -113,10 +115,10 @@ const CompanyModal = ({ isOpen, onClose, company }) => {
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancel
+              {t.cancel}
             </Button>
             <Button type="submit">
-              {company ? 'Update Company' : 'Create Company'}
+              {company ? t.updateCompany : t.createCompany}
             </Button>
           </div>
         </form>

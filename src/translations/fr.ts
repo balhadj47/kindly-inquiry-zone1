@@ -33,6 +33,15 @@ export const fr: TranslationKeys = {
   searchCompanies: 'Rechercher des entreprises...',
   branches: 'Succursales',
   lastActivity: 'Dernière Activité',
+  companyName: 'Nom de l\'Entreprise',
+  enterCompanyName: 'Entrer le nom de l\'entreprise',
+  currentBranches: 'Succursales Actuelles',
+  enterBranchName: 'Entrer le nom de la succursale',
+  addBranch: 'Ajouter',
+  editCompany: 'Modifier l\'Entreprise',
+  createCompany: 'Créer l\'Entreprise',
+  updateCompany: 'Mettre à Jour l\'Entreprise',
+  more: 'plus',
   
   // Trip Logger
   tripLogger: 'Enregistreur de Voyage',

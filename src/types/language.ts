@@ -33,6 +33,15 @@ export interface TranslationKeys {
   searchCompanies: string;
   branches: string;
   lastActivity: string;
+  companyName: string;
+  enterCompanyName: string;
+  currentBranches: string;
+  enterBranchName: string;
+  addBranch: string;
+  editCompany: string;
+  createCompany: string;
+  updateCompany: string;
+  more: string;
   
   // Trip Logger
   tripLogger: string;

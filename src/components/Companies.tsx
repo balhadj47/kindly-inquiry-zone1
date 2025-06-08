@@ -119,7 +119,7 @@ const Companies = () => {
                   ))}
                   {company.branches.length > 2 && (
                     <Badge variant="outline" className="text-xs">
-                      +{company.branches.length - 2} more
+                      +{company.branches.length - 2} {t.more}
                     </Badge>
                   )}
                 </div>

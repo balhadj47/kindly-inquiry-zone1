@@ -13,7 +13,7 @@ import TripLogger from '@/components/TripLogger';
 import TripHistory from '@/components/TripHistory';
 import UserSettings from '@/pages/UserSettings';
 
-const Index = () => {
+const AppContent = () => {
   const { hasPermission, loading } = useRBAC();
 
   if (loading) {
@@ -56,6 +56,10 @@ const Index = () => {
       </div>
     </SidebarProvider>
   );
+};
+
+const Index = () => {
+  return <AppContent />;
 };
 
 export default Index;

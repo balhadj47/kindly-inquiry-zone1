@@ -43,6 +43,12 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const loadRBACData = async () => {
       try {
+        // Load default groups and permissions first
+        const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await import('@/types/rbac');
+        setGroups(DEFAULT_GROUPS);
+        setPermissions(DEFAULT_PERMISSIONS);
+        console.log('Default groups and permissions loaded:', DEFAULT_GROUPS);
+
         // Load users
         const { data: usersData, error: usersError } = await supabase
           .from('users')
@@ -71,41 +77,27 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log('Formatted users from DB:', formattedUsers);
         setUsers(formattedUsers);
 
-        // Load groups
+        // Load groups from database (override defaults if they exist)
         const { data: groupsData, error: groupsError } = await supabase
           .from('user_groups')
           .select('*');
 
         if (groupsError) {
           console.error('Error fetching groups:', groupsError);
-        }
+        } else if (groupsData && groupsData.length > 0) {
+          console.log('Raw group data from DB:', groupsData);
 
-        console.log('Raw group data from DB:', groupsData || []);
+          const formattedGroups = groupsData.map(group => ({
+            id: group.id,
+            name: group.name,
+            description: group.description,
+            permissions: Array.isArray(group.permissions) ? group.permissions : [],
+            color: group.color || 'bg-gray-100 text-gray-800',
+          }));
 
-        const formattedGroups = (groupsData || []).map(group => ({
-          id: group.id,
-          name: group.name,
-          description: group.description,
-          permissions: Array.isArray(group.permissions) ? group.permissions : [],
-          color: group.color || 'bg-gray-100 text-gray-800',
-        }));
-
-        console.log('Formatted groups from DB:', formattedGroups);
-        console.log('Available groups:', groups);
-
-        // If no groups in DB, load default groups
-        if (formattedGroups.length === 0) {
-          console.log('No groups found in database, loading default groups');
-          const { DEFAULT_GROUPS } = await import('@/types/rbac');
-          console.log('Default groups loaded:', DEFAULT_GROUPS);
-          setGroups(DEFAULT_GROUPS);
-        } else {
+          console.log('Formatted groups from DB (overriding defaults):', formattedGroups);
           setGroups(formattedGroups);
         }
-
-        // Set permissions from types
-        const { DEFAULT_PERMISSIONS } = await import('@/types/rbac');
-        setPermissions(DEFAULT_PERMISSIONS);
 
         // For development: if no users exist in DB, use dev user
         if (formattedUsers.length === 0) {
@@ -124,9 +116,10 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCurrentUser(DEV_USER);
         
         try {
-          const { DEFAULT_GROUPS } = await import('@/types/rbac');
+          const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await import('@/types/rbac');
           console.log('Loading default groups as fallback:', DEFAULT_GROUPS);
           setGroups(DEFAULT_GROUPS);
+          setPermissions(DEFAULT_PERMISSIONS);
         } catch (importError) {
           console.error('Error importing default groups:', importError);
         }

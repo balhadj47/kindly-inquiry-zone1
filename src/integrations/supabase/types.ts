@@ -9,7 +9,110 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      branches: {
+        Row: {
+          company_id: string
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "branches_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      companies: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      trips: {
+        Row: {
+          branch: string
+          company: string
+          created_at: string
+          driver: string
+          id: number
+          notes: string | null
+          user_ids: string[] | null
+          van: string
+        }
+        Insert: {
+          branch: string
+          company: string
+          created_at?: string
+          driver: string
+          id?: number
+          notes?: string | null
+          user_ids?: string[] | null
+          van: string
+        }
+        Update: {
+          branch?: string
+          company?: string
+          created_at?: string
+          driver?: string
+          id?: number
+          notes?: string | null
+          user_ids?: string[] | null
+          van?: string
+        }
+        Relationships: []
+      }
+      vans: {
+        Row: {
+          created_at: string
+          driver_id: string | null
+          id: string
+          license_plate: string
+          model: string
+        }
+        Insert: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          license_plate: string
+          model: string
+        }
+        Update: {
+          created_at?: string
+          driver_id?: string | null
+          id?: string
+          license_plate?: string
+          model?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

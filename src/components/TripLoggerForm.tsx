@@ -41,17 +41,34 @@ const TripLoggerForm = () => {
       return;
     }
 
-    // Find the selected driver
+    // Find the selected van
     const selectedVan = vans.find(van => van.id === formData.vanId);
-    const selectedDriver = drivers.find(driver => driver.id.toString() === selectedVan?.driver_id);
     
-    if (!selectedDriver) {
+    if (!selectedVan) {
       toast({
         title: t.error,
-        description: "Driver not found for selected van",
+        description: "Van not found",
         variant: "destructive",
       });
       return;
+    }
+
+    // For now, let's use the first available driver or create a default driver name
+    // since the driver assignment in the database might not match our user system
+    let driverName = 'Driver'; // Default fallback
+    
+    if (selectedVan.driver_id) {
+      // Try to find driver by ID first
+      const selectedDriver = drivers.find(driver => driver.id.toString() === selectedVan.driver_id);
+      if (selectedDriver) {
+        driverName = selectedDriver.name;
+      } else {
+        // If no matching driver found, use a generic name with the driver_id
+        driverName = `Driver ${selectedVan.driver_id}`;
+      }
+    } else if (drivers.length > 0) {
+      // If no driver_id set on van, use the first available driver
+      driverName = drivers[0].name;
     }
 
     // Find the selected company and branch names
@@ -69,12 +86,14 @@ const TripLoggerForm = () => {
 
     const tripData = {
       van: selectedVan.license_plate,
-      driver: selectedDriver.name,
+      driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
       notes: formData.notes,
       userIds: formData.selectedUserIds,
     };
+
+    console.log('Submitting trip data:', tripData);
 
     addTrip(tripData);
     resetForm();

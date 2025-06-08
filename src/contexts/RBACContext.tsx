@@ -457,6 +457,38 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteUser = async (id: number) => {
     try {
+      // Check if user is being used in any trips or important records
+      const userToDelete = users.find(user => user.id === id);
+      if (!userToDelete) {
+        toast({
+          title: "Erreur",
+          description: "Utilisateur non trouvé",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Prevent deletion of current user
+      if (currentUser && currentUser.id === id) {
+        toast({
+          title: "Erreur",
+          description: "Vous ne pouvez pas supprimer votre propre compte",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // For demo mode (when using local data), remove from local state
+      if (users.find(u => u.id === id && u.id <= 17)) {
+        setUsers(prev => prev.filter(user => user.id !== id));
+        toast({
+          title: "Succès",
+          description: "Utilisateur supprimé avec succès",
+        });
+        return;
+      }
+
+      // Try database deletion
       const { error } = await (supabase as any)
         .from('users')
         .delete()
@@ -467,14 +499,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetchUsers();
       
       toast({
-        title: "Success",
-        description: "User deleted successfully",
+        title: "Succès",
+        description: "Utilisateur supprimé avec succès",
       });
     } catch (error) {
       console.error('Error deleting user:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete user",
+        title: "Erreur",
+        description: "Échec de la suppression de l'utilisateur",
         variant: "destructive",
       });
     }
@@ -542,6 +574,40 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteGroup = async (id: string) => {
     try {
+      // Check if any users are assigned to this group
+      const usersInGroup = users.filter(user => user.groupId === id);
+      
+      if (usersInGroup.length > 0) {
+        toast({
+          title: "Erreur",
+          description: `Impossible de supprimer le groupe. ${usersInGroup.length} utilisateur(s) y sont assignés. Veuillez d'abord réassigner ces utilisateurs à un autre groupe.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Prevent deletion of default groups
+      const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
+      if (defaultGroupIds.includes(id)) {
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer un groupe par défaut",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // For demo mode (when using default groups), remove from local state
+      if (defaultGroupIds.includes(id) || groups.find(g => g.id === id && defaultGroupIds.includes(g.id))) {
+        setGroups(prev => prev.filter(group => group.id !== id));
+        toast({
+          title: "Succès",
+          description: "Groupe supprimé avec succès",
+        });
+        return;
+      }
+
+      // Try database deletion
       const { error } = await (supabase as any)
         .from('user_groups')
         .delete()
@@ -552,14 +618,14 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await fetchGroups();
       
       toast({
-        title: "Success",
-        description: "Group deleted successfully",
+        title: "Succès",
+        description: "Groupe supprimé avec succès",
       });
     } catch (error) {
       console.error('Error deleting group:', error);
       toast({
-        title: "Error",
-        description: "Failed to delete group",
+        title: "Erreur",
+        description: "Échec de la suppression du groupe",
         variant: "destructive",
       });
     }

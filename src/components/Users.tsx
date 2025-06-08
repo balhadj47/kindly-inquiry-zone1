@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,7 +24,7 @@ const Users = () => {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   
-  const { users, groups, getUserGroup, hasPermission, loading, deleteGroup } = useRBAC();
+  const { users, groups, getUserGroup, hasPermission, loading, deleteGroup, deleteUser, currentUser } = useRBAC();
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -76,6 +75,17 @@ const Users = () => {
     setIsUserModalOpen(true);
   };
 
+  const handleDeleteUser = async (user) => {
+    if (currentUser && currentUser.id === user.id) {
+      alert("Vous ne pouvez pas supprimer votre propre compte.");
+      return;
+    }
+
+    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.name}" ? Cette action ne peut pas être annulée.`)) {
+      await deleteUser(user.id);
+    }
+  };
+
   const handleAddGroup = () => {
     setSelectedGroup(null);
     setIsGroupModalOpen(true);
@@ -96,18 +106,18 @@ const Users = () => {
     const usersInGroup = users.filter(user => user.groupId === group.id);
     
     if (usersInGroup.length > 0) {
-      alert(`${t.cannotDeleteGroup} "${group.name}" ${t.usersAssigned.replace('user(s) assigned to it. Please reassign these users to another group first.', `${usersInGroup.length} ${t.usersAssigned}`)}`);
+      alert(`Impossible de supprimer le groupe "${group.name}" car ${usersInGroup.length} utilisateur(s) y sont assignés. Veuillez d'abord réassigner ces utilisateurs à un autre groupe.`);
       return;
     }
 
     // Prevent deletion of default groups
     const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
     if (defaultGroupIds.includes(group.id)) {
-      alert(`${t.cannotDeleteDefault} "${group.name}".`);
+      alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);
       return;
     }
 
-    if (confirm(`${t.confirmDeleteGroup} "${group.name}"? ${t.actionCannotBeUndone}`)) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ? Cette action ne peut pas être annulée.`)) {
       await deleteGroup(group.id);
     }
   };
@@ -242,6 +252,8 @@ const Users = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredUsers.map((user) => {
               const userGroup = getUserGroup(user.groupId);
+              const canDeleteThisUser = hasPermission('users.delete') && currentUser?.id !== user.id;
+              
               return (
                 <Card key={user.id} className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-3">
@@ -302,6 +314,16 @@ const Users = () => {
                       >
                         {t.viewHistory}
                       </Button>
+                      {canDeleteThisUser && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -390,8 +412,8 @@ const Users = () => {
                       {!canDelete && (
                         <p className="text-xs text-gray-500 mt-2">
                           {isDefaultGroup 
-                            ? t.isDefaultGroup
-                            : `${t.cannotDelete} ${usersInGroup} ${t.users.toLowerCase()} ${t.usersAssigned.split('.')[0]}.`
+                            ? "Groupe par défaut - Ne peut pas être supprimé"
+                            : `Impossible de supprimer - ${usersInGroup} utilisateur(s) assigné(s)`
                           }
                         </p>
                       )}

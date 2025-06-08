@@ -20,7 +20,7 @@ export const useVans = () => {
         setLoading(true);
         
         const { data, error } = await supabase
-          .from('vans')
+          .from('vans' as any)
           .select('*');
 
         if (error) throw error;

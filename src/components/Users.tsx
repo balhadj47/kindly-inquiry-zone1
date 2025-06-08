@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,13 +8,11 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search, User, Phone, Mail, Shield, Users as UsersIcon, Settings, Loader2, Trash2, Filter, X } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
 import GroupPermissionsModal from './GroupPermissionsModal';
 
 const Users = () => {
-  const { t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -58,7 +57,6 @@ const Users = () => {
       case 'Récupération': return 'bg-yellow-100 text-yellow-800';
       case 'Congé': return 'bg-blue-100 text-blue-800';
       case 'Congé maladie': return 'bg-red-100 text-red-800';
-      // Legacy support for English statuses
       case 'Inactive': return 'bg-gray-100 text-gray-800';
       case 'Suspended': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
@@ -102,7 +100,6 @@ const Users = () => {
   };
 
   const handleDeleteGroup = async (group) => {
-    // Check if any users are assigned to this group
     const usersInGroup = users.filter(user => user.groupId === group.id);
     
     if (usersInGroup.length > 0) {
@@ -110,7 +107,6 @@ const Users = () => {
       return;
     }
 
-    // Prevent deletion of default groups
     const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
     if (defaultGroupIds.includes(group.id)) {
       alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);
@@ -126,7 +122,7 @@ const Users = () => {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">{t.loadingUsers}</span>
+        <span className="ml-2">Chargement des utilisateurs...</span>
       </div>
     );
   }
@@ -134,16 +130,16 @@ const Users = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t.usersManagement}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
         <div className="flex space-x-2 mt-4 md:mt-0">
           {hasPermission('users.create') && (
             <Button onClick={handleAddUser}>
-              {t.addNewUser}
+              Ajouter un Nouvel Utilisateur
             </Button>
           )}
           {hasPermission('users.manage_groups') && (
             <Button variant="outline" onClick={handleAddGroup}>
-              {t.addGroup}
+              Ajouter un Groupe
             </Button>
           )}
         </div>
@@ -153,12 +149,12 @@ const Users = () => {
         <TabsList>
           <TabsTrigger value="users" className="flex items-center space-x-2">
             <User className="h-4 w-4" />
-            <span>{t.users}</span>
+            <span>Utilisateurs</span>
           </TabsTrigger>
           {hasPermission('users.manage_groups') && (
             <TabsTrigger value="groups" className="flex items-center space-x-2">
               <UsersIcon className="h-4 w-4" />
-              <span>{t.groups}</span>
+              <span>Groupes</span>
             </TabsTrigger>
           )}
         </TabsList>
@@ -172,7 +168,7 @@ const Users = () => {
                 <div className="relative">
                   <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
-                    placeholder={t.searchByNameEmailLicense}
+                    placeholder="Rechercher par nom, email, ou numéro de permis..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="pl-10"
@@ -184,10 +180,10 @@ const Users = () => {
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <Filter className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder={t.filterByStatus} />
+                      <SelectValue placeholder="Filtrer par statut" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">{t.allStatuses}</SelectItem>
+                      <SelectItem value="all">Tous les Statuts</SelectItem>
                       {uniqueStatuses.map(status => (
                         <SelectItem key={status} value={status}>{status}</SelectItem>
                       ))}
@@ -197,10 +193,10 @@ const Users = () => {
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
                     <SelectTrigger>
                       <Shield className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder={t.filterByRole} />
+                      <SelectValue placeholder="Filtrer par rôle" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">{t.allRoles}</SelectItem>
+                      <SelectItem value="all">Tous les Rôles</SelectItem>
                       {uniqueRoles.map(role => (
                         <SelectItem key={role} value={role}>{role}</SelectItem>
                       ))}
@@ -210,10 +206,10 @@ const Users = () => {
                   <Select value={groupFilter} onValueChange={setGroupFilter}>
                     <SelectTrigger>
                       <UsersIcon className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder={t.filterByGroup} />
+                      <SelectValue placeholder="Filtrer par groupe" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">{t.allGroups}</SelectItem>
+                      <SelectItem value="all">Tous les Groupes</SelectItem>
                       {groups.map(group => (
                         <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
                       ))}
@@ -223,7 +219,7 @@ const Users = () => {
                   {hasActiveFilters && (
                     <Button variant="outline" onClick={clearFilters} className="flex items-center space-x-2">
                       <X className="h-4 w-4" />
-                      <span>{t.clearFilters}</span>
+                      <span>Effacer les Filtres</span>
                     </Button>
                   )}
                 </div>
@@ -231,16 +227,16 @@ const Users = () => {
                 {/* Results Summary */}
                 <div className="flex items-center justify-between text-sm text-gray-600">
                   <span>
-                    {t.showingUsers} {filteredUsers.length} {t.of} {users.length} {t.users.toLowerCase()}
-                    {hasActiveFilters && ` ${t.filtered}`}
+                    Affichage de {filteredUsers.length} sur {users.length} utilisateurs
+                    {hasActiveFilters && ` (filtré)`}
                   </span>
                   {hasActiveFilters && (
                     <div className="flex items-center space-x-2">
-                      <span>{t.activeFilters}</span>
-                      {searchTerm && <Badge variant="secondary">{t.search}: "{searchTerm}"</Badge>}
-                      {statusFilter !== 'all' && <Badge variant="secondary">Status: {statusFilter}</Badge>}
-                      {roleFilter !== 'all' && <Badge variant="secondary">Role: {roleFilter}</Badge>}
-                      {groupFilter !== 'all' && <Badge variant="secondary">Group: {groups.find(g => g.id === groupFilter)?.name}</Badge>}
+                      <span>Filtres actifs:</span>
+                      {searchTerm && <Badge variant="secondary">Recherche: "{searchTerm}"</Badge>}
+                      {statusFilter !== 'all' && <Badge variant="secondary">Statut: {statusFilter}</Badge>}
+                      {roleFilter !== 'all' && <Badge variant="secondary">Rôle: {roleFilter}</Badge>}
+                      {groupFilter !== 'all' && <Badge variant="secondary">Groupe: {groups.find(g => g.id === groupFilter)?.name}</Badge>}
                     </div>
                   )}
                 </div>
@@ -291,8 +287,8 @@ const Users = () => {
                     
                     {(user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé') && user.totalTrips && (
                       <div className="text-sm text-gray-600">
-                        <p><span className="font-medium">{t.totalTripsLabel}</span> {user.totalTrips}</p>
-                        <p><span className="font-medium">{t.lastTripLabel}</span> {user.lastTrip}</p>
+                        <p><span className="font-medium">Total des Voyages:</span> {user.totalTrips}</p>
+                        <p><span className="font-medium">Dernier Voyage:</span> {user.lastTrip}</p>
                       </div>
                     )}
                     
@@ -304,7 +300,7 @@ const Users = () => {
                           onClick={() => handleEditUser(user)}
                           className="flex-1"
                         >
-                          {t.edit}
+                          Modifier
                         </Button>
                       )}
                       <Button
@@ -312,7 +308,7 @@ const Users = () => {
                         size="sm"
                         className="flex-1"
                       >
-                        {t.viewHistory}
+                        Voir l'Historique
                       </Button>
                       {canDeleteThisUser && (
                         <Button
@@ -335,16 +331,16 @@ const Users = () => {
             <Card>
               <CardContent className="text-center py-8">
                 <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noUsersFound}</h3>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun utilisateur trouvé</h3>
                 <p className="text-gray-500">
                   {hasActiveFilters 
-                    ? t.tryAdjustingFilters 
-                    : t.tryAdjustingSearch
+                    ? 'Essayez d\'ajuster vos filtres ou termes de recherche.' 
+                    : 'Essayez d\'ajuster vos termes de recherche ou ajoutez un nouvel utilisateur.'
                   }
                 </p>
                 {hasActiveFilters && (
                   <Button variant="outline" onClick={clearFilters} className="mt-4">
-                    {t.clearAllFilters}
+                    Effacer tous les filtres
                   </Button>
                 )}
               </CardContent>
@@ -370,13 +366,13 @@ const Users = () => {
                           <p className="text-sm text-gray-600">{group.description}</p>
                         </div>
                         <Badge className={group.color}>
-                          {usersInGroup} {t.users.toLowerCase()}
+                          {usersInGroup} utilisateurs
                         </Badge>
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="text-sm text-gray-600">
-                        <p><span className="font-medium">{t.permissions}:</span> {group.permissions.length}</p>
+                        <p><span className="font-medium">Permissions:</span> {group.permissions.length}</p>
                       </div>
                       
                       <div className="flex space-x-2 pt-2">
@@ -386,7 +382,7 @@ const Users = () => {
                           onClick={() => handleEditGroup(group)}
                           className="flex-1"
                         >
-                          {t.edit}
+                          Modifier
                         </Button>
                         <Button
                           variant="outline"
@@ -395,7 +391,7 @@ const Users = () => {
                           className="flex-1"
                         >
                           <Settings className="h-4 w-4 mr-1" />
-                          {t.permissions}
+                          Permissions
                         </Button>
                         {canDelete && (
                           <Button
@@ -427,8 +423,8 @@ const Users = () => {
               <Card>
                 <CardContent className="text-center py-8">
                   <UsersIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noGroupsFound}</h3>
-                  <p className="text-gray-500">{t.createFirstGroup}</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun groupe trouvé</h3>
+                  <p className="text-gray-500">Créez votre premier groupe d'utilisateurs pour commencer.</p>
                 </CardContent>
               </Card>
             )}

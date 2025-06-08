@@ -74,7 +74,7 @@ export const fr: TranslationKeys = {
   
   // User Status
   userStatus: {
-    active: 'Active',
+    active: 'Actif',
     recovery: 'Récupération',
     leave: 'Congé',
     sickLeave: 'Congé maladie',

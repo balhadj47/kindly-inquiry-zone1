@@ -45,41 +45,40 @@ const Vans = () => {
       id: '1',
       license_plate: 'VAN-001',
       model: 'Ford Transit',
-      status: 'Active',
+      status: 'Actif',
       driver_id: 'driver-1',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      // Additional display properties for the UI
       carNumberPlate: 'ABC-123',
       totalTrips: 45,
-      lastTrip: '2 hours ago',
-      currentLocation: 'Downtown Branch',
+      lastTrip: 'Il y a 2 heures',
+      currentLocation: 'Succursale Centre-ville',
       fuelLevel: 85,
       nextMaintenance: '2024-01-15',
-      driver: 'John Smith',
+      driver: 'Jean Dupont',
       image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
       efficiency: 92,
-      mileage: '45,230 km',
+      mileage: '45 230 km',
       yearlyTrips: 156,
     },
     {
       id: '2',
       license_plate: 'VAN-002',
       model: 'Mercedes Sprinter',
-      status: 'In Transit',
+      status: 'En Transit',
       driver_id: 'driver-2',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       carNumberPlate: 'XYZ-456',
       totalTrips: 38,
-      lastTrip: '30 mins ago',
-      currentLocation: 'En route to Industrial Park',
+      lastTrip: 'Il y a 30 min',
+      currentLocation: 'En route vers Zone Industrielle',
       fuelLevel: 67,
       nextMaintenance: '2024-01-20',
-      driver: 'Sarah Johnson',
+      driver: 'Marie Martin',
       image: 'https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?auto=format&fit=crop&w=400&q=80',
       efficiency: 88,
-      mileage: '38,450 km',
+      mileage: '38 450 km',
       yearlyTrips: 142,
     },
   ];
@@ -87,14 +86,13 @@ const Vans = () => {
   // Use database vans if available, otherwise fall back to mock data
   const displayVans = vans.length > 0 ? vans.map(van => ({
     ...van,
-    // Add mock display properties for demo
     carNumberPlate: van.license_plate,
     totalTrips: 0,
-    lastTrip: 'Never',
-    currentLocation: 'Unknown',
+    lastTrip: 'Jamais',
+    currentLocation: 'Inconnu',
     fuelLevel: 50,
-    nextMaintenance: 'TBD',
-    driver: 'Unassigned',
+    nextMaintenance: 'À déterminer',
+    driver: 'Non assigné',
     image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
     efficiency: 85,
     mileage: '0 km',
@@ -136,8 +134,8 @@ const Vans = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Active': return 'bg-green-100 text-green-800';
-      case 'In Transit': return 'bg-blue-100 text-blue-800';
+      case 'Actif': return 'bg-green-100 text-green-800';
+      case 'En Transit': return 'bg-blue-100 text-blue-800';
       case 'Maintenance': return 'bg-red-100 text-red-800';
       default: return 'bg-gray-100 text-gray-800';
     }
@@ -167,8 +165,8 @@ const Vans = () => {
 
   const handleQuickAction = (action, van) => {
     toast({
-      title: "Action Performed",
-      description: `${action} action performed on ${van.license_plate}`,
+      title: "Action Effectuée",
+      description: `Action ${action} effectuée sur ${van.license_plate}`,
     });
   };
 
@@ -182,16 +180,16 @@ const Vans = () => {
   };
 
   const statusOptions = [
-    { value: 'all', label: 'All Status' },
-    { value: 'Active', label: 'Active' },
-    { value: 'In Transit', label: 'In Transit' },
+    { value: 'all', label: 'Tous les Statuts' },
+    { value: 'Actif', label: 'Actif' },
+    { value: 'En Transit', label: 'En Transit' },
     { value: 'Maintenance', label: 'Maintenance' },
   ];
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Loading vans...</div>
+        <div className="text-lg">Chargement des camionnettes...</div>
       </div>
     );
   }
@@ -199,7 +197,7 @@ const Vans = () => {
   if (error) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-600">Error: {error}</div>
+        <div className="text-lg text-red-600">Erreur: {error}</div>
       </div>
     );
   }
@@ -209,18 +207,18 @@ const Vans = () => {
       {/* Header with Stats */}
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Vans Management</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
           <div className="flex items-center space-x-6 mt-2">
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-green-500 rounded-full"></div>
               <span className="text-sm text-gray-600">
-                {displayVans.filter(v => v.status === 'Active').length} Active
+                {displayVans.filter(v => v.status === 'Actif').length} Actives
               </span>
             </div>
             <div className="flex items-center space-x-2">
               <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
               <span className="text-sm text-gray-600">
-                {displayVans.filter(v => v.status === 'In Transit').length} In Transit
+                {displayVans.filter(v => v.status === 'En Transit').length} En Transit
               </span>
             </div>
             <div className="flex items-center space-x-2">
@@ -233,7 +231,7 @@ const Vans = () => {
         </div>
         <Button onClick={handleAddVan} className="mt-4 lg:mt-0">
           <Plus className="h-4 w-4 mr-2" />
-          Add New Van
+          Ajouter Nouvelle Camionnette
         </Button>
       </div>
 
@@ -244,7 +242,7 @@ const Vans = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by plate, model, driver..."
+                placeholder="Rechercher par plaque, modèle, chauffeur..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -255,7 +253,7 @@ const Vans = () => {
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[180px]">
                   <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by status" />
+                  <SelectValue placeholder="Filtrer par statut" />
                 </SelectTrigger>
                 <SelectContent>
                   {statusOptions.map(option => (
@@ -272,14 +270,14 @@ const Vans = () => {
                     <SortAsc className="h-4 w-4 mr-2" /> : 
                     <SortDesc className="h-4 w-4 mr-2" />
                   }
-                  <SelectValue placeholder="Sort by..." />
+                  <SelectValue placeholder="Trier par..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="license_plate">License Plate</SelectItem>
-                  <SelectItem value="model">Model</SelectItem>
-                  <SelectItem value="totalTrips">Total Trips</SelectItem>
-                  <SelectItem value="fuelLevel">Fuel Level</SelectItem>
-                  <SelectItem value="efficiency">Efficiency</SelectItem>
+                  <SelectItem value="license_plate">Plaque d'Immatriculation</SelectItem>
+                  <SelectItem value="model">Modèle</SelectItem>
+                  <SelectItem value="totalTrips">Voyages Totaux</SelectItem>
+                  <SelectItem value="fuelLevel">Niveau de Carburant</SelectItem>
+                  <SelectItem value="efficiency">Efficacité</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -301,7 +299,7 @@ const Vans = () => {
       {/* Results Summary */}
       {filteredAndSortedVans.length !== displayVans.length && (
         <div className="text-sm text-gray-600">
-          Showing {filteredAndSortedVans.length} of {displayVans.length} vans
+          Affichage de {filteredAndSortedVans.length} sur {displayVans.length} camionnettes
         </div>
       )}
 
@@ -310,17 +308,17 @@ const Vans = () => {
         <Card>
           <CardContent className="text-center py-12">
             <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No vans found</h3>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune camionnette trouvée</h3>
             <p className="text-gray-600 mb-4">
               {searchTerm || statusFilter !== 'all' 
-                ? "Try adjusting your search or filters" 
-                : "Get started by adding your first van"
+                ? "Essayez d'ajuster votre recherche ou vos filtres" 
+                : "Commencez par ajouter votre première camionnette"
               }
             </p>
             {(!searchTerm && statusFilter === 'all') && (
               <Button onClick={handleAddVan}>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Your First Van
+                Ajouter Votre Première Camionnette
               </Button>
             )}
           </CardContent>
@@ -348,7 +346,7 @@ const Vans = () => {
                   <div className="absolute top-3 left-3">
                     <Badge variant="destructive" className="text-xs">
                       <Fuel className="h-3 w-3 mr-1" />
-                      Low Fuel
+                      Carburant Bas
                     </Badge>
                   </div>
                 )}
@@ -389,23 +387,23 @@ const Vans = () => {
                   </div>
                   <div className="flex items-center space-x-2">
                     <Route className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{van.totalTrips} trips</span>
+                    <span className="text-sm">{van.totalTrips} voyages</span>
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
                   <div>
-                    <span className="font-medium">Driver:</span> {van.driver}
+                    <span className="font-medium">Chauffeur:</span> {van.driver}
                   </div>
                   <div>
-                    <span className="font-medium">Mileage:</span> {van.mileage}
+                    <span className="font-medium">Kilométrage:</span> {van.mileage}
                   </div>
                   <div>
-                    <span className="font-medium">Last Trip:</span> {van.lastTrip}
+                    <span className="font-medium">Dernier Voyage:</span> {van.lastTrip}
                   </div>
                   <div className="flex items-center">
                     <span className="font-medium">Maintenance:</span>
-                    {van.nextMaintenance === 'In Progress' ? (
+                    {van.nextMaintenance === 'En Cours' ? (
                       <AlertTriangle className="h-3 w-3 ml-1 text-orange-500" />
                     ) : (
                       <Clock className="h-3 w-3 ml-1 text-gray-400" />
@@ -416,7 +414,7 @@ const Vans = () => {
                 {/* Progress Bar for Fuel */}
                 <div className="space-y-1">
                   <div className="flex justify-between text-xs">
-                    <span>Fuel Level</span>
+                    <span>Niveau de Carburant</span>
                     <span className={getFuelLevelColor(van.fuelLevel)}>{van.fuelLevel}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
@@ -439,21 +437,21 @@ const Vans = () => {
                     className="flex-1"
                   >
                     <Edit className="h-3 w-3 mr-1" />
-                    Edit
+                    Modifier
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleQuickAction('View Trips', van)}
+                    onClick={() => handleQuickAction('Voir Voyages', van)}
                     className="flex-1"
                   >
                     <Eye className="h-3 w-3 mr-1" />
-                    Trips
+                    Voyages
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleQuickAction('Track', van)}
+                    onClick={() => handleQuickAction('Suivre', van)}
                     className="px-2"
                   >
                     <MapPin className="h-3 w-3" />

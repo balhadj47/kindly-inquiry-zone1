@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { SupportedLanguage, TranslationKeys } from '@/types/language';
 import { translations } from '@/translations';
 
@@ -25,14 +25,16 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguage] = useState<SupportedLanguage>('fr');
+  // Fixed to French only
+  const language: SupportedLanguage = 'fr';
+  const setLanguage = () => {}; // No-op since we're French only
   
-  const isRTL = language === 'ar';
+  const isRTL = false;
   const t = translations[language];
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
-      <div dir={isRTL ? 'rtl' : 'ltr'} className={isRTL ? 'font-arabic' : ''}>
+      <div dir="ltr">
         {children}
       </div>
     </LanguageContext.Provider>

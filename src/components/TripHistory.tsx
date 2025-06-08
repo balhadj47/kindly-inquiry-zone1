@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,11 @@ const TripHistory = () => {
   const handleViewDetails = (trip: Trip) => {
     setSelectedTrip(trip);
     setDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    setDialogOpen(false);
+    setSelectedTrip(null);
   };
 
   if (loading) {
@@ -215,8 +219,8 @@ const TripHistory = () => {
 
       <TripDetailsDialog
         trip={selectedTrip}
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        isOpen={dialogOpen}
+        onClose={handleCloseDialog}
       />
     </div>
   );

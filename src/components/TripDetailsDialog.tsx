@@ -57,7 +57,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
               <Calendar className="h-5 w-5 text-muted-foreground" />
               <div>
                 <p className="font-medium">Date de création</p>
-                <p className="text-sm text-muted-foreground">{formatDate(trip.createdAt)}</p>
+                <p className="text-sm text-muted-foreground">{formatDate(trip.timestamp)}</p>
               </div>
             </div>
 

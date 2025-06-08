@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -30,7 +29,7 @@ const Users = () => {
     setGroupFilter('all');
   };
 
-  const hasActiveFilters = searchTerm || statusFilter !== 'all' || roleFilter !== 'all' || groupFilter !== 'all';
+  const hasActiveFilters = searchTerm !== '' || statusFilter !== 'all' || roleFilter !== 'all' || groupFilter !== 'all';
 
   const handleAddUser = () => {
     setSelectedUser(null);

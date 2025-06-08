@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -45,7 +44,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     name: '',
     email: '',
     phone: '',
-    role: 'Chauffeur Armé' as UserRole,
+    role: 'Employee' as UserRole,
     status: 'Active' as UserStatus,
     licenseNumber: '',
   });
@@ -67,7 +66,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         name: '',
         email: '',
         phone: '',
-        role: 'Administrator',
+        role: 'Employee',
         status: 'Active',
         licenseNumber: '',
       });

@@ -1,20 +1,41 @@
 
-import type { User, UserGroup as Group, Permission, UserRole, UserStatus } from '@/types/rbac';
+import type { User, UserGroup, Permission } from '@/types/rbac';
 
-export interface RBACContextType {
-  currentUser: User | null;
-  users: User[];
-  groups: Group[];
+export interface RBACUser extends User {}
+
+export interface RBACGroup extends UserGroup {}
+
+export interface RBACState {
+  currentUser: RBACUser | null;
+  users: RBACUser[];
+  groups: RBACGroup[];
   permissions: Permission[];
   loading: boolean;
+  error: Error | null;
+}
+
+export type RBACActions = 
+  | { type: 'SET_USER'; payload: RBACUser | null }
+  | { type: 'SET_USERS'; payload: RBACUser[] }
+  | { type: 'SET_GROUPS'; payload: RBACGroup[] }
+  | { type: 'SET_PERMISSIONS'; payload: Permission[] }
+  | { type: 'SET_LOADING'; payload: boolean }
+  | { type: 'SET_ERROR'; payload: Error | null };
+
+export interface RBACContextType {
+  currentUser: RBACUser | null;
+  users: RBACUser[];
+  groups: RBACGroup[];
+  permissions: Permission[];
+  loading: boolean;
+  setUser: (user: RBACUser | null) => void;
   hasPermission: (permission: string) => boolean;
-  setUser: (user: User | null) => void;
-  addUser: (userData: Partial<User>) => Promise<void>;
-  updateUser: (id: number, userData: Partial<User>) => Promise<void>;
-  deleteUser: (id: number) => Promise<void>;
-  changeUserPassword: (email: string, newPassword: string) => Promise<void>;
-  getUserGroup: (user: User) => Group | undefined;
-  addGroup: (groupData: Partial<Group>) => Promise<void>;
-  updateGroup: (id: string, groupData: Partial<Group>) => Promise<void>;
-  deleteGroup: (id: string) => Promise<void>;
+  getMenuItemPermissions: () => {
+    dashboard: boolean;
+    companies: boolean;
+    vans: boolean;
+    users: boolean;
+    tripLogger: boolean;
+    tripHistory: boolean;
+  };
 }

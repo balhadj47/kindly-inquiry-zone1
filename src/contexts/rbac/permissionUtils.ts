@@ -47,3 +47,8 @@ export const getMenuItemPermissions = (user: RBACUser | null, groups: RBACGroup[
   console.log('Menu permissions:', permissions);
   return permissions;
 };
+
+export const createPermissionUtils = (currentUser: RBACUser | null, groups: RBACGroup[]) => ({
+  hasPermission: (permission: string) => hasPermission(permission, currentUser, groups),
+  getMenuItemPermissions: () => getMenuItemPermissions(currentUser, groups),
+});

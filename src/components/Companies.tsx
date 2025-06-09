@@ -14,7 +14,7 @@ const Companies = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const { t } = useLanguage();
-  const { companies, loading, error } = useCompanies();
+  const { companies, loading, error, refetch } = useCompanies();
 
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -28,6 +28,10 @@ const Companies = () => {
   const handleEditCompany = (company) => {
     setSelectedCompany(company);
     setIsModalOpen(true);
+  };
+
+  const handleModalSuccess = () => {
+    refetch();
   };
 
   if (loading) {
@@ -159,6 +163,7 @@ const Companies = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         company={selectedCompany}
+        onSuccess={handleModalSuccess}
       />
     </div>
   );

@@ -2,9 +2,23 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadUserData, loadGroupsData } from './dataLoaders';
-import { RBACState, RBACActions } from './types';
+import { RBACUser, RBACGroup } from './types';
 
-export const useRBACDataInit = (state: RBACState, dispatch: React.Dispatch<RBACActions>) => {
+interface UseRBACDataInitProps {
+  setUsers: React.Dispatch<React.SetStateAction<RBACUser[]>>;
+  setGroups: React.Dispatch<React.SetStateAction<RBACGroup[]>>;
+  setPermissions: React.Dispatch<React.SetStateAction<any[]>>;
+  setCurrentUser: React.Dispatch<React.SetStateAction<RBACUser | null>>;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const useRBACDataInit = ({
+  setUsers,
+  setGroups,
+  setPermissions,
+  setCurrentUser,
+  setLoading,
+}: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
 
   useEffect(() => {
@@ -19,34 +33,33 @@ export const useRBACDataInit = (state: RBACState, dispatch: React.Dispatch<RBACA
 
       if (!authUser) {
         console.log('No authenticated user, resetting RBAC state');
-        dispatch({ type: 'SET_LOADING', payload: false });
-        dispatch({ type: 'SET_USER', payload: null });
+        setLoading(false);
+        setCurrentUser(null);
         return;
       }
 
       console.log('Loading user data for authenticated user:', authUser.id);
-      dispatch({ type: 'SET_LOADING', payload: true });
+      setLoading(true);
       
       try {
         // Load user data
         console.log('Calling loadUserData...');
         const userData = await loadUserData();
         console.log('User data loaded:', userData);
-        dispatch({ type: 'SET_USER', payload: userData });
+        setCurrentUser(userData);
 
         // Load groups data
         console.log('Calling loadGroupsData...');
         const groupsData = await loadGroupsData();
         console.log('Groups data loaded:', groupsData);
-        dispatch({ type: 'SET_GROUPS', payload: groupsData });
+        setGroups(groupsData);
       } catch (error) {
         console.error('Error loading RBAC data:', error);
-        dispatch({ type: 'SET_ERROR', payload: error as Error });
       } finally {
-        dispatch({ type: 'SET_LOADING', payload: false });
+        setLoading(false);
       }
     };
 
     initializeData();
-  }, [authUser, authLoading, dispatch]);
+  }, [authUser, authLoading, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
 };

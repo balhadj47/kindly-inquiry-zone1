@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
 import { supabase } from '@/integrations/supabase/client';
@@ -11,6 +10,8 @@ import VansLoadingSkeleton from './VansLoadingSkeleton';
 import VanTripsDialog from './VanTripsDialog';
 
 const Vans = () => {
+  console.log('🚐 Vans component: Rendering...');
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
@@ -21,6 +22,18 @@ const Vans = () => {
   const [selectedVanForTrips, setSelectedVanForTrips] = useState(null);
   const { toast } = useToast();
   const { vans, loading, error, refetch } = useVans();
+
+  useEffect(() => {
+    console.log('🚐 Vans component: Mounted');
+    
+    return () => {
+      console.log('🚐 Vans component: Unmounting');
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log('🚐 Vans component: Vans data changed, count:', vans.length);
+  }, [vans]);
 
   const filteredAndSortedVans = useMemo(() => {
     let filtered = vans.filter(van => {
@@ -121,16 +134,20 @@ const Vans = () => {
   };
 
   if (loading) {
+    console.log('🚐 Vans component: Showing loading skeleton');
     return <VansLoadingSkeleton />;
   }
 
   if (error) {
+    console.log('🚐 Vans component: Showing error state');
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-lg text-red-600">Erreur: {error}</div>
       </div>
     );
   }
+
+  console.log('🚐 Vans component: Rendering main content with', vans.length, 'vans');
 
   return (
     <div className="space-y-6">

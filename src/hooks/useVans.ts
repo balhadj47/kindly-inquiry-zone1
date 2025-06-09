@@ -19,6 +19,7 @@ export const useVans = () => {
 
   const fetchVans = useCallback(async () => {
     try {
+      console.log('🚐 useVans: Starting to fetch vans data...');
       setLoading(true);
       
       const { data, error } = await (supabase as any)
@@ -26,22 +27,28 @@ export const useVans = () => {
         .select('*');
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('🚐 useVans: Supabase error:', error);
         throw error;
       }
 
-      console.log('Fetched vans data:', data);
+      console.log('🚐 useVans: Successfully fetched vans data:', data);
       setVans(data || []);
     } catch (err) {
-      console.error('Error fetching vans:', err);
+      console.error('🚐 useVans: Error fetching vans:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setLoading(false);
+      console.log('🚐 useVans: Finished fetching vans data');
     }
   }, []);
 
   useEffect(() => {
+    console.log('🚐 useVans: useEffect triggered - component mounted or fetchVans changed');
     fetchVans();
+    
+    return () => {
+      console.log('🚐 useVans: Cleanup - component unmounting');
+    };
   }, [fetchVans]);
 
   return { vans, loading, error, refetch: fetchVans };

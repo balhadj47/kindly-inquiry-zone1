@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Car, 
   Edit, 
   Eye, 
   Trash2,
@@ -51,11 +50,6 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
       </CardHeader>
 
       <CardContent className="space-y-4">
-        <div className="flex items-center space-x-2">
-          <Car className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium">Chauffeur: {van.driver}</span>
-        </div>
-
         {van.insurer && (
           <div className="flex items-center space-x-2">
             <Shield className="h-4 w-4 text-gray-500" />

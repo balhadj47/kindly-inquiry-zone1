@@ -160,25 +160,40 @@ export type Database = {
       }
       vans: {
         Row: {
+          control_date: string | null
           created_at: string
           driver_id: string | null
           id: string
+          insurance_date: string | null
+          insurer: string | null
           license_plate: string
           model: string
+          notes: string | null
+          status: string | null
         }
         Insert: {
+          control_date?: string | null
           created_at?: string
           driver_id?: string | null
           id?: string
+          insurance_date?: string | null
+          insurer?: string | null
           license_plate: string
           model: string
+          notes?: string | null
+          status?: string | null
         }
         Update: {
+          control_date?: string | null
           created_at?: string
           driver_id?: string | null
           id?: string
+          insurance_date?: string | null
+          insurer?: string | null
           license_plate?: string
           model?: string
+          notes?: string | null
+          status?: string | null
         }
         Relationships: []
       }

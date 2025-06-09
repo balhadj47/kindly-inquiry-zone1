@@ -21,7 +21,6 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         insurance_date: formData.insuranceDate?.toISOString().split('T')[0] || null,
         control_date: formData.controlDate?.toISOString().split('T')[0] || null,
         notes: formData.notes,
-        driver_id: van?.driver_id || null,
       };
 
       if (van) {

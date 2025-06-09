@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Van {
@@ -17,32 +17,33 @@ export const useVans = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchVans = async () => {
-      try {
-        setLoading(true);
-        
-        const { data, error } = await (supabase as any)
-          .from('vans')
-          .select('*');
+  const fetchVans = useCallback(async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await (supabase as any)
+        .from('vans')
+        .select('*')
+        .is('deleted_at', null);
 
-        if (error) {
-          console.error('Supabase error:', error);
-          throw error;
-        }
-
-        console.log('Fetched vans data:', data);
-        setVans(data || []);
-      } catch (err) {
-        console.error('Error fetching vans:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
       }
-    };
 
-    fetchVans();
+      console.log('Fetched vans data:', data);
+      setVans(data || []);
+    } catch (err) {
+      console.error('Error fetching vans:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  return { vans, loading, error };
+  useEffect(() => {
+    fetchVans();
+  }, [fetchVans]);
+
+  return { vans, loading, error, refetch: fetchVans };
 };

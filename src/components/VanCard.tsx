@@ -12,17 +12,30 @@ import {
   Eye, 
   TrendingUp, 
   Clock, 
-  AlertTriangle 
+  AlertTriangle,
+  Trash2
 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { getStatusColor, getFuelLevelColor, getEfficiencyColor } from '@/utils/vanUtils';
 
 interface VanCardProps {
   van: any;
   onEdit: (van: any) => void;
   onQuickAction: (action: string, van: any) => void;
+  onDelete: (van: any) => void;
 }
 
-const VanCard = ({ van, onEdit, onQuickAction }: VanCardProps) => {
+const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
   return (
     <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
       <CardHeader className="pb-3">
@@ -141,6 +154,35 @@ const VanCard = ({ van, onEdit, onQuickAction }: VanCardProps) => {
           >
             <MapPin className="h-3 w-3" />
           </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 px-2"
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer la camionnette</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir supprimer la camionnette "{van.license_plate}" ? 
+                  Cette action ne peut pas être annulée.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(van)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>

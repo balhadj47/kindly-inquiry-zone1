@@ -1,88 +1,81 @@
-export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
 
-export type UserStatus = 'Active' | 'Récupération' | 'Congé' | 'Congé maladie';
+export type UserRole = 
+  | 'Administrator'
+  | 'Employee'
+  | 'Chef de Groupe Armé'
+  | 'Chef de Groupe Sans Armé'
+  | 'Chauffeur Armé'
+  | 'Chauffeur Sans Armé'
+  | 'APS Armé'
+  | 'APS Sans Armé';
+
+export type UserStatus = 'Active' | 'Inactive' | 'Suspended' | 'Récupération' | 'Congé' | 'Congé maladie';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  role: UserRole;
+  status: UserStatus;
+  groupId: string;
+  createdAt: string;
+  licenseNumber?: string;
+  totalTrips?: number;
+  lastTrip?: string;
+  profileImage?: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string;
+  permissions: Permission[];
+  color: string;
+}
 
 export interface Permission {
   id: string;
   name: string;
   description: string;
-  category: 'dashboard' | 'companies' | 'vans' | 'users' | 'trips' | 'settings';
+  category: string;
 }
 
-export interface UserGroup {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  color: string;
-}
-
-export interface User {
-  id: string; // Changed from number to string for consistency
-  name: string;
-  email: string;
-  phone: string;
-  role: UserRole;
-  groupId: string;
-  status: UserStatus;
-  lastLogin?: string;
-  createdAt: string;
-  // Driver-specific fields (for backward compatibility)
-  licenseNumber?: string;
-  totalTrips?: number;
-  lastTrip?: string;
-}
-
-// Only admin and employee as default groups
-export const DEFAULT_PERMISSIONS: Permission[] = [
-  // Dashboard permissions
-  { id: 'dashboard.view', name: 'View Dashboard', description: 'Access to main dashboard', category: 'dashboard' },
-  { id: 'dashboard.analytics', name: 'View Analytics', description: 'Access to analytics and reports', category: 'dashboard' },
+export const AVAILABLE_PERMISSIONS: Permission[] = [
+  // User Management
+  { id: 'users:read', name: 'Voir les utilisateurs', description: 'Peut voir la liste des utilisateurs', category: 'Gestion des Utilisateurs' },
+  { id: 'users:create', name: 'Créer des utilisateurs', description: 'Peut créer de nouveaux utilisateurs', category: 'Gestion des Utilisateurs' },
+  { id: 'users:update', name: 'Modifier les utilisateurs', description: 'Peut modifier les informations des utilisateurs', category: 'Gestion des Utilisateurs' },
+  { id: 'users:delete', name: 'Supprimer les utilisateurs', description: 'Peut supprimer des utilisateurs', category: 'Gestion des Utilisateurs' },
   
-  // Companies permissions
-  { id: 'companies.view', name: 'View Companies', description: 'View companies list', category: 'companies' },
-  { id: 'companies.create', name: 'Create Companies', description: 'Add new companies', category: 'companies' },
-  { id: 'companies.edit', name: 'Edit Companies', description: 'Modify company information', category: 'companies' },
-  { id: 'companies.delete', name: 'Delete Companies', description: 'Remove companies', category: 'companies' },
+  // Group Management
+  { id: 'groups:read', name: 'Voir les groupes', description: 'Peut voir la liste des groupes', category: 'Gestion des Groupes' },
+  { id: 'groups:create', name: 'Créer des groupes', description: 'Peut créer de nouveaux groupes', category: 'Gestion des Groupes' },
+  { id: 'groups:update', name: 'Modifier les groupes', description: 'Peut modifier les groupes existants', category: 'Gestion des Groupes' },
+  { id: 'groups:delete', name: 'Supprimer les groupes', description: 'Peut supprimer des groupes', category: 'Gestion des Groupes' },
   
-  // Vans permissions
-  { id: 'vans.view', name: 'View Vans', description: 'View vans list', category: 'vans' },
-  { id: 'vans.create', name: 'Create Vans', description: 'Add new vans', category: 'vans' },
-  { id: 'vans.edit', name: 'Edit Vans', description: 'Modify van information', category: 'vans' },
-  { id: 'vans.delete', name: 'Delete Vans', description: 'Remove vans', category: 'vans' },
+  // Van Management
+  { id: 'vans:read', name: 'Voir les camionnettes', description: 'Peut voir la liste des camionnettes', category: 'Gestion des Camionnettes' },
+  { id: 'vans:create', name: 'Créer des camionnettes', description: 'Peut ajouter de nouvelles camionnettes', category: 'Gestion des Camionnettes' },
+  { id: 'vans:update', name: 'Modifier les camionnettes', description: 'Peut modifier les informations des camionnettes', category: 'Gestion des Camionnettes' },
+  { id: 'vans:delete', name: 'Supprimer les camionnettes', description: 'Peut supprimer des camionnettes', category: 'Gestion des Camionnettes' },
   
-  // Users permissions
-  { id: 'users.view', name: 'View Users', description: 'View users list', category: 'users' },
-  { id: 'users.create', name: 'Create Users', description: 'Add new users', category: 'users' },
-  { id: 'users.edit', name: 'Edit Users', description: 'Modify user information', category: 'users' },
-  { id: 'users.delete', name: 'Delete Users', description: 'Remove users', category: 'users' },
-  { id: 'users.manage_groups', name: 'Manage Groups', description: 'Create and edit user groups', category: 'users' },
+  // Trip Management
+  { id: 'trips:read', name: 'Voir les voyages', description: 'Peut voir l\'historique des voyages', category: 'Gestion des Voyages' },
+  { id: 'trips:create', name: 'Créer des voyages', description: 'Peut enregistrer de nouveaux voyages', category: 'Gestion des Voyages' },
+  { id: 'trips:update', name: 'Modifier les voyages', description: 'Peut modifier les informations des voyages', category: 'Gestion des Voyages' },
+  { id: 'trips:delete', name: 'Supprimer les voyages', description: 'Peut supprimer des voyages', category: 'Gestion des Voyages' },
   
-  // Trips permissions
-  { id: 'trips.view', name: 'View Trips', description: 'View trip history', category: 'trips' },
-  { id: 'trips.log', name: 'Log Trips', description: 'Create new trip entries', category: 'trips' },
-  { id: 'trips.edit', name: 'Edit Trips', description: 'Modify trip information', category: 'trips' },
-  { id: 'trips.delete', name: 'Delete Trips', description: 'Remove trip entries', category: 'trips' },
+  // Company Management
+  { id: 'companies:read', name: 'Voir les entreprises', description: 'Peut voir la liste des entreprises', category: 'Gestion des Entreprises' },
+  { id: 'companies:create', name: 'Créer des entreprises', description: 'Peut ajouter de nouvelles entreprises', category: 'Gestion des Entreprises' },
+  { id: 'companies:update', name: 'Modifier les entreprises', description: 'Peut modifier les informations des entreprises', category: 'Gestion des Entreprises' },
+  { id: 'companies:delete', name: 'Supprimer les entreprises', description: 'Peut supprimer des entreprises', category: 'Gestion des Entreprises' },
   
-  // Settings permissions
-  { id: 'settings.view', name: 'View Settings', description: 'Access system settings', category: 'settings' },
-  { id: 'settings.edit', name: 'Edit Settings', description: 'Modify system settings', category: 'settings' },
-];
-
-// Only admin and employee as default groups
-export const DEFAULT_GROUPS: UserGroup[] = [
-  {
-    id: 'admin',
-    name: 'Administrateurs',
-    description: 'Accès complet au système avec toutes les permissions',
-    color: 'bg-red-100 text-red-800',
-    permissions: DEFAULT_PERMISSIONS.map(p => p.id),
-  },
-  {
-    id: 'employee',
-    name: 'Employés',
-    description: 'Accès de base pour les employés',
-    color: 'bg-blue-100 text-blue-800',
-    permissions: ['dashboard.view', 'companies.view', 'vans.view', 'users.view', 'trips.view'],
-  },
+  // Dashboard
+  { id: 'dashboard:read', name: 'Voir le tableau de bord', description: 'Peut accéder au tableau de bord', category: 'Tableau de Bord' },
+  
+  // Settings
+  { id: 'settings:read', name: 'Voir les paramètres', description: 'Peut voir les paramètres du système', category: 'Paramètres' },
+  { id: 'settings:update', name: 'Modifier les paramètres', description: 'Peut modifier les paramètres du système', category: 'Paramètres' },
 ];

@@ -13,6 +13,7 @@ interface VanListProps {
   onAddVan: () => void;
   onEditVan: (van: any) => void;
   onQuickAction: (action: string, van: any) => void;
+  onDeleteVan: (van: any) => void;
 }
 
 const VanList = ({ 
@@ -22,7 +23,8 @@ const VanList = ({
   statusFilter, 
   onAddVan, 
   onEditVan, 
-  onQuickAction 
+  onQuickAction,
+  onDeleteVan
 }: VanListProps) => {
   // Results Summary
   const showSummary = vans.length !== totalVans;
@@ -73,6 +75,7 @@ const VanList = ({
             van={van}
             onEdit={onEditVan}
             onQuickAction={onQuickAction}
+            onDelete={onDeleteVan}
           />
         ))}
       </div>

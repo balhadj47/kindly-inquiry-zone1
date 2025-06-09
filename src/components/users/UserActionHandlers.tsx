@@ -34,9 +34,8 @@ export const useUserActionHandlers = () => {
       return;
     }
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.name}" ? Cette action ne peut pas être annulée.`)) {
-      await deleteUser(user.id);
-    }
+    // Remove the duplicate confirmation - UserCard already has AlertDialog confirmation
+    await deleteUser(user.id);
   };
 
   const handleAddGroup = () => {

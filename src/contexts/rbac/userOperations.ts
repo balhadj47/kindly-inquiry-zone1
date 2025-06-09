@@ -101,14 +101,14 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
   const changeUserPassword = async (userEmail: string, newPassword: string) => {
     try {
       // First, we need to find the auth user by email
-      const { data: authUsers, error: fetchError } = await supabase.auth.admin.listUsers();
+      const { data: authData, error: fetchError } = await supabase.auth.admin.listUsers();
       
       if (fetchError) {
         console.error('Error fetching users:', fetchError);
         throw fetchError;
       }
 
-      const authUser = authUsers.users.find(user => user.email === userEmail);
+      const authUser = authData.users.find((user: any) => user.email === userEmail);
       
       if (!authUser) {
         throw new Error('User not found');

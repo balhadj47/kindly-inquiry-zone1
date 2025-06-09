@@ -11,12 +11,18 @@ export const createPermissionUtils = (currentUser: User | null, groups: UserGrou
       return false;
     }
 
+    if (!currentUser.groupId) {
+      console.log('User has no group ID, permission denied');
+      return false;
+    }
+
     const userGroup = groups.find(g => g.id === currentUser.groupId);
     console.log('User group:', userGroup);
     console.log('Available groups:', groups);
     
     if (!userGroup) {
-      console.log('No group found for user, permission denied');
+      console.log(`No group found for user with groupId: ${currentUser.groupId}, permission denied`);
+      console.log('Available group IDs:', groups.map(g => g.id));
       return false;
     }
 

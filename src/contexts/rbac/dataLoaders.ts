@@ -34,17 +34,96 @@ export const loadUsersFromDB = async (): Promise<User[]> => {
 
 export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
   try {
-    // Get the current authenticated user's RBAC data
+    // First check if we have an authenticated user
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session?.user) {
+      console.log('No authenticated session found');
+      return null;
+    }
+
+    console.log('Authenticated user found:', session.user.email);
+
+    // Try to get the current user's RBAC data using the RPC function
     const { data: currentUserData, error } = await supabase
       .rpc('get_current_user_rbac');
 
     if (error) {
       console.error('Error fetching current user RBAC data:', error);
-      return null;
     }
 
     if (!currentUserData) {
-      console.log('No authenticated user found');
+      console.log('No RBAC user record found for authenticated user');
+      
+      // Try to find user by email as fallback
+      const { data: userByEmail, error: emailError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', session.user.email)
+        .maybeSingle();
+
+      if (emailError) {
+        console.error('Error searching for user by email:', emailError);
+        return null;
+      }
+
+      if (userByEmail) {
+        console.log('Found user by email lookup:', userByEmail);
+        const currentUser: User = {
+          id: userByEmail.id,
+          name: userByEmail.name,
+          email: userByEmail.email,
+          phone: userByEmail.phone,
+          groupId: userByEmail.group_id,
+          role: userByEmail.role as UserRole,
+          status: userByEmail.status as UserStatus,
+          createdAt: userByEmail.created_at,
+          licenseNumber: userByEmail.license_number,
+          totalTrips: userByEmail.total_trips,
+          lastTrip: userByEmail.last_trip,
+        };
+        return currentUser;
+      }
+
+      // If no user record exists, create a default admin user for testing
+      console.log('Creating default admin user for authenticated user');
+      const { data: newUser, error: createError } = await supabase
+        .from('users')
+        .insert([{
+          auth_user_id: session.user.id,
+          name: session.user.email?.split('@')[0] || 'Admin User',
+          email: session.user.email,
+          phone: '',
+          group_id: 'admin',
+          role: 'Administrator',
+          status: 'Active',
+        }])
+        .select()
+        .single();
+
+      if (createError) {
+        console.error('Error creating user record:', createError);
+        return null;
+      }
+
+      if (newUser) {
+        console.log('Created new admin user:', newUser);
+        const currentUser: User = {
+          id: newUser.id,
+          name: newUser.name,
+          email: newUser.email,
+          phone: newUser.phone,
+          groupId: newUser.group_id,
+          role: newUser.role as UserRole,
+          status: newUser.status as UserStatus,
+          createdAt: newUser.created_at,
+          licenseNumber: newUser.license_number,
+          totalTrips: newUser.total_trips,
+          lastTrip: newUser.last_trip,
+        };
+        return currentUser;
+      }
+
       return null;
     }
 

@@ -32,14 +32,14 @@ export const useSidebarMenuItems = () => {
       badge: null,
     },
     {
-      title: 'Vans',
+      title: 'Camionnettes',
       href: '/vans',
       icon: Car,
       permission: 'vans.view',
       badge: null,
     },
     {
-      title: 'Users',
+      title: t.users,
       href: '/users',
       icon: Users,
       permission: 'users.view',

@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RBACUser, RBACGroup } from './types';
+import { DEFAULT_PERMISSIONS } from '@/types/rbac';
 
 export const loadUserData = async (): Promise<RBACUser | null> => {
   try {
@@ -218,4 +218,10 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
       }
     ];
   }
+};
+
+export const loadPermissionsData = async () => {
+  console.log('Loading permissions data...');
+  console.log('Returning default permissions:', DEFAULT_PERMISSIONS);
+  return DEFAULT_PERMISSIONS;
 };

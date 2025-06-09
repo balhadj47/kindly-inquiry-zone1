@@ -11,9 +11,9 @@ const UserSettings = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t.settings}</h1>
         <p className="text-muted-foreground">
-          Manage your account settings and preferences.
+          Gérez les paramètres de votre compte et vos préférences.
         </p>
       </div>
       
@@ -22,34 +22,36 @@ const UserSettings = () => {
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Language & Region</CardTitle>
+            <CardTitle>Langue et Région</CardTitle>
             <CardDescription>
-              Choose your preferred language for the application interface.
+              Choisissez votre langue préférée pour l'interface de l'application.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <p className="text-sm font-medium">Interface Language</p>
+                <p className="text-sm font-medium">Langue de l'Interface</p>
                 <p className="text-sm text-muted-foreground">
-                  Select the language you want to use for menus and messages.
+                  Cette application est configurée en français uniquement.
                 </p>
               </div>
-              <LanguageSelector />
+              <div className="text-sm text-muted-foreground bg-muted px-3 py-2 rounded">
+                Français
+              </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Profile</CardTitle>
+            <CardTitle>Profil</CardTitle>
             <CardDescription>
-              Manage your profile information and preferences.
+              Gérez les informations de votre profil et vos préférences.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Profile settings will be available here in future updates.
+              Les paramètres de profil seront disponibles dans les futures mises à jour.
             </p>
           </CardContent>
         </Card>
@@ -58,12 +60,12 @@ const UserSettings = () => {
           <CardHeader>
             <CardTitle>Notifications</CardTitle>
             <CardDescription>
-              Configure how you receive notifications.
+              Configurez la façon dont vous recevez les notifications.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Notification settings will be available here in future updates.
+              Les paramètres de notification seront disponibles dans les futures mises à jour.
             </p>
           </CardContent>
         </Card>

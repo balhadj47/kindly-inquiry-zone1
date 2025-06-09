@@ -35,7 +35,7 @@ const GroupGrid: React.FC<GroupGridProps> = ({
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {groups.map((group) => {
-        const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
+        const defaultGroupIds = ['admin', 'employee'];
         const isDefaultGroup = defaultGroupIds.includes(group.id);
         const usersInGroup = users.filter(u => u.groupId === group.id).length;
         const canDelete = !isDefaultGroup && usersInGroup === 0;

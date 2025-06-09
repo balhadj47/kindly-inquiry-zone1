@@ -1,5 +1,5 @@
 
-export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
+export type UserRole = 'Administrator' | 'Employee';
 
 export type UserStatus = 'Active' | 'Récupération' | 'Congé' | 'Congé maladie';
 
@@ -69,7 +69,7 @@ export const DEFAULT_PERMISSIONS: Permission[] = [
   { id: 'settings.edit', name: 'Edit Settings', description: 'Modify system settings', category: 'settings' },
 ];
 
-// Restore all original groups
+// Only admin and employee as default groups
 export const DEFAULT_GROUPS: UserGroup[] = [
   {
     id: 'admin',
@@ -84,47 +84,5 @@ export const DEFAULT_GROUPS: UserGroup[] = [
     description: 'Accès de base pour les employés',
     color: 'bg-blue-100 text-blue-800',
     permissions: ['dashboard.view', 'companies.view', 'vans.view', 'users.view', 'trips.view'],
-  },
-  {
-    id: 'chef_groupe_arme',
-    name: 'Chef de Groupe Armé',
-    description: 'Chef d\'équipe pour les opérations armées',
-    color: 'bg-green-100 text-green-800',
-    permissions: ['dashboard.view', 'dashboard.analytics', 'companies.view', 'vans.view', 'users.view', 'trips.view', 'trips.log', 'trips.edit'],
-  },
-  {
-    id: 'chef_groupe_sans_arme',
-    name: 'Chef de Groupe Sans Armé',
-    description: 'Chef d\'équipe pour les opérations non-armées',
-    color: 'bg-yellow-100 text-yellow-800',
-    permissions: ['dashboard.view', 'companies.view', 'vans.view', 'users.view', 'trips.view', 'trips.log'],
-  },
-  {
-    id: 'chauffeur_arme',
-    name: 'Chauffeur Armé',
-    description: 'Chauffeur pour les transports sécurisés armés',
-    color: 'bg-purple-100 text-purple-800',
-    permissions: ['dashboard.view', 'trips.view', 'trips.log'],
-  },
-  {
-    id: 'chauffeur_sans_arme',
-    name: 'Chauffeur Sans Armé',
-    description: 'Chauffeur pour les transports standards',
-    color: 'bg-indigo-100 text-indigo-800',
-    permissions: ['dashboard.view', 'trips.view', 'trips.log'],
-  },
-  {
-    id: 'aps_arme',
-    name: 'APS Armé',
-    description: 'Agent de Protection et de Sécurité armé',
-    color: 'bg-gray-100 text-gray-800',
-    permissions: ['dashboard.view', 'trips.view'],
-  },
-  {
-    id: 'aps_sans_arme',
-    name: 'APS Sans Armé',
-    description: 'Agent de Protection et de Sécurité non-armé',
-    color: 'bg-pink-100 text-pink-800',
-    permissions: ['dashboard.view', 'trips.view'],
   },
 ];

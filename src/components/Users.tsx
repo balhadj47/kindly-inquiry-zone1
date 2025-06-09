@@ -96,7 +96,7 @@ const Users = () => {
       return;
     }
 
-    const defaultGroupIds = ['admin', 'employee', 'chef_groupe_arme', 'chef_groupe_sans_arme', 'chauffeur_arme', 'chauffeur_sans_arme', 'aps_arme', 'aps_sans_arme'];
+    const defaultGroupIds = ['admin', 'employee'];
     if (defaultGroupIds.includes(group.id)) {
       alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);
       return;

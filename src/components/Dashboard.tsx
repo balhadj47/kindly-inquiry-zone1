@@ -74,6 +74,12 @@ const Dashboard = () => {
   const { vans, loading: vansLoading } = useVans();
   const { companies, loading: companiesLoading } = useCompanies();
 
+  const isLoading = usersLoading || vansLoading || companiesLoading;
+
+  if (isLoading) {
+    return <DashboardLoadingSkeleton />;
+  }
+
   // Calculate real statistics
   const activeVans = vans.filter(van => van.status === 'Actif' || !van.status).length;
   const totalUsers = users.length;
@@ -105,12 +111,6 @@ const Dashboard = () => {
     { title: 'Entreprises Servies', value: totalCompanies.toString(), change: `${totalCompanies}`, color: 'text-gray-600' },
     { title: 'Total Succursales', value: totalBranches.toString(), change: `${totalBranches}`, color: 'text-purple-600' },
   ];
-
-  const isLoading = usersLoading || vansLoading || companiesLoading;
-
-  if (isLoading) {
-    return <DashboardLoadingSkeleton />;
-  }
 
   return (
     <div className="space-y-4 sm:space-y-6">

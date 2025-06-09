@@ -76,6 +76,10 @@ const Drivers = () => {
   const [selectedDriver, setSelectedDriver] = useState(null);
   const { users, loading } = useRBAC();
 
+  if (loading) {
+    return <DriversLoadingSkeleton />;
+  }
+
   // Filter users who are drivers (have driver-related roles and license numbers)
   const drivers = useMemo(() => {
     return users.filter(user => 
@@ -110,10 +114,6 @@ const Drivers = () => {
     setSelectedDriver(driver);
     setIsModalOpen(true);
   };
-
-  if (loading) {
-    return <DriversLoadingSkeleton />;
-  }
 
   return (
     <div className="space-y-6">

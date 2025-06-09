@@ -1,92 +1,52 @@
 
 import { useEffect } from 'react';
-import type { User, UserGroup, Permission } from '@/types/rbac';
 import { useAuth } from '@/contexts/AuthContext';
-import { loadUsersFromDB, loadGroupsFromDB, loadDefaultData, loadCurrentUserFromAuth } from './dataLoaders';
+import { loadUserData, loadGroupsData } from './dataLoaders';
+import { RBACState, RBACActions } from './types';
 
-interface UseRBACDataInitProps {
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setGroups: React.Dispatch<React.SetStateAction<UserGroup[]>>;
-  setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const useRBACDataInit = ({
-  setUsers,
-  setGroups,
-  setPermissions,
-  setCurrentUser,
-  setLoading,
-}: UseRBACDataInitProps) => {
+export const useRBACDataInit = (state: RBACState, dispatch: React.Dispatch<RBACActions>) => {
   const { user: authUser, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    // Don't load RBAC data if auth is still loading
-    if (authLoading) {
-      console.log("Auth is still loading, waiting to load RBAC data...");
-      return;
-    }
+    const initializeData = async () => {
+      console.log('RBAC Data Init - Auth user:', authUser);
+      console.log('RBAC Data Init - Auth loading:', authLoading);
+      
+      if (authLoading) {
+        console.log('Auth still loading, waiting...');
+        return;
+      }
 
-    console.log("Starting RBAC data loading...");
-    console.log("Auth user:", authUser);
+      if (!authUser) {
+        console.log('No authenticated user, resetting RBAC state');
+        dispatch({ type: 'SET_LOADING', payload: false });
+        dispatch({ type: 'SET_USER', payload: null });
+        return;
+      }
 
-    const loadRBACData = async () => {
-      setLoading(true);
+      console.log('Loading user data for authenticated user:', authUser.id);
+      dispatch({ type: 'SET_LOADING', payload: true });
       
       try {
-        // Load default groups and permissions first
-        console.log("Loading default data...");
-        const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await loadDefaultData();
-        setGroups(DEFAULT_GROUPS);
-        setPermissions(DEFAULT_PERMISSIONS);
+        // Load user data
+        console.log('Calling loadUserData...');
+        const userData = await loadUserData();
+        console.log('User data loaded:', userData);
+        dispatch({ type: 'SET_USER', payload: userData });
 
-        // Load users from database
-        console.log("Loading users from database...");
-        const formattedUsers = await loadUsersFromDB();
-        setUsers(formattedUsers);
-
-        // Load groups from database (override defaults if they exist)
-        console.log("Loading groups from database...");
-        const dbGroups = await loadGroupsFromDB();
-        if (dbGroups) {
-          setGroups(dbGroups);
-        }
-
-        // Load current user from auth if authenticated
-        if (authUser) {
-          console.log("Loading current user for auth user:", authUser.email);
-          try {
-            const currentUser = await loadCurrentUserFromAuth();
-            setCurrentUser(currentUser);
-            console.log('Current user set:', currentUser);
-          } catch (err) {
-            console.error("Error loading current user:", err);
-            setCurrentUser(null);
-          }
-        } else {
-          setCurrentUser(null);
-          console.log('No authenticated user, current user set to null');
-        }
-
-        console.log('RBAC data loaded successfully');
+        // Load groups data
+        console.log('Calling loadGroupsData...');
+        const groupsData = await loadGroupsData();
+        console.log('Groups data loaded:', groupsData);
+        dispatch({ type: 'SET_GROUPS', payload: groupsData });
       } catch (error) {
         console.error('Error loading RBAC data:', error);
-        // Clear current user on error
-        setCurrentUser(null);
-        
-        try {
-          const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await loadDefaultData();
-          setGroups(DEFAULT_GROUPS);
-          setPermissions(DEFAULT_PERMISSIONS);
-        } catch (importError) {
-          console.error('Error importing default groups:', importError);
-        }
+        dispatch({ type: 'SET_ERROR', payload: error as Error });
       } finally {
-        setLoading(false);
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
-    loadRBACData();
-  }, [authUser, authLoading, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
+    initializeData();
+  }, [authUser, authLoading, dispatch]);
 };

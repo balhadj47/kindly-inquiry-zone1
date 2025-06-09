@@ -1,40 +1,49 @@
 
-import type { User, UserGroup } from '@/types/rbac';
+import { RBACUser, RBACGroup } from './types';
 
-export const createPermissionUtils = (currentUser: User | null, groups: UserGroup[]) => {
-  const hasPermission = (permission: string): boolean => {
-    console.log(`Checking permission: ${permission}`);
-    console.log('Current user:', currentUser);
-    
-    if (!currentUser) {
-      console.log('No current user, permission denied');
-      return false;
-    }
+export const hasPermission = (
+  permission: string,
+  user: RBACUser | null,
+  groups: RBACGroup[]
+): boolean => {
+  console.log('Checking permission:', permission);
+  console.log('Current user:', user);
+  console.log('Available groups:', groups);
 
-    if (!currentUser.groupId) {
-      console.log('User has no group ID, permission denied');
-      return false;
-    }
+  if (!user) {
+    console.log('No user found, permission denied');
+    return false;
+  }
 
-    const userGroup = groups.find(g => g.id === currentUser.groupId);
-    console.log('User group:', userGroup);
-    
-    if (!userGroup) {
-      console.log(`No group found for user with groupId: ${currentUser.groupId}, permission denied`);
-      console.log('Available group IDs:', groups.map(g => g.id));
-      return false;
-    }
+  if (!user.groupId) {
+    console.log('User has no group ID, permission denied');
+    return false;
+  }
 
-    const hasPermission = userGroup.permissions.includes(permission);
-    console.log(`Permission ${permission} result:`, hasPermission);
-    console.log('User group permissions:', userGroup.permissions);
-    
-    return hasPermission;
+  const userGroup = groups.find(group => group.id === user.groupId);
+  console.log('User group found:', userGroup);
+
+  if (!userGroup) {
+    console.log('User group not found in groups list, permission denied');
+    return false;
+  }
+
+  const hasPermissionResult = userGroup.permissions.includes(permission);
+  console.log(`Permission for ${permission}: ${hasPermissionResult}`);
+  
+  return hasPermissionResult;
+};
+
+export const getMenuItemPermissions = (user: RBACUser | null, groups: RBACGroup[]) => {
+  const permissions = {
+    dashboard: hasPermission('dashboard.view', user, groups),
+    companies: hasPermission('companies.view', user, groups),
+    vans: hasPermission('vans.view', user, groups),
+    users: hasPermission('users.view', user, groups),
+    tripLogger: hasPermission('trips.log', user, groups),
+    tripHistory: hasPermission('trips.view', user, groups),
   };
 
-  const getUserGroup = (user: User): UserGroup | undefined => {
-    return groups.find(g => g.id === user.groupId);
-  };
-
-  return { hasPermission, getUserGroup };
+  console.log('Menu permissions:', permissions);
+  return permissions;
 };

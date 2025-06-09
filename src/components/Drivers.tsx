@@ -4,9 +4,71 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Phone, Mail, Plus } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useRBAC } from '@/contexts/RBACContext';
+
+const DriversLoadingSkeleton = () => {
+  return (
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
+        <Skeleton className="h-9 w-64 mb-4 md:mb-0" />
+        <Skeleton className="h-10 w-64" />
+      </div>
+
+      {/* Search Bar skeleton */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="relative">
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Drivers Grid skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <Card key={index} className="animate-pulse">
+            <CardHeader className="pb-3">
+              <div className="flex items-start justify-between">
+                <div>
+                  <Skeleton className="h-6 w-32 mb-1" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <Skeleton className="h-6 w-16" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-24" />
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Skeleton className="h-4 w-4" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+              </div>
+              
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-3/4" />
+              </div>
+              
+              <div className="flex space-x-2 pt-2">
+                <Skeleton className="h-8 flex-1" />
+                <Skeleton className="h-8 flex-1" />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -50,11 +112,7 @@ const Drivers = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des chauffeurs...</div>
-      </div>
-    );
+    return <DriversLoadingSkeleton />;
   }
 
   return (

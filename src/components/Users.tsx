@@ -19,6 +19,14 @@ const Users = () => {
   const { users, groups, hasPermission, loading, currentUser } = useRBAC();
   const { user: authUser } = useAuth();
 
+  console.log('Users component render state:', {
+    usersCount: users?.length || 0,
+    groupsCount: groups?.length || 0,
+    currentUser,
+    authUser,
+    loading
+  });
+
   const {
     isUserModalOpen,
     setIsUserModalOpen,
@@ -41,14 +49,11 @@ const Users = () => {
   } = useUserActionHandlers();
 
   // Debug permissions
-  console.log('Users component - hasPermission check results:');
-  console.log('users.view:', hasPermission('users.view'));
-  console.log('users.create:', hasPermission('users.create'));
-  console.log('users.manage_groups:', hasPermission('users.manage_groups'));
-  console.log('Current user:', currentUser);
-  console.log('Auth user:', authUser);
-  console.log('Current user group:', currentUser?.groupId);
-  console.log('Available groups:', groups);
+  console.log('Users component - Permission checks:', {
+    'users.view': hasPermission('users.view'),
+    'users.create': hasPermission('users.create'),
+    'users.manage_groups': hasPermission('users.manage_groups'),
+  });
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -83,6 +88,16 @@ const Users = () => {
     );
   }
 
+  // Check if user has permission to view users
+  if (!hasPermission('users.view')) {
+    return (
+      <ErrorState
+        title="Accès non autorisé"
+        message="Vous n'avez pas les permissions nécessaires pour accéder à la gestion des utilisateurs."
+      />
+    );
+  }
+
   const canManageGroups = hasPermission('users.manage_groups');
 
   return (
@@ -91,8 +106,8 @@ const Users = () => {
 
       <UsersNavigation canManageGroups={canManageGroups}>
         <UsersTab
-          users={users}
-          groups={groups}
+          users={users || []}
+          groups={groups || []}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
@@ -110,8 +125,8 @@ const Users = () => {
 
         {canManageGroups && (
           <GroupsTab
-            groups={groups}
-            users={users}
+            groups={groups || []}
+            users={users || []}
             onEditGroup={handleEditGroup}
             onManagePermissions={handleManagePermissions}
             onDeleteGroup={handleDeleteGroup}

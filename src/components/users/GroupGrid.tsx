@@ -32,9 +32,18 @@ const GroupGrid: React.FC<GroupGridProps> = ({
     );
   }
 
+  // Remove duplicates based on group ID and ensure unique keys
+  const uniqueGroups = groups.reduce((acc, group, index) => {
+    const existingGroupIndex = acc.findIndex(g => g.id === group.id);
+    if (existingGroupIndex === -1) {
+      acc.push(group);
+    }
+    return acc;
+  }, [] as UserGroup[]);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {groups.map((group) => {
+      {uniqueGroups.map((group, index) => {
         const defaultGroupIds = ['admin', 'employee'];
         const isDefaultGroup = defaultGroupIds.includes(group.id);
         const usersInGroup = users.filter(u => u.groupId === group.id).length;
@@ -42,7 +51,7 @@ const GroupGrid: React.FC<GroupGridProps> = ({
 
         return (
           <GroupCard
-            key={group.id}
+            key={`${group.id}-${index}`} // Ensure unique key with index fallback
             group={group}
             usersInGroup={usersInGroup}
             canDelete={canDelete}

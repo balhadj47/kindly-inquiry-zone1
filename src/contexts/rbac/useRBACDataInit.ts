@@ -1,7 +1,7 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { loadUserData, loadGroupsData } from './dataLoaders';
+import { loadUserData, loadUsersData, loadGroupsData } from './dataLoaders';
 import { RBACUser, RBACGroup } from './types';
 
 interface UseRBACDataInitProps {
@@ -35,6 +35,8 @@ export const useRBACDataInit = ({
         console.log('No authenticated user, resetting RBAC state');
         setLoading(false);
         setCurrentUser(null);
+        setUsers([]);
+        setGroups([]);
         return;
       }
 
@@ -42,11 +44,17 @@ export const useRBACDataInit = ({
       setLoading(true);
       
       try {
-        // Load user data
+        // Load current user data
         console.log('Calling loadUserData...');
         const userData = await loadUserData();
         console.log('User data loaded:', userData);
         setCurrentUser(userData);
+
+        // Load all users data
+        console.log('Calling loadUsersData...');
+        const usersData = await loadUsersData();
+        console.log('Users data loaded:', usersData);
+        setUsers(usersData);
 
         // Load groups data
         console.log('Calling loadGroupsData...');

@@ -28,7 +28,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
     if (data && data[0]) {
       const newUser: User = {
-        id: data[0].id,
+        id: data[0].id.toString(), // Convert numeric ID to string
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
@@ -44,7 +44,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
   };
 
-  const updateUser = async (id: number, userData: Partial<User>) => {
+  const updateUser = async (id: string, userData: Partial<User>) => { // Changed from number to string
     const { data, error } = await supabase
       .from('users')
       .update({
@@ -58,7 +58,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
       })
-      .eq('id', id)
+      .eq('id', parseInt(id)) // Convert string ID back to number for database query
       .select();
 
     if (error) {
@@ -68,7 +68,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
     if (data && data[0]) {
       const updatedUser: User = {
-        id: data[0].id,
+        id: data[0].id.toString(), // Convert numeric ID to string
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
@@ -80,22 +80,22 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
       };
-      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user)); // Now comparing string to string
     }
   };
 
-  const deleteUser = async (id: number) => {
+  const deleteUser = async (id: string) => { // Changed from number to string
     const { error } = await supabase
       .from('users')
       .delete()
-      .eq('id', id);
+      .eq('id', parseInt(id)); // Convert string ID back to number for database query
 
     if (error) {
       console.error('Error deleting user:', error);
       throw error;
     }
 
-    setUsers(prev => prev.filter(user => user.id !== id));
+    setUsers(prev => prev.filter(user => user.id !== id)); // Now comparing string to string
   };
 
   const changeUserPassword = async (userEmail: string, newPassword: string) => {

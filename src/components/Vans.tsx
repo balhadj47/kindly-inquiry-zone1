@@ -73,7 +73,7 @@ const Vans = () => {
     try {
       const { error } = await supabase
         .from('vans')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', van.id);
 
       if (error) {

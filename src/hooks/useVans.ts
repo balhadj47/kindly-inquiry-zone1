@@ -23,8 +23,7 @@ export const useVans = () => {
       
       const { data, error } = await (supabase as any)
         .from('vans')
-        .select('*')
-        .is('deleted_at', null);
+        .select('*');
 
       if (error) {
         console.error('Supabase error:', error);

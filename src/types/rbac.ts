@@ -26,6 +26,14 @@ export interface User {
   profileImage?: string;
 }
 
+export interface UserGroup {
+  id: string;
+  name: string;
+  description: string;
+  permissions: string[];
+  color: string;
+}
+
 export interface Group {
   id: string;
   name: string;
@@ -79,3 +87,5 @@ export const AVAILABLE_PERMISSIONS: Permission[] = [
   { id: 'settings:read', name: 'Voir les paramètres', description: 'Peut voir les paramètres du système', category: 'Paramètres' },
   { id: 'settings:update', name: 'Modifier les paramètres', description: 'Peut modifier les paramètres du système', category: 'Paramètres' },
 ];
+
+export const DEFAULT_PERMISSIONS = AVAILABLE_PERMISSIONS;

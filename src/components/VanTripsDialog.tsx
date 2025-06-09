@@ -51,9 +51,12 @@ const VanTripsDialog: React.FC<VanTripsDialogProps> = ({ van, isOpen, onClose })
   const fetchVanTrips = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.rpc('get_trips_by_van', {
-        van_license_plate: van.license_plate
-      });
+      // Query trips directly from the trips table
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .eq('van', van.license_plate)
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('Error fetching van trips:', error);
@@ -82,7 +85,7 @@ const VanTripsDialog: React.FC<VanTripsDialogProps> = ({ van, isOpen, onClose })
     try {
       const { error } = await supabase
         .from('trips')
-        .update({ deleted_at: new Date().toISOString() })
+        .delete()
         .eq('id', trip.id);
 
       if (error) {

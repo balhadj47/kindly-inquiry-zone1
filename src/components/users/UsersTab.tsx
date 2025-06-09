@@ -20,6 +20,7 @@ interface UsersTabProps {
   hasActiveFilters: boolean;
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
+  onChangePassword: (user: User) => void;
 }
 
 const UsersTab: React.FC<UsersTabProps> = ({
@@ -37,6 +38,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
   hasActiveFilters,
   onEditUser,
   onDeleteUser,
+  onChangePassword,
 }) => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = 
@@ -80,6 +82,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
         clearFilters={clearFilters}
         onEditUser={onEditUser}
         onDeleteUser={onDeleteUser}
+        onChangePassword={onChangePassword}
       />
     </TabsContent>
   );

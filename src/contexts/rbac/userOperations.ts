@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserRole, UserStatus } from '@/types/rbac';
 
@@ -97,7 +98,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     setUsers(prev => prev.filter(user => user.id !== id));
   };
 
-  const changeUserPassword = async (email: string, newPassword: string) => {
+  const changeUserPassword = async (userEmail: string, newPassword: string) => {
     // This function is for admin use to change a user's password
     // Note: In production, this would typically be handled by a server-side function
     // For now, we'll use the admin API functions available in Supabase
@@ -111,7 +112,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw fetchError;
       }
 
-      const authUser = authUsers.users.find(user => user.email === email);
+      const authUser = authUsers.users.find(user => user.email === userEmail);
       
       if (!authUser) {
         throw new Error('User not found');
@@ -128,7 +129,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw updateError;
       }
 
-      console.log('Password updated successfully for user:', email);
+      console.log('Password updated successfully for user:', userEmail);
     } catch (error) {
       console.error('Error changing user password:', error);
       throw error;

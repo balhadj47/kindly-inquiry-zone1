@@ -38,4 +38,11 @@ export interface RBACContextType {
     tripLogger: boolean;
     tripHistory: boolean;
   };
+  addUser: (userData: any) => Promise<void>;
+  updateUser: (userId: string, userData: any) => Promise<void>;
+  deleteUser: (userId: string) => Promise<void>;
+  addGroup: (groupData: any) => Promise<void>;
+  updateGroup: (groupId: string, groupData: any) => Promise<void>;
+  deleteGroup: (groupId: string) => Promise<void>;
+  changeUserPassword: (email: string, newPassword: string) => Promise<void>;
 }

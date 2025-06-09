@@ -36,7 +36,7 @@ export const useSidebarMenuItems = () => {
       href: '/vans',
       icon: Car,
       permission: 'vans.view',
-      badge: 'New',
+      badge: null,
     },
     {
       title: 'Users',

@@ -35,7 +35,7 @@ export const useUserActionHandlers = () => {
     }
 
     // Remove the duplicate confirmation - UserCard already has AlertDialog confirmation
-    await deleteUser(user.id);
+    await deleteUser(user.id); // Now using string ID
   };
 
   const handleAddGroup = () => {

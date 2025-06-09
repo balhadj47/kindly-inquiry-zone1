@@ -1,4 +1,3 @@
-
 export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
 
 export type UserStatus = 'Active' | 'Récupération' | 'Congé' | 'Congé maladie';
@@ -19,7 +18,7 @@ export interface UserGroup {
 }
 
 export interface User {
-  id: number;
+  id: string; // Changed from number to string for consistency
   name: string;
   email: string;
   phone: string;
@@ -34,6 +33,7 @@ export interface User {
   lastTrip?: string;
 }
 
+// Only admin and employee as default groups
 export const DEFAULT_PERMISSIONS: Permission[] = [
   // Dashboard permissions
   { id: 'dashboard.view', name: 'View Dashboard', description: 'Access to main dashboard', category: 'dashboard' },

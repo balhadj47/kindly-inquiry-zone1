@@ -20,20 +20,52 @@ export const loadUserData = async (): Promise<RBACUser | null> => {
 
     console.log('Authenticated user:', user);
 
-    // For now, create a mock user based on the authenticated user
-    // In a real app, you'd fetch from a users table
-    const rbacUser: RBACUser = {
-      id: parseInt(user.id.slice(-8), 16), // Convert part of UUID to number
-      name: user.email?.split('@')[0] || 'User',
-      email: user.email || '',
-      role: 'Admin' as any, // Type assertion for now
-      status: 'Active' as any, // Type assertion for now
-      groupId: 1,
-      createdAt: user.created_at || new Date().toISOString(),
-    };
+    // Try to get user from database first
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_user_id', user.id)
+      .single();
 
-    console.log('Created RBAC user:', rbacUser);
-    return rbacUser;
+    if (dbError && dbError.code !== 'PGRST116') {
+      console.error('Database error:', dbError);
+      throw dbError;
+    }
+
+    if (dbUser) {
+      console.log('Found user in database:', dbUser);
+      const rbacUser: RBACUser = {
+        id: dbUser.id.toString(), // Convert to string
+        name: dbUser.name,
+        email: dbUser.email,
+        phone: dbUser.phone,
+        role: dbUser.role as any,
+        status: dbUser.status as any,
+        groupId: dbUser.group_id,
+        createdAt: dbUser.created_at,
+        licenseNumber: dbUser.license_number,
+        totalTrips: dbUser.total_trips,
+        lastTrip: dbUser.last_trip,
+      };
+      console.log('Created RBAC user from database:', rbacUser);
+      return rbacUser;
+    } else {
+      console.log('User not found in database, creating mock user');
+      // Create mock user for testing
+      const rbacUser: RBACUser = {
+        id: user.id.slice(-8), // Use last 8 chars of UUID as string ID
+        name: user.email?.split('@')[0] || 'User',
+        email: user.email || '',
+        phone: '',
+        role: 'Administrator' as any,
+        status: 'Active' as any,
+        groupId: 'admin', // Use string ID instead of number
+        createdAt: user.created_at || new Date().toISOString(),
+      };
+
+      console.log('Created mock RBAC user:', rbacUser);
+      return rbacUser;
+    }
   } catch (error) {
     console.error('Error loading user data:', error);
     throw error;
@@ -42,12 +74,39 @@ export const loadUserData = async (): Promise<RBACUser | null> => {
 
 export const loadUsersData = async (): Promise<RBACUser[]> => {
   try {
-    // For now, return mock data
-    // In a real app, you'd fetch from a users table
-    return [];
+    console.log('Loading users data...');
+    
+    const { data: users, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error loading users:', error);
+      return [];
+    }
+
+    console.log('Loaded users from database:', users);
+    
+    const rbacUsers: RBACUser[] = users.map(user => ({
+      id: user.id.toString(), // Convert to string
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role as any,
+      status: user.status as any,
+      groupId: user.group_id,
+      createdAt: user.created_at,
+      licenseNumber: user.license_number,
+      totalTrips: user.total_trips,
+      lastTrip: user.last_trip,
+    }));
+
+    console.log('Converted to RBAC users:', rbacUsers);
+    return rbacUsers;
   } catch (error) {
     console.error('Error loading users data:', error);
-    throw error;
+    return [];
   }
 };
 
@@ -55,12 +114,23 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
   try {
     console.log('Loading groups data...');
     
-    // Mock groups data with proper permissions
-    const groups: RBACGroup[] = [
+    // Try to load from database first
+    const { data: dbGroups, error } = await supabase
+      .from('user_groups')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('Error loading groups from database:', error);
+    }
+
+    // Combine database groups with default groups
+    const defaultGroups: RBACGroup[] = [
       {
-        id: 1,
+        id: 'admin',
         name: 'Administrators',
         description: 'Full system access',
+        color: 'bg-red-100 text-red-800',
         permissions: [
           'dashboard.view',
           'companies.view',
@@ -75,49 +145,71 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
           'users.create',
           'users.edit',
           'users.delete',
+          'users.manage_groups',
           'trips.log',
           'trips.view',
           'trips.edit',
           'trips.delete'
         ],
-        createdAt: new Date().toISOString(),
       },
       {
-        id: 2,
-        name: 'Managers',
-        description: 'Management access',
+        id: 'employee',
+        name: 'Employees',
+        description: 'Basic operational access',
+        color: 'bg-blue-100 text-blue-800',
+        permissions: [
+          'dashboard.view',
+          'companies.view',
+          'vans.view',
+          'users.view',
+          'trips.log',
+          'trips.view'
+        ],
+      }
+    ];
+
+    const dbGroupsConverted: RBACGroup[] = dbGroups ? dbGroups.map(group => ({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      color: group.color,
+      permissions: group.permissions || [],
+    })) : [];
+
+    const allGroups = [...defaultGroups, ...dbGroupsConverted];
+    
+    console.log('Loaded groups:', allGroups);
+    return allGroups;
+  } catch (error) {
+    console.error('Error loading groups data:', error);
+    // Return default groups as fallback
+    return [
+      {
+        id: 'admin',
+        name: 'Administrators',
+        description: 'Full system access',
+        color: 'bg-red-100 text-red-800',
         permissions: [
           'dashboard.view',
           'companies.view',
           'companies.create',
           'companies.edit',
+          'companies.delete',
           'vans.view',
+          'vans.create',
           'vans.edit',
+          'vans.delete',
           'users.view',
+          'users.create',
+          'users.edit',
+          'users.delete',
+          'users.manage_groups',
           'trips.log',
-          'trips.view'
+          'trips.view',
+          'trips.edit',
+          'trips.delete'
         ],
-        createdAt: new Date().toISOString(),
-      },
-      {
-        id: 3,
-        name: 'Operators',
-        description: 'Basic operational access',
-        permissions: [
-          'dashboard.view',
-          'companies.view',
-          'vans.view',
-          'trips.log',
-          'trips.view'
-        ],
-        createdAt: new Date().toISOString(),
       }
     ];
-
-    console.log('Loaded groups:', groups);
-    return groups;
-  } catch (error) {
-    console.error('Error loading groups data:', error);
-    throw error;
   }
 };

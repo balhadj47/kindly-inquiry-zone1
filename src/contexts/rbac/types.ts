@@ -39,8 +39,8 @@ export interface RBACContextType {
     tripHistory: boolean;
   };
   addUser: (userData: any) => Promise<void>;
-  updateUser: (userId: string, userData: any) => Promise<void>;
-  deleteUser: (userId: string) => Promise<void>;
+  updateUser: (userId: string, userData: any) => Promise<void>; // Fixed type
+  deleteUser: (userId: string) => Promise<void>; // Fixed type
   addGroup: (groupData: any) => Promise<void>;
   updateGroup: (groupId: string, groupData: any) => Promise<void>;
   deleteGroup: (groupId: string) => Promise<void>;

@@ -115,8 +115,8 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
         ) : (
           <div className="space-y-0">
             {activeUsers.map((user) => {
-              const userRoles = getUserRoles(user.id.toString());
-              const isSelected = isUserSelected(user.id.toString());
+              const userRoles = getUserRoles(user.id); // Now using string ID
+              const isSelected = isUserSelected(user.id); // Now using string ID
               
               return (
                 <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
@@ -147,7 +147,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
                                 id={`${user.id}-${role.value}`}
                                 checked={isRoleSelected}
                                 onCheckedChange={(checked) => 
-                                  handleRoleToggle(user.id.toString(), role.value, checked as boolean)
+                                  handleRoleToggle(user.id, role.value, checked as boolean) // Now using string ID
                                 }
                               />
                               <label 

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
@@ -7,6 +6,7 @@ import VanModal from './VanModal';
 import VanStats from './VanStats';
 import VanFilters from './VanFilters';
 import VanList from './VanList';
+import VansLoadingSkeleton from './VansLoadingSkeleton';
 
 const Vans = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -81,11 +81,7 @@ const Vans = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des camionnettes...</div>
-      </div>
-    );
+    return <VansLoadingSkeleton />;
   }
 
   if (error) {

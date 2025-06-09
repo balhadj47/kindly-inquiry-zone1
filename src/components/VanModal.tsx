@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-const VanModal = ({ isOpen, onClose, van }) => {
+interface VanModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  van: any;
+  onSaveSuccess?: () => void;
+}
+
+const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
   const { t } = useLanguage();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -111,8 +118,9 @@ const VanModal = ({ isOpen, onClose, van }) => {
         });
       }
 
-      // Close modal and let parent component handle refresh
+      // Close modal and trigger refresh only on successful save
       onClose();
+      onSaveSuccess?.();
     } catch (error) {
       console.error('Error saving van:', error);
       toast({
@@ -140,6 +148,9 @@ const VanModal = ({ isOpen, onClose, van }) => {
           <DialogTitle className="text-lg sm:text-xl">
             {van ? t.editVan : t.addNewVan}
           </DialogTitle>
+          <DialogDescription>
+            {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
+          </DialogDescription>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">

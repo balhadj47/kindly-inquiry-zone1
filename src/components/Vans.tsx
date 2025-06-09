@@ -127,7 +127,11 @@ const Vans = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedVan(null);
-    // Refresh the vans list when modal closes
+    // Don't automatically refresh here - only refresh on successful save
+  };
+
+  const handleSaveSuccess = () => {
+    // Only refresh when a save operation is successful
     refetch();
   };
 
@@ -173,6 +177,7 @@ const Vans = () => {
         isOpen={isModalOpen}
         onClose={handleModalClose}
         van={selectedVan}
+        onSaveSuccess={handleSaveSuccess}
       />
 
       <VanTripsDialog

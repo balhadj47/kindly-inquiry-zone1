@@ -3,28 +3,46 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, Trash2 } from 'lucide-react';
+import { Phone, Mail, Trash2, Key } from 'lucide-react';
 import { User } from '@/types/rbac';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 interface UserCardProps {
   user: User;
-  userGroup?: any;
-  canEdit: boolean;
-  canDelete: boolean;
   onEdit: (user: User) => void;
   onDelete: (user: User) => void;
-  getStatusColor: (status: string) => string;
+  onChangePassword: (user: User) => void;
 }
 
 const UserCard: React.FC<UserCardProps> = ({
   user,
-  userGroup,
-  canEdit,
-  canDelete,
   onEdit,
   onDelete,
-  getStatusColor,
+  onChangePassword,
 }) => {
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+        return 'bg-red-100 text-red-800';
+      case 'suspended':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
@@ -36,16 +54,9 @@ const UserCard: React.FC<UserCardProps> = ({
               <p className="text-xs text-gray-500">{user.licenseNumber}</p>
             )}
           </div>
-          <div className="flex flex-col space-y-1">
-            <Badge className={getStatusColor(user.status)}>
-              {user.status}
-            </Badge>
-            {userGroup && (
-              <Badge className={userGroup.color}>
-                {userGroup.name}
-              </Badge>
-            )}
-          </div>
+          <Badge className={getStatusColor(user.status)}>
+            {user.status}
+          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -68,33 +79,52 @@ const UserCard: React.FC<UserCardProps> = ({
         )}
         
         <div className="flex space-x-2 pt-2">
-          {canEdit && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onEdit(user)}
-              className="flex-1"
-            >
-              Modifier
-            </Button>
-          )}
           <Button
             variant="outline"
             size="sm"
+            onClick={() => onEdit(user)}
             className="flex-1"
           >
-            Voir l'Historique
+            Modifier
           </Button>
-          {canDelete && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onDelete(user)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onChangePassword(user)}
+            className="flex-1"
+          >
+            <Key className="h-4 w-4 mr-1" />
+            Mot de passe
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
+                  Cette action ne peut pas être annulée.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => onDelete(user)}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  Supprimer
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </div>
       </CardContent>
     </Card>

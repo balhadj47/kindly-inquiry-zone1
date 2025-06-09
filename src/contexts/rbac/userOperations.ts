@@ -99,10 +99,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
   };
 
   const changeUserPassword = async (userEmail: string, newPassword: string) => {
-    // This function is for admin use to change a user's password
-    // Note: In production, this would typically be handled by a server-side function
-    // For now, we'll use the admin API functions available in Supabase
-    
     try {
       // First, we need to find the auth user by email
       const { data: authUsers, error: fetchError } = await supabase.auth.admin.listUsers();

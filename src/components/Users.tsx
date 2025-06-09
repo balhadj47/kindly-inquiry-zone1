@@ -2,12 +2,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Users as UsersIcon, Loader2, AlertTriangle } from 'lucide-react';
+import { User, Users as UsersIcon, Loader2, AlertTriangle, Key } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import UserModal from './UserModal';
 import GroupModal from './GroupModal';
 import GroupPermissionsModal from './GroupPermissionsModal';
+import PasswordChangeModal from './PasswordChangeModal';
 import UsersTab from './users/UsersTab';
 import GroupsTab from './users/GroupsTab';
 import { Card, CardContent } from '@/components/ui/card';
@@ -20,6 +21,7 @@ const Users = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState(null);
   
@@ -53,6 +55,11 @@ const Users = () => {
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setIsUserModalOpen(true);
+  };
+
+  const handleChangePassword = (user) => {
+    setSelectedUser(user);
+    setIsPasswordModalOpen(true);
   };
 
   const handleDeleteUser = async (user) => {
@@ -195,6 +202,7 @@ const Users = () => {
           hasActiveFilters={hasActiveFilters}
           onEditUser={handleEditUser}
           onDeleteUser={handleDeleteUser}
+          onChangePassword={handleChangePassword}
         />
 
         {canManageGroups && (
@@ -224,6 +232,12 @@ const Users = () => {
         isOpen={isPermissionsModalOpen}
         onClose={() => setIsPermissionsModalOpen(false)}
         group={selectedGroup}
+      />
+
+      <PasswordChangeModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        user={selectedUser}
       />
     </div>
   );

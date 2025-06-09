@@ -59,8 +59,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
       name: '',
       email: '',
       phone: '',
-      role: 'Employee',
-      status: 'Active',
+      role: 'Employee', // Default to Employee
+      status: 'Active', // Default to Active
       licenseNumber: '',
       totalTrips: 0,
       lastTrip: '',
@@ -82,12 +82,13 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         lastTrip: user.lastTrip || '',
       });
     } else {
+      // Set defaults for new users - employee group and Employee role
       form.reset({
         name: '',
         email: '',
         phone: '',
-        role: 'Employee',
-        status: 'Active',
+        role: 'Employee', // Default to Employee
+        status: 'Active', // Default to Active
         licenseNumber: '',
         totalTrips: 0,
         lastTrip: '',

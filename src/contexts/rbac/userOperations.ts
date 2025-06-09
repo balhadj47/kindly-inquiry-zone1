@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserRole, UserStatus } from '@/types/rbac';
 
@@ -10,9 +9,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        group_id: userData.groupId,
-        role: userData.role,
-        status: userData.status,
+        group_id: userData.groupId || 'employee', // Default to employee group
+        role: userData.role || 'Employee', // Default to Employee role
+        status: userData.status || 'Active', // Default to Active status
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip,
@@ -98,5 +97,43 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     setUsers(prev => prev.filter(user => user.id !== id));
   };
 
-  return { addUser, updateUser, deleteUser };
+  const changeUserPassword = async (email: string, newPassword: string) => {
+    // This function is for admin use to change a user's password
+    // Note: In production, this would typically be handled by a server-side function
+    // For now, we'll use the admin API functions available in Supabase
+    
+    try {
+      // First, we need to find the auth user by email
+      const { data: authUsers, error: fetchError } = await supabase.auth.admin.listUsers();
+      
+      if (fetchError) {
+        console.error('Error fetching users:', fetchError);
+        throw fetchError;
+      }
+
+      const authUser = authUsers.users.find(user => user.email === email);
+      
+      if (!authUser) {
+        throw new Error('User not found');
+      }
+
+      // Update the user's password
+      const { error: updateError } = await supabase.auth.admin.updateUserById(
+        authUser.id,
+        { password: newPassword }
+      );
+
+      if (updateError) {
+        console.error('Error updating password:', updateError);
+        throw updateError;
+      }
+
+      console.log('Password updated successfully for user:', email);
+    } catch (error) {
+      console.error('Error changing user password:', error);
+      throw error;
+    }
+  };
+
+  return { addUser, updateUser, deleteUser, changeUserPassword };
 };

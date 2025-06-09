@@ -61,12 +61,11 @@ const VanModal = ({ isOpen, onClose, van }) => {
     setIsSubmitting(true);
 
     try {
+      // Only save fields that exist in the database schema
       const vanData = {
         license_plate: formData.plateNumber,
         model: formData.model,
-        driver_id: null, // Set to null for now, can be assigned later
-        // Note: Additional fields like carNumberPlate, insuranceDate, etc. would need
-        // corresponding columns in the database table to be stored
+        driver_id: van?.driver_id || null,
       };
 
       if (van) {
@@ -112,9 +111,8 @@ const VanModal = ({ isOpen, onClose, van }) => {
         });
       }
 
+      // Close modal and let parent component handle refresh
       onClose();
-      // The parent component should refresh the vans list
-      window.location.reload(); // Simple refresh for now
     } catch (error) {
       console.error('Error saving van:', error);
       toast({
@@ -167,6 +165,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                 placeholder="e.g., ABC-123"
                 className="text-base touch-manipulation"
               />
+              <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
             </div>
           </div>
 
@@ -196,6 +195,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                   <SelectItem value="Inactive">{t.vanStatuses?.inactive || 'Inactive'}</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
             </div>
           </div>
 
@@ -208,6 +208,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
               placeholder="e.g., AXA Insurance"
               className="text-base touch-manipulation"
             />
+            <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -236,6 +237,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                   />
                 </PopoverContent>
               </Popover>
+              <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
             </div>
 
             <div className="space-y-2">
@@ -263,6 +265,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
                   />
                 </PopoverContent>
               </Popover>
+              <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
             </div>
           </div>
 
@@ -276,6 +279,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
               className="text-base touch-manipulation min-h-[100px]"
               rows={4}
             />
+            <p className="text-xs text-gray-500">Note: Ce champ n'est pas sauvegardé dans la base de données</p>
           </div>
 
           <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-2 pt-4">

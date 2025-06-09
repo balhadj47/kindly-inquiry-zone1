@@ -4,6 +4,7 @@ import CompaniesHeader from './companies/CompaniesHeader';
 import CompaniesSearch from './companies/CompaniesSearch';
 import CompaniesEmptyState from './companies/CompaniesEmptyState';
 import CompaniesGrid from './companies/CompaniesGrid';
+import CompaniesLoadingSkeleton from './companies/CompaniesLoadingSkeleton';
 import CompanyModal from './CompanyModal';
 import CompanyDeleteDialog from './CompanyDeleteDialog';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -34,11 +35,7 @@ const Companies = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des entreprises...</div>
-      </div>
-    );
+    return <CompaniesLoadingSkeleton />;
   }
 
   if (error) {

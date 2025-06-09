@@ -14,6 +14,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         role: userData.role,
         status: userData.status,
         license_number: userData.licenseNumber,
+        total_trips: userData.totalTrips || 0,
+        last_trip: userData.lastTrip,
         // Note: auth_user_id will be null for manually created users
         // This allows admins to create user profiles that aren't linked to auth accounts
       }])
@@ -53,6 +55,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         role: userData.role,
         status: userData.status,
         license_number: userData.licenseNumber,
+        total_trips: userData.totalTrips,
+        last_trip: userData.lastTrip,
       })
       .eq('id', id)
       .select();

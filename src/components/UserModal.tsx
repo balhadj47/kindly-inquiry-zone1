@@ -23,6 +23,8 @@ interface UserFormData {
   role: UserRole;
   status: UserStatus;
   licenseNumber: string;
+  totalTrips: number;
+  lastTrip: string;
 }
 
 // Helper function to map roles to group IDs
@@ -60,6 +62,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
       role: 'Employee',
       status: 'Active',
       licenseNumber: '',
+      totalTrips: 0,
+      lastTrip: '',
     }
   });
 
@@ -74,6 +78,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         role: user.role,
         status: user.status,
         licenseNumber: user.licenseNumber || '',
+        totalTrips: user.totalTrips || 0,
+        lastTrip: user.lastTrip || '',
       });
     } else {
       form.reset({
@@ -83,6 +89,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         role: 'Employee',
         status: 'Active',
         licenseNumber: '',
+        totalTrips: 0,
+        lastTrip: '',
       });
     }
   }, [user, form]);
@@ -95,7 +103,9 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         ...data,
         groupId: getGroupIdForRole(data.role),
         createdAt: user?.createdAt || new Date().toISOString(),
-        licenseNumber: (data.role === 'Chauffeur Armé' || data.role === 'Chauffeur Sans Armé') ? data.licenseNumber : undefined,
+        licenseNumber: data.licenseNumber || undefined,
+        totalTrips: data.totalTrips,
+        lastTrip: data.lastTrip || undefined,
       };
 
       if (user) {
@@ -116,7 +126,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
@@ -125,110 +135,18 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="name"
-              rules={{ required: 'Le nom est requis' }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nom Complet</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="ex: Jean Dupont"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="email"
-              rules={{ 
-                required: 'L\'email est requis',
-                pattern: {
-                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Adresse email invalide'
-                }
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Adresse Email</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      type="email"
-                      placeholder="ex: jean.dupont@entreprise.com"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="phone"
-              rules={{ required: 'Le téléphone est requis' }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Numéro de Téléphone</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder="ex: +33 1 23 45 67 89"
-                      disabled={isSubmitting}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="role"
-              rules={{ required: 'Le rôle est requis' }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Rôle</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un rôle" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Administrator">Administrateur</SelectItem>
-                      <SelectItem value="Employee">Employé</SelectItem>
-                      <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
-                      <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
-                      <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
-                      <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
-                      <SelectItem value="APS Armé">APS Armé</SelectItem>
-                      <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {(watchedRole === 'Chauffeur Armé' || watchedRole === 'Chauffeur Sans Armé') && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="licenseNumber"
+                name="name"
+                rules={{ required: 'Le nom est requis' }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Numéro de Permis</FormLabel>
+                    <FormLabel>Nom Complet</FormLabel>
                     <FormControl>
                       <Input
                         {...field}
-                        placeholder="ex: DL123456789"
+                        placeholder="ex: Jean Dupont"
                         disabled={isSubmitting}
                       />
                     </FormControl>
@@ -236,7 +154,83 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
                   </FormItem>
                 )}
               />
-            )}
+
+              <FormField
+                control={form.control}
+                name="email"
+                rules={{ 
+                  required: 'L\'email est requis',
+                  pattern: {
+                    value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                    message: 'Adresse email invalide'
+                  }
+                }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Adresse Email</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="email"
+                        placeholder="ex: jean.dupont@entreprise.com"
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="phone"
+                rules={{ required: 'Le téléphone est requis' }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Numéro de Téléphone</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="ex: +33 1 23 45 67 89"
+                        disabled={isSubmitting}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="role"
+                rules={{ required: 'Le rôle est requis' }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Rôle</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Sélectionner un rôle" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Administrator">Administrateur</SelectItem>
+                        <SelectItem value="Employee">Employé</SelectItem>
+                        <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
+                        <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
+                        <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
+                        <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
+                        <SelectItem value="APS Armé">APS Armé</SelectItem>
+                        <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -262,6 +256,67 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
                 </FormItem>
               )}
             />
+
+            {(watchedRole === 'Chauffeur Armé' || watchedRole === 'Chauffeur Sans Armé') && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="licenseNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Numéro de Permis</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="ex: DL123456789"
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="totalTrips"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total des Voyages</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="0"
+                          placeholder="0"
+                          disabled={isSubmitting}
+                          onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="lastTrip"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Dernier Voyage</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          placeholder="ex: 2024-01-15"
+                          disabled={isSubmitting}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { RBACUser, RBACGroup } from './types';
 
@@ -113,17 +114,7 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
   try {
     console.log('Loading groups data...');
     
-    // Try to load from database first
-    const { data: dbGroups, error } = await supabase
-      .from('user_groups')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('Error loading groups from database:', error);
-    }
-
-    // Combine database groups with default groups
+    // Define default groups
     const defaultGroups: RBACGroup[] = [
       {
         id: 'admin',
@@ -167,17 +158,33 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
       }
     ];
 
-    const dbGroupsConverted: RBACGroup[] = dbGroups ? dbGroups.map(group => ({
-      id: group.id,
-      name: group.name,
-      description: group.description,
-      color: group.color,
-      permissions: group.permissions || [],
-    })) : [];
+    // Try to load from database
+    const { data: dbGroups, error } = await supabase
+      .from('user_groups')
+      .select('*')
+      .order('name');
 
+    if (error) {
+      console.error('Error loading groups from database:', error);
+      console.log('Returning default groups only');
+      return defaultGroups;
+    }
+
+    // Convert database groups and filter out any that have the same ID as default groups
+    const dbGroupsConverted: RBACGroup[] = dbGroups ? dbGroups
+      .filter(group => !defaultGroups.some(defaultGroup => defaultGroup.id === group.id))
+      .map(group => ({
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        color: group.color,
+        permissions: Array.isArray(group.permissions) ? group.permissions : [],
+      })) : [];
+
+    // Combine default groups with database groups (no duplicates)
     const allGroups = [...defaultGroups, ...dbGroupsConverted];
     
-    console.log('Loaded groups:', allGroups);
+    console.log('Final groups loaded:', allGroups);
     return allGroups;
   } catch (error) {
     console.error('Error loading groups data:', error);

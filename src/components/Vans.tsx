@@ -31,23 +31,15 @@ const Vans = () => {
       const matchesSearch = 
         van.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
         van.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (van.carNumberPlate && van.carNumberPlate.toLowerCase().includes(searchTerm.toLowerCase())) ||
         (van.driver && van.driver.toLowerCase().includes(searchTerm.toLowerCase()));
       
-      const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
 
     // Sort vans
     filtered.sort((a, b) => {
       let aValue = a[sortField] || '';
       let bValue = b[sortField] || '';
-      
-      if (sortField === 'totalTrips' || sortField === 'fuelLevel' || sortField === 'efficiency') {
-        aValue = Number(aValue) || 0;
-        bValue = Number(bValue) || 0;
-      }
       
       if (sortDirection === 'asc') {
         return aValue > bValue ? 1 : -1;
@@ -57,7 +49,7 @@ const Vans = () => {
     });
 
     return filtered;
-  }, [displayVans, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [displayVans, searchTerm, sortField, sortDirection]);
 
   const handleAddVan = () => {
     setSelectedVan(null);
@@ -127,11 +119,9 @@ const Vans = () => {
   const handleModalClose = () => {
     setIsModalOpen(false);
     setSelectedVan(null);
-    // Don't automatically refresh here - only refresh on successful save
   };
 
   const handleSaveSuccess = () => {
-    // Only refresh when a save operation is successful
     refetch();
   };
 

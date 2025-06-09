@@ -15,21 +15,9 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
         <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
         <div className="flex items-center space-x-6 mt-2">
           <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {vans.filter(v => v.status === 'Actif').length} Actives
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             <span className="text-sm text-gray-600">
-              {vans.filter(v => v.status === 'En Transit').length} En Transit
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {vans.filter(v => v.status === 'Maintenance').length} Maintenance
+              {vans.length} Camionnettes
             </span>
           </div>
         </div>

@@ -2,17 +2,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Car, 
-  MapPin, 
-  Route, 
-  Fuel, 
   Edit, 
   Eye, 
-  TrendingUp, 
-  Clock, 
-  AlertTriangle,
   Trash2
 } from 'lucide-react';
 import {
@@ -26,7 +19,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { getStatusColor, getFuelLevelColor, getEfficiencyColor } from '@/utils/vanUtils';
 
 interface VanCardProps {
   van: any;
@@ -44,86 +36,13 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
             <CardTitle className="text-lg">{van.license_plate}</CardTitle>
             <p className="text-sm text-gray-600">{van.model}</p>
           </div>
-          <div className="flex items-center space-x-2">
-            <Badge className={getStatusColor(van.status)}>
-              {van.status}
-            </Badge>
-            <div className="flex items-center space-x-1">
-              <TrendingUp className={`h-4 w-4 ${getEfficiencyColor(van.efficiency)}`} />
-              <span className={`text-sm font-medium ${getEfficiencyColor(van.efficiency)}`}>
-                {van.efficiency}%
-              </span>
-            </div>
-          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         <div className="flex items-center space-x-2">
           <Car className="h-4 w-4 text-gray-500" />
-          <span className="text-sm font-medium">{van.carNumberPlate}</span>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          <MapPin className="h-4 w-4 text-gray-500" />
-          <span className="text-sm truncate">{van.currentLocation}</span>
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <Fuel className={`h-4 w-4 ${getFuelLevelColor(van.fuelLevel)}`} />
-            <span className={`text-sm ${getFuelLevelColor(van.fuelLevel)}`}>
-              {van.fuelLevel}%
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Route className="h-4 w-4 text-gray-500" />
-            <span className="text-sm">{van.totalTrips} voyages</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-          <div>
-            <span className="font-medium">Chauffeur:</span> {van.driver}
-          </div>
-          <div>
-            <span className="font-medium">Kilométrage:</span> {van.mileage}
-          </div>
-          <div>
-            <span className="font-medium">Dernier Voyage:</span> {van.lastTrip}
-          </div>
-          <div className="flex items-center">
-            <span className="font-medium">Maintenance:</span>
-            {van.nextMaintenance === 'En Cours' ? (
-              <AlertTriangle className="h-3 w-3 ml-1 text-orange-500" />
-            ) : (
-              <Clock className="h-3 w-3 ml-1 text-gray-400" />
-            )}
-          </div>
-        </div>
-
-        {van.fuelLevel <= 25 && (
-          <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg">
-            <Fuel className="h-4 w-4 text-red-600" />
-            <span className="text-sm text-red-600 font-medium">Carburant Bas</span>
-          </div>
-        )}
-
-        {/* Progress Bar for Fuel */}
-        <div className="space-y-1">
-          <div className="flex justify-between text-xs">
-            <span>Niveau de Carburant</span>
-            <span className={getFuelLevelColor(van.fuelLevel)}>{van.fuelLevel}%</span>
-          </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full transition-all ${
-                van.fuelLevel > 50 ? 'bg-green-500' : 
-                van.fuelLevel > 25 ? 'bg-yellow-500' : 'bg-red-500'
-              }`}
-              style={{ width: `${van.fuelLevel}%` }}
-            ></div>
-          </div>
+          <span className="text-sm font-medium">Chauffeur: {van.driver}</span>
         </div>
         
         {/* Quick Action Buttons */}
@@ -145,14 +64,6 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
           >
             <Eye className="h-3 w-3 mr-1" />
             Voyages
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onQuickAction('Suivre', van)}
-            className="px-2"
-          >
-            <MapPin className="h-3 w-3" />
           </Button>
           <AlertDialog>
             <AlertDialogTrigger asChild>

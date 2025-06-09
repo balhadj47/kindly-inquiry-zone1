@@ -8,31 +8,9 @@ export const getStatusColor = (status: string) => {
   }
 };
 
-export const getFuelLevelColor = (level: number) => {
-  if (level > 50) return 'text-green-600';
-  if (level > 25) return 'text-yellow-600';
-  return 'text-red-600';
-};
-
-export const getEfficiencyColor = (efficiency: number) => {
-  if (efficiency >= 90) return 'text-green-600';
-  if (efficiency >= 80) return 'text-yellow-600';
-  return 'text-red-600';
-};
-
 export const transformVanData = (vans: any[]) => {
   return vans.map(van => ({
     ...van,
-    carNumberPlate: van.license_plate,
-    totalTrips: 0,
-    lastTrip: 'Jamais',
-    currentLocation: 'Garage',
-    fuelLevel: 75,
-    nextMaintenance: 'À planifier',
-    driver: van.driver_id ? `Chauffeur ${van.driver_id}` : 'Non assigné',
-    efficiency: 85,
-    mileage: '0 km',
-    yearlyTrips: 0,
-    status: van.status || 'Actif'
+    driver: van.driver_id ? `Chauffeur ${van.driver_id}` : 'Non assigné'
   }));
 };

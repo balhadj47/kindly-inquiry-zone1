@@ -12,9 +12,13 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const VanModal = ({ isOpen, onClose, van }) => {
   const { t } = useLanguage();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     plateNumber: '',
     carNumberPlate: '',
@@ -29,7 +33,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
   useEffect(() => {
     if (van) {
       setFormData({
-        plateNumber: van.plateNumber || '',
+        plateNumber: van.license_plate || van.plateNumber || '',
         carNumberPlate: van.carNumberPlate || '',
         model: van.model || '',
         status: van.status || 'Active',
@@ -52,11 +56,75 @@ const VanModal = ({ isOpen, onClose, van }) => {
     }
   }, [van]);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // In a real app, you would submit this data to your backend
-    console.log('Submitting van data:', formData);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const vanData = {
+        license_plate: formData.plateNumber,
+        model: formData.model,
+        driver_id: null, // Set to null for now, can be assigned later
+        // Note: Additional fields like carNumberPlate, insuranceDate, etc. would need
+        // corresponding columns in the database table to be stored
+      };
+
+      if (van) {
+        // Update existing van
+        const { error } = await supabase
+          .from('vans')
+          .update(vanData)
+          .eq('id', van.id);
+
+        if (error) {
+          console.error('Error updating van:', error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de modifier la camionnette",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Succès",
+          description: `La camionnette ${formData.plateNumber} a été modifiée avec succès`,
+        });
+      } else {
+        // Create new van
+        const { error } = await supabase
+          .from('vans')
+          .insert([vanData]);
+
+        if (error) {
+          console.error('Error creating van:', error);
+          toast({
+            title: "Erreur",
+            description: "Impossible de créer la camionnette",
+            variant: "destructive",
+          });
+          return;
+        }
+
+        toast({
+          title: "Succès",
+          description: `La camionnette ${formData.plateNumber} a été créée avec succès`,
+        });
+      }
+
+      onClose();
+      // The parent component should refresh the vans list
+      window.location.reload(); // Simple refresh for now
+    } catch (error) {
+      console.error('Error saving van:', error);
+      toast({
+        title: "Erreur",
+        description: "Une erreur s'est produite lors de la sauvegarde",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -98,7 +166,6 @@ const VanModal = ({ isOpen, onClose, van }) => {
                 onChange={(e) => handleInputChange('carNumberPlate', e.target.value)}
                 placeholder="e.g., ABC-123"
                 className="text-base touch-manipulation"
-                required
               />
             </div>
           </div>
@@ -123,10 +190,10 @@ const VanModal = ({ isOpen, onClose, van }) => {
                   <SelectValue placeholder={t.selectStatus} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Active">{t.vanStatuses.active}</SelectItem>
-                  <SelectItem value="In Transit">{t.vanStatuses.inTransit}</SelectItem>
-                  <SelectItem value="Maintenance">{t.vanStatuses.maintenance}</SelectItem>
-                  <SelectItem value="Inactive">{t.vanStatuses.inactive}</SelectItem>
+                  <SelectItem value="Active">{t.vanStatuses?.active || 'Active'}</SelectItem>
+                  <SelectItem value="In Transit">{t.vanStatuses?.inTransit || 'In Transit'}</SelectItem>
+                  <SelectItem value="Maintenance">{t.vanStatuses?.maintenance || 'Maintenance'}</SelectItem>
+                  <SelectItem value="Inactive">{t.vanStatuses?.inactive || 'Inactive'}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -218,6 +285,7 @@ const VanModal = ({ isOpen, onClose, van }) => {
               onClick={onClose}
               className="order-2 sm:order-1 touch-manipulation"
               size="lg"
+              disabled={isSubmitting}
             >
               {t.cancel}
             </Button>
@@ -225,8 +293,9 @@ const VanModal = ({ isOpen, onClose, van }) => {
               type="submit"
               className="order-1 sm:order-2 touch-manipulation"
               size="lg"
+              disabled={isSubmitting}
             >
-              {van ? t.updateVan : t.createVan}
+              {isSubmitting ? 'Enregistrement...' : (van ? t.updateVan : t.createVan)}
             </Button>
           </div>
         </form>

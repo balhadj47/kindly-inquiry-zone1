@@ -124,6 +124,13 @@ const Vans = () => {
     }
   };
 
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setSelectedVan(null);
+    // Refresh the vans list when modal closes
+    refetch();
+  };
+
   if (loading) {
     return <VansLoadingSkeleton />;
   }
@@ -164,7 +171,7 @@ const Vans = () => {
 
       <VanModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={handleModalClose}
         van={selectedVan}
       />
 

@@ -1,5 +1,5 @@
 
-export type UserRole = 'Administrator' | 'Employee';
+export type UserRole = 'Administrator' | 'Employee' | 'Chef de Groupe Armé' | 'Chef de Groupe Sans Armé' | 'Chauffeur Armé' | 'Chauffeur Sans Armé' | 'APS Armé' | 'APS Sans Armé';
 
 export type UserStatus = 'Active' | 'Récupération' | 'Congé' | 'Congé maladie';
 

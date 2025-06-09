@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Van {
@@ -16,10 +16,27 @@ export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const cacheRef = useRef<{ data: Van[]; timestamp: number } | null>(null);
+  const CACHE_DURATION = 30000; // 30 seconds cache
 
-  const fetchVans = useCallback(async () => {
+  const fetchVans = useCallback(async (useCache = true) => {
     try {
       console.log('🚐 useVans: Starting to fetch vans data...');
+      const startTime = performance.now();
+      
+      // Check cache first
+      if (useCache && cacheRef.current) {
+        const { data, timestamp } = cacheRef.current;
+        const isValid = Date.now() - timestamp < CACHE_DURATION;
+        
+        if (isValid) {
+          console.log('🚐 useVans: Using cached data');
+          setVans(data);
+          setLoading(false);
+          return;
+        }
+      }
+      
       setLoading(true);
       
       const { data, error } = await (supabase as any)
@@ -31,8 +48,17 @@ export const useVans = () => {
         throw error;
       }
 
-      console.log('🚐 useVans: Successfully fetched vans data:', data);
+      const endTime = performance.now();
+      console.log('🚐 useVans: Successfully fetched vans data in:', endTime - startTime, 'ms');
+      
+      // Update cache
+      cacheRef.current = {
+        data: data || [],
+        timestamp: Date.now()
+      };
+      
       setVans(data || []);
+      setError(null);
     } catch (err) {
       console.error('🚐 useVans: Error fetching vans:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -41,6 +67,12 @@ export const useVans = () => {
       console.log('🚐 useVans: Finished fetching vans data');
     }
   }, []);
+
+  // Force refresh without cache
+  const refetch = useCallback(() => {
+    console.log('🚐 useVans: Force refreshing data...');
+    return fetchVans(false);
+  }, [fetchVans]);
 
   useEffect(() => {
     console.log('🚐 useVans: useEffect triggered - component mounted or fetchVans changed');
@@ -51,5 +83,5 @@ export const useVans = () => {
     };
   }, [fetchVans]);
 
-  return { vans, loading, error, refetch: fetchVans };
+  return { vans, loading, error, refetch };
 };

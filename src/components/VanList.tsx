@@ -16,7 +16,7 @@ interface VanListProps {
   onDeleteVan: (van: any) => void;
 }
 
-const VanList = ({ 
+const VanList = React.memo(({ 
   vans, 
   totalVans, 
   searchTerm, 
@@ -81,6 +81,8 @@ const VanList = ({
       </div>
     </>
   );
-};
+});
+
+VanList.displayName = 'VanList';
 
 export default VanList;

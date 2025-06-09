@@ -32,7 +32,11 @@ interface VanCardProps {
   onDelete: (van: any) => void;
 }
 
-const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
+const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
+  const handleEdit = React.useCallback(() => onEdit(van), [onEdit, van]);
+  const handleQuickAction = React.useCallback(() => onQuickAction('Voir Voyages', van), [onQuickAction, van]);
+  const handleDelete = React.useCallback(() => onDelete(van), [onDelete, van]);
+
   return (
     <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
       <CardHeader className="pb-3">
@@ -84,7 +88,7 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onEdit(van)}
+            onClick={handleEdit}
             className="flex-1"
           >
             <Edit className="h-3 w-3 mr-1" />
@@ -93,7 +97,7 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onQuickAction('Voir Voyages', van)}
+            onClick={handleQuickAction}
             className="flex-1"
           >
             <Eye className="h-3 w-3 mr-1" />
@@ -120,7 +124,7 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
               <AlertDialogFooter>
                 <AlertDialogCancel>Annuler</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => onDelete(van)}
+                  onClick={handleDelete}
                   className="bg-red-600 hover:bg-red-700"
                 >
                   Supprimer
@@ -132,6 +136,8 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
       </CardContent>
     </Card>
   );
-};
+});
+
+VanCard.displayName = 'VanCard';
 
 export default VanCard;

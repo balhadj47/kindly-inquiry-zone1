@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useEffect } from 'react';
+
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,7 +10,7 @@ import VanList from './VanList';
 import VansLoadingSkeleton from './VansLoadingSkeleton';
 import VanTripsDialog from './VanTripsDialog';
 
-const Vans = () => {
+const Vans = React.memo(() => {
   console.log('🚐 Vans component: Rendering...');
   
   const [searchTerm, setSearchTerm] = useState('');
@@ -25,9 +26,11 @@ const Vans = () => {
 
   useEffect(() => {
     console.log('🚐 Vans component: Mounted');
+    const startTime = performance.now();
     
     return () => {
-      console.log('🚐 Vans component: Unmounting');
+      const endTime = performance.now();
+      console.log('🚐 Vans component: Unmounting, was mounted for:', endTime - startTime, 'ms');
     };
   }, []);
 
@@ -35,7 +38,11 @@ const Vans = () => {
     console.log('🚐 Vans component: Vans data changed, count:', vans.length);
   }, [vans]);
 
+  // Memoize filtered and sorted vans with dependency array
   const filteredAndSortedVans = useMemo(() => {
+    console.log('🚐 Vans component: Recalculating filtered vans');
+    const startTime = performance.now();
+    
     let filtered = vans.filter(van => {
       const matchesSearch = 
         van.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,20 +63,23 @@ const Vans = () => {
       }
     });
 
+    const endTime = performance.now();
+    console.log('🚐 Vans component: Filtering completed in:', endTime - startTime, 'ms');
     return filtered;
   }, [vans, searchTerm, sortField, sortDirection]);
 
-  const handleAddVan = () => {
+  // Memoize event handlers to prevent unnecessary re-renders
+  const handleAddVan = useCallback(() => {
     setSelectedVan(null);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditVan = (van: any) => {
+  const handleEditVan = useCallback((van: any) => {
     setSelectedVan(van);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleDeleteVan = async (van: any) => {
+  const handleDeleteVan = useCallback(async (van: any) => {
     try {
       const { error } = await supabase
         .from('vans')
@@ -101,9 +111,9 @@ const Vans = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [toast, refetch]);
 
-  const handleQuickAction = (action: string, van: any) => {
+  const handleQuickAction = useCallback((action: string, van: any) => {
     if (action === 'Voir Voyages') {
       setSelectedVanForTrips(van);
       setVanTripsDialogOpen(true);
@@ -113,25 +123,25 @@ const Vans = () => {
         description: `Action ${action} effectuée sur ${van.license_plate}`,
       });
     }
-  };
+  }, [toast]);
 
-  const toggleSort = (field: string) => {
+  const toggleSort = useCallback((field: string) => {
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortField(field);
       setSortDirection('asc');
     }
-  };
+  }, [sortField, sortDirection]);
 
-  const handleModalClose = () => {
+  const handleModalClose = useCallback(() => {
     setIsModalOpen(false);
     setSelectedVan(null);
-  };
+  }, []);
 
-  const handleSaveSuccess = () => {
+  const handleSaveSuccess = useCallback(() => {
     refetch();
-  };
+  }, [refetch]);
 
   if (loading) {
     console.log('🚐 Vans component: Showing loading skeleton');
@@ -192,6 +202,8 @@ const Vans = () => {
       />
     </div>
   );
-};
+});
+
+Vans.displayName = 'Vans';
 
 export default Vans;

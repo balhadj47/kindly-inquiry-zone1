@@ -9,20 +9,29 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
 
+console.log('🔐 AuthPage: Component loading...');
+console.log('🔐 AuthPage: useAuth hook:', useAuth);
+
 const AuthPage = () => {
+  console.log('🔐 AuthPage: Component rendering...');
+  
   const { user, loading, signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  console.log('🔐 AuthPage: Auth state - user:', user, 'loading:', loading);
+
   // If user is already authenticated, redirect to main page
   if (!loading && user) {
+    console.log('🔐 AuthPage: User authenticated, redirecting...');
     return <Navigate to="/" replace />;
   }
 
   // Show loading spinner while checking auth state
   if (loading) {
+    console.log('🔐 AuthPage: Showing loading state...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -35,10 +44,11 @@ const AuthPage = () => {
     setError('');
     setIsSubmitting(true);
 
+    console.log('🔐 AuthPage: Attempting sign in...');
     const { error } = await signIn(email, password);
     
     if (error) {
-      console.error('Sign in error:', error);
+      console.error('🔐 AuthPage: Sign in error:', error);
       if (error.message.includes('Invalid login credentials')) {
         setError('Email ou mot de passe incorrect');
       } else {
@@ -48,6 +58,8 @@ const AuthPage = () => {
     
     setIsSubmitting(false);
   };
+
+  console.log('🔐 AuthPage: Rendering sign in form...');
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -110,5 +122,7 @@ const AuthPage = () => {
     </div>
   );
 };
+
+console.log('🔐 AuthPage: Component defined, exporting...');
 
 export default AuthPage;

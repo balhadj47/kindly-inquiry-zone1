@@ -2,11 +2,15 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
   Car, 
   Edit, 
   Eye, 
-  Trash2
+  Trash2,
+  Shield,
+  Calendar,
+  FileText
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -19,6 +23,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { getStatusColor } from '@/utils/vanUtils';
+import { format } from 'date-fns';
 
 interface VanCardProps {
   van: any;
@@ -36,6 +42,11 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
             <CardTitle className="text-lg">{van.license_plate}</CardTitle>
             <p className="text-sm text-gray-600">{van.model}</p>
           </div>
+          {van.status && (
+            <Badge className={getStatusColor(van.status)}>
+              {van.status}
+            </Badge>
+          )}
         </div>
       </CardHeader>
 
@@ -44,6 +55,35 @@ const VanCard = ({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
           <Car className="h-4 w-4 text-gray-500" />
           <span className="text-sm font-medium">Chauffeur: {van.driver}</span>
         </div>
+
+        {van.insurer && (
+          <div className="flex items-center space-x-2">
+            <Shield className="h-4 w-4 text-gray-500" />
+            <span className="text-sm">Assureur: {van.insurer}</span>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          {van.insurance_date && (
+            <div className="flex items-center space-x-1">
+              <Calendar className="h-3 w-3 text-gray-400" />
+              <span>Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}</span>
+            </div>
+          )}
+          {van.control_date && (
+            <div className="flex items-center space-x-1">
+              <Calendar className="h-3 w-3 text-gray-400" />
+              <span>Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}</span>
+            </div>
+          )}
+        </div>
+
+        {van.notes && (
+          <div className="flex items-start space-x-2">
+            <FileText className="h-4 w-4 text-gray-500 mt-0.5" />
+            <p className="text-sm text-gray-600 line-clamp-2">{van.notes}</p>
+          </div>
+        )}
         
         {/* Quick Action Buttons */}
         <div className="flex space-x-2 pt-2">

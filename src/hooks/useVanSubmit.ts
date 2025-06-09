@@ -12,10 +12,15 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Only save fields that exist in the database schema
+      // Prepare van data with all fields
       const vanData = {
         license_plate: formData.plateNumber,
         model: formData.model,
+        status: formData.status,
+        insurer: formData.insurer,
+        insurance_date: formData.insuranceDate?.toISOString().split('T')[0] || null,
+        control_date: formData.controlDate?.toISOString().split('T')[0] || null,
+        notes: formData.notes,
         driver_id: van?.driver_id || null,
       };
 

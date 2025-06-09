@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Camera, Upload } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { User, UserRole, UserStatus } from '@/types/rbac';
 
@@ -25,6 +27,7 @@ interface UserFormData {
   licenseNumber: string;
   totalTrips: number;
   lastTrip: string;
+  profileImage?: string;
 }
 
 // Helper function to map roles to group IDs
@@ -53,17 +56,20 @@ const getGroupIdForRole = (role: UserRole): string => {
 
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const { addUser, updateUser } = useRBAC();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string>('');
   
   const form = useForm<UserFormData>({
     defaultValues: {
       name: '',
       email: '',
       phone: '',
-      role: 'Employee', // Default to Employee
-      status: 'Active', // Default to Active
+      role: 'Employee',
+      status: 'Active',
       licenseNumber: '',
       totalTrips: 0,
       lastTrip: '',
+      profileImage: '',
     }
   });
 
@@ -80,21 +86,50 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: user.licenseNumber || '',
         totalTrips: user.totalTrips || 0,
         lastTrip: user.lastTrip || '',
+        profileImage: user.profileImage || '',
       });
+      setProfileImage(user.profileImage || '');
     } else {
-      // Set defaults for new users - employee group and Employee role
       form.reset({
         name: '',
         email: '',
         phone: '',
-        role: 'Employee', // Default to Employee
-        status: 'Active', // Default to Active
+        role: 'Employee',
+        status: 'Active',
         licenseNumber: '',
         totalTrips: 0,
         lastTrip: '',
+        profileImage: '',
       });
+      setProfileImage('');
     }
   }, [user, form]);
+
+  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const result = e.target?.result as string;
+        setProfileImage(result);
+        form.setValue('profileImage', result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const triggerImageUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
   const handleSubmit = async (data: UserFormData) => {
     setIsSubmitting(true);
@@ -107,6 +142,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         licenseNumber: data.licenseNumber || undefined,
         totalTrips: data.totalTrips,
         lastTrip: data.lastTrip || undefined,
+        profileImage: profileImage || undefined,
       };
 
       if (user) {
@@ -124,6 +160,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   };
 
   const watchedRole = form.watch('role');
+  const watchedName = form.watch('name');
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -136,6 +173,49 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+            {/* Profile Image Upload */}
+            <div className="flex flex-col items-center space-y-4">
+              <div className="relative">
+                <Avatar className="h-24 w-24">
+                  <AvatarImage 
+                    src={profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${watchedName}`}
+                    alt={watchedName}
+                  />
+                  <AvatarFallback className="bg-primary text-primary-foreground text-lg">
+                    {watchedName ? getUserInitials(watchedName) : 'U'}
+                  </AvatarFallback>
+                </Avatar>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                  onClick={triggerImageUpload}
+                  disabled={isSubmitting}
+                >
+                  <Camera className="h-4 w-4" />
+                </Button>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="hidden"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={triggerImageUpload}
+                disabled={isSubmitting}
+                className="flex items-center space-x-2"
+              >
+                <Upload className="h-4 w-4" />
+                <span>Télécharger une photo</span>
+              </Button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}

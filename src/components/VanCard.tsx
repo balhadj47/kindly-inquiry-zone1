@@ -25,39 +25,22 @@ interface VanCardProps {
 const VanCard = ({ van, onEdit, onQuickAction }: VanCardProps) => {
   return (
     <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
-      {/* Van Image */}
-      <div className="relative h-48 overflow-hidden rounded-t-lg">
-        <img 
-          src={van.image} 
-          alt={`${van.model} - ${van.license_plate}`}
-          className="w-full h-full object-cover"
-        />
-        <div className="absolute top-3 right-3">
-          <Badge className={getStatusColor(van.status)}>
-            {van.status}
-          </Badge>
-        </div>
-        {van.fuelLevel <= 25 && (
-          <div className="absolute top-3 left-3">
-            <Badge variant="destructive" className="text-xs">
-              <Fuel className="h-3 w-3 mr-1" />
-              Carburant Bas
-            </Badge>
-          </div>
-        )}
-      </div>
-
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg">{van.license_plate}</CardTitle>
             <p className="text-sm text-gray-600">{van.model}</p>
           </div>
-          <div className="flex items-center space-x-1">
-            <TrendingUp className={`h-4 w-4 ${getEfficiencyColor(van.efficiency)}`} />
-            <span className={`text-sm font-medium ${getEfficiencyColor(van.efficiency)}`}>
-              {van.efficiency}%
-            </span>
+          <div className="flex items-center space-x-2">
+            <Badge className={getStatusColor(van.status)}>
+              {van.status}
+            </Badge>
+            <div className="flex items-center space-x-1">
+              <TrendingUp className={`h-4 w-4 ${getEfficiencyColor(van.efficiency)}`} />
+              <span className={`text-sm font-medium ${getEfficiencyColor(van.efficiency)}`}>
+                {van.efficiency}%
+              </span>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -105,6 +88,13 @@ const VanCard = ({ van, onEdit, onQuickAction }: VanCardProps) => {
             )}
           </div>
         </div>
+
+        {van.fuelLevel <= 25 && (
+          <div className="flex items-center space-x-2 p-2 bg-red-50 rounded-lg">
+            <Fuel className="h-4 w-4 text-red-600" />
+            <span className="text-sm text-red-600 font-medium">Carburant Bas</span>
+          </div>
+        )}
 
         {/* Progress Bar for Fuel */}
         <div className="space-y-1">

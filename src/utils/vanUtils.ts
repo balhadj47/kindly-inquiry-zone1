@@ -30,7 +30,6 @@ export const transformVanData = (vans: any[]) => {
     fuelLevel: 75,
     nextMaintenance: 'À planifier',
     driver: van.driver_id ? `Chauffeur ${van.driver_id}` : 'Non assigné',
-    image: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=400&q=80',
     efficiency: 85,
     mileage: '0 km',
     yearlyTrips: 0,

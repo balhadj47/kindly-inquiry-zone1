@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Phone, Mail, Trash2, Key } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Phone, Mail, Trash2, Key, User as UserIcon } from 'lucide-react';
 import { User } from '@/types/rbac';
 import {
   AlertDialog,
@@ -43,20 +44,42 @@ const UserCard: React.FC<UserCardProps> = ({
     }
   };
 
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg">{user.name}</CardTitle>
-            <p className="text-sm text-gray-600">{user.role}</p>
-            {user.licenseNumber && (
-              <p className="text-xs text-gray-500">{user.licenseNumber}</p>
-            )}
+        <div className="flex items-start space-x-3">
+          <Avatar className="h-12 w-12">
+            <AvatarImage 
+              src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+              alt={user.name}
+            />
+            <AvatarFallback className="bg-primary text-primary-foreground">
+              {getUserInitials(user.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1">
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-lg">{user.name}</CardTitle>
+                <p className="text-sm text-gray-600">{user.role}</p>
+                {user.licenseNumber && (
+                  <p className="text-xs text-gray-500">{user.licenseNumber}</p>
+                )}
+              </div>
+              <Badge className={getStatusColor(user.status)}>
+                {user.status}
+              </Badge>
+            </div>
           </div>
-          <Badge className={getStatusColor(user.status)}>
-            {user.status}
-          </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">

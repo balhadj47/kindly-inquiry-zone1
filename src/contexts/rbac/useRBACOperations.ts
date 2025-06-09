@@ -1,6 +1,7 @@
 
 import type { User, UserGroup } from '@/types/rbac';
 import { createPermissionUtils } from './permissionUtils';
+import { createUserOperations } from './userOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
@@ -16,41 +17,7 @@ export const useRBACOperations = ({
   setGroups,
 }: UseRBACOperationsProps) => {
   const permissionUtils = createPermissionUtils(currentUser, groups);
-
-  // User operations with string IDs
-  const addUser = async (userData: any): Promise<void> => {
-    console.log('Adding user:', userData);
-    // Mock implementation for now
-    const newUser: User = {
-      id: Date.now().toString(), // Generate string ID
-      name: userData.name,
-      email: userData.email,
-      phone: userData.phone || '',
-      role: userData.role,
-      groupId: userData.groupId,
-      status: userData.status || 'Active',
-      createdAt: new Date().toISOString(),
-    };
-    
-    setUsers(prev => [...prev, newUser]);
-  };
-
-  const updateUser = async (userId: string, userData: any): Promise<void> => {
-    console.log('Updating user:', userId, userData);
-    setUsers(prev => prev.map(user => 
-      user.id === userId ? { ...user, ...userData } : user
-    ));
-  };
-
-  const deleteUser = async (userId: string): Promise<void> => {
-    console.log('Deleting user:', userId);
-    setUsers(prev => prev.filter(user => user.id !== userId));
-  };
-
-  const changeUserPassword = async (email: string, newPassword: string): Promise<void> => {
-    console.log('Changing password for:', email);
-    // Mock implementation
-  };
+  const userOperations = createUserOperations(setUsers);
 
   // Group operations
   const addGroup = async (groupData: any): Promise<void> => {
@@ -79,10 +46,7 @@ export const useRBACOperations = ({
   };
 
   return {
-    addUser,
-    updateUser,
-    deleteUser,
-    changeUserPassword,
+    ...userOperations,
     addGroup,
     updateGroup,
     deleteGroup,

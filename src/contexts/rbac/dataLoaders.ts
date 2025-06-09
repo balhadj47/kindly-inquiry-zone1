@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { RBACUser, RBACGroup } from './types';
 
@@ -35,7 +34,7 @@ export const loadUserData = async (): Promise<RBACUser | null> => {
     if (dbUser) {
       console.log('Found user in database:', dbUser);
       const rbacUser: RBACUser = {
-        id: dbUser.id.toString(), // Convert to string
+        id: dbUser.id.toString(), // Convert numeric ID to string
         name: dbUser.name,
         email: dbUser.email,
         phone: dbUser.phone,
@@ -89,7 +88,7 @@ export const loadUsersData = async (): Promise<RBACUser[]> => {
     console.log('Loaded users from database:', users);
     
     const rbacUsers: RBACUser[] = users.map(user => ({
-      id: user.id.toString(), // Convert to string
+      id: user.id.toString(), // Convert numeric ID to string
       name: user.name,
       email: user.email,
       phone: user.phone,

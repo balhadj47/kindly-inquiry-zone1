@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
-import { transformVanData } from '@/utils/vanUtils';
 import { supabase } from '@/integrations/supabase/client';
 import VanModal from './VanModal';
 import VanStats from './VanStats';
@@ -23,15 +22,11 @@ const Vans = () => {
   const { toast } = useToast();
   const { vans, loading, error, refetch } = useVans();
 
-  // Transform database vans to display format
-  const displayVans = transformVanData(vans);
-
   const filteredAndSortedVans = useMemo(() => {
-    let filtered = displayVans.filter(van => {
+    let filtered = vans.filter(van => {
       const matchesSearch = 
         van.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        van.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (van.driver && van.driver.toLowerCase().includes(searchTerm.toLowerCase()));
+        van.model.toLowerCase().includes(searchTerm.toLowerCase());
       
       return matchesSearch;
     });
@@ -49,7 +44,7 @@ const Vans = () => {
     });
 
     return filtered;
-  }, [displayVans, searchTerm, sortField, sortDirection]);
+  }, [vans, searchTerm, sortField, sortDirection]);
 
   const handleAddVan = () => {
     setSelectedVan(null);
@@ -139,7 +134,7 @@ const Vans = () => {
 
   return (
     <div className="space-y-6">
-      <VanStats vans={displayVans} onAddVan={handleAddVan} />
+      <VanStats vans={vans} onAddVan={handleAddVan} />
       
       <VanFilters
         searchTerm={searchTerm}
@@ -154,7 +149,7 @@ const Vans = () => {
 
       <VanList
         vans={filteredAndSortedVans}
-        totalVans={displayVans.length}
+        totalVans={vans.length}
         searchTerm={searchTerm}
         statusFilter={statusFilter}
         onAddVan={handleAddVan}

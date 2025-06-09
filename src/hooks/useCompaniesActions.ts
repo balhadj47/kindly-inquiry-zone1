@@ -108,9 +108,46 @@ export const useCompaniesActions = () => {
     }
   };
 
+  const deleteCompany = async (companyId: string): Promise<void> => {
+    setIsLoading(true);
+    try {
+      console.log('Deleting company:', companyId);
+
+      // First delete all branches associated with the company
+      const { error: branchError } = await supabase
+        .from('branches')
+        .delete()
+        .eq('company_id', companyId);
+
+      if (branchError) {
+        console.error('Error deleting branches:', branchError);
+        throw branchError;
+      }
+
+      // Then delete the company
+      const { error: companyError } = await supabase
+        .from('companies')
+        .delete()
+        .eq('id', companyId);
+
+      if (companyError) {
+        console.error('Error deleting company:', companyError);
+        throw companyError;
+      }
+
+      console.log('Company deleted successfully');
+    } catch (error) {
+      console.error('Error in deleteCompany:', error);
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     createCompany,
     updateCompany,
+    deleteCompany,
     isLoading
   };
 };

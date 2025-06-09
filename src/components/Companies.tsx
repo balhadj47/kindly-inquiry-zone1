@@ -4,17 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Search, Building2, Plus } from 'lucide-react';
+import { Search, Building2, Plus, Trash2 } from 'lucide-react';
 import CompanyModal from './CompanyModal';
+import CompanyDeleteDialog from './CompanyDeleteDialog';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useCompaniesActions } from '@/hooks/useCompaniesActions';
+import { toast } from 'sonner';
 
 const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const { t } = useLanguage();
   const { companies, loading, error, refetch } = useCompanies();
+  const { deleteCompany, isLoading: isDeleting } = useCompaniesActions();
 
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -28,6 +33,26 @@ const Companies = () => {
   const handleEditCompany = (company) => {
     setSelectedCompany(company);
     setIsModalOpen(true);
+  };
+
+  const handleDeleteCompany = (company) => {
+    setSelectedCompany(company);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedCompany) return;
+
+    try {
+      await deleteCompany(selectedCompany.id);
+      toast.success('Entreprise supprimée avec succès');
+      setIsDeleteDialogOpen(false);
+      setSelectedCompany(null);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting company:', error);
+      toast.error('Erreur lors de la suppression de l\'entreprise');
+    }
   };
 
   const handleModalSuccess = () => {
@@ -113,17 +138,30 @@ const Companies = () => {
                     <Building2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
                     <CardTitle className="text-base sm:text-lg leading-tight break-words">{company.name}</CardTitle>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleEditCompany(company);
-                    }}
-                    className="flex-shrink-0 touch-manipulation"
-                  >
-                    {t.edit}
-                  </Button>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditCompany(company);
+                      }}
+                      className="touch-manipulation"
+                    >
+                      {t.edit}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteCompany(company);
+                      }}
+                      className="touch-manipulation text-destructive hover:text-destructive"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -164,6 +202,14 @@ const Companies = () => {
         onClose={() => setIsModalOpen(false)}
         company={selectedCompany}
         onSuccess={handleModalSuccess}
+      />
+
+      <CompanyDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        company={selectedCompany}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
     </div>
   );

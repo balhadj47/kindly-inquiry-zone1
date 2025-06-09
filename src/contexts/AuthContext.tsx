@@ -21,6 +21,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Set up auth state listener FIRST
+    console.log("Setting up auth state listener...");
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         console.log('Auth state changed:', event, session);
@@ -31,7 +32,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
 
     // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    console.log("Checking for existing session...");
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error("Error getting session:", error);
+      }
+      console.log("Initial session check result:", session);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
@@ -41,28 +47,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    console.log("Attempting sign in for:", email);
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
+    console.log("Sign in result:", { data, error });
     return { error };
   };
 
   const signUp = async (email: string, password: string) => {
     const redirectUrl = `${window.location.origin}/`;
+    console.log("Attempting sign up for:", email);
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: redirectUrl
       }
     });
+    console.log("Sign up result:", { data, error });
     return { error };
   };
 
   const signOut = async () => {
+    console.log("Attempting sign out");
     const { error } = await supabase.auth.signOut();
+    console.log("Sign out result:", { error });
     return { error };
   };
 

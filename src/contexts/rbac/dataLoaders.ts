@@ -34,8 +34,15 @@ export const loadUsersFromDB = async (): Promise<User[]> => {
 
 export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
   try {
+    console.log('Starting loadCurrentUserFromAuth...');
+    
     // First check if we have an authenticated user
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    
+    if (sessionError) {
+      console.error('Error getting session:', sessionError);
+      return null;
+    }
     
     if (!session?.user) {
       console.log('No authenticated session found');
@@ -43,17 +50,20 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
     }
 
     console.log('Authenticated user found:', session.user.email);
+    console.log('Auth user ID:', session.user.id);
 
     // Try to get the current user's RBAC data using the RPC function
     const { data: currentUserData, error } = await supabase
       .rpc('get_current_user_rbac');
+
+    console.log('RPC result:', { currentUserData, error });
 
     if (error) {
       console.error('Error fetching current user RBAC data:', error);
     }
 
     if (!currentUserData) {
-      console.log('No RBAC user record found for authenticated user');
+      console.log('No RBAC user record found for authenticated user, trying email lookup...');
       
       // Try to find user by email as fallback
       const { data: userByEmail, error: emailError } = await supabase
@@ -61,6 +71,8 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
         .select('*')
         .eq('email', session.user.email)
         .maybeSingle();
+
+      console.log('Email lookup result:', { userByEmail, emailError });
 
       if (emailError) {
         console.error('Error searching for user by email:', emailError);
@@ -82,11 +94,12 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
           totalTrips: userByEmail.total_trips,
           lastTrip: userByEmail.last_trip,
         };
+        console.log('Returning formatted user from email lookup:', currentUser);
         return currentUser;
       }
 
       // If no user record exists, create a default admin user for testing
-      console.log('Creating default admin user for authenticated user');
+      console.log('No user record found, creating default admin user...');
       const { data: newUser, error: createError } = await supabase
         .from('users')
         .insert([{
@@ -100,6 +113,8 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
         }])
         .select()
         .single();
+
+      console.log('User creation result:', { newUser, createError });
 
       if (createError) {
         console.error('Error creating user record:', createError);
@@ -121,6 +136,7 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
           totalTrips: newUser.total_trips,
           lastTrip: newUser.last_trip,
         };
+        console.log('Returning newly created user:', currentUser);
         return currentUser;
       }
 
@@ -142,7 +158,7 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
       lastTrip: currentUserData.last_trip,
     };
 
-    console.log('Current authenticated user loaded:', currentUser);
+    console.log('Current authenticated user loaded from RPC:', currentUser);
     return currentUser;
   } catch (error) {
     console.error('Error loading current user from auth:', error);

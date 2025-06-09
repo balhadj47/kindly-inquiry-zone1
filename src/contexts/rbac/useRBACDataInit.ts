@@ -24,21 +24,30 @@ export const useRBACDataInit = ({
   useEffect(() => {
     // Don't load RBAC data if auth is still loading
     if (authLoading) {
+      console.log("Auth is still loading, waiting to load RBAC data...");
       return;
     }
 
+    console.log("Starting RBAC data loading...");
+    console.log("Auth user:", authUser);
+
     const loadRBACData = async () => {
+      setLoading(true);
+      
       try {
         // Load default groups and permissions first
+        console.log("Loading default data...");
         const { DEFAULT_GROUPS, DEFAULT_PERMISSIONS } = await loadDefaultData();
         setGroups(DEFAULT_GROUPS);
         setPermissions(DEFAULT_PERMISSIONS);
 
         // Load users from database
+        console.log("Loading users from database...");
         const formattedUsers = await loadUsersFromDB();
         setUsers(formattedUsers);
 
         // Load groups from database (override defaults if they exist)
+        console.log("Loading groups from database...");
         const dbGroups = await loadGroupsFromDB();
         if (dbGroups) {
           setGroups(dbGroups);
@@ -46,9 +55,15 @@ export const useRBACDataInit = ({
 
         // Load current user from auth if authenticated
         if (authUser) {
-          const currentUser = await loadCurrentUserFromAuth();
-          setCurrentUser(currentUser);
-          console.log('Authenticated user set as current user:', currentUser);
+          console.log("Loading current user for auth user:", authUser.email);
+          try {
+            const currentUser = await loadCurrentUserFromAuth();
+            setCurrentUser(currentUser);
+            console.log('Current user set:', currentUser);
+          } catch (err) {
+            console.error("Error loading current user:", err);
+            setCurrentUser(null);
+          }
         } else {
           setCurrentUser(null);
           console.log('No authenticated user, current user set to null');

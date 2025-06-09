@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -102,9 +101,7 @@ const Users = () => {
       return;
     }
 
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ? Cette action ne peut pas être annulée.`)) {
-      await deleteGroup(group.id);
-    }
+    await deleteGroup(group.id);
   };
 
   if (loading) {

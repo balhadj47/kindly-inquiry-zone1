@@ -34,7 +34,7 @@ export const loadUsersFromDB = async (): Promise<User[]> => {
 
 export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
   try {
-    console.log('Starting loadCurrentUserFromAuth...');
+    console.log('=== Starting loadCurrentUserFromAuth ===');
     
     // First check if we have an authenticated user
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -49,119 +49,205 @@ export const loadCurrentUserFromAuth = async (): Promise<User | null> => {
       return null;
     }
 
-    console.log('Authenticated user found:', session.user.email);
-    console.log('Auth user ID:', session.user.id);
+    const authUser = session.user;
+    console.log('Authenticated user found:', authUser.email);
+    console.log('Auth user ID:', authUser.id);
 
-    // Try to get the current user's RBAC data using the RPC function
-    const { data: currentUserData, error } = await supabase
+    // Try multiple approaches to find the user
+    console.log('=== Attempting to find user record ===');
+    
+    // Method 1: Try RPC function first
+    console.log('Method 1: Trying RPC function...');
+    const { data: rpcUserData, error: rpcError } = await supabase
       .rpc('get_current_user_rbac');
 
-    console.log('RPC result:', { currentUserData, error });
+    console.log('RPC result:', { rpcUserData, rpcError });
 
-    if (error) {
-      console.error('Error fetching current user RBAC data:', error);
+    if (rpcUserData && !rpcError) {
+      const currentUser: User = {
+        id: rpcUserData.id,
+        name: rpcUserData.name,
+        email: rpcUserData.email,
+        phone: rpcUserData.phone,
+        groupId: rpcUserData.group_id,
+        role: rpcUserData.role as UserRole,
+        status: rpcUserData.status as UserStatus,
+        createdAt: rpcUserData.created_at,
+        licenseNumber: rpcUserData.license_number,
+        totalTrips: rpcUserData.total_trips,
+        lastTrip: rpcUserData.last_trip,
+      };
+      console.log('SUCCESS: User found via RPC:', currentUser);
+      return currentUser;
     }
 
-    if (!currentUserData) {
-      console.log('No RBAC user record found for authenticated user, trying email lookup...');
+    // Method 2: Search by auth_user_id
+    console.log('Method 2: Searching by auth_user_id...');
+    const { data: userByAuthId, error: authIdError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('auth_user_id', authUser.id)
+      .maybeSingle();
+
+    console.log('Auth ID search result:', { userByAuthId, authIdError });
+
+    if (userByAuthId && !authIdError) {
+      const currentUser: User = {
+        id: userByAuthId.id,
+        name: userByAuthId.name,
+        email: userByAuthId.email,
+        phone: userByAuthId.phone,
+        groupId: userByAuthId.group_id,
+        role: userByAuthId.role as UserRole,
+        status: userByAuthId.status as UserStatus,
+        createdAt: userByAuthId.created_at,
+        licenseNumber: userByAuthId.license_number,
+        totalTrips: userByAuthId.total_trips,
+        lastTrip: userByAuthId.last_trip,
+      };
+      console.log('SUCCESS: User found by auth_user_id:', currentUser);
+      return currentUser;
+    }
+
+    // Method 3: Search by email
+    console.log('Method 3: Searching by email...');
+    const { data: userByEmail, error: emailError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('email', authUser.email)
+      .maybeSingle();
+
+    console.log('Email search result:', { userByEmail, emailError });
+
+    if (userByEmail && !emailError) {
+      // Update the auth_user_id if it's missing
+      if (!userByEmail.auth_user_id) {
+        console.log('Updating auth_user_id for existing user...');
+        const { error: updateError } = await supabase
+          .from('users')
+          .update({ auth_user_id: authUser.id })
+          .eq('id', userByEmail.id);
+        
+        if (updateError) {
+          console.error('Error updating auth_user_id:', updateError);
+        } else {
+          console.log('Successfully updated auth_user_id');
+        }
+      }
+
+      const currentUser: User = {
+        id: userByEmail.id,
+        name: userByEmail.name,
+        email: userByEmail.email,
+        phone: userByEmail.phone,
+        groupId: userByEmail.group_id,
+        role: userByEmail.role as UserRole,
+        status: userByEmail.status as UserStatus,
+        createdAt: userByEmail.created_at,
+        licenseNumber: userByEmail.license_number,
+        totalTrips: userByEmail.total_trips,
+        lastTrip: userByEmail.last_trip,
+      };
+      console.log('SUCCESS: User found by email:', currentUser);
+      return currentUser;
+    }
+
+    // Method 4: Check if user exists but with different email format
+    console.log('Method 4: Checking all users to debug...');
+    const { data: allUsers, error: allUsersError } = await supabase
+      .from('users')
+      .select('*');
+
+    console.log('All users in database:', allUsers);
+    console.log('Looking for email:', authUser.email);
+
+    if (allUsers && allUsers.length > 0) {
+      // Try to find a user with similar email or that might be the admin
+      const potentialUser = allUsers.find(user => 
+        user.email?.toLowerCase() === authUser.email?.toLowerCase() ||
+        user.group_id === 'admin'
+      );
       
-      // Try to find user by email as fallback
-      const { data: userByEmail, error: emailError } = await supabase
-        .from('users')
-        .select('*')
-        .eq('email', session.user.email)
-        .maybeSingle();
+      if (potentialUser) {
+        console.log('Found potential user match:', potentialUser);
+        
+        // Update this user to link with current auth user
+        const { data: updatedUser, error: updateError } = await supabase
+          .from('users')
+          .update({ 
+            auth_user_id: authUser.id,
+            email: authUser.email 
+          })
+          .eq('id', potentialUser.id)
+          .select()
+          .single();
 
-      console.log('Email lookup result:', { userByEmail, emailError });
-
-      if (emailError) {
-        console.error('Error searching for user by email:', emailError);
-        return null;
+        if (!updateError && updatedUser) {
+          const currentUser: User = {
+            id: updatedUser.id,
+            name: updatedUser.name,
+            email: updatedUser.email,
+            phone: updatedUser.phone,
+            groupId: updatedUser.group_id,
+            role: updatedUser.role as UserRole,
+            status: updatedUser.status as UserStatus,
+            createdAt: updatedUser.created_at,
+            licenseNumber: updatedUser.license_number,
+            totalTrips: updatedUser.total_trips,
+            lastTrip: updatedUser.last_trip,
+          };
+          console.log('SUCCESS: Updated and linked existing user:', currentUser);
+          return currentUser;
+        }
       }
+    }
 
-      if (userByEmail) {
-        console.log('Found user by email lookup:', userByEmail);
-        const currentUser: User = {
-          id: userByEmail.id,
-          name: userByEmail.name,
-          email: userByEmail.email,
-          phone: userByEmail.phone,
-          groupId: userByEmail.group_id,
-          role: userByEmail.role as UserRole,
-          status: userByEmail.status as UserStatus,
-          createdAt: userByEmail.created_at,
-          licenseNumber: userByEmail.license_number,
-          totalTrips: userByEmail.total_trips,
-          lastTrip: userByEmail.last_trip,
-        };
-        console.log('Returning formatted user from email lookup:', currentUser);
-        return currentUser;
-      }
+    // Method 5: Create new admin user as last resort
+    console.log('Method 5: Creating new admin user...');
+    const { data: newUser, error: createError } = await supabase
+      .from('users')
+      .insert([{
+        auth_user_id: authUser.id,
+        name: authUser.email?.split('@')[0] || 'Admin User',
+        email: authUser.email,
+        phone: '',
+        group_id: 'admin',
+        role: 'Administrator',
+        status: 'Active',
+      }])
+      .select()
+      .single();
 
-      // If no user record exists, create a default admin user for testing
-      console.log('No user record found, creating default admin user...');
-      const { data: newUser, error: createError } = await supabase
-        .from('users')
-        .insert([{
-          auth_user_id: session.user.id,
-          name: session.user.email?.split('@')[0] || 'Admin User',
-          email: session.user.email,
-          phone: '',
-          group_id: 'admin',
-          role: 'Administrator',
-          status: 'Active',
-        }])
-        .select()
-        .single();
+    console.log('User creation result:', { newUser, createError });
 
-      console.log('User creation result:', { newUser, createError });
-
-      if (createError) {
-        console.error('Error creating user record:', createError);
-        return null;
-      }
-
-      if (newUser) {
-        console.log('Created new admin user:', newUser);
-        const currentUser: User = {
-          id: newUser.id,
-          name: newUser.name,
-          email: newUser.email,
-          phone: newUser.phone,
-          groupId: newUser.group_id,
-          role: newUser.role as UserRole,
-          status: newUser.status as UserStatus,
-          createdAt: newUser.created_at,
-          licenseNumber: newUser.license_number,
-          totalTrips: newUser.total_trips,
-          lastTrip: newUser.last_trip,
-        };
-        console.log('Returning newly created user:', currentUser);
-        return currentUser;
-      }
-
+    if (createError) {
+      console.error('Error creating user record:', createError);
       return null;
     }
 
-    // Format the user data to match our User interface
-    const currentUser: User = {
-      id: currentUserData.id,
-      name: currentUserData.name,
-      email: currentUserData.email,
-      phone: currentUserData.phone,
-      groupId: currentUserData.group_id,
-      role: currentUserData.role as UserRole,
-      status: currentUserData.status as UserStatus,
-      createdAt: currentUserData.created_at,
-      licenseNumber: currentUserData.license_number,
-      totalTrips: currentUserData.total_trips,
-      lastTrip: currentUserData.last_trip,
-    };
+    if (newUser) {
+      const currentUser: User = {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+        phone: newUser.phone,
+        groupId: newUser.group_id,
+        role: newUser.role as UserRole,
+        status: newUser.status as UserStatus,
+        createdAt: newUser.created_at,
+        licenseNumber: newUser.license_number,
+        totalTrips: newUser.total_trips,
+        lastTrip: newUser.last_trip,
+      };
+      console.log('SUCCESS: Created new admin user:', currentUser);
+      return currentUser;
+    }
 
-    console.log('Current authenticated user loaded from RPC:', currentUser);
-    return currentUser;
+    console.log('FAILED: All methods exhausted, no user found or created');
+    return null;
+
   } catch (error) {
-    console.error('Error loading current user from auth:', error);
+    console.error('CRITICAL ERROR in loadCurrentUserFromAuth:', error);
     return null;
   }
 };

@@ -76,6 +76,7 @@ export const useCompanies = () => {
 
   return { 
     companies, 
+    setCompanies,
     loading, 
     error, 
     refetch: fetchCompanies 

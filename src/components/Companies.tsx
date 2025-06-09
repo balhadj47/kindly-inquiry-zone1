@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +17,7 @@ const Companies = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const { t } = useLanguage();
-  const { companies, loading, error, refetch } = useCompanies();
+  const { companies, loading, error, refetch, setCompanies } = useCompanies();
   const { deleteCompany, isLoading: isDeleting } = useCompaniesActions();
 
   const filteredCompanies = companies.filter(company =>
@@ -45,10 +44,15 @@ const Companies = () => {
 
     try {
       await deleteCompany(selectedCompany.id);
+      
+      // Update local state by removing the deleted company
+      setCompanies(prevCompanies => 
+        prevCompanies.filter(company => company.id !== selectedCompany.id)
+      );
+      
       toast.success('Entreprise supprimée avec succès');
       setIsDeleteDialogOpen(false);
       setSelectedCompany(null);
-      refetch();
     } catch (error) {
       console.error('Error deleting company:', error);
       toast.error('Erreur lors de la suppression de l\'entreprise');

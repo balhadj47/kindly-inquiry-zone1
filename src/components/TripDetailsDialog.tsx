@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Clock, MapPin, Users, Car, Building2, FileText, User } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Car, Building2, FileText, User, Hash, Timer } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
 
@@ -23,10 +23,30 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
     return new Date(dateString).toLocaleDateString('fr-FR', {
       year: 'numeric',
       month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const formatFullDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getTripTitle = (trip: Trip) => {
+    return `${trip.company} - ${trip.branch} - ${trip.driver}`;
   };
 
   const getAssignedUsers = () => {
@@ -42,63 +62,112 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center space-x-2">
-            <Car className="h-5 w-5" />
-            <span>Détails du Voyage #{trip.id}</span>
+      <DialogContent className="max-w-3xl max-h-[85vh]">
+        <DialogHeader className="pb-4">
+          <DialogTitle className="flex items-center space-x-3 text-xl">
+            <div className="h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <Car className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900">{getTripTitle(trip)}</h2>
+              <p className="text-sm text-muted-foreground mt-1">Voyage #{trip.id}</p>
+            </div>
           </DialogTitle>
         </DialogHeader>
         
-        <ScrollArea className="max-h-[60vh] pr-4">
+        <ScrollArea className="max-h-[65vh] pr-4">
           <div className="space-y-6">
-            {/* Date and Time */}
-            <div className="flex items-center space-x-3">
-              <Calendar className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="font-medium">Date de création</p>
-                <p className="text-sm text-muted-foreground">{formatDate(trip.timestamp)}</p>
+            {/* Trip Overview Card */}
+            <div className="bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Date</p>
+                    <p className="text-sm text-gray-600">{formatDate(trip.timestamp)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <Timer className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Heure</p>
+                    <p className="text-sm text-gray-600">{formatTime(trip.timestamp)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-3">
+                  <div className="h-8 w-8 bg-purple-100 rounded-full flex items-center justify-center">
+                    <Hash className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">ID Voyage</p>
+                    <p className="text-sm text-gray-600">#{trip.id}</p>
+                  </div>
+                </div>
               </div>
             </div>
 
             <Separator />
 
-            {/* Vehicle and Driver */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Car className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Véhicule</p>
-                  <p className="text-sm text-muted-foreground">{trip.van}</p>
+            {/* Vehicle Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                <Car className="h-5 w-5 text-blue-600" />
+                <span>Informations du Véhicule</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Car className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-gray-900">Véhicule</p>
+                      <p className="text-sm text-muted-foreground">{trip.van}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <User className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Chauffeur</p>
-                  <p className="text-sm text-muted-foreground">{trip.driver}</p>
+                
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <User className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-gray-900">Chauffeur</p>
+                      <p className="text-sm text-muted-foreground">{trip.driver}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
 
             <Separator />
 
-            {/* Company and Branch */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex items-center space-x-3">
-                <Building2 className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Entreprise</p>
-                  <p className="text-sm text-muted-foreground">{trip.company}</p>
+            {/* Location Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                <MapPin className="h-5 w-5 text-green-600" />
+                <span>Informations de Destination</span>
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-gray-900">Entreprise</p>
+                      <p className="text-sm text-muted-foreground">{trip.company}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              
-              <div className="flex items-center space-x-3">
-                <MapPin className="h-5 w-5 text-muted-foreground" />
-                <div>
-                  <p className="font-medium">Agence</p>
-                  <p className="text-sm text-muted-foreground">{trip.branch}</p>
+                
+                <div className="p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <MapPin className="h-5 w-5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium text-gray-900">Agence</p>
+                      <p className="text-sm text-muted-foreground">{trip.branch}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -107,22 +176,22 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
             {assignedUsers.length > 0 && (
               <>
                 <Separator />
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                    <p className="font-medium">Utilisateurs assignés ({assignedUsers.length})</p>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <Users className="h-5 w-5 text-purple-600" />
+                    <span>Utilisateurs Assignés ({assignedUsers.length})</span>
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {assignedUsers.map((user) => (
-                      <div key={user.id} className="flex items-center space-x-2 p-2 bg-muted rounded-md">
-                        <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-primary" />
+                      <div key={user.id} className="flex items-center space-x-3 p-3 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+                        <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-600 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{user.name}</p>
+                          <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
                           <p className="text-xs text-muted-foreground truncate">{user.role}</p>
                         </div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs bg-white">
                           {user.status}
                         </Badge>
                       </div>
@@ -136,17 +205,35 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
             {trip.notes && (
               <>
                 <Separator />
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-5 w-5 text-muted-foreground" />
-                    <p className="font-medium">Notes</p>
-                  </div>
-                  <div className="p-3 bg-muted rounded-md">
-                    <p className="text-sm whitespace-pre-wrap">{trip.notes}</p>
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                    <FileText className="h-5 w-5 text-orange-600" />
+                    <span>Notes</span>
+                  </h3>
+                  <div className="p-4 bg-gradient-to-r from-orange-50 to-yellow-50 border border-orange-200 rounded-lg">
+                    <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{trip.notes}</p>
                   </div>
                 </div>
               </>
             )}
+
+            {/* Trip Timeline */}
+            <Separator />
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                <Clock className="h-5 w-5 text-indigo-600" />
+                <span>Chronologie</span>
+              </h3>
+              <div className="p-4 bg-gradient-to-r from-indigo-50 to-blue-50 border border-indigo-200 rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div className="w-3 h-3 bg-indigo-600 rounded-full"></div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Voyage créé</p>
+                    <p className="text-xs text-muted-foreground">{formatFullDateTime(trip.timestamp)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </ScrollArea>
       </DialogContent>

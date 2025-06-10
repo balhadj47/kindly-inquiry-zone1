@@ -50,6 +50,10 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
     });
   };
 
+  const getTripTitle = (trip: Trip) => {
+    return `${trip.company} - ${trip.branch} - ${trip.driver}`;
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -72,6 +76,16 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                   className="flex-1 space-y-2 cursor-pointer"
                   onClick={() => onTripClick(trip)}
                 >
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {getTripTitle(trip)}
+                    </h3>
+                    <Badge variant="outline" className="text-purple-600">
+                      <Truck className="h-3 w-3 mr-1" />
+                      {trip.van}
+                    </Badge>
+                  </div>
+                  
                   <div className="flex items-center space-x-4 text-sm">
                     <Badge variant="outline" className="text-blue-600">
                       <Calendar className="h-3 w-3 mr-1" />
@@ -81,25 +95,6 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                       <Clock className="h-3 w-3 mr-1" />
                       {formatTime(trip.timestamp)}
                     </Badge>
-                    <Badge variant="outline" className="text-purple-600">
-                      <Truck className="h-3 w-3 mr-1" />
-                      {trip.van}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center space-x-4 text-sm text-gray-600">
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-1" />
-                      {trip.driver}
-                    </div>
-                    <div className="flex items-center">
-                      <Building2 className="h-4 w-4 mr-1" />
-                      {trip.company}
-                    </div>
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-1" />
-                      {trip.branch}
-                    </div>
                   </div>
 
                   {trip.notes && (
@@ -134,7 +129,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle>Supprimer le voyage</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Êtes-vous sûr de vouloir supprimer le voyage #{trip.id} du {formatDate(trip.timestamp)} ? 
+                          Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDate(trip.timestamp)} ? 
                           Cette action ne peut pas être annulée.
                         </AlertDialogDescription>
                       </AlertDialogHeader>

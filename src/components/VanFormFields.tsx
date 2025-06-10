@@ -7,7 +7,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { CalendarIcon, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { VanFormData } from '@/hooks/useVanForm';
@@ -20,6 +21,10 @@ interface VanFormFieldsProps {
 
 const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsProps) => {
   const { t } = useLanguage();
+
+  // Check if dates are expired
+  const isInsuranceExpired = formData.insuranceDate && formData.insuranceDate < new Date();
+  const isControlExpired = formData.controlDate && formData.controlDate < new Date();
 
   return (
     <div className="space-y-4">
@@ -103,10 +108,18 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
               />
             </PopoverContent>
           </Popover>
+          {isInsuranceExpired && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                L'assurance a expiré le {format(formData.insuranceDate!, "dd/MM/yyyy")}
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm sm:text-base">Date de contrôle</Label>
+          <Label className="text-sm sm:text-base">Date de Contrôle Technique</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -130,6 +143,14 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
               />
             </PopoverContent>
           </Popover>
+          {isControlExpired && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                Le contrôle technique a expiré le {format(formData.controlDate!, "dd/MM/yyyy")}
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
       </div>
 

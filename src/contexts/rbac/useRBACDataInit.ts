@@ -94,6 +94,9 @@ export const useRBACDataInit = ({
             id: authUser.id,
             email: authUser.email || '',
             name: authUser.user_metadata?.full_name || authUser.email || 'User',
+            phone: authUser.user_metadata?.phone || '',
+            role: 'Employee',
+            status: 'Active',
             groupId: groupsData.length > 0 ? groupsData[0].id : 'default-group',
             createdAt: new Date().toISOString(),
           };
@@ -141,6 +144,9 @@ export const useRBACDataInit = ({
             id: authUser.id,
             email: authUser.email || '',
             name: authUser.user_metadata?.full_name || authUser.email || 'User',
+            phone: authUser.user_metadata?.phone || '',
+            role: 'Employee',
+            status: 'Active',
             groupId: defaultGroup.id,
             createdAt: new Date().toISOString(),
           };

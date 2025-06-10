@@ -5,21 +5,14 @@ import { supabase } from '@/integrations/supabase/client';
 export interface Branch {
   id: string;
   name: string;
-  address: string;
-  city: string;
-  phone?: string;
-  email?: string;
+  company_id: string;
+  created_at: string;
 }
 
 export interface Company {
   id: string;
   name: string;
-  email: string;
-  phone: string;
-  address: string;
-  city: string;
   created_at: string;
-  updated_at: string;
   branches: Branch[];
 }
 
@@ -56,10 +49,8 @@ export const useCompanies = () => {
           branches (
             id,
             name,
-            address,
-            city,
-            phone,
-            email
+            company_id,
+            created_at
           )
         `);
 

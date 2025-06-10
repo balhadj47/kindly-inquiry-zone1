@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { User as UserIcon } from 'lucide-react';
 import { User } from '@/types/rbac';
 import UserCard from './UserCard';
+import UserPagination from './UserPagination';
 
 interface UserGridProps {
   users: User[];
@@ -12,6 +13,9 @@ interface UserGridProps {
   onEditUser: (user: User) => void;
   onDeleteUser: (user: User) => void;
   onChangePassword: (user: User) => void;
+  currentPage: number;
+  itemsPerPage: number;
+  onPageChange: (page: number) => void;
 }
 
 const UserGrid: React.FC<UserGridProps> = ({
@@ -21,7 +25,15 @@ const UserGrid: React.FC<UserGridProps> = ({
   onEditUser,
   onDeleteUser,
   onChangePassword,
+  currentPage,
+  itemsPerPage,
+  onPageChange,
 }) => {
+  const totalPages = Math.ceil(users.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedUsers = users.slice(startIndex, endIndex);
+
   if (users.length === 0) {
     return (
       <Card>
@@ -50,16 +62,26 @@ const UserGrid: React.FC<UserGridProps> = ({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {users.map((user) => (
-        <UserCard
-          key={user.id}
-          user={user}
-          onEdit={onEditUser}
-          onDelete={onDeleteUser}
-          onChangePassword={onChangePassword}
-        />
-      ))}
+    <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {paginatedUsers.map((user) => (
+          <UserCard
+            key={user.id}
+            user={user}
+            onEdit={onEditUser}
+            onDelete={onDeleteUser}
+            onChangePassword={onChangePassword}
+          />
+        ))}
+      </div>
+
+      <UserPagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={onPageChange}
+        totalItems={users.length}
+        itemsPerPage={itemsPerPage}
+      />
     </div>
   );
 };

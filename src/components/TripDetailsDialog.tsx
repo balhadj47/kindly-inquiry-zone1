@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Calendar, Clock, MapPin, Users, Car, Building2, FileText, User, Hash, Timer } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Car, Building2, FileText, User, Hash, Timer, Shield } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
 
@@ -56,6 +56,22 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
       const user = users.find(u => u.id.toString() === userId);
       return user || null;
     }).filter(Boolean);
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'Chef de Groupe Armé':
+      case 'Chef de Groupe Sans Armé':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'Chauffeur Armé':
+      case 'Chauffeur Sans Armé':
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'APS Armé':
+      case 'APS Sans Armé':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
   };
 
   const assignedUsers = getAssignedUsers();
@@ -189,11 +205,16 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-                          <p className="text-xs text-muted-foreground truncate">{user.role}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className={`text-xs ${getRoleColor(user.role)}`}>
+                              <Shield className="h-3 w-3 mr-1" />
+                              {user.role}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs bg-white">
+                              {user.status}
+                            </Badge>
+                          </div>
                         </div>
-                        <Badge variant="outline" className="text-xs bg-white">
-                          {user.status}
-                        </Badge>
                       </div>
                     ))}
                   </div>

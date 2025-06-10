@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Edit, 
   Eye, 
@@ -66,28 +65,6 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Expiration Warnings */}
-        {(isInsuranceExpired || isControlExpired) && (
-          <div className="space-y-2">
-            {isInsuranceExpired && (
-              <Alert variant="destructive" className="py-2">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-xs font-medium">
-                  ⚠️ Assurance expirée le {format(insuranceDate!, "dd/MM/yyyy")}
-                </AlertDescription>
-              </Alert>
-            )}
-            {isControlExpired && (
-              <Alert variant="destructive" className="py-2">
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription className="text-xs font-medium">
-                  ⚠️ Contrôle technique expiré le {format(controlDate!, "dd/MM/yyyy")}
-                </AlertDescription>
-              </Alert>
-            )}
-          </div>
-        )}
-
         {van.insurer && (
           <div className="flex items-center space-x-2">
             <Shield className="h-4 w-4 text-gray-500" />
@@ -100,12 +77,18 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
             <div className={`flex items-center space-x-1 ${isInsuranceExpired ? 'text-red-600' : ''}`}>
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}</span>
+              {isInsuranceExpired && (
+                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" title={`Assurance expirée le ${format(insuranceDate!, "dd/MM/yyyy")}`} />
+              )}
             </div>
           )}
           {van.control_date && (
             <div className={`flex items-center space-x-1 ${isControlExpired ? 'text-red-600' : ''}`}>
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}</span>
+              {isControlExpired && (
+                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" title={`Contrôle technique expiré le ${format(controlDate!, "dd/MM/yyyy")}`} />
+              )}
             </div>
           )}
         </div>

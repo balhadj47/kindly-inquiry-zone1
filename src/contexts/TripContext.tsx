@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Trip {
@@ -36,6 +36,7 @@ interface TripProviderProps {
 export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
   // Fetch trips from database
   useEffect(() => {
@@ -65,14 +66,24 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           userIds: trip.user_ids || []
         }));
 
-        setTrips(transformedTrips);
+        // Only update state if component is still mounted
+        if (isMountedRef.current) {
+          setTrips(transformedTrips);
+        }
       } catch (err) {
         console.error('Error fetching trips:', err);
-        setError(err instanceof Error ? err.message : 'An error occurred');
+        if (isMountedRef.current) {
+          setError(err instanceof Error ? err.message : 'An error occurred');
+        }
       }
     };
 
+    isMountedRef.current = true;
     fetchTrips();
+    
+    return () => {
+      isMountedRef.current = false;
+    };
   }, []);
 
   const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
@@ -98,7 +109,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       console.log('Trip added successfully:', data);
 
       // Transform and add the new trip to the local state
-      if (data) {
+      if (data && isMountedRef.current) {
         const newTrip: Trip = {
           id: data.id,
           van: data.van,
@@ -114,7 +125,9 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       }
     } catch (err) {
       console.error('Error adding trip:', err);
-      setError(err instanceof Error ? err.message : 'Failed to add trip');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to add trip');
+      }
       throw err;
     }
   };

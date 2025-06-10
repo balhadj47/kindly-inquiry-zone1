@@ -71,14 +71,8 @@ const DashboardLoadingSkeleton = () => {
 
 const Dashboard = () => {
   const { users } = useRBAC();
-  const { vans, loading: vansLoading } = useVans();
-  const { companies, loading: companiesLoading } = useCompanies();
-
-  const isLoading = vansLoading || companiesLoading;
-
-  if (isLoading) {
-    return <DashboardLoadingSkeleton />;
-  }
+  const { vans } = useVans();
+  const { companies } = useCompanies();
 
   // Calculate real statistics
   const activeVans = vans.filter(van => van.status === 'Actif' || !van.status).length;

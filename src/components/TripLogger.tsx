@@ -10,14 +10,8 @@ import TripLoggerLoadingSkeleton from './TripLoggerLoadingSkeleton';
 
 const TripLogger = () => {
   const { t } = useLanguage();
-  const { loading: companiesLoading } = useCompanies();
-  const { loading: vansLoading } = useVans();
-
-  const isLoading = companiesLoading || vansLoading;
-
-  if (isLoading) {
-    return <TripLoggerLoadingSkeleton />;
-  }
+  const { companies } = useCompanies();
+  const { vans } = useVans();
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

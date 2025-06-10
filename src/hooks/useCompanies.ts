@@ -27,6 +27,7 @@ export const useCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<{ data: Company[]; timestamp: number } | null>(null);
+  const isMountedRef = useRef(true);
   const CACHE_DURATION = 30000; // 30 seconds cache
 
   const fetchCompanies = useCallback(async (useCache = true) => {
@@ -41,7 +42,9 @@ export const useCompanies = () => {
         
         if (isValid) {
           console.log('🏢 useCompanies: Using cached data');
-          setCompanies(data);
+          if (isMountedRef.current) {
+            setCompanies(data);
+          }
           return;
         }
       }
@@ -74,11 +77,16 @@ export const useCompanies = () => {
         timestamp: Date.now()
       };
       
-      setCompanies(data || []);
-      setError(null);
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setCompanies(data || []);
+        setError(null);
+      }
     } catch (err) {
       console.error('🏢 useCompanies: Error fetching companies:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     }
   }, []);
 
@@ -90,10 +98,12 @@ export const useCompanies = () => {
 
   useEffect(() => {
     console.log('🏢 useCompanies: useEffect triggered - component mounted or fetchCompanies changed');
+    isMountedRef.current = true;
     fetchCompanies();
     
     return () => {
       console.log('🏢 useCompanies: Cleanup - component unmounting');
+      isMountedRef.current = false;
     };
   }, [fetchCompanies]);
 

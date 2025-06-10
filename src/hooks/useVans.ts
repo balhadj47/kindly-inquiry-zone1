@@ -16,6 +16,7 @@ export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<{ data: Van[]; timestamp: number } | null>(null);
+  const isMountedRef = useRef(true);
   const CACHE_DURATION = 30000; // 30 seconds cache
 
   const fetchVans = useCallback(async (useCache = true) => {
@@ -30,7 +31,9 @@ export const useVans = () => {
         
         if (isValid) {
           console.log('🚐 useVans: Using cached data');
-          setVans(data);
+          if (isMountedRef.current) {
+            setVans(data);
+          }
           return;
         }
       }
@@ -53,11 +56,16 @@ export const useVans = () => {
         timestamp: Date.now()
       };
       
-      setVans(data || []);
-      setError(null);
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setVans(data || []);
+        setError(null);
+      }
     } catch (err) {
       console.error('🚐 useVans: Error fetching vans:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
     }
   }, []);
 
@@ -69,10 +77,12 @@ export const useVans = () => {
 
   useEffect(() => {
     console.log('🚐 useVans: useEffect triggered - component mounted or fetchVans changed');
+    isMountedRef.current = true;
     fetchVans();
     
     return () => {
       console.log('🚐 useVans: Cleanup - component unmounting');
+      isMountedRef.current = false;
     };
   }, [fetchVans]);
 

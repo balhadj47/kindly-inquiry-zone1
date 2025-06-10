@@ -20,8 +20,8 @@ const TripLoggerForm = () => {
   const { toast } = useToast();
   const { addTrip } = useTripContext();
   const { users } = useRBAC();
-  const { companies, loading: companiesLoading } = useCompanies();
-  const { vans, loading: vansLoading } = useVans();
+  const { companies } = useCompanies();
+  const { vans } = useVans();
   const { formData, handleInputChange, handleUserRoleSelection, resetForm, getTripData } = useTripForm();
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
@@ -108,16 +108,6 @@ const TripLoggerForm = () => {
       description: t.tripLoggedSuccessfully,
     });
   };
-
-  if (companiesLoading || vansLoading) {
-    return (
-      <Card className="w-full max-w-2xl mx-auto">
-        <CardContent className="pt-6">
-          <div className="text-center">{t.loading}...</div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

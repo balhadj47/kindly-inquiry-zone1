@@ -10,9 +10,19 @@ const Vans = () => {
   const { vans, refetch } = useVans();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [sortBy, setSortBy] = useState('license_plate');
+  const [sortField, setSortField] = useState('license_plate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const filteredAndSortedVans = useMemo(() => {
     let filtered = vans.filter(van =>
@@ -28,17 +38,18 @@ const Vans = () => {
     }
 
     return filtered.sort((a, b) => {
-      switch (sortBy) {
+      const direction = sortDirection === 'asc' ? 1 : -1;
+      switch (sortField) {
         case 'model':
-          return a.model.localeCompare(b.model);
+          return direction * a.model.localeCompare(b.model);
         case 'status':
-          return (a.status || 'Actif').localeCompare(b.status || 'Actif');
+          return direction * (a.status || 'Actif').localeCompare(b.status || 'Actif');
         case 'license_plate':
         default:
-          return a.license_plate.localeCompare(b.license_plate);
+          return direction * a.license_plate.localeCompare(b.license_plate);
       }
     });
-  }, [vans, searchTerm, statusFilter, sortBy]);
+  }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleAddVan = () => {
     setSelectedVan(null);
@@ -48,6 +59,14 @@ const Vans = () => {
   const handleEditVan = (van: any) => {
     setSelectedVan(van);
     setIsModalOpen(true);
+  };
+
+  const handleQuickAction = (action: string, van: any) => {
+    console.log(`Quick action: ${action} for van:`, van);
+  };
+
+  const handleDeleteVan = (van: any) => {
+    console.log('Delete van:', van);
   };
 
   const handleModalClose = () => {
@@ -69,23 +88,31 @@ const Vans = () => {
       
       <VanFilters
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        sortBy={sortBy}
-        onSortChange={setSortBy}
+        setStatusFilter={setStatusFilter}
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDirection={sortDirection}
+        toggleSort={toggleSort}
       />
 
       <VanList
         vans={filteredAndSortedVans}
+        totalVans={vans.length}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onAddVan={handleAddVan}
         onEditVan={handleEditVan}
+        onQuickAction={handleQuickAction}
+        onDeleteVan={handleDeleteVan}
       />
 
       <VanModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         van={selectedVan}
-        onSuccess={handleModalSuccess}
+        onSaveSuccess={handleModalSuccess}
       />
     </div>
   );

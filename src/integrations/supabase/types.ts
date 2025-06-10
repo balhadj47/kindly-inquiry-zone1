@@ -65,6 +65,7 @@ export type Database = {
           id: number
           notes: string | null
           user_ids: string[] | null
+          user_roles: Json | null
           van: string
         }
         Insert: {
@@ -75,6 +76,7 @@ export type Database = {
           id?: number
           notes?: string | null
           user_ids?: string[] | null
+          user_roles?: Json | null
           van: string
         }
         Update: {
@@ -85,6 +87,7 @@ export type Database = {
           id?: number
           notes?: string | null
           user_ids?: string[] | null
+          user_roles?: Json | null
           van?: string
         }
         Relationships: []

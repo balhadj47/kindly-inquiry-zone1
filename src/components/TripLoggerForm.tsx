@@ -85,19 +85,18 @@ const TripLoggerForm = () => {
       }
     }
 
-    const tripDataWithRoles = getTripData(driverName);
-    
     const tripData = {
       van: selectedVan.license_plate,
       driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
       notes: formData.notes,
-      userIds: tripDataWithRoles.userIds,
+      userIds: formData.selectedUsersWithRoles.map(u => u.userId),
+      userRoles: formData.selectedUsersWithRoles, // Pass the user roles data
     };
 
     console.log('Submitting trip data:', tripData);
-    console.log('User roles for this mission:', tripDataWithRoles.userRoles);
+    console.log('User roles for this mission:', tripData.userRoles);
 
     addTrip(tripData);
     resetForm();

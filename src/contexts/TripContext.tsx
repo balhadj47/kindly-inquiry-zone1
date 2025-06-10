@@ -16,6 +16,8 @@ export interface Trip {
 interface TripContextType {
   trips: Trip[];
   addTrip: (trip: Omit<Trip, 'id' | 'timestamp'>) => Promise<void>;
+  deleteTrip: (tripId: number) => Promise<void>;
+  refreshTrips: () => Promise<void>;
   error: string | null;
 }
 
@@ -39,45 +41,45 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   const isMountedRef = useRef(true);
 
   // Fetch trips from database
-  useEffect(() => {
-    const fetchTrips = async () => {
-      try {
-        const { data, error } = await (supabase as any)
-          .from('trips')
-          .select('*')
-          .order('created_at', { ascending: false });
+  const fetchTrips = async () => {
+    try {
+      const { data, error } = await (supabase as any)
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-        if (error) {
-          console.error('Trips error:', error);
-          throw error;
-        }
-
-        console.log('Fetched trips:', data);
-
-        // Transform database data to match our Trip interface
-        const transformedTrips = (data || []).map((trip: any) => ({
-          id: trip.id,
-          van: trip.van,
-          driver: trip.driver,
-          company: trip.company,
-          branch: trip.branch,
-          timestamp: trip.created_at,
-          notes: trip.notes || '',
-          userIds: trip.user_ids || []
-        }));
-
-        // Only update state if component is still mounted
-        if (isMountedRef.current) {
-          setTrips(transformedTrips);
-        }
-      } catch (err) {
-        console.error('Error fetching trips:', err);
-        if (isMountedRef.current) {
-          setError(err instanceof Error ? err.message : 'An error occurred');
-        }
+      if (error) {
+        console.error('Trips error:', error);
+        throw error;
       }
-    };
 
+      console.log('Fetched trips:', data);
+
+      // Transform database data to match our Trip interface
+      const transformedTrips = (data || []).map((trip: any) => ({
+        id: trip.id,
+        van: trip.van,
+        driver: trip.driver,
+        company: trip.company,
+        branch: trip.branch,
+        timestamp: trip.created_at,
+        notes: trip.notes || '',
+        userIds: trip.user_ids || []
+      }));
+
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setTrips(transformedTrips);
+      }
+    } catch (err) {
+      console.error('Error fetching trips:', err);
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+      }
+    }
+  };
+
+  useEffect(() => {
     isMountedRef.current = true;
     fetchTrips();
     
@@ -132,8 +134,39 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteTrip = async (tripId: number) => {
+    try {
+      const { error } = await (supabase as any)
+        .from('trips')
+        .delete()
+        .eq('id', tripId);
+
+      if (error) {
+        console.error('Delete trip error:', error);
+        throw error;
+      }
+
+      console.log('Trip deleted successfully:', tripId);
+
+      // Remove the trip from local state
+      if (isMountedRef.current) {
+        setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
+      }
+    } catch (err) {
+      console.error('Error deleting trip:', err);
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to delete trip');
+      }
+      throw err;
+    }
+  };
+
+  const refreshTrips = async () => {
+    await fetchTrips();
+  };
+
   return (
-    <TripContext.Provider value={{ trips, addTrip, error }}>
+    <TripContext.Provider value={{ trips, addTrip, deleteTrip, refreshTrips, error }}>
       {children}
     </TripContext.Provider>
   );

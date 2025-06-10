@@ -1,24 +1,38 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Clock, Truck, Building2, Users, MapPin, FileText, Download, RotateCcw } from 'lucide-react';
+import { Calendar, Clock, Truck, Building2, Users, MapPin, FileText, Download, RotateCcw, Trash2 } from 'lucide-react';
 import { useTripContext } from '@/contexts/TripContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import TripDetailsDialog from './TripDetailsDialog';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 
 const TripHistory = () => {
   const { trips } = useTripContext();
   const { companies } = useCompanies();
   const { vans } = useVans();
+  const { toast } = useToast();
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [vanFilter, setVanFilter] = useState('all');
+  const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
 
   const filteredTrips = useMemo(() => {
     return trips.filter(trip => {
@@ -34,6 +48,42 @@ const TripHistory = () => {
       return matchesSearch && matchesCompany && matchesVan;
     });
   }, [trips, searchTerm, companyFilter, vanFilter]);
+
+  const handleDeleteTrip = async (tripId: number) => {
+    setDeletingTripId(tripId);
+    try {
+      const { error } = await supabase
+        .from('trips')
+        .delete()
+        .eq('id', tripId);
+
+      if (error) {
+        console.error('Error deleting trip:', error);
+        toast({
+          title: "Erreur",
+          description: "Impossible de supprimer le voyage",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      toast({
+        title: "Succès",
+        description: "Le voyage a été supprimé avec succès",
+      });
+
+      // The trip will be removed from the list automatically when the TripContext refreshes
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de supprimer le voyage",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingTripId(null);
+    }
+  };
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -182,7 +232,7 @@ const TripHistory = () => {
         </Card>
       </div>
 
-      {/* Trip History */}
+      {/* Trip History with Delete functionality */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Historique des Voyages ({filteredTrips.length})</CardTitle>
@@ -204,10 +254,12 @@ const TripHistory = () => {
               {filteredTrips.map((trip) => (
                 <div
                   key={trip.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
-                  onClick={() => setSelectedTrip(trip)}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  <div className="flex-1 space-y-2">
+                  <div
+                    className="flex-1 space-y-2 cursor-pointer"
+                    onClick={() => setSelectedTrip(trip)}
+                  >
                     <div className="flex items-center space-x-4 text-sm">
                       <Badge variant="outline" className="text-blue-600">
                         <Calendar className="h-3 w-3 mr-1" />
@@ -250,6 +302,37 @@ const TripHistory = () => {
                     <Badge className="bg-green-100 text-green-800">
                       {trip.userIds?.length || 0} utilisateurs
                     </Badge>
+                    
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          disabled={deletingTripId === trip.id}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer le voyage</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer le voyage #{trip.id} du {formatDate(trip.timestamp)} ? 
+                            Cette action ne peut pas être annulée.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => handleDeleteTrip(trip.id)}
+                            className="bg-red-600 hover:bg-red-700"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
                   </div>
                 </div>
               ))}

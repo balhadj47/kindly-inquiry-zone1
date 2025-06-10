@@ -23,8 +23,18 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
   const { t } = useLanguage();
 
   // Check if dates are expired
-  const isInsuranceExpired = formData.insuranceDate && formData.insuranceDate < new Date();
-  const isControlExpired = formData.controlDate && formData.controlDate < new Date();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
+  
+  const isInsuranceExpired = formData.insuranceDate && formData.insuranceDate < today;
+  const isControlExpired = formData.controlDate && formData.controlDate < today;
+
+  // Debug logging
+  console.log('🚐 VanFormFields - Insurance Date:', formData.insuranceDate);
+  console.log('🚐 VanFormFields - Control Date:', formData.controlDate);
+  console.log('🚐 VanFormFields - Today:', today);
+  console.log('🚐 VanFormFields - Insurance Expired:', isInsuranceExpired);
+  console.log('🚐 VanFormFields - Control Expired:', isControlExpired);
 
   return (
     <div className="space-y-4">
@@ -84,7 +94,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label className="text-sm sm:text-base">Date d'assurance</Label>
+          <Label className="text-sm sm:text-base font-semibold">📅 Date d'Assurance</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -109,17 +119,17 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             </PopoverContent>
           </Popover>
           {isInsuranceExpired && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-2">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                L'assurance a expiré le {format(formData.insuranceDate!, "dd/MM/yyyy")}
+              <AlertDescription className="font-medium">
+                ⚠️ L'assurance a expiré le {format(formData.insuranceDate!, "dd/MM/yyyy")}
               </AlertDescription>
             </Alert>
           )}
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm sm:text-base">Date de Contrôle Technique</Label>
+          <Label className="text-sm sm:text-base font-semibold">🔧 Date de Contrôle Technique</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
@@ -144,10 +154,10 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             </PopoverContent>
           </Popover>
           {isControlExpired && (
-            <Alert variant="destructive">
+            <Alert variant="destructive" className="mt-2">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                Le contrôle technique a expiré le {format(formData.controlDate!, "dd/MM/yyyy")}
+              <AlertDescription className="font-medium">
+                ⚠️ Le contrôle technique a expiré le {format(formData.controlDate!, "dd/MM/yyyy")}
               </AlertDescription>
             </Alert>
           )}

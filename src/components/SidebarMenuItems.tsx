@@ -42,13 +42,6 @@ export const useSidebarMenuItems = () => {
         badge: null,
       },
       {
-        title: t.users,
-        href: '/users',
-        icon: Users,
-        permission: 'users:read',
-        badge: null,
-      },
-      {
         title: t.logTrip,
         href: '/trip-logger',
         icon: MapIcon,
@@ -60,6 +53,13 @@ export const useSidebarMenuItems = () => {
         href: '/trip-history',
         icon: List,
         permission: 'trips:read',
+        badge: null,
+      },
+      {
+        title: t.users,
+        href: '/users',
+        icon: Users,
+        permission: 'users:read',
         badge: null,
       },
     ];

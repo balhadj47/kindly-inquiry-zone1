@@ -42,21 +42,71 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   hasActiveFilters,
   clearFilters,
 }) => {
-  // Add null checks and default values
-  const safeUniqueStatuses = uniqueStatuses || [];
-  const safeUniqueRoles = uniqueRoles || [];
-  const safeGroups = groups || [];
-  const safeFilteredCount = filteredCount || 0;
-  const safeTotalCount = totalCount || 0;
+  // Add comprehensive safety checks and default values
+  const safeUniqueStatuses = Array.isArray(uniqueStatuses) ? uniqueStatuses.filter(Boolean) : [];
+  const safeUniqueRoles = Array.isArray(uniqueRoles) ? uniqueRoles.filter(Boolean) : [];
+  const safeGroups = Array.isArray(groups) ? groups.filter(group => group && group.id && group.name) : [];
+  const safeFilteredCount = typeof filteredCount === 'number' && !isNaN(filteredCount) ? filteredCount : 0;
+  const safeTotalCount = typeof totalCount === 'number' && !isNaN(totalCount) ? totalCount : 0;
+  const safeSearchTerm = typeof searchTerm === 'string' ? searchTerm : '';
 
-  console.log('UserFilters - Rendering with:', {
-    searchTerm,
+  // Safe handlers with error catching
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setSearchTerm(e.target.value || '');
+    } catch (error) {
+      console.error('Error updating search term:', error);
+    }
+  };
+
+  const handleStatusChange = (value: string) => {
+    try {
+      setStatusFilter(value || 'all');
+    } catch (error) {
+      console.error('Error updating status filter:', error);
+    }
+  };
+
+  const handleRoleChange = (value: string) => {
+    try {
+      setRoleFilter(value || 'all');
+    } catch (error) {
+      console.error('Error updating role filter:', error);
+    }
+  };
+
+  const handleGroupChange = (value: string) => {
+    try {
+      setGroupFilter(value || 'all');
+    } catch (error) {
+      console.error('Error updating group filter:', error);
+    }
+  };
+
+  const handleClearFilters = () => {
+    try {
+      clearFilters();
+    } catch (error) {
+      console.error('Error clearing filters:', error);
+    }
+  };
+
+  // Find group name safely
+  const getGroupName = (groupId: string) => {
+    const group = safeGroups.find(g => g.id === groupId);
+    return group?.name || 'Groupe inconnu';
+  };
+
+  console.log('UserFilters - Rendering with safe data:', {
+    searchTerm: safeSearchTerm,
     statusFilter,
     roleFilter,
     groupFilter,
     uniqueStatuses: safeUniqueStatuses.length,
     uniqueRoles: safeUniqueRoles.length,
-    groups: safeGroups.length
+    groups: safeGroups.length,
+    filteredCount: safeFilteredCount,
+    totalCount: safeTotalCount
   });
 
   return (
@@ -68,15 +118,15 @@ const UserFilters: React.FC<UserFiltersProps> = ({
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Rechercher par nom, email, ou numéro de permis..."
-              value={searchTerm || ''}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={safeSearchTerm}
+              onChange={handleSearchChange}
               className="pl-10"
             />
           </div>
 
           {/* Filter Row */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
               <SelectTrigger>
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrer par statut" />
@@ -89,7 +139,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               </SelectContent>
             </Select>
 
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <Select value={roleFilter || 'all'} onValueChange={handleRoleChange}>
               <SelectTrigger>
                 <Shield className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrer par rôle" />
@@ -102,7 +152,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               </SelectContent>
             </Select>
 
-            <Select value={groupFilter} onValueChange={setGroupFilter}>
+            <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
               <SelectTrigger>
                 <UsersIcon className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrer par groupe" />
@@ -110,13 +160,13 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               <SelectContent className="bg-background border shadow-lg z-50">
                 <SelectItem value="all">Tous les Groupes</SelectItem>
                 {safeGroups.map(group => (
-                  <SelectItem key={group.id} value={group.id}>{group.name || 'Groupe sans nom'}</SelectItem>
+                  <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
 
             {hasActiveFilters && (
-              <Button variant="outline" onClick={clearFilters} className="flex items-center space-x-2">
+              <Button variant="outline" onClick={handleClearFilters} className="flex items-center space-x-2">
                 <X className="h-4 w-4" />
                 <span>Effacer les Filtres</span>
               </Button>
@@ -132,12 +182,12 @@ const UserFilters: React.FC<UserFiltersProps> = ({
             {hasActiveFilters && (
               <div className="flex items-center space-x-2">
                 <span>Filtres actifs:</span>
-                {searchTerm && <Badge variant="secondary">Recherche: "{searchTerm}"</Badge>}
+                {safeSearchTerm && <Badge variant="secondary">Recherche: "{safeSearchTerm}"</Badge>}
                 {statusFilter !== 'all' && <Badge variant="secondary">Statut: {statusFilter}</Badge>}
                 {roleFilter !== 'all' && <Badge variant="secondary">Rôle: {roleFilter}</Badge>}
                 {groupFilter !== 'all' && (
                   <Badge variant="secondary">
-                    Groupe: {safeGroups.find(g => g.id === groupFilter)?.name || 'Inconnu'}
+                    Groupe: {getGroupName(groupFilter)}
                   </Badge>
                 )}
               </div>

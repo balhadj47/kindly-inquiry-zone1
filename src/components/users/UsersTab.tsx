@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { User } from '@/types/rbac';
 import UserFilters from './UserFilters';
@@ -47,47 +47,95 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = view === 'grid' ? 12 : 25;
 
-  // Add safety checks for arrays
-  const safeUsers = users || [];
-  const safeGroups = groups || [];
-
-  console.log('UsersTab - Rendering with:', {
-    usersCount: safeUsers.length,
-    groupsCount: safeGroups.length,
-    searchTerm,
-    statusFilter,
-    roleFilter,
-    groupFilter,
-    view,
-    currentPage
-  });
-
-  const filteredUsers = safeUsers.filter(user => {
-    if (!user) {
-      console.warn('UsersTab - Null user found in filter');
-      return false;
+  // Add comprehensive safety checks for arrays
+  const safeUsers = useMemo(() => {
+    if (!Array.isArray(users)) {
+      console.warn('UsersTab - users prop is not an array:', typeof users);
+      return [];
     }
+    return users.filter(user => user && typeof user === 'object' && user.id);
+  }, [users]);
 
-    const matchesSearch = 
-      (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.licenseNumber && user.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()));
+  const safeGroups = useMemo(() => {
+    if (!Array.isArray(groups)) {
+      console.warn('UsersTab - groups prop is not an array:', typeof groups);
+      return [];
+    }
+    return groups.filter(group => group && typeof group === 'object' && group.id);
+  }, [groups]);
 
-    const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
-    const matchesRole = roleFilter === 'all' || user.role === roleFilter;
-    const matchesGroup = groupFilter === 'all' || user.groupId === groupFilter;
+  // Memoize filtered users to prevent unnecessary recalculations
+  const filteredUsers = useMemo(() => {
+    try {
+      return safeUsers.filter(user => {
+        if (!user || typeof user !== 'object') {
+          console.warn('UsersTab - Invalid user object:', user);
+          return false;
+        }
 
-    return matchesSearch && matchesStatus && matchesRole && matchesGroup;
-  });
+        const safeSearchTerm = typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
+        
+        const matchesSearch = !safeSearchTerm || 
+          (user.name && user.name.toLowerCase().includes(safeSearchTerm)) ||
+          (user.email && user.email.toLowerCase().includes(safeSearchTerm)) ||
+          (user.licenseNumber && user.licenseNumber.toLowerCase().includes(safeSearchTerm));
 
-  const uniqueStatuses = [...new Set(safeUsers.map(user => user?.status).filter(Boolean))];
-  const uniqueRoles = [...new Set(safeUsers.map(user => user?.role).filter(Boolean))];
+        const matchesStatus = !statusFilter || statusFilter === 'all' || user.status === statusFilter;
+        const matchesRole = !roleFilter || roleFilter === 'all' || user.role === roleFilter;
+        const matchesGroup = !groupFilter || groupFilter === 'all' || user.groupId === groupFilter;
 
-  console.log('UsersTab - Filter results:', {
-    filteredUsersCount: filteredUsers.length,
-    uniqueStatuses: uniqueStatuses.length,
-    uniqueRoles: uniqueRoles.length
-  });
+        return matchesSearch && matchesStatus && matchesRole && matchesGroup;
+      });
+    } catch (error) {
+      console.error('Error filtering users:', error);
+      return [];
+    }
+  }, [safeUsers, searchTerm, statusFilter, roleFilter, groupFilter]);
+
+  // Memoize unique values
+  const uniqueStatuses = useMemo(() => {
+    try {
+      const statuses = safeUsers
+        .map(user => user?.status)
+        .filter(status => status && typeof status === 'string');
+      return [...new Set(statuses)];
+    } catch (error) {
+      console.error('Error calculating unique statuses:', error);
+      return [];
+    }
+  }, [safeUsers]);
+
+  const uniqueRoles = useMemo(() => {
+    try {
+      const roles = safeUsers
+        .map(user => user?.role)
+        .filter(role => role && typeof role === 'string');
+      return [...new Set(roles)];
+    } catch (error) {
+      console.error('Error calculating unique roles:', error);
+      return [];
+    }
+  }, [safeUsers]);
+
+  // Safe view change handler
+  const handleViewChange = useCallback((newView: 'grid' | 'table') => {
+    try {
+      setView(newView);
+      setCurrentPage(1); // Reset to first page when changing view
+    } catch (error) {
+      console.error('Error changing view:', error);
+    }
+  }, []);
+
+  // Safe page change handler
+  const handlePageChange = useCallback((page: number) => {
+    try {
+      const safePage = Math.max(1, Math.floor(page));
+      setCurrentPage(safePage);
+    } catch (error) {
+      console.error('Error changing page:', error);
+    }
+  }, []);
 
   // Reset to first page when filters change
   React.useEffect(() => {
@@ -95,16 +143,24 @@ const UsersTab: React.FC<UsersTabProps> = ({
     setCurrentPage(1);
   }, [searchTerm, statusFilter, roleFilter, groupFilter, view]);
 
-  const totalPages = Math.ceil(filteredUsers.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
+  // Calculate pagination safely
+  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  console.log('UsersTab - Pagination:', {
+  console.log('UsersTab - Rendering with safe data:', {
+    usersCount: safeUsers.length,
+    groupsCount: safeGroups.length,
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    groupFilter,
+    view,
+    currentPage: safeCurrentPage,
+    filteredUsersCount: filteredUsers.length,
     totalPages,
-    currentPage,
-    startIndex,
-    endIndex,
     paginatedUsersCount: paginatedUsers.length
   });
 
@@ -133,7 +189,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
         
         <UserViewToggle
           view={view}
-          onViewChange={setView}
+          onViewChange={handleViewChange}
         />
       </div>
 
@@ -166,9 +222,9 @@ const UsersTab: React.FC<UsersTabProps> = ({
               />
               
               <UserPagination
-                currentPage={currentPage}
+                currentPage={safeCurrentPage}
                 totalPages={totalPages}
-                onPageChange={setCurrentPage}
+                onPageChange={handlePageChange}
                 totalItems={filteredUsers.length}
                 itemsPerPage={itemsPerPage}
               />
@@ -183,9 +239,9 @@ const UsersTab: React.FC<UsersTabProps> = ({
           onEditUser={onEditUser}
           onDeleteUser={onDeleteUser}
           onChangePassword={onChangePassword}
-          currentPage={currentPage}
+          currentPage={safeCurrentPage}
           itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
+          onPageChange={handlePageChange}
         />
       )}
     </TabsContent>

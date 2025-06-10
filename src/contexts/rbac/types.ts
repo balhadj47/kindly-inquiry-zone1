@@ -1,34 +1,26 @@
 
-import type { User, UserGroup, Permission } from '@/types/rbac';
-
-export interface RBACUser extends User {}
-
-export interface RBACGroup extends UserGroup {}
-
-export interface RBACState {
-  currentUser: RBACUser | null;
-  users: RBACUser[];
-  groups: RBACGroup[];
-  permissions: Permission[];
-  loading: boolean;
-  error: Error | null;
-}
-
-export type RBACActions = 
-  | { type: 'SET_USER'; payload: RBACUser | null }
-  | { type: 'SET_USERS'; payload: RBACUser[] }
-  | { type: 'SET_GROUPS'; payload: RBACGroup[] }
-  | { type: 'SET_PERMISSIONS'; payload: Permission[] }
-  | { type: 'SET_LOADING'; payload: boolean }
-  | { type: 'SET_ERROR'; payload: Error | null };
+import type { User, Group, Permission } from '@/types/rbac';
 
 export interface RBACContextType {
-  currentUser: RBACUser | null;
-  users: RBACUser[];
-  groups: RBACGroup[];
+  // State
+  currentUser: User | null;
+  users: User[];
+  groups: Group[];
   permissions: Permission[];
   loading: boolean;
-  setUser: (user: RBACUser | null) => void;
+  
+  // User operations
+  addUser: (userData: Partial<User>) => Promise<void>;
+  updateUser: (id: string, userData: Partial<User>) => Promise<User>;
+  deleteUser: (id: string) => Promise<void>;
+  changeUserPassword: (userEmail: string, newPassword: string) => Promise<void>;
+  
+  // Group operations
+  addGroup: (groupData: Partial<Group>) => Promise<void>;
+  updateGroup: (id: string, groupData: Partial<Group>) => Promise<void>;
+  deleteGroup: (id: string) => Promise<void>;
+  
+  // Permission utilities
   hasPermission: (permission: string) => boolean;
   getMenuItemPermissions: () => {
     dashboard: boolean;
@@ -38,11 +30,7 @@ export interface RBACContextType {
     tripLogger: boolean;
     tripHistory: boolean;
   };
-  addUser: (userData: any) => Promise<void>;
-  updateUser: (userId: string, userData: any) => Promise<void>; // Fixed type
-  deleteUser: (userId: string) => Promise<void>; // Fixed type
-  addGroup: (groupData: any) => Promise<void>;
-  updateGroup: (groupId: string, groupData: any) => Promise<void>;
-  deleteGroup: (groupId: string) => Promise<void>;
-  changeUserPassword: (email: string, newPassword: string) => Promise<void>;
+  
+  // User state setter
+  setUser: (user: User | null) => void;
 }

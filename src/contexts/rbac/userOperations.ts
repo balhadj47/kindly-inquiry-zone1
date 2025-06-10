@@ -17,6 +17,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip,
+        profile_image: userData.profileImage,
       }])
       .select();
 
@@ -38,7 +39,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
-        profileImage: userData.profileImage,
+        profileImage: data[0].profile_image,
       };
       console.log('User added successfully, updating state:', newUser);
       setUsers(prev => [...prev, newUser]);
@@ -59,6 +60,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
+        profile_image: userData.profileImage,
       })
       .eq('id', parseInt(id))
       .select();
@@ -81,7 +83,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
-        profileImage: userData.profileImage,
+        profileImage: data[0].profile_image,
       };
       console.log('User updated successfully, updating state with:', updatedUser);
       

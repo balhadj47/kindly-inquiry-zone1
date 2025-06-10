@@ -124,6 +124,7 @@ export type Database = {
           license_number: string | null
           name: string
           phone: string
+          profile_image: string | null
           role: string
           status: string
           total_trips: number | null
@@ -138,6 +139,7 @@ export type Database = {
           license_number?: string | null
           name: string
           phone: string
+          profile_image?: string | null
           role: string
           status: string
           total_trips?: number | null
@@ -152,6 +154,7 @@ export type Database = {
           license_number?: string | null
           name?: string
           phone?: string
+          profile_image?: string | null
           role?: string
           status?: string
           total_trips?: number | null
@@ -214,6 +217,7 @@ export type Database = {
           license_number: string | null
           name: string
           phone: string
+          profile_image: string | null
           role: string
           status: string
           total_trips: number | null

@@ -78,7 +78,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}</span>
               {isInsuranceExpired && (
-                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" title={`Assurance expirée le ${format(insuranceDate!, "dd/MM/yyyy")}`} />
+                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" />
               )}
             </div>
           )}
@@ -87,7 +87,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}</span>
               {isControlExpired && (
-                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" title={`Contrôle technique expiré le ${format(controlDate!, "dd/MM/yyyy")}`} />
+                <AlertTriangle className="h-3 w-3 text-red-500 ml-1" />
               )}
             </div>
           )}

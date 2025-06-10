@@ -32,7 +32,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
   const { addUser, updateUser } = useRBAC();
   const [profileImage, setProfileImage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const isMountedRef = useRef(true);
+  const submissionInProgress = useRef(false);
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -48,18 +48,13 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
     }
   });
 
-  // Track component mount status
+  // Reset form and state when modal opens with a new user or closes
   useEffect(() => {
-    isMountedRef.current = true;
-    return () => {
-      isMountedRef.current = false;
-    };
-  }, []);
-
-  // Reset form and state when modal opens/closes or user changes
-  useEffect(() => {
-    if (isOpen) {
+    console.log('Modal state changed:', { isOpen, userId: user?.id, submissionInProgress: submissionInProgress.current });
+    
+    if (isOpen && !submissionInProgress.current) {
       if (user) {
+        console.log('Resetting form for existing user:', user.id);
         form.reset({
           name: user.name,
           email: user.email,
@@ -73,6 +68,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
         });
         setProfileImage(user.profileImage || '');
       } else {
+        console.log('Resetting form for new user');
         form.reset({
           name: '',
           email: '',
@@ -88,11 +84,12 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       }
     }
     
-    // Reset submitting state when modal state changes
-    if (!isOpen) {
+    // Clean up submission state when modal closes
+    if (!isOpen && !submissionInProgress.current) {
+      console.log('Modal closed, cleaning up state');
       setIsSubmitting(false);
     }
-  }, [user, form, isOpen]);
+  }, [user?.id, form, isOpen]);
 
   const handleImageChange = (image: string) => {
     setProfileImage(image);
@@ -100,9 +97,14 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
   };
 
   const handleSubmit = async (data: UserFormData) => {
-    if (isSubmitting || !isMountedRef.current) return;
+    if (isSubmitting || submissionInProgress.current) {
+      console.log('Submission already in progress, ignoring');
+      return;
+    }
     
+    console.log('Starting submission for user:', user ? 'update' : 'create');
     setIsSubmitting(true);
+    submissionInProgress.current = true;
     
     try {
       const userData = {
@@ -116,28 +118,34 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       };
 
       if (user) {
+        console.log('Updating user:', user.id);
         await updateUser(user.id, userData);
       } else {
+        console.log('Adding new user');
         await addUser(userData);
       }
       
-      // Only close if component is still mounted
-      if (isMountedRef.current) {
-        onClose();
-      }
+      console.log('Submission successful, closing modal');
+      
+      // Reset states before closing
+      setIsSubmitting(false);
+      submissionInProgress.current = false;
+      
+      // Close modal
+      onClose();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
-    } finally {
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setIsSubmitting(false);
-      }
+      setIsSubmitting(false);
+      submissionInProgress.current = false;
     }
   };
 
   const handleClose = () => {
-    if (!isSubmitting && isMountedRef.current) {
+    if (!isSubmitting && !submissionInProgress.current) {
+      console.log('Closing modal via close button');
       onClose();
+    } else {
+      console.log('Close blocked - submission in progress');
     }
   };
 

@@ -18,10 +18,28 @@ export const useRBACOperations = ({
   setGroups,
 }: UseRBACOperationsProps) => {
   // Memoize permission utils to prevent recreation on every render
+  // Only create when we have both user and groups data
   const permissionUtils = useMemo(() => {
-    console.log('Creating permission utils for user:', currentUser?.id);
+    console.log('Creating permission utils - User:', currentUser?.id, 'Groups:', groups.length);
+    
+    // Wait for groups to be loaded before creating permission utils
+    if (!currentUser || groups.length === 0) {
+      console.log('Skipping permission utils creation - missing data');
+      return {
+        hasPermission: () => false,
+        getMenuItemPermissions: () => ({
+          dashboard: false,
+          companies: false,
+          vans: false,
+          users: false,
+          tripLogger: false,
+          tripHistory: false,
+        }),
+      };
+    }
+    
     return createPermissionUtils(currentUser, groups);
-  }, [currentUser?.id, currentUser?.groupId, groups]);
+  }, [currentUser?.id, currentUser?.groupId, groups.length, groups]);
 
   const userOperations = useMemo(() => createUserOperations(setUsers), [setUsers]);
 

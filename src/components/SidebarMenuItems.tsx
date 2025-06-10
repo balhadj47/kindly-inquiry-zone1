@@ -14,9 +14,9 @@ import { useRBAC } from '@/contexts/RBACContext';
 
 export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
-  const { hasPermission } = useRBAC();
+  const { hasPermission, currentUser, groups } = useRBAC();
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     {
       title: t.dashboard,
       href: '/',
@@ -59,23 +59,15 @@ export const useSidebarMenuItems = () => {
       permission: 'trips.view',
       badge: null,
     },
-  ];
+  ], [t]);
 
-  // Filter menu items based on permissions only (no search query)
+  // Filter menu items based on permissions - memoized to prevent unnecessary recalculations
   const filteredMenuItems = useMemo(() => {
     return menuItems.filter(item => {
       const hasPermissionForItem = hasPermission(item.permission);
       return hasPermissionForItem;
     });
-  }, [menuItems, hasPermission]);
-
-  // Debug permissions for each menu item
-  menuItems.forEach(item => {
-    const permission = hasPermission(item.permission);
-    console.log(`Permission for ${item.title} (${item.permission}):`, permission);
-  });
-
-  console.log('Visible menu items:', filteredMenuItems);
+  }, [menuItems, hasPermission, currentUser?.id, groups]);
 
   return filteredMenuItems;
 };

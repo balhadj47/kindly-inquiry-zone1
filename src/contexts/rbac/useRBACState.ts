@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { clearPermissionCache } from './permissionUtils';
 import type { User, UserGroup, Permission } from '@/types/rbac';
 
 export const useRBACState = () => {
@@ -10,8 +11,17 @@ export const useRBACState = () => {
   const [loading, setLoading] = useState(true);
 
   const setUser = (user: User | null) => {
+    // Clear permission cache when user changes
+    if (currentUser?.id !== user?.id) {
+      clearPermissionCache();
+    }
     setCurrentUser(user);
   };
+
+  // Clear cache when groups change
+  useEffect(() => {
+    clearPermissionCache();
+  }, [groups]);
 
   return {
     currentUser,

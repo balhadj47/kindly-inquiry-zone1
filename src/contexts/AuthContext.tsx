@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -18,33 +18,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const initialized = useRef(false);
+  const subscriptionRef = useRef<any>(null);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    console.log("Setting up auth state listener...");
+    // Prevent re-initialization on tab focus
+    if (initialized.current) {
+      console.log("Auth already initialized, skipping...");
+      return;
+    }
+
+    console.log("Initializing auth state...");
+    initialized.current = true;
+
+    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log('Auth state changed:', event, session);
-        setSession(session);
-        setUser(session?.user ?? null);
+        console.log('Auth state changed:', event, session?.user?.id);
+        
+        // Only update state if there's an actual change
+        if (session?.user?.id !== user?.id || session?.access_token !== subscriptionRef.current?.access_token) {
+          setSession(session);
+          setUser(session?.user ?? null);
+        }
+        
         setLoading(false);
       }
     );
 
-    // THEN check for existing session
-    console.log("Checking for existing session...");
+    subscriptionRef.current = subscription;
+
+    // Check for existing session only once
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error("Error getting session:", error);
       }
-      console.log("Initial session check result:", session);
+      console.log("Initial session check:", session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      if (subscriptionRef.current) {
+        subscriptionRef.current.unsubscribe();
+      }
+    };
+  }, []); // Empty dependency array to run only once
 
   const signIn = async (email: string, password: string) => {
     console.log("Attempting sign in for:", email);

@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadUserData, loadUsersData, loadGroupsData, loadPermissionsData } from './dataLoaders';
 import { RBACUser, RBACGroup } from './types';
@@ -20,14 +20,23 @@ export const useRBACDataInit = ({
   setLoading,
 }: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
+  const initialized = useRef(false);
+  const lastUserId = useRef<string | null>(null);
 
   useEffect(() => {
     const initializeData = async () => {
-      console.log('RBAC Data Init - Auth user:', authUser);
+      console.log('RBAC Data Init - Auth user:', authUser?.id);
       console.log('RBAC Data Init - Auth loading:', authLoading);
       
       if (authLoading) {
         console.log('Auth still loading, waiting...');
+        return;
+      }
+
+      // Check if we're dealing with the same user
+      const currentUserId = authUser?.id || null;
+      if (initialized.current && lastUserId.current === currentUserId) {
+        console.log('RBAC already initialized for this user, skipping...');
         return;
       }
 
@@ -38,36 +47,38 @@ export const useRBACDataInit = ({
         setUsers([]);
         setGroups([]);
         setPermissions([]);
+        initialized.current = false;
+        lastUserId.current = null;
         return;
       }
 
-      console.log('Loading user data for authenticated user:', authUser.id);
+      console.log('Initializing RBAC data for user:', currentUserId);
+      initialized.current = true;
+      lastUserId.current = currentUserId;
       setLoading(true);
       
       try {
-        // Load permissions first
-        console.log('Calling loadPermissionsData...');
+        // Load permissions first (they're static)
+        console.log('Loading permissions data...');
         const permissionsData = await loadPermissionsData();
-        console.log('Permissions data loaded:', permissionsData);
         setPermissions(permissionsData);
 
         // Load current user data
-        console.log('Calling loadUserData...');
+        console.log('Loading current user data...');
         const userData = await loadUserData();
-        console.log('User data loaded:', userData);
         setCurrentUser(userData);
 
         // Load all users data
-        console.log('Calling loadUsersData...');
+        console.log('Loading users data...');
         const usersData = await loadUsersData();
-        console.log('Users data loaded:', usersData);
         setUsers(usersData);
 
         // Load groups data
-        console.log('Calling loadGroupsData...');
+        console.log('Loading groups data...');
         const groupsData = await loadGroupsData();
-        console.log('Groups data loaded:', groupsData);
         setGroups(groupsData);
+
+        console.log('RBAC data initialization complete');
       } catch (error) {
         console.error('Error loading RBAC data:', error);
       } finally {
@@ -76,5 +87,5 @@ export const useRBACDataInit = ({
     };
 
     initializeData();
-  }, [authUser, authLoading, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
+  }, [authUser?.id, authLoading, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
 };

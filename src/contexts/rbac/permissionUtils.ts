@@ -1,35 +1,31 @@
 
 import { RBACUser, RBACGroup } from './types';
 
+// Cache for permission checks to avoid repeated calculations
+const permissionCache = new Map<string, boolean>();
+
 export const hasPermission = (
   permission: string,
   user: RBACUser | null,
   groups: RBACGroup[]
 ): boolean => {
-  console.log('Checking permission:', permission);
-  console.log('Current user:', user);
-  console.log('Available groups:', groups);
-
-  if (!user) {
-    console.log('No user found, permission denied');
+  if (!user || !user.groupId) {
     return false;
   }
 
-  if (!user.groupId) {
-    console.log('User has no group ID, permission denied');
-    return false;
+  // Create cache key
+  const cacheKey = `${user.id}-${user.groupId}-${permission}`;
+  
+  // Check cache first
+  if (permissionCache.has(cacheKey)) {
+    return permissionCache.get(cacheKey)!;
   }
 
   const userGroup = groups.find(group => group.id === user.groupId);
-  console.log('User group found:', userGroup);
-
-  if (!userGroup) {
-    console.log('User group not found in groups list, permission denied');
-    return false;
-  }
-
-  const hasPermissionResult = userGroup.permissions.includes(permission);
-  console.log(`Permission for ${permission}: ${hasPermissionResult}`);
+  const hasPermissionResult = userGroup?.permissions.includes(permission) || false;
+  
+  // Cache the result
+  permissionCache.set(cacheKey, hasPermissionResult);
   
   return hasPermissionResult;
 };
@@ -44,7 +40,6 @@ export const getMenuItemPermissions = (user: RBACUser | null, groups: RBACGroup[
     tripHistory: hasPermission('trips.view', user, groups),
   };
 
-  console.log('Menu permissions:', permissions);
   return permissions;
 };
 
@@ -52,3 +47,8 @@ export const createPermissionUtils = (currentUser: RBACUser | null, groups: RBAC
   hasPermission: (permission: string) => hasPermission(permission, currentUser, groups),
   getMenuItemPermissions: () => getMenuItemPermissions(currentUser, groups),
 });
+
+// Clear cache when user changes
+export const clearPermissionCache = () => {
+  permissionCache.clear();
+};

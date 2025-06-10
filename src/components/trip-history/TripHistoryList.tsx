@@ -50,14 +50,29 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
     });
   };
 
-  const getDriverFirstName = (driverName: string) => {
-    // Extract the first name from the driver's full name
-    return driverName.split(' ')[0];
+  const getDriverInfo = (driverName: string) => {
+    // Check if driver name includes role in parentheses
+    const roleMatch = driverName.match(/^(.+?)\s*\((.+?)\)$/);
+    if (roleMatch) {
+      const [, name, role] = roleMatch;
+      return {
+        name: name.trim(),
+        role: role.trim(),
+        firstName: name.trim().split(' ')[0]
+      };
+    }
+    
+    // Fallback for old format without role
+    return {
+      name: driverName,
+      role: null,
+      firstName: driverName.split(' ')[0]
+    };
   };
 
   const getTripTitle = (trip: Trip) => {
-    const driverFirstName = getDriverFirstName(trip.driver);
-    return `${trip.company} - ${trip.branch} - ${driverFirstName}`;
+    const driverInfo = getDriverInfo(trip.driver);
+    return `${trip.company} - ${trip.branch} - ${driverInfo.firstName}`;
   };
 
   return (

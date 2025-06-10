@@ -77,7 +77,7 @@ export const useRBACDataInit = ({
         const permissionsData = await loadPermissionsData();
         setPermissions(permissionsData);
 
-        // Load groups data first so we have them available
+        // Load groups data (now role-based)
         console.log('Loading groups data...');
         const groupsData = await loadGroupsData();
         setGroups(groupsData);
@@ -97,7 +97,7 @@ export const useRBACDataInit = ({
             phone: authUser.user_metadata?.phone || '',
             role: 'Employee',
             status: 'Active',
-            groupId: groupsData.length > 0 ? groupsData[0].id : 'default-group',
+            groupId: 'Employee', // Use role as groupId
             createdAt: new Date().toISOString(),
           };
           setCurrentUser(defaultUser);
@@ -125,7 +125,7 @@ export const useRBACDataInit = ({
           
           // Create a default group with basic permissions (using permission IDs, not objects)
           const defaultGroup: Group = {
-            id: 'default-group',
+            id: 'Employee',
             name: 'Default Users',
             description: 'Default user group with basic permissions',
             color: '#3B82F6',
@@ -147,7 +147,7 @@ export const useRBACDataInit = ({
             phone: authUser.user_metadata?.phone || '',
             role: 'Employee',
             status: 'Active',
-            groupId: defaultGroup.id,
+            groupId: 'Employee', // Use role as groupId
             createdAt: new Date().toISOString(),
           };
           

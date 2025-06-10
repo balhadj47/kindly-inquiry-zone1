@@ -90,7 +90,7 @@ const UserTable: React.FC<UserTableProps> = ({
             <TableHead>Rôle</TableHead>
             <TableHead>Statut</TableHead>
             <TableHead>Contact</TableHead>
-            <TableHead>Licence</TableHead>
+            <TableHead>Voyages</TableHead>
             <TableHead>Créé le</TableHead>
             <TableHead className="w-12"></TableHead>
           </TableRow>
@@ -149,13 +149,14 @@ const UserTable: React.FC<UserTableProps> = ({
               </TableCell>
               
               <TableCell>
-                {user.licenseNumber ? (
-                  <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                    {user.licenseNumber}
-                  </span>
-                ) : (
-                  <span className="text-muted-foreground text-sm">-</span>
-                )}
+                <div className="text-sm">
+                  <div className="font-medium">{user.totalTrips || 0}</div>
+                  {user.lastTrip && (
+                    <div className="text-muted-foreground text-xs">
+                      Dernier: {new Date(user.lastTrip).toLocaleDateString('fr-FR')}
+                    </div>
+                  )}
+                </div>
               </TableCell>
               
               <TableCell className="text-sm text-muted-foreground">

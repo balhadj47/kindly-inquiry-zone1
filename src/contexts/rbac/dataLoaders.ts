@@ -1,228 +1,190 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { RBACUser, RBACGroup } from './types';
-import { DEFAULT_PERMISSIONS } from '@/types/rbac';
+import type { User, Group, Permission, UserRole, UserStatus } from '@/types/rbac';
+import { AVAILABLE_PERMISSIONS } from '@/types/rbac';
 
-export const loadUserData = async (): Promise<RBACUser | null> => {
-  try {
-    console.log('Loading user data...');
-    
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    
-    if (authError) {
-      console.error('Auth error:', authError);
-      throw authError;
-    }
+// Create role-based groups from user roles
+const createRoleBasedGroups = (): Group[] => {
+  return [
+    {
+      id: 'Administrator',
+      name: 'Administrateurs',
+      description: 'Accès complet au système',
+      color: '#DC2626',
+      permissions: AVAILABLE_PERMISSIONS.map(p => p.id), // All permissions
+    },
+    {
+      id: 'Employee',
+      name: 'Employés',
+      description: 'Accès de base pour les employés',
+      color: '#3B82F6',
+      permissions: [
+        'dashboard:read',
+        'companies:read',
+        'vans:read',
+        'trips:read',
+        'trips:create',
+      ],
+    },
+    {
+      id: 'Chef de Groupe Armé',
+      name: 'Chefs de Groupe Armés',
+      description: 'Gestion des équipes armées',
+      color: '#DC2626',
+      permissions: [
+        'dashboard:read',
+        'companies:read',
+        'vans:read',
+        'vans:update',
+        'trips:read',
+        'trips:create',
+        'trips:update',
+        'users:read',
+      ],
+    },
+    {
+      id: 'Chef de Groupe Sans Armé',
+      name: 'Chefs de Groupe Sans Armé',
+      description: 'Gestion des équipes non armées',
+      color: '#F59E0B',
+      permissions: [
+        'dashboard:read',
+        'companies:read',
+        'vans:read',
+        'trips:read',
+        'trips:create',
+        'trips:update',
+        'users:read',
+      ],
+    },
+    {
+      id: 'Chauffeur Armé',
+      name: 'Chauffeurs Armés',
+      description: 'Conduite avec protection armée',
+      color: '#EF4444',
+      permissions: [
+        'dashboard:read',
+        'trips:read',
+        'trips:create',
+        'vans:read',
+      ],
+    },
+    {
+      id: 'Chauffeur Sans Armé',
+      name: 'Chauffeurs Sans Armé',
+      description: 'Conduite sans protection armée',
+      color: '#F97316',
+      permissions: [
+        'dashboard:read',
+        'trips:read',
+        'trips:create',
+        'vans:read',
+      ],
+    },
+    {
+      id: 'APS Armé',
+      name: 'Agents de Sécurité Armés',
+      description: 'Sécurité avec port d\'arme',
+      color: '#DC2626',
+      permissions: [
+        'dashboard:read',
+        'trips:read',
+        'companies:read',
+      ],
+    },
+    {
+      id: 'APS Sans Armé',
+      name: 'Agents de Sécurité Sans Armé',
+      description: 'Sécurité sans port d\'arme',
+      color: '#F59E0B',
+      permissions: [
+        'dashboard:read',
+        'trips:read',
+        'companies:read',
+      ],
+    },
+  ];
+};
 
-    if (!user) {
-      console.log('No authenticated user found');
-      return null;
-    }
-
-    console.log('Authenticated user:', user);
-
-    // Try to get user from database first
-    const { data: dbUser, error: dbError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('auth_user_id', user.id)
-      .single();
-
-    if (dbError && dbError.code !== 'PGRST116') {
-      console.error('Database error:', dbError);
-      throw dbError;
-    }
-
-    if (dbUser) {
-      console.log('Found user in database:', dbUser);
-      const rbacUser: RBACUser = {
-        id: dbUser.id.toString(), // Convert numeric ID to string
-        name: dbUser.name,
-        email: dbUser.email,
-        phone: dbUser.phone,
-        role: dbUser.role as any,
-        status: dbUser.status as any,
-        groupId: dbUser.group_id,
-        createdAt: dbUser.created_at,
-        licenseNumber: dbUser.license_number,
-        totalTrips: dbUser.total_trips,
-        lastTrip: dbUser.last_trip,
-      };
-      console.log('Created RBAC user from database:', rbacUser);
-      return rbacUser;
-    } else {
-      console.log('User not found in database, creating mock user');
-      // Create mock user for testing
-      const rbacUser: RBACUser = {
-        id: user.id.slice(-8), // Use last 8 chars of UUID as string ID
-        name: user.email?.split('@')[0] || 'User',
-        email: user.email || '',
-        phone: '',
-        role: 'Administrator' as any,
-        status: 'Active' as any,
-        groupId: 'admin', // Use string ID instead of number
-        createdAt: user.created_at || new Date().toISOString(),
-      };
-
-      console.log('Created mock RBAC user:', rbacUser);
-      return rbacUser;
-    }
-  } catch (error) {
+export const loadUserData = async (): Promise<User> => {
+  console.log('Loading current user data...');
+  
+  const { data, error } = await supabase.rpc('get_current_user_rbac');
+  
+  if (error) {
     console.error('Error loading user data:', error);
     throw error;
   }
-};
-
-export const loadUsersData = async (): Promise<RBACUser[]> => {
-  try {
-    console.log('Loading users data...');
-    
-    const { data: users, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error loading users:', error);
-      return [];
-    }
-
-    console.log('Loaded users from database:', users);
-    
-    const rbacUsers: RBACUser[] = users.map(user => ({
-      id: user.id.toString(), // Convert numeric ID to string
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role as any,
-      status: user.status as any,
-      groupId: user.group_id,
-      createdAt: user.created_at,
-      licenseNumber: user.license_number,
-      totalTrips: user.total_trips,
-      lastTrip: user.last_trip,
-    }));
-
-    console.log('Converted to RBAC users:', rbacUsers);
-    return rbacUsers;
-  } catch (error) {
-    console.error('Error loading users data:', error);
-    return [];
+  
+  if (!data) {
+    throw new Error('No user data found');
   }
+  
+  const user: User = {
+    id: data.id.toString(),
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    groupId: data.role, // Use role as groupId
+    role: data.role as UserRole,
+    status: data.status as UserStatus,
+    createdAt: data.created_at,
+    totalTrips: data.total_trips,
+    lastTrip: data.last_trip,
+    profileImage: data.profile_image,
+  };
+  
+  console.log('User data loaded:', user);
+  return user;
 };
 
-export const loadGroupsData = async (): Promise<RBACGroup[]> => {
-  try {
-    console.log('Loading groups data...');
-    
-    // Define default groups with string-based permissions
-    const defaultGroups: RBACGroup[] = [
-      {
-        id: 'admin',
-        name: 'Administrators',
-        description: 'Full system access',
-        color: 'bg-red-100 text-red-800',
-        permissions: [
-          'dashboard.view',
-          'companies.view',
-          'companies.create',
-          'companies.edit',
-          'companies.delete',
-          'vans.view',
-          'vans.create',
-          'vans.edit',
-          'vans.delete',
-          'users.view',
-          'users.create',
-          'users.edit',
-          'users.delete',
-          'users.manage_groups',
-          'trips.log',
-          'trips.view',
-          'trips.edit',
-          'trips.delete'
-        ],
-      },
-      {
-        id: 'employee',
-        name: 'Employees',
-        description: 'Basic operational access',
-        color: 'bg-blue-100 text-blue-800',
-        permissions: [
-          'dashboard.view',
-          'companies.view',
-          'vans.view',
-          'users.view',
-          'trips.log',
-          'trips.view'
-        ],
-      }
-    ];
-
-    // Try to load from database
-    const { data: dbGroups, error } = await supabase
-      .from('user_groups')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('Error loading groups from database:', error);
-      console.log('Returning default groups only');
-      return defaultGroups;
-    }
-
-    // Convert database groups and filter out any that have the same ID as default groups
-    const dbGroupsConverted: RBACGroup[] = dbGroups ? dbGroups
-      .filter(group => !defaultGroups.some(defaultGroup => defaultGroup.id === group.id))
-      .map(group => ({
-        id: group.id,
-        name: group.name,
-        description: group.description,
-        color: group.color,
-        permissions: Array.isArray(group.permissions) ? group.permissions : [],
-      })) : [];
-
-    // Combine default groups with database groups (no duplicates)
-    const allGroups = [...defaultGroups, ...dbGroupsConverted];
-    
-    console.log('Final groups loaded:', allGroups);
-    return allGroups;
-  } catch (error) {
-    console.error('Error loading groups data:', error);
-    // Return default groups as fallback
-    return [
-      {
-        id: 'admin',
-        name: 'Administrators',
-        description: 'Full system access',
-        color: 'bg-red-100 text-red-800',
-        permissions: [
-          'dashboard.view',
-          'companies.view',
-          'companies.create',
-          'companies.edit',
-          'companies.delete',
-          'vans.view',
-          'vans.create',
-          'vans.edit',
-          'vans.delete',
-          'users.view',
-          'users.create',
-          'users.edit',
-          'users.delete',
-          'users.manage_groups',
-          'trips.log',
-          'trips.view',
-          'trips.edit',
-          'trips.delete'
-        ],
-      }
-    ];
+export const loadUsersData = async (): Promise<User[]> => {
+  console.log('Loading users data...');
+  
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Error loading users:', error);
+    throw error;
   }
+  
+  const users: User[] = (data || []).map(user => ({
+    id: user.id.toString(),
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    groupId: user.role, // Use role as groupId
+    role: user.role as UserRole,
+    status: user.status as UserStatus,
+    createdAt: user.created_at,
+    totalTrips: user.total_trips,
+    lastTrip: user.last_trip,
+    profileImage: user.profile_image,
+  }));
+  
+  console.log('Users data loaded:', users.length, 'users');
+  return users;
 };
 
-export const loadPermissionsData = async () => {
+export const loadGroupsData = async (): Promise<Group[]> => {
+  console.log('Loading groups data...');
+  
+  // Return role-based groups instead of database groups
+  const groups = createRoleBasedGroups();
+  
+  console.log('Groups data loaded:', groups.length, 'groups');
+  return groups;
+};
+
+export const loadPermissionsData = async (): Promise<Permission[]> => {
   console.log('Loading permissions data...');
-  console.log('Returning default permissions:', DEFAULT_PERMISSIONS);
-  return DEFAULT_PERMISSIONS;
+  
+  // Return static permissions
+  const permissions = AVAILABLE_PERMISSIONS;
+  
+  console.log('Permissions data loaded:', permissions.length, 'permissions');
+  return permissions;
 };

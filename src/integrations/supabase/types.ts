@@ -118,10 +118,8 @@ export type Database = {
           auth_user_id: string | null
           created_at: string
           email: string
-          group_id: string
           id: number
           last_trip: string | null
-          license_number: string | null
           name: string
           phone: string
           profile_image: string | null
@@ -133,10 +131,8 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email: string
-          group_id: string
           id?: number
           last_trip?: string | null
-          license_number?: string | null
           name: string
           phone: string
           profile_image?: string | null
@@ -148,10 +144,8 @@ export type Database = {
           auth_user_id?: string | null
           created_at?: string
           email?: string
-          group_id?: string
           id?: number
           last_trip?: string | null
-          license_number?: string | null
           name?: string
           phone?: string
           profile_image?: string | null
@@ -211,10 +205,8 @@ export type Database = {
           auth_user_id: string | null
           created_at: string
           email: string
-          group_id: string
           id: number
           last_trip: string | null
-          license_number: string | null
           name: string
           phone: string
           profile_image: string | null

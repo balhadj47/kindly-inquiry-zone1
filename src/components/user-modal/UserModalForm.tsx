@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useRBAC } from '@/contexts/RBACContext';
 import { User, UserRole, UserStatus } from '@/types/rbac';
-import { getGroupIdForRole, isDriverRole } from '@/utils/userModalUtils';
+import { isDriverRole } from '@/utils/userModalUtils';
 import ProfileImageUpload from './ProfileImageUpload';
 import UserFormFields from './UserFormFields';
 import DriverFields from './DriverFields';
@@ -16,7 +16,6 @@ interface UserFormData {
   phone: string;
   role: UserRole;
   status: UserStatus;
-  licenseNumber: string;
   totalTrips: number;
   lastTrip: string;
   profileImage?: string;
@@ -40,7 +39,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       phone: '',
       role: 'Employee',
       status: 'Active',
-      licenseNumber: '',
       totalTrips: 0,
       lastTrip: '',
       profileImage: '',
@@ -59,7 +57,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           phone: user.phone || '',
           role: user.role || 'Employee',
           status: user.status || 'Active',
-          licenseNumber: user.licenseNumber || '',
           totalTrips: user.totalTrips || 0,
           lastTrip: user.lastTrip || '',
           profileImage: user.profileImage || '',
@@ -74,7 +71,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           phone: '',
           role: 'Employee',
           status: 'Active',
-          licenseNumber: '',
           totalTrips: 0,
           lastTrip: '',
           profileImage: '',
@@ -101,9 +97,8 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
     try {
       const userData = {
         ...data,
-        groupId: getGroupIdForRole(data.role),
+        groupId: data.role, // Use role as groupId
         createdAt: user?.createdAt || new Date().toISOString(),
-        licenseNumber: data.licenseNumber || undefined,
         totalTrips: data.totalTrips || 0,
         lastTrip: data.lastTrip || undefined,
         profileImage: profileImage || undefined,

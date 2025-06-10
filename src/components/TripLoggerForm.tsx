@@ -24,20 +24,24 @@ const TripLoggerForm = () => {
   const { vans } = useVans();
   const { formData, handleInputChange, handleUserRoleSelection, resetForm, getTripData } = useTripForm();
   const [userSearchQuery, setUserSearchQuery] = useState('');
-  const [selectedDriverId, setSelectedDriverId] = useState('');
-
-  // Get drivers from users data (those with driver roles)
-  const drivers = users.filter(user => 
-    user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé'
-  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.vanId || !formData.companyId || !formData.branchId || !selectedDriverId) {
+    if (!formData.vanId || !formData.companyId || !formData.branchId) {
       toast({
         title: t.error,
         description: t.fillRequiredFields,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check if at least one user with roles is selected
+    if (formData.selectedUsersWithRoles.length === 0) {
+      toast({
+        title: t.error,
+        description: "Please select at least one user with roles for the trip",
         variant: "destructive",
       });
       return;
@@ -50,18 +54,6 @@ const TripLoggerForm = () => {
       toast({
         title: t.error,
         description: t.vanNotFound,
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Find the selected driver
-    const selectedDriver = drivers.find(driver => driver.id.toString() === selectedDriverId);
-    
-    if (!selectedDriver) {
-      toast({
-        title: t.error,
-        description: "Driver not found",
         variant: "destructive",
       });
       return;
@@ -80,14 +72,24 @@ const TripLoggerForm = () => {
       return;
     }
 
-    // Create the driver name with full name and role
-    const driverName = `${selectedDriver.name} (${selectedDriver.role})`;
+    // Find a driver from the selected users with roles (someone with "Chauffeur" role)
+    const driverUserWithRole = formData.selectedUsersWithRoles.find(userWithRole =>
+      userWithRole.roles.includes('Chauffeur')
+    );
+
+    let driverName = 'No Driver Assigned';
+    if (driverUserWithRole) {
+      const driverUser = users.find(user => user.id.toString() === driverUserWithRole.userId);
+      if (driverUser) {
+        driverName = driverUser.name;
+      }
+    }
 
     const tripDataWithRoles = getTripData(driverName);
     
     const tripData = {
       van: selectedVan.license_plate,
-      driver: driverName, // Now includes full name and role
+      driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
       notes: formData.notes,
@@ -100,7 +102,6 @@ const TripLoggerForm = () => {
     addTrip(tripData);
     resetForm();
     setUserSearchQuery('');
-    setSelectedDriverId('');
     
     toast({
       title: t.success,
@@ -115,38 +116,20 @@ const TripLoggerForm = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="van">{t.selectVan}</Label>
-              <Select value={formData.vanId} onValueChange={(value) => handleInputChange('vanId', value)}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.selectVan} />
-                </SelectTrigger>
-                <SelectContent>
-                  {vans.map((van) => (
-                    <SelectItem key={van.id} value={van.id}>
-                      {van.license_plate} - {van.model}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label htmlFor="driver">Select Driver *</Label>
-              <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Driver" />
-                </SelectTrigger>
-                <SelectContent>
-                  {drivers.map((driver) => (
-                    <SelectItem key={driver.id} value={driver.id.toString()}>
-                      {driver.name} - {driver.role}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+          <div>
+            <Label htmlFor="van">{t.selectVan}</Label>
+            <Select value={formData.vanId} onValueChange={(value) => handleInputChange('vanId', value)}>
+              <SelectTrigger>
+                <SelectValue placeholder={t.selectVan} />
+              </SelectTrigger>
+              <SelectContent>
+                {vans.map((van) => (
+                  <SelectItem key={van.id} value={van.id}>
+                    {van.license_plate} - {van.model}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

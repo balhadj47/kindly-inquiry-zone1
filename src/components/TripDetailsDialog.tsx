@@ -51,49 +51,41 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
     });
   };
 
-  const getDriverInfo = (driverName: string) => {
-    // Check if driver name includes role in parentheses
-    const roleMatch = driverName.match(/^(.+?)\s*\((.+?)\)$/);
-    if (roleMatch) {
-      const [, name, role] = roleMatch;
-      return {
-        name: name.trim(),
-        role: role.trim(),
-        firstName: name.trim().split(' ')[0]
-      };
-    }
-    
-    // Fallback for old format without role
-    return {
-      name: driverName,
-      role: null,
-      firstName: driverName.split(' ')[0]
-    };
-  };
-
   const getTripTitle = (trip: Trip) => {
-    const driverInfo = getDriverInfo(trip.driver);
-    return `${trip.company} - ${trip.branch} - ${driverInfo.firstName}`;
+    const driverFirstName = trip.driver.split(' ')[0];
+    return `${trip.company} - ${trip.branch} - ${driverFirstName}`;
   };
 
-  const getAssignedUsers = () => {
-    if (!trip.userIds || trip.userIds.length === 0) {
-      return [];
+  const getAssignedUsersWithRoles = () => {
+    // If we have userRoles data, use that (new format)
+    if (trip.userRoles && trip.userRoles.length > 0) {
+      return trip.userRoles.map(userWithRole => {
+        const user = users.find(u => u.id.toString() === userWithRole.userId);
+        return {
+          user: user || { id: userWithRole.userId, name: `User ${userWithRole.userId}`, role: 'Unknown' },
+          missionRoles: userWithRole.roles
+        };
+      });
     }
 
-    return trip.userIds.map(userId => {
-      const user = users.find(u => u.id.toString() === userId);
-      return user || { id: userId, name: `User ${userId}`, role: 'Unknown' };
-    });
+    // Fallback to old format (just userIds without roles)
+    if (trip.userIds && trip.userIds.length > 0) {
+      return trip.userIds.map(userId => {
+        const user = users.find(u => u.id.toString() === userId);
+        return {
+          user: user || { id: userId, name: `User ${userId}`, role: 'Unknown' },
+          missionRoles: []
+        };
+      });
+    }
+
+    return [];
   };
 
-  const assignedUsers = getAssignedUsers();
-  const driverInfo = getDriverInfo(trip.driver);
+  const assignedUsersWithRoles = getAssignedUsersWithRoles();
 
-  console.log('Trip driver:', trip.driver);
-  console.log('Driver info:', driverInfo);
-  console.log('Assigned users:', assignedUsers);
-  console.log('Users from RBAC:', users);
+  console.log('Trip data:', trip);
+  console.log('Assigned users with roles:', assignedUsersWithRoles);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -142,14 +134,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                   <Car className="h-5 w-5 text-orange-600" />
                   <div>
                     <p className="text-sm text-gray-500">Chauffeur</p>
-                    <div>
-                      <p className="font-medium">{driverInfo.name}</p>
-                      {driverInfo.role && (
-                        <Badge variant="outline" className="text-xs mt-1">
-                          {driverInfo.role}
-                        </Badge>
-                      )}
-                    </div>
+                    <p className="font-medium">{trip.driver}</p>
                   </div>
                 </div>
               </div>
@@ -189,25 +174,32 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
             <CardContent className="p-4">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <Users className="h-5 w-5 mr-2 text-emerald-600" />
-                Équipe Assignée ({assignedUsers.length} personnes)
+                Équipe Assignée ({assignedUsersWithRoles.length} personnes)
               </h3>
               
-              {assignedUsers.length === 0 ? (
+              {assignedUsersWithRoles.length === 0 ? (
                 <p className="text-gray-500 italic">Aucun membre d'équipe assigné</p>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {assignedUsers.map((user, index) => (
-                    <div key={user.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="space-y-3">
+                  {assignedUsersWithRoles.map((userWithRoles, index) => (
+                    <div key={userWithRoles.user.id || index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-3">
                         <User className="h-4 w-4 text-gray-600" />
                         <div>
-                          <p className="font-medium text-sm">{user.name}</p>
-                          <Badge variant="secondary" className="text-xs">
-                            {user.role}
-                          </Badge>
+                          <p className="font-medium text-sm">{userWithRoles.user.name}</p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            <Badge variant="secondary" className="text-xs">
+                              {userWithRoles.user.role}
+                            </Badge>
+                            {userWithRoles.missionRoles.map((missionRole, roleIndex) => (
+                              <Badge key={roleIndex} variant="outline" className="text-xs">
+                                {missionRole}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                      {(user.role?.includes('Armé') || user.role?.includes('Chef')) && (
+                      {(userWithRoles.missionRoles.includes('Armé') || userWithRoles.missionRoles.includes('Chef de Groupe')) && (
                         <Shield className="h-4 w-4 text-red-500" />
                       )}
                     </div>

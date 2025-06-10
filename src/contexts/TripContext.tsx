@@ -1,6 +1,12 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { MissionRole } from '@/components/RoleSelectionSection';
+
+export interface UserWithRoles {
+  userId: string;
+  roles: MissionRole[];
+}
 
 export interface Trip {
   id: number;
@@ -11,11 +17,12 @@ export interface Trip {
   timestamp: string;
   notes: string;
   userIds: string[];
+  userRoles?: UserWithRoles[]; // New field for storing user roles
 }
 
 interface TripContextType {
   trips: Trip[];
-  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'>) => Promise<void>;
+  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[] }) => Promise<void>;
   deleteTrip: (tripId: number) => Promise<void>;
   refreshTrips: () => Promise<void>;
   error: string | null;
@@ -64,7 +71,8 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
         branch: trip.branch,
         timestamp: trip.created_at,
         notes: trip.notes || '',
-        userIds: trip.user_ids || []
+        userIds: trip.user_ids || [],
+        userRoles: trip.user_roles || [] // Parse user roles from database
       }));
 
       // Only update state if component is still mounted
@@ -88,7 +96,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'>) => {
+  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[] }) => {
     try {
       const { data, error } = await (supabase as any)
         .from('trips')
@@ -98,7 +106,8 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           company: tripData.company,
           branch: tripData.branch,
           notes: tripData.notes,
-          user_ids: tripData.userIds
+          user_ids: tripData.userIds,
+          user_roles: tripData.userRoles || [] // Save user roles to database
         })
         .select()
         .single();
@@ -120,7 +129,8 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           branch: data.branch,
           timestamp: data.created_at,
           notes: data.notes || '',
-          userIds: data.user_ids || []
+          userIds: data.user_ids || [],
+          userRoles: data.user_roles || []
         };
 
         setTrips(prevTrips => [newTrip, ...prevTrips]);

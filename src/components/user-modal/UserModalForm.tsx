@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -32,6 +32,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
   const { addUser, updateUser } = useRBAC();
   const [profileImage, setProfileImage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const isMountedRef = useRef(true);
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -46,6 +47,14 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       profileImage: '',
     }
   });
+
+  // Track component mount status
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Reset form and state when modal opens/closes or user changes
   useEffect(() => {
@@ -91,7 +100,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
   };
 
   const handleSubmit = async (data: UserFormData) => {
-    if (isSubmitting) return; // Prevent double submission
+    if (isSubmitting || !isMountedRef.current) return;
     
     setIsSubmitting(true);
     
@@ -112,19 +121,22 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
         await addUser(userData);
       }
       
-      // Add a small delay to ensure the operation completes before closing
-      setTimeout(() => {
+      // Only close if component is still mounted
+      if (isMountedRef.current) {
         onClose();
-      }, 100);
+      }
     } catch (error) {
       console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
     } finally {
-      setIsSubmitting(false);
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setIsSubmitting(false);
+      }
     }
   };
 
   const handleClose = () => {
-    if (!isSubmitting) {
+    if (!isSubmitting && isMountedRef.current) {
       onClose();
     }
   };

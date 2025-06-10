@@ -4,20 +4,20 @@ import type { User, UserRole, UserStatus } from '@/types/rbac';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   const addUser = async (userData: Partial<User>) => {
+    console.log('Adding user with data:', userData);
     const { data, error } = await supabase
       .from('users')
       .insert([{
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        group_id: userData.groupId || 'employee', // Default to employee group
-        role: userData.role || 'Employee', // Default to Employee role
-        status: userData.status || 'Active', // Default to Active status
+        group_id: userData.groupId || 'employee',
+        role: userData.role || 'Employee',
+        status: userData.status || 'Active',
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip,
-        // Note: auth_user_id will be null for manually created users
-        // This allows admins to create user profiles that aren't linked to auth accounts
+        profile_image: userData.profileImage,
       }])
       .select();
 
@@ -28,7 +28,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
     if (data && data[0]) {
       const newUser: User = {
-        id: data[0].id.toString(), // Convert numeric ID to string
+        id: data[0].id.toString(),
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
@@ -39,12 +39,15 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
+        profileImage: data[0].profile_image,
       };
+      console.log('User added successfully, updating state:', newUser);
       setUsers(prev => [...prev, newUser]);
     }
   };
 
-  const updateUser = async (id: string, userData: Partial<User>) => { // Changed from number to string
+  const updateUser = async (id: string, userData: Partial<User>) => {
+    console.log('Updating user with ID:', id, 'Data:', userData);
     const { data, error } = await supabase
       .from('users')
       .update({
@@ -57,8 +60,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
+        profile_image: userData.profileImage,
       })
-      .eq('id', parseInt(id)) // Convert string ID back to number for database query
+      .eq('id', parseInt(id))
       .select();
 
     if (error) {
@@ -68,7 +72,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
     if (data && data[0]) {
       const updatedUser: User = {
-        id: data[0].id.toString(), // Convert numeric ID to string
+        id: data[0].id.toString(),
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
@@ -79,28 +83,36 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
+        profileImage: data[0].profile_image,
       };
-      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user)); // Now comparing string to string
+      console.log('User updated successfully, updating state:', updatedUser);
+      setUsers(prev => {
+        const newUsers = prev.map(user => user.id === id ? updatedUser : user);
+        console.log('Updated users state:', newUsers);
+        return newUsers;
+      });
+    } else {
+      console.error('No data returned from update operation');
+      throw new Error('Failed to update user - no data returned');
     }
   };
 
-  const deleteUser = async (id: string) => { // Changed from number to string
+  const deleteUser = async (id: string) => {
     const { error } = await supabase
       .from('users')
       .delete()
-      .eq('id', parseInt(id)); // Convert string ID back to number for database query
+      .eq('id', parseInt(id));
 
     if (error) {
       console.error('Error deleting user:', error);
       throw error;
     }
 
-    setUsers(prev => prev.filter(user => user.id !== id)); // Now comparing string to string
+    setUsers(prev => prev.filter(user => user.id !== id));
   };
 
   const changeUserPassword = async (userEmail: string, newPassword: string) => {
     try {
-      // First, we need to find the auth user by email
       const { data: authData, error: fetchError } = await supabase.auth.admin.listUsers();
       
       if (fetchError) {
@@ -114,7 +126,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw new Error('User not found');
       }
 
-      // Update the user's password
       const { error: updateError } = await supabase.auth.admin.updateUserById(
         authUser.id,
         { password: newPassword }

@@ -17,7 +17,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip,
-        profile_image: userData.profileImage,
       }])
       .select();
 
@@ -39,7 +38,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
-        profileImage: data[0].profile_image,
+        profileImage: userData.profileImage,
       };
       console.log('User added successfully, updating state:', newUser);
       setUsers(prev => [...prev, newUser]);
@@ -60,7 +59,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         license_number: userData.licenseNumber,
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
-        profile_image: userData.profileImage,
       })
       .eq('id', parseInt(id))
       .select();
@@ -83,14 +81,18 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         licenseNumber: data[0].license_number,
         totalTrips: data[0].total_trips,
         lastTrip: data[0].last_trip,
-        profileImage: data[0].profile_image,
+        profileImage: userData.profileImage,
       };
-      console.log('User updated successfully, updating state:', updatedUser);
+      console.log('User updated successfully, updating state with:', updatedUser);
+      
+      // Force a state update with a new array reference
       setUsers(prev => {
         const newUsers = prev.map(user => user.id === id ? updatedUser : user);
-        console.log('Updated users state:', newUsers);
+        console.log('Updated users array:', newUsers);
         return newUsers;
       });
+      
+      return updatedUser;
     } else {
       console.error('No data returned from update operation');
       throw new Error('Failed to update user - no data returned');

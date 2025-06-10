@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -47,7 +47,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
     }
   });
 
-  // Reset form when modal opens with different user data
+  // Reset form when modal opens
   useEffect(() => {
     if (isOpen) {
       console.log('Modal opened, resetting form for user:', user?.id || 'new user');
@@ -81,10 +81,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
         });
         setProfileImage('');
       }
-    } else {
-      // Reset submission state when modal closes
-      console.log('Modal closed, resetting submission state');
-      setIsSubmitting(false);
     }
   }, [isOpen, user?.id, form]);
 
@@ -125,21 +121,12 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       
       console.log('User operation completed successfully');
       
-      // Close modal after successful operation
+      // Immediately close the modal on success
       onClose();
     } catch (error) {
       console.error('Error saving user:', error);
     } finally {
       setIsSubmitting(false);
-    }
-  };
-
-  const handleClose = () => {
-    if (!isSubmitting) {
-      console.log('Closing modal');
-      onClose();
-    } else {
-      console.log('Cannot close modal while submitting');
     }
   };
 
@@ -173,7 +160,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           <Button 
             type="button" 
             variant="outline" 
-            onClick={handleClose} 
+            onClick={onClose} 
             disabled={isSubmitting}
           >
             Annuler

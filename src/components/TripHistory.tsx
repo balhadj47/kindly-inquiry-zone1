@@ -1,226 +1,267 @@
-import React, { useState } from 'react';
+
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Filter, Calendar, Clock, MapIcon, Eye } from 'lucide-react';
+import { Calendar, Clock, Truck, Building2, Users, MapPin, FileText, Download, RotateCcw } from 'lucide-react';
 import { useTripContext } from '@/contexts/TripContext';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { useCompanies } from '@/hooks/useCompanies';
+import { useVans } from '@/hooks/useVans';
 import TripDetailsDialog from './TripDetailsDialog';
-import type { Trip } from '@/contexts/TripContext';
-import { formatDateTime, getTimeAgo } from '@/utils/dateUtils';
 
 const TripHistory = () => {
-  const { t } = useLanguage();
+  const { trips } = useTripContext();
+  const { companies } = useCompanies();
+  const { vans } = useVans();
+  const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState('all');
-  const [dateRange, setDateRange] = useState('today');
-  const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const { trips, loading, error } = useTripContext();
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [vanFilter, setVanFilter] = useState('all');
 
-  const filteredTrips = trips.filter(trip => {
-    const matchesSearch = 
-      trip.van.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      trip.branch.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredTrips = useMemo(() => {
+    return trips.filter(trip => {
+      const matchesSearch = 
+        trip.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.van.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        trip.driver.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCompany = companyFilter === 'all' || trip.company === companyFilter;
+      const matchesVan = vanFilter === 'all' || trip.van === vanFilter;
+      
+      return matchesSearch && matchesCompany && matchesVan;
+    });
+  }, [trips, searchTerm, companyFilter, vanFilter]);
 
-    const matchesFilter = filterType === 'all' || 
-      (filterType === 'van' && trip.van.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (filterType === 'company' && trip.company.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (filterType === 'branch' && trip.branch.toLowerCase().includes(searchTerm.toLowerCase()));
-
-    return matchesSearch;
-  });
-
-  const handleViewDetails = (trip: Trip) => {
-    setSelectedTrip(trip);
-    setDialogOpen(true);
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCompanyFilter('all');
+    setVanFilter('all');
   };
 
-  const handleCloseDialog = () => {
-    setDialogOpen(false);
-    setSelectedTrip(null);
+  const todayTrips = trips.filter(trip => {
+    const tripDate = new Date(trip.timestamp).toDateString();
+    const today = new Date().toDateString();
+    return tripDate === today;
+  }).length;
+
+  const thisWeekTrips = trips.filter(trip => {
+    const tripDate = new Date(trip.timestamp);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return tripDate >= weekAgo;
+  }).length;
+
+  const totalVisitedCompanies = new Set(trips.map(trip => trip.company)).size;
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
   };
 
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
-          <p className="text-gray-500 mt-2">{t.loading}...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
-          <p className="text-red-500 mt-2">{t.error}: {error}</p>
-        </div>
-      </div>
-    );
-  }
+  const formatTime = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleTimeString('fr-FR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
-        <div className="flex space-x-2 mt-4 md:mt-0">
-          <Button variant="outline">
-            <Calendar className="h-4 w-4 mr-2" />
-            {t.export}
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Historique des Voyages</h1>
+          <p className="text-gray-500 mt-2">Consultez tous les voyages effectués par votre flotte</p>
         </div>
+        <Button variant="outline" className="mt-4 md:mt-0">
+          <Download className="h-4 w-4 mr-2" />
+          Exporter
+        </Button>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-6">
+        <CardHeader>
+          <CardTitle className="text-lg">Filtres</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Recherche</label>
               <Input
-                placeholder={t.searchTrips}
+                placeholder="Rechercher par entreprise, succursale, camionnette..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
               />
             </div>
-            
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger>
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder={t.filterBy} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{t.allTrips}</SelectItem>
-                <SelectItem value="van">{t.byVan}</SelectItem>
-                <SelectItem value="company">{t.byCompany}</SelectItem>
-                <SelectItem value="branch">{t.byBranch}</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={dateRange} onValueChange={setDateRange}>
-              <SelectTrigger>
-                <Calendar className="h-4 w-4 mr-2" />
-                <SelectValue placeholder={t.dateRange} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="today">{t.today}</SelectItem>
-                <SelectItem value="week">{t.thisWeek}</SelectItem>
-                <SelectItem value="month">{t.thisMonth}</SelectItem>
-                <SelectItem value="all">{t.allTime}</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Entreprise</label>
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Toutes les entreprises" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les entreprises</SelectItem>
+                  {companies.map((company) => (
+                    <SelectItem key={company.id} value={company.name}>
+                      {company.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Camionnette</label>
+              <Select value={vanFilter} onValueChange={setVanFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Toutes les camionnettes" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Toutes les camionnettes</SelectItem>
+                  {vans.map((van) => (
+                    <SelectItem key={van.id} value={van.license_plate}>
+                      {van.license_plate}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button onClick={clearFilters} variant="outline" size="sm">
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Effacer
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Trip Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-2xl font-bold text-blue-600">{filteredTrips.length}</div>
-            <div className="text-sm text-gray-600">{t.totalTripsCount}</div>
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Calendar className="h-8 w-8 text-blue-600 mr-3" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{todayTrips}</p>
+                <p className="text-sm text-gray-600">Voyages Aujourd'hui</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-2xl font-bold text-green-600">
-              {new Set(filteredTrips.map(t => t.van)).size}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Clock className="h-8 w-8 text-green-600 mr-3" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{thisWeekTrips}</p>
+                <p className="text-sm text-gray-600">Cette Semaine</p>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">{t.uniqueVans}</div>
           </CardContent>
         </Card>
+
         <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-2xl font-bold text-purple-600">
-              {new Set(filteredTrips.map(t => t.company)).size}
+          <CardContent className="p-6">
+            <div className="flex items-center">
+              <Building2 className="h-8 w-8 text-purple-600 mr-3" />
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{totalVisitedCompanies}</p>
+                <p className="text-sm text-gray-600">Entreprises Visitées</p>
+              </div>
             </div>
-            <div className="text-sm text-gray-600">{t.companiesCount}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6 text-center">
-            <div className="text-2xl font-bold text-orange-600">
-              {new Set(filteredTrips.map(t => t.branch)).size}
-            </div>
-            <div className="text-sm text-gray-600">{t.branchesCount}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Trip List */}
+      {/* Trip History */}
       <Card>
         <CardHeader>
-          <CardTitle>{t.recentTrips}</CardTitle>
+          <CardTitle className="text-lg">Historique des Voyages ({filteredTrips.length})</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredTrips.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
-                {t.noTripsFoundMessage}
-              </div>
-            ) : (
-              filteredTrips.map((trip) => (
-                <div key={trip.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-4 mb-2">
-                        <Badge variant="outline" className="font-mono">
-                          {trip.van}
-                        </Badge>
-                        <span className="font-medium text-gray-900">{trip.driver}</span>
-                        <div className="flex items-center space-x-1 text-gray-500">
-                          <Clock className="h-3 w-3" />
-                          <span className="text-xs">{getTimeAgo(trip.timestamp)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-2 text-sm text-gray-600">
-                        <MapIcon className="h-4 w-4" />
-                        <span><strong>{trip.branch}</strong> ({trip.company})</span>
-                      </div>
-                      
-                      {trip.notes && (
-                        <div className="mt-2 text-sm text-gray-500">
-                          <span className="font-medium">{t.notes}:</span> {trip.notes}
-                        </div>
-                      )}
+          {filteredTrips.length === 0 ? (
+            <div className="text-center py-12">
+              <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun voyage trouvé</h3>
+              <p className="text-gray-600">
+                {trips.length === 0 
+                  ? "Aucun voyage n'a encore été enregistré."
+                  : "Aucun voyage ne correspond aux filtres sélectionnés."
+                }
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {filteredTrips.map((trip) => (
+                <div
+                  key={trip.id}
+                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  onClick={() => setSelectedTrip(trip)}
+                >
+                  <div className="flex-1 space-y-2">
+                    <div className="flex items-center space-x-4 text-sm">
+                      <Badge variant="outline" className="text-blue-600">
+                        <Calendar className="h-3 w-3 mr-1" />
+                        {formatDate(trip.timestamp)}
+                      </Badge>
+                      <Badge variant="outline" className="text-green-600">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {formatTime(trip.timestamp)}
+                      </Badge>
+                      <Badge variant="outline" className="text-purple-600">
+                        <Truck className="h-3 w-3 mr-1" />
+                        {trip.van}
+                      </Badge>
                     </div>
                     
-                    <div className="mt-2 md:mt-0 md:text-right flex items-center space-x-4">
-                      <div className="text-sm font-medium text-gray-900">
-                        {formatDateTime(trip.timestamp)}
+                    <div className="flex items-center space-x-4 text-sm text-gray-600">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-1" />
+                        {trip.driver}
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleViewDetails(trip)}
-                        className="flex items-center space-x-1"
-                      >
-                        <Eye className="h-4 w-4" />
-                        <span>{t.viewDetails}</span>
-                      </Button>
+                      <div className="flex items-center">
+                        <Building2 className="h-4 w-4 mr-1" />
+                        {trip.company}
+                      </div>
+                      <div className="flex items-center">
+                        <MapPin className="h-4 w-4 mr-1" />
+                        {trip.branch}
+                      </div>
                     </div>
+
+                    {trip.notes && (
+                      <div className="flex items-center text-sm text-gray-500">
+                        <FileText className="h-4 w-4 mr-1" />
+                        <span className="truncate">{trip.notes}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <Badge className="bg-green-100 text-green-800">
+                      {trip.userIds?.length || 0} utilisateurs
+                    </Badge>
                   </div>
                 </div>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
       <TripDetailsDialog
         trip={selectedTrip}
-        isOpen={dialogOpen}
-        onClose={handleCloseDialog}
+        isOpen={!!selectedTrip}
+        onClose={() => setSelectedTrip(null)}
       />
     </div>
   );

@@ -4,7 +4,6 @@ import CompaniesHeader from './companies/CompaniesHeader';
 import CompaniesSearch from './companies/CompaniesSearch';
 import CompaniesEmptyState from './companies/CompaniesEmptyState';
 import CompaniesGrid from './companies/CompaniesGrid';
-import CompaniesLoadingSkeleton from './companies/CompaniesLoadingSkeleton';
 import CompanyModal from './CompanyModal';
 import CompanyDeleteDialog from './CompanyDeleteDialog';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -12,7 +11,7 @@ import { useCompaniesState } from '@/hooks/useCompaniesState';
 
 const Companies = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { companies, loading, error, refetch, setCompanies } = useCompanies();
+  const { companies, refetch, setCompanies } = useCompanies();
   const {
     isModalOpen,
     setIsModalOpen,
@@ -33,18 +32,6 @@ const Companies = () => {
   const handleModalSuccess = () => {
     refetch();
   };
-
-  if (loading) {
-    return <CompaniesLoadingSkeleton />;
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg text-red-600">Erreur: {error}</div>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-4 sm:space-y-6">

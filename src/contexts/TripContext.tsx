@@ -16,7 +16,6 @@ export interface Trip {
 interface TripContextType {
   trips: Trip[];
   addTrip: (trip: Omit<Trip, 'id' | 'timestamp'>) => Promise<void>;
-  loading: boolean;
   error: string | null;
 }
 
@@ -36,14 +35,12 @@ interface TripProviderProps {
 
 export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   // Fetch trips from database
   useEffect(() => {
     const fetchTrips = async () => {
       try {
-        setLoading(true);
         const { data, error } = await (supabase as any)
           .from('trips')
           .select('*')
@@ -72,8 +69,6 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       } catch (err) {
         console.error('Error fetching trips:', err);
         setError(err instanceof Error ? err.message : 'An error occurred');
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -125,7 +120,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   };
 
   return (
-    <TripContext.Provider value={{ trips, addTrip, loading, error }}>
+    <TripContext.Provider value={{ trips, addTrip, error }}>
       {children}
     </TripContext.Provider>
   );

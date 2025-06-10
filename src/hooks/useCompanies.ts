@@ -1,84 +1,101 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface Company {
-  id: string;
-  name: string;
-  created_at: string;
-  updated_at?: string;
-  branches: Branch[];
-}
 
 export interface Branch {
   id: string;
   name: string;
-  company_id: string;
+  address: string;
+  city: string;
+  phone?: string;
+  email?: string;
+}
+
+export interface Company {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  city: string;
   created_at: string;
-  updated_at?: string;
+  updated_at: string;
+  branches: Branch[];
 }
 
 export const useCompanies = () => {
   const [companies, setCompanies] = useState<Company[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const cacheRef = useRef<{ data: Company[]; timestamp: number } | null>(null);
+  const CACHE_DURATION = 30000; // 30 seconds cache
 
-  const fetchCompanies = async () => {
+  const fetchCompanies = useCallback(async (useCache = true) => {
     try {
-      setLoading(true);
-      setError(null);
+      console.log('🏢 useCompanies: Starting to fetch companies data...');
+      const startTime = performance.now();
       
-      console.log('Fetching companies...');
-      
-      // Fetch companies
-      const { data: companiesData, error: companiesError } = await supabase
+      // Check cache first
+      if (useCache && cacheRef.current) {
+        const { data, timestamp } = cacheRef.current;
+        const isValid = Date.now() - timestamp < CACHE_DURATION;
+        
+        if (isValid) {
+          console.log('🏢 useCompanies: Using cached data');
+          setCompanies(data);
+          return;
+        }
+      }
+
+      const { data, error } = await (supabase as any)
         .from('companies')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select(`
+          *,
+          branches (
+            id,
+            name,
+            address,
+            city,
+            phone,
+            email
+          )
+        `);
 
-      if (companiesError) {
-        console.error('Companies error:', companiesError);
-        throw companiesError;
+      if (error) {
+        console.error('🏢 useCompanies: Supabase error:', error);
+        throw error;
       }
 
-      // Fetch branches
-      const { data: branchesData, error: branchesError } = await supabase
-        .from('branches')
-        .select('*')
-        .order('name', { ascending: true });
-
-      if (branchesError) {
-        console.error('Branches error:', branchesError);
-        throw branchesError;
-      }
-
-      console.log('Fetched companies:', companiesData);
-      console.log('Fetched branches:', branchesData);
-
-      // Group branches by company
-      const companiesWithBranches = (companiesData || []).map((company: any) => ({
-        ...company,
-        branches: (branchesData || []).filter((branch: any) => branch.company_id === company.id)
-      }));
-
-      setCompanies(companiesWithBranches);
+      const endTime = performance.now();
+      console.log('🏢 useCompanies: Successfully fetched companies data in:', endTime - startTime, 'ms');
+      
+      // Update cache
+      cacheRef.current = {
+        data: data || [],
+        timestamp: Date.now()
+      };
+      
+      setCompanies(data || []);
+      setError(null);
     } catch (err) {
-      console.error('Error fetching companies:', err);
+      console.error('🏢 useCompanies: Error fetching companies:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchCompanies();
   }, []);
 
-  return { 
-    companies, 
-    setCompanies,
-    loading, 
-    error, 
-    refetch: fetchCompanies 
-  };
+  // Force refresh without cache
+  const refetch = useCallback(() => {
+    console.log('🏢 useCompanies: Force refreshing data...');
+    return fetchCompanies(false);
+  }, [fetchCompanies]);
+
+  useEffect(() => {
+    console.log('🏢 useCompanies: useEffect triggered - component mounted or fetchCompanies changed');
+    fetchCompanies();
+    
+    return () => {
+      console.log('🏢 useCompanies: Cleanup - component unmounting');
+    };
+  }, [fetchCompanies]);
+
+  return { companies, error, refetch, setCompanies };
 };

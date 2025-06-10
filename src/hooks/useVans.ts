@@ -14,7 +14,6 @@ export interface Van {
 
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const cacheRef = useRef<{ data: Van[]; timestamp: number } | null>(null);
   const CACHE_DURATION = 30000; // 30 seconds cache
@@ -32,12 +31,9 @@ export const useVans = () => {
         if (isValid) {
           console.log('🚐 useVans: Using cached data');
           setVans(data);
-          setLoading(false);
           return;
         }
       }
-      
-      setLoading(true);
       
       const { data, error } = await (supabase as any)
         .from('vans')
@@ -62,9 +58,6 @@ export const useVans = () => {
     } catch (err) {
       console.error('🚐 useVans: Error fetching vans:', err);
       setError(err instanceof Error ? err.message : 'An error occurred');
-    } finally {
-      setLoading(false);
-      console.log('🚐 useVans: Finished fetching vans data');
     }
   }, []);
 
@@ -83,5 +76,5 @@ export const useVans = () => {
     };
   }, [fetchVans]);
 
-  return { vans, loading, error, refetch };
+  return { vans, error, refetch };
 };

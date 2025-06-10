@@ -1,4 +1,5 @@
 
+import { useMemo } from 'react';
 import type { User, UserGroup } from '@/types/rbac';
 import { createPermissionUtils } from './permissionUtils';
 import { createUserOperations } from './userOperations';
@@ -16,40 +17,47 @@ export const useRBACOperations = ({
   setUsers,
   setGroups,
 }: UseRBACOperationsProps) => {
-  const permissionUtils = createPermissionUtils(currentUser, groups);
-  const userOperations = createUserOperations(setUsers);
+  // Memoize permission utils to prevent recreation on every render
+  const permissionUtils = useMemo(() => {
+    console.log('Creating permission utils for user:', currentUser?.id);
+    return createPermissionUtils(currentUser, groups);
+  }, [currentUser?.id, currentUser?.groupId, groups]);
 
-  // Group operations
-  const addGroup = async (groupData: any): Promise<void> => {
-    console.log('Adding group:', groupData);
-    const newGroup: UserGroup = {
-      id: Date.now().toString(),
-      name: groupData.name,
-      description: groupData.description,
-      color: groupData.color,
-      permissions: groupData.permissions || [],
+  const userOperations = useMemo(() => createUserOperations(setUsers), [setUsers]);
+
+  // Group operations - memoized to prevent recreation
+  const groupOperations = useMemo(() => {
+    const addGroup = async (groupData: any): Promise<void> => {
+      console.log('Adding group:', groupData);
+      const newGroup: UserGroup = {
+        id: Date.now().toString(),
+        name: groupData.name,
+        description: groupData.description,
+        color: groupData.color,
+        permissions: groupData.permissions || [],
+      };
+      
+      setGroups(prev => [...prev, newGroup]);
     };
-    
-    setGroups(prev => [...prev, newGroup]);
-  };
 
-  const updateGroup = async (groupId: string, groupData: any): Promise<void> => {
-    console.log('Updating group:', groupId, groupData);
-    setGroups(prev => prev.map(group => 
-      group.id === groupId ? { ...group, ...groupData } : group
-    ));
-  };
+    const updateGroup = async (groupId: string, groupData: any): Promise<void> => {
+      console.log('Updating group:', groupId, groupData);
+      setGroups(prev => prev.map(group => 
+        group.id === groupId ? { ...group, ...groupData } : group
+      ));
+    };
 
-  const deleteGroup = async (groupId: string): Promise<void> => {
-    console.log('Deleting group:', groupId);
-    setGroups(prev => prev.filter(group => group.id !== groupId));
-  };
+    const deleteGroup = async (groupId: string): Promise<void> => {
+      console.log('Deleting group:', groupId);
+      setGroups(prev => prev.filter(group => group.id !== groupId));
+    };
 
-  return {
+    return { addGroup, updateGroup, deleteGroup };
+  }, [setGroups]);
+
+  return useMemo(() => ({
     ...userOperations,
-    addGroup,
-    updateGroup,
-    deleteGroup,
+    ...groupOperations,
     ...permissionUtils,
-  };
+  }), [userOperations, groupOperations, permissionUtils]);
 };

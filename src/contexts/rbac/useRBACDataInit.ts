@@ -20,22 +20,34 @@ export const useRBACDataInit = ({
   setLoading,
 }: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
-  const initialized = useRef(false);
-  const lastUserId = useRef<string | null>(null);
+  const initializationRef = useRef({
+    initialized: false,
+    lastUserId: null as string | null,
+    isInitializing: false,
+  });
 
   useEffect(() => {
     const initializeData = async () => {
-      console.log('RBAC Data Init - Auth user:', authUser?.id);
+      const currentUserId = authUser?.id || null;
+      
+      console.log('RBAC Data Init - Auth user:', currentUserId);
       console.log('RBAC Data Init - Auth loading:', authLoading);
+      console.log('RBAC Data Init - Current state:', initializationRef.current);
       
       if (authLoading) {
         console.log('Auth still loading, waiting...');
         return;
       }
 
-      // Check if we're dealing with the same user
-      const currentUserId = authUser?.id || null;
-      if (initialized.current && lastUserId.current === currentUserId) {
+      // Prevent concurrent initializations
+      if (initializationRef.current.isInitializing) {
+        console.log('RBAC initialization already in progress, skipping...');
+        return;
+      }
+
+      // Check if we're dealing with the same user and already initialized
+      if (initializationRef.current.initialized && 
+          initializationRef.current.lastUserId === currentUserId) {
         console.log('RBAC already initialized for this user, skipping...');
         return;
       }
@@ -47,14 +59,16 @@ export const useRBACDataInit = ({
         setUsers([]);
         setGroups([]);
         setPermissions([]);
-        initialized.current = false;
-        lastUserId.current = null;
+        initializationRef.current = {
+          initialized: false,
+          lastUserId: null,
+          isInitializing: false,
+        };
         return;
       }
 
       console.log('Initializing RBAC data for user:', currentUserId);
-      initialized.current = true;
-      lastUserId.current = currentUserId;
+      initializationRef.current.isInitializing = true;
       setLoading(true);
       
       try {
@@ -78,9 +92,17 @@ export const useRBACDataInit = ({
         const groupsData = await loadGroupsData();
         setGroups(groupsData);
 
+        // Mark as successfully initialized
+        initializationRef.current = {
+          initialized: true,
+          lastUserId: currentUserId,
+          isInitializing: false,
+        };
+
         console.log('RBAC data initialization complete');
       } catch (error) {
         console.error('Error loading RBAC data:', error);
+        initializationRef.current.isInitializing = false;
       } finally {
         setLoading(false);
       }

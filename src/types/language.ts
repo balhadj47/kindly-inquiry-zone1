@@ -22,6 +22,10 @@ export interface TranslationKeys {
   error: string;
   success: string;
   
+  // Auth
+  signOut: string;
+  logout: string;
+  
   // Dashboard
   totalTrips: string;
   activeVans: string;

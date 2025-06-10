@@ -22,6 +22,10 @@ export const ar: TranslationKeys = {
   error: 'خطأ',
   success: 'نجح',
   
+  // Auth
+  signOut: 'تسجيل الخروج',
+  logout: 'تسجيل الخروج',
+  
   // Dashboard
   totalTrips: 'إجمالي الرحلات',
   activeVans: 'الشاحنات النشطة',

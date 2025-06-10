@@ -22,6 +22,10 @@ export const fr: TranslationKeys = {
   error: 'Erreur',
   success: 'Succès',
   
+  // Auth
+  signOut: 'Se Déconnecter',
+  logout: 'Déconnexion',
+  
   // Dashboard
   totalTrips: 'Total des Voyages',
   activeVans: 'Camionnettes Actives',

@@ -22,6 +22,10 @@ export const en: TranslationKeys = {
   error: 'Error',
   success: 'Success',
   
+  // Auth
+  signOut: 'Sign Out',
+  logout: 'Logout',
+  
   // Dashboard
   totalTrips: 'Total Trips',
   activeVans: 'Active Vans',

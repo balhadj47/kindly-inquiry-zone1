@@ -11,14 +11,26 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
   const { groups } = useRBAC();
+  const { t } = useLanguage();
 
   const handleSignOut = async () => {
-    await signOut();
+    console.log('Attempting to sign out...');
+    try {
+      const { error } = await signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+      } else {
+        console.log('Sign out successful');
+      }
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
+    }
   };
 
   if (!user) {
@@ -67,7 +79,7 @@ const UserProfile = () => {
         <DropdownMenuItem asChild>
           <Link to="/settings">
             <Settings className="mr-2 h-4 w-4" />
-            Settings
+            {t.settings}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -76,7 +88,7 @@ const UserProfile = () => {
           onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
-          Sign out
+          {t.signOut}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

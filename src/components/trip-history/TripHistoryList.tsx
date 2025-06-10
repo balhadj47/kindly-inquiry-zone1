@@ -50,8 +50,14 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
     });
   };
 
+  const getDriverFirstName = (driverName: string) => {
+    // Extract the first name from the driver's full name
+    return driverName.split(' ')[0];
+  };
+
   const getTripTitle = (trip: Trip) => {
-    return `${trip.company} - ${trip.branch} - ${trip.driver}`;
+    const driverFirstName = getDriverFirstName(trip.driver);
+    return `${trip.company} - ${trip.branch} - ${driverFirstName}`;
   };
 
   return (

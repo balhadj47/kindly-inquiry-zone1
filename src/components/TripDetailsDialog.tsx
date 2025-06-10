@@ -45,8 +45,14 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
     });
   };
 
+  const getDriverFirstName = (driverName: string) => {
+    // Extract the first name from the driver's full name
+    return driverName.split(' ')[0];
+  };
+
   const getTripTitle = (trip: Trip) => {
-    return `${trip.company} - ${trip.branch} - ${trip.driver}`;
+    const driverFirstName = getDriverFirstName(trip.driver);
+    return `${trip.company} - ${trip.branch} - ${driverFirstName}`;
   };
 
   const getAssignedUsers = () => {
@@ -75,6 +81,11 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({ trip, isOpen, onC
   };
 
   const assignedUsers = getAssignedUsers();
+
+  console.log('Trip driver:', trip.driver);
+  console.log('Driver first name:', getDriverFirstName(trip.driver));
+  console.log('Assigned users:', assignedUsers);
+  console.log('Users from RBAC:', users);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

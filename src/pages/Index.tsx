@@ -27,16 +27,16 @@ const AppContent = () => {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              {hasPermission('companies.view') && (
+              {hasPermission('companies:read') && (
                 <Route path="/companies" element={<Companies />} />
               )}
-              {hasPermission('vans.view') && (
+              {hasPermission('vans:read') && (
                 <Route path="/vans" element={<Vans />} />
               )}
-              {hasPermission('users.view') && (
+              {hasPermission('users:read') && (
                 <Route path="/users" element={<Users />} />
               )}
-              {hasPermission('trips.view') && (
+              {hasPermission('trips:read') && (
                 <>
                   <Route path="/trip-logger" element={<TripLogger />} />
                   <Route path="/trip-history" element={<TripHistory />} />

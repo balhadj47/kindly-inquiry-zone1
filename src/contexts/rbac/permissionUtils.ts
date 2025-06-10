@@ -53,12 +53,12 @@ export const hasPermission = (
 
 export const getMenuItemPermissions = (user: RBACUser | null, groups: RBACGroup[]) => {
   const permissions = {
-    dashboard: hasPermission('dashboard.view', user, groups),
-    companies: hasPermission('companies.view', user, groups),
-    vans: hasPermission('vans.view', user, groups),
-    users: hasPermission('users.view', user, groups),
-    tripLogger: hasPermission('trips.log', user, groups),
-    tripHistory: hasPermission('trips.view', user, groups),
+    dashboard: hasPermission('dashboard:read', user, groups),
+    companies: hasPermission('companies:read', user, groups),
+    vans: hasPermission('vans:read', user, groups),
+    users: hasPermission('users:read', user, groups),
+    tripLogger: hasPermission('trips:create', user, groups),
+    tripHistory: hasPermission('trips:read', user, groups),
   };
 
   console.log('Menu permissions calculated:', permissions);

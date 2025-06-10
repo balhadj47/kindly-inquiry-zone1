@@ -50,9 +50,9 @@ const Users = () => {
 
   // Debug permissions
   console.log('Users component - Permission checks:', {
-    'users.view': hasPermission('users.view'),
-    'users.create': hasPermission('users.create'),
-    'users.manage_groups': hasPermission('users.manage_groups'),
+    'users:read': hasPermission('users:read'),
+    'users:create': hasPermission('users:create'),
+    'groups:read': hasPermission('groups:read'),
   });
 
   const clearFilters = () => {
@@ -89,7 +89,7 @@ const Users = () => {
   }
 
   // Check if user has permission to view users
-  if (!hasPermission('users.view')) {
+  if (!hasPermission('users:read')) {
     return (
       <ErrorState
         title="Accès non autorisé"
@@ -98,7 +98,7 @@ const Users = () => {
     );
   }
 
-  const canManageGroups = hasPermission('users.manage_groups');
+  const canManageGroups = hasPermission('groups:read');
 
   return (
     <div className="space-y-6">

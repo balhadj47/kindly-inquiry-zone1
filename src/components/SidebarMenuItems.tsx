@@ -16,7 +16,7 @@ export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
   const { hasPermission, currentUser, groups, loading } = useRBAC();
 
-  // Memoize menu items definition
+  // Memoize menu items definition with corrected permission format
   const menuItems = useMemo(() => {
     console.log('Creating menu items definition');
     return [
@@ -24,42 +24,42 @@ export const useSidebarMenuItems = () => {
         title: t.dashboard,
         href: '/',
         icon: Database,
-        permission: 'dashboard.view',
+        permission: 'dashboard:read',
         badge: null,
       },
       {
         title: t.companies,
         href: '/companies',
         icon: Building2,
-        permission: 'companies.view',
+        permission: 'companies:read',
         badge: null,
       },
       {
         title: 'Camionnettes',
         href: '/vans',
         icon: Car,
-        permission: 'vans.view',
+        permission: 'vans:read',
         badge: null,
       },
       {
         title: t.users,
         href: '/users',
         icon: Users,
-        permission: 'users.view',
+        permission: 'users:read',
         badge: null,
       },
       {
         title: t.logTrip,
         href: '/trip-logger',
         icon: MapIcon,
-        permission: 'trips.log',
+        permission: 'trips:create',
         badge: null,
       },
       {
         title: t.tripHistory,
         href: '/trip-history',
         icon: List,
-        permission: 'trips.view',
+        permission: 'trips:read',
         badge: null,
       },
     ];

@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, Mail, Trash2, Key, User as UserIcon } from 'lucide-react';
+import { Phone, Mail, Key, User as UserIcon, MoreVertical } from 'lucide-react';
 import { User } from '@/types/rbac';
 import {
   AlertDialog,
@@ -17,6 +17,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface UserCardProps {
   user: User;
@@ -70,14 +76,62 @@ const UserCard: React.FC<UserCardProps> = ({
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-lg">{user.name}</CardTitle>
-                <p className="text-sm text-gray-600">{user.role}</p>
+                <p className="text-sm text-muted-foreground">{user.role}</p>
                 {user.licenseNumber && (
-                  <p className="text-xs text-gray-500">{user.licenseNumber}</p>
+                  <p className="text-xs text-muted-foreground">{user.licenseNumber}</p>
                 )}
               </div>
-              <Badge className={getStatusColor(user.status)}>
-                {user.status}
-              </Badge>
+              <div className="flex items-center gap-2">
+                <Badge className={getStatusColor(user.status)}>
+                  {user.status}
+                </Badge>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => onEdit(user)}>
+                      <UserIcon className="h-4 w-4 mr-2" />
+                      Modifier
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onChangePassword(user)}>
+                      <Key className="h-4 w-4 mr-2" />
+                      Changer mot de passe
+                    </DropdownMenuItem>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem 
+                          onSelect={(e) => e.preventDefault()}
+                          className="text-destructive focus:text-destructive"
+                        >
+                          <UserIcon className="h-4 w-4 mr-2" />
+                          Supprimer
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
+                            Cette action ne peut pas être annulée.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Annuler</AlertDialogCancel>
+                          <AlertDialogAction
+                            onClick={() => onDelete(user)}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                          >
+                            Supprimer
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
         </div>
@@ -85,17 +139,17 @@ const UserCard: React.FC<UserCardProps> = ({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center space-x-2">
-            <Phone className="h-4 w-4 text-gray-500" />
+            <Phone className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">{user.phone}</span>
           </div>
           <div className="flex items-center space-x-2">
-            <Mail className="h-4 w-4 text-gray-500" />
+            <Mail className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm">{user.email}</span>
           </div>
         </div>
         
         {(user.role === 'Chauffeur Armé' || user.role === 'Chauffeur Sans Armé') && user.totalTrips && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-muted-foreground">
             <p><span className="font-medium">Total des Voyages:</span> {user.totalTrips}</p>
             <p><span className="font-medium">Dernier Voyage:</span> {user.lastTrip}</p>
           </div>
@@ -119,35 +173,6 @@ const UserCard: React.FC<UserCardProps> = ({
             <Key className="h-4 w-4 mr-1" />
             Mot de passe
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
-                  Cette action ne peut pas être annulée.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete(user)}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Supprimer
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </CardContent>
     </Card>

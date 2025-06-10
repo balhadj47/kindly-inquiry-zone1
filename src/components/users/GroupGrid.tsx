@@ -2,15 +2,15 @@
 import React, { useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Users as UsersIcon } from 'lucide-react';
-import { UserGroup } from '@/types/rbac';
+import { Group } from '@/types/rbac';
 import GroupCard from './GroupCard';
 
 interface GroupGridProps {
-  groups: UserGroup[];
+  groups: Group[];
   users: any[];
-  onEditGroup: (group: UserGroup) => void;
-  onManagePermissions: (group: UserGroup) => void;
-  onDeleteGroup: (group: UserGroup) => void;
+  onEditGroup: (group: Group) => void;
+  onManagePermissions: (group: Group) => void;
+  onDeleteGroup: (group: Group) => void;
 }
 
 const GroupGrid: React.FC<GroupGridProps> = ({

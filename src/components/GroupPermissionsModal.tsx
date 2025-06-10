@@ -6,12 +6,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRBAC } from '@/contexts/RBACContext';
-import { UserGroup, Permission } from '@/types/rbac';
+import { Group, Permission } from '@/types/rbac';
 
 interface GroupPermissionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  group: UserGroup | null;
+  group: Group | null;
 }
 
 const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, onClose, group }) => {

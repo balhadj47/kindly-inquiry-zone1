@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, UserGroup } from '@/types/rbac';
+import { User, Group } from '@/types/rbac';
 import UserModal from '../UserModal';
 import GroupModal from '../GroupModal';
 import GroupPermissionsModal from '../GroupPermissionsModal';
@@ -16,7 +16,7 @@ interface UsersModalsProps {
   isPasswordModalOpen: boolean;
   setIsPasswordModalOpen: (open: boolean) => void;
   selectedUser: User | null;
-  selectedGroup: UserGroup | null;
+  selectedGroup: Group | null;
 }
 
 const UsersModals: React.FC<UsersModalsProps> = ({

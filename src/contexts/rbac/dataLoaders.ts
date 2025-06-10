@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { RBACUser, RBACGroup } from './types';
 import { DEFAULT_PERMISSIONS } from '@/types/rbac';
@@ -114,7 +115,7 @@ export const loadGroupsData = async (): Promise<RBACGroup[]> => {
   try {
     console.log('Loading groups data...');
     
-    // Define default groups
+    // Define default groups with string-based permissions
     const defaultGroups: RBACGroup[] = [
       {
         id: 'admin',

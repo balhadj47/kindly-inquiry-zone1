@@ -38,7 +38,7 @@ export interface Group {
   id: string;
   name: string;
   description: string;
-  permissions: Permission[];
+  permissions: string[];
   color: string;
 }
 

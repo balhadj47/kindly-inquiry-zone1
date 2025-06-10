@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings, Trash2 } from 'lucide-react';
-import { UserGroup } from '@/types/rbac';
+import { Group } from '@/types/rbac';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,13 +18,13 @@ import {
 } from '@/components/ui/alert-dialog';
 
 interface GroupCardProps {
-  group: UserGroup;
+  group: Group;
   usersInGroup: number;
   canDelete: boolean;
   isDefaultGroup: boolean;
-  onEdit: (group: UserGroup) => void;
-  onManagePermissions: (group: UserGroup) => void;
-  onDelete: (group: UserGroup) => void;
+  onEdit: (group: Group) => void;
+  onManagePermissions: (group: Group) => void;
+  onDelete: (group: Group) => void;
 }
 
 const GroupCard: React.FC<GroupCardProps> = ({

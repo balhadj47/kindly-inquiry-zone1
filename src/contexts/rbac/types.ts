@@ -1,6 +1,11 @@
 
 import type { User, Group, Permission } from '@/types/rbac';
 
+// Re-export the main types for consistency
+export type RBACUser = User;
+export type RBACGroup = Group;
+export type RBACPermission = Permission;
+
 export interface RBACContextType {
   // State
   currentUser: User | null;

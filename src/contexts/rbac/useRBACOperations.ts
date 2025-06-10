@@ -1,14 +1,14 @@
 
 import { useMemo } from 'react';
-import type { User, UserGroup } from '@/types/rbac';
+import type { User, Group } from '@/types/rbac';
 import { createPermissionUtils } from './permissionUtils';
 import { createUserOperations } from './userOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
-  groups: UserGroup[];
+  groups: Group[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setGroups: React.Dispatch<React.SetStateAction<UserGroup[]>>;
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
 }
 
 export const useRBACOperations = ({
@@ -47,7 +47,7 @@ export const useRBACOperations = ({
   const groupOperations = useMemo(() => {
     const addGroup = async (groupData: any): Promise<void> => {
       console.log('Adding group:', groupData);
-      const newGroup: UserGroup = {
+      const newGroup: Group = {
         id: Date.now().toString(),
         name: groupData.name,
         description: groupData.description,

@@ -1,12 +1,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { clearPermissionCache } from './permissionUtils';
-import type { User, UserGroup, Permission } from '@/types/rbac';
+import type { User, Group, Permission } from '@/types/rbac';
 
 export const useRBACState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [groups, setGroups] = useState<UserGroup[]>([]);
+  const [groups, setGroups] = useState<Group[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,7 @@ export const useRBACState = () => {
     }
   }, []);
 
-  const safeSetGroups = useCallback((newGroups: UserGroup[] | ((prev: UserGroup[]) => UserGroup[])) => {
+  const safeSetGroups = useCallback((newGroups: Group[] | ((prev: Group[]) => Group[])) => {
     try {
       if (typeof newGroups === 'function') {
         setGroups(prev => {

@@ -7,12 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useRBAC } from '@/contexts/RBACContext';
-import { UserGroup } from '@/types/rbac';
+import { Group } from '@/types/rbac';
 
 interface GroupModalProps {
   isOpen: boolean;
   onClose: () => void;
-  group: UserGroup | null;
+  group: Group | null;
 }
 
 const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {

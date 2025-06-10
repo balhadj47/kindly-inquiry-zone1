@@ -2,13 +2,13 @@
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadUserData, loadUsersData, loadGroupsData, loadPermissionsData } from './dataLoaders';
-import { RBACUser, RBACGroup } from './types';
+import { User, Group, Permission } from '@/types/rbac';
 
 interface UseRBACDataInitProps {
-  setUsers: React.Dispatch<React.SetStateAction<RBACUser[]>>;
-  setGroups: React.Dispatch<React.SetStateAction<RBACGroup[]>>;
-  setPermissions: React.Dispatch<React.SetStateAction<any[]>>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<RBACUser | null>>;
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
+  setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
+  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
@@ -90,7 +90,7 @@ export const useRBACDataInit = ({
         } catch (error) {
           console.log('Failed to load user data, creating default user...');
           // Create a default user with basic permissions if we can't load from database
-          const defaultUser: RBACUser = {
+          const defaultUser: User = {
             id: authUser.id,
             email: authUser.email || '',
             name: authUser.user_metadata?.full_name || authUser.email || 'User',
@@ -124,23 +124,23 @@ export const useRBACDataInit = ({
           console.log('Creating fallback RBAC state...');
           
           // Create a default group with basic permissions
-          const defaultGroup: RBACGroup = {
+          const defaultGroup: Group = {
             id: 'default-group',
             name: 'Default Users',
             description: 'Default user group with basic permissions',
             color: '#3B82F6',
             permissions: [
-              'dashboard.view',
-              'companies.view',
-              'vans.view',
-              'trips.view',
-              'trips.log',
+              { id: 'dashboard.view', name: 'View Dashboard', description: 'Can view dashboard', category: 'Dashboard' },
+              { id: 'companies.view', name: 'View Companies', description: 'Can view companies', category: 'Companies' },
+              { id: 'vans.view', name: 'View Vans', description: 'Can view vans', category: 'Vans' },
+              { id: 'trips.view', name: 'View Trips', description: 'Can view trips', category: 'Trips' },
+              { id: 'trips.log', name: 'Log Trips', description: 'Can log trips', category: 'Trips' },
             ],
           };
           
           setGroups([defaultGroup]);
           
-          const defaultUser: RBACUser = {
+          const defaultUser: User = {
             id: authUser.id,
             email: authUser.email || '',
             name: authUser.user_metadata?.full_name || authUser.email || 'User',

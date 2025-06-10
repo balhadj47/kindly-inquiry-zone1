@@ -14,7 +14,7 @@ import { useRBAC } from '@/contexts/RBACContext';
 
 export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
-  const { hasPermission, currentUser, groups } = useRBAC();
+  const { hasPermission, currentUser, groups, loading } = useRBAC();
 
   // Memoize menu items definition
   const menuItems = useMemo(() => {
@@ -68,9 +68,24 @@ export const useSidebarMenuItems = () => {
   // Memoize filtered menu items with proper dependencies
   const filteredMenuItems = useMemo(() => {
     console.log('Filtering menu items for user:', currentUser?.id);
+    console.log('Loading state:', loading);
+    console.log('Groups available:', groups.length);
     
+    // If still loading, return empty array
+    if (loading) {
+      console.log('Still loading RBAC data, returning empty menu');
+      return [];
+    }
+
+    // If no current user, return empty array
     if (!currentUser) {
       console.log('No current user, returning empty menu');
+      return [];
+    }
+
+    // If no groups loaded, return empty array
+    if (groups.length === 0) {
+      console.log('No groups loaded, returning empty menu');
       return [];
     }
 
@@ -82,7 +97,7 @@ export const useSidebarMenuItems = () => {
 
     console.log('Filtered menu items:', filtered.map(item => item.title));
     return filtered;
-  }, [menuItems, hasPermission, currentUser?.id, currentUser?.groupId, groups.length]);
+  }, [menuItems, hasPermission, currentUser?.id, currentUser?.groupId, groups.length, loading]);
 
   return filteredMenuItems;
 };

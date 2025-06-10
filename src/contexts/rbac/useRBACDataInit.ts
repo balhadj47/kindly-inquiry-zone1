@@ -77,20 +77,33 @@ export const useRBACDataInit = ({
         const permissionsData = await loadPermissionsData();
         setPermissions(permissionsData);
 
-        // Load current user data
+        // Load groups data first so we have them available
+        console.log('Loading groups data...');
+        const groupsData = await loadGroupsData();
+        setGroups(groupsData);
+
+        // Try to load current user data, but if it fails, create a default user
         console.log('Loading current user data...');
-        const userData = await loadUserData();
-        setCurrentUser(userData);
+        try {
+          const userData = await loadUserData();
+          setCurrentUser(userData);
+        } catch (error) {
+          console.log('Failed to load user data, creating default user...');
+          // Create a default user with basic permissions if we can't load from database
+          const defaultUser: RBACUser = {
+            id: authUser.id,
+            email: authUser.email || '',
+            name: authUser.user_metadata?.full_name || authUser.email || 'User',
+            groupId: groupsData.length > 0 ? groupsData[0].id : 'default-group',
+            createdAt: new Date().toISOString(),
+          };
+          setCurrentUser(defaultUser);
+        }
 
         // Load all users data
         console.log('Loading users data...');
         const usersData = await loadUsersData();
         setUsers(usersData);
-
-        // Load groups data
-        console.log('Loading groups data...');
-        const groupsData = await loadGroupsData();
-        setGroups(groupsData);
 
         // Mark as successfully initialized
         initializationRef.current = {
@@ -102,6 +115,40 @@ export const useRBACDataInit = ({
         console.log('RBAC data initialization complete');
       } catch (error) {
         console.error('Error loading RBAC data:', error);
+        
+        // Even if there's an error, try to create a basic working state
+        if (authUser) {
+          console.log('Creating fallback RBAC state...');
+          
+          // Create a default group with basic permissions
+          const defaultGroup: RBACGroup = {
+            id: 'default-group',
+            name: 'Default Users',
+            description: 'Default user group with basic permissions',
+            color: '#3B82F6',
+            permissions: [
+              'dashboard.view',
+              'companies.view',
+              'vans.view',
+              'trips.view',
+              'trips.log',
+            ],
+          };
+          
+          setGroups([defaultGroup]);
+          
+          const defaultUser: RBACUser = {
+            id: authUser.id,
+            email: authUser.email || '',
+            name: authUser.user_metadata?.full_name || authUser.email || 'User',
+            groupId: defaultGroup.id,
+            createdAt: new Date().toISOString(),
+          };
+          
+          setCurrentUser(defaultUser);
+          setUsers([defaultUser]);
+        }
+        
         initializationRef.current.isInitializing = false;
       } finally {
         setLoading(false);

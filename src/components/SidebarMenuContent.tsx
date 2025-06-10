@@ -12,13 +12,26 @@ import { useSidebarMenuItems } from './SidebarMenuItems';
 
 const SidebarMenuContent = () => {
   const location = useLocation();
-  const { currentUser, groups } = useRBAC();
+  const { currentUser, groups, loading } = useRBAC();
   const filteredMenuItems = useSidebarMenuItems();
+
+  // Show loading state while RBAC is initializing
+  if (loading) {
+    return (
+      <div className="p-4 space-y-2 group-data-[collapsible=icon]:hidden">
+        <div className="animate-pulse space-y-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-10 bg-muted rounded-lg"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
-      {/* Show debug info when no visible items */}
-      {filteredMenuItems.length === 0 && (
+      {/* Show debug info when no visible items and not loading */}
+      {!loading && filteredMenuItems.length === 0 && (
         <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg mb-4 group-data-[collapsible=icon]:hidden">
           <div className="font-medium mb-2">No menu items visible</div>
           <div className="space-y-1 text-xs opacity-75">

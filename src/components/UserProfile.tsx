@@ -20,18 +20,27 @@ const UserProfile = () => {
   const { t } = useLanguage();
 
   const handleSignOut = async () => {
-    console.log('Attempting to sign out...');
+    console.log('UserProfile: Attempting to sign out...');
+    console.log('UserProfile: Current user:', user?.id);
+    console.log('UserProfile: Translation for signOut:', t.signOut);
+    
     try {
       const { error } = await signOut();
       if (error) {
-        console.error('Sign out error:', error);
+        console.error('UserProfile: Sign out error:', error);
       } else {
-        console.log('Sign out successful');
+        console.log('UserProfile: Sign out successful');
       }
     } catch (error) {
-      console.error('Unexpected error during sign out:', error);
+      console.error('UserProfile: Unexpected error during sign out:', error);
     }
   };
+
+  console.log('UserProfile: Rendering with user:', user?.email);
+  console.log('UserProfile: Current language context:', { 
+    signOut: t.signOut, 
+    settings: t.settings 
+  });
 
   if (!user) {
     return (
@@ -84,7 +93,7 @@ const UserProfile = () => {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
-          className="text-destructive focus:text-destructive"
+          className="text-destructive focus:text-destructive cursor-pointer"
           onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />

@@ -112,8 +112,10 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
         await addUser(userData);
       }
       
-      // Close modal immediately after successful operation
-      onClose();
+      // Add a small delay to ensure the operation completes before closing
+      setTimeout(() => {
+        onClose();
+      }, 100);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
     } finally {

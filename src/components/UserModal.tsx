@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { User } from '@/types/rbac';
 import UserModalForm from './user-modal/UserModalForm';
 
@@ -11,17 +11,25 @@ interface UserModalProps {
 }
 
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
-  const handleClose = () => {
-    onClose();
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      onClose();
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
           </DialogTitle>
+          <DialogDescription>
+            {user 
+              ? 'Modifiez les informations de l\'utilisateur ci-dessous.' 
+              : 'Remplissez les informations pour créer un nouvel utilisateur.'
+            }
+          </DialogDescription>
         </DialogHeader>
         
         <UserModalForm

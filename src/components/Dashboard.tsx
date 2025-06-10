@@ -70,11 +70,11 @@ const DashboardLoadingSkeleton = () => {
 };
 
 const Dashboard = () => {
-  const { users, loading: usersLoading } = useRBAC();
+  const { users } = useRBAC();
   const { vans, loading: vansLoading } = useVans();
   const { companies, loading: companiesLoading } = useCompanies();
 
-  const isLoading = usersLoading || vansLoading || companiesLoading;
+  const isLoading = vansLoading || companiesLoading;
 
   if (isLoading) {
     return <DashboardLoadingSkeleton />;

@@ -14,16 +14,9 @@ import TripHistory from '@/components/TripHistory';
 import UserSettings from '@/pages/UserSettings';
 
 const AppContent = () => {
-  const { hasPermission, loading } = useRBAC();
+  const { hasPermission } = useRBAC();
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
+  // Removed loading check - render immediately
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

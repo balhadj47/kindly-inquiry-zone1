@@ -8,7 +8,7 @@ export const useRBACState = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<UserGroup[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed from true to false
 
   const setUser = (user: User | null) => {
     // Clear permission cache when user changes

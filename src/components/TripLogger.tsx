@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useRBAC } from '@/contexts/RBACContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import CurrentTimeCard from './CurrentTimeCard';
@@ -11,11 +10,10 @@ import TripLoggerLoadingSkeleton from './TripLoggerLoadingSkeleton';
 
 const TripLogger = () => {
   const { t } = useLanguage();
-  const { loading: usersLoading } = useRBAC();
   const { loading: companiesLoading } = useCompanies();
   const { loading: vansLoading } = useVans();
 
-  const isLoading = usersLoading || companiesLoading || vansLoading;
+  const isLoading = companiesLoading || vansLoading;
 
   if (isLoading) {
     return <TripLoggerLoadingSkeleton />;

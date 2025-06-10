@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -58,6 +57,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const { addUser, updateUser } = useRBAC();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [profileImage, setProfileImage] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<UserFormData>({
     defaultValues: {
@@ -73,37 +73,43 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     }
   });
 
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
+  // Reset form and state when modal opens/closes or user changes
   useEffect(() => {
-    if (user) {
-      form.reset({
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        role: user.role,
-        status: user.status,
-        licenseNumber: user.licenseNumber || '',
-        totalTrips: user.totalTrips || 0,
-        lastTrip: user.lastTrip || '',
-        profileImage: user.profileImage || '',
-      });
-      setProfileImage(user.profileImage || '');
-    } else {
-      form.reset({
-        name: '',
-        email: '',
-        phone: '',
-        role: 'Employee',
-        status: 'Active',
-        licenseNumber: '',
-        totalTrips: 0,
-        lastTrip: '',
-        profileImage: '',
-      });
-      setProfileImage('');
+    if (isOpen) {
+      if (user) {
+        form.reset({
+          name: user.name,
+          email: user.email,
+          phone: user.phone,
+          role: user.role,
+          status: user.status,
+          licenseNumber: user.licenseNumber || '',
+          totalTrips: user.totalTrips || 0,
+          lastTrip: user.lastTrip || '',
+          profileImage: user.profileImage || '',
+        });
+        setProfileImage(user.profileImage || '');
+      } else {
+        form.reset({
+          name: '',
+          email: '',
+          phone: '',
+          role: 'Employee',
+          status: 'Active',
+          licenseNumber: '',
+          totalTrips: 0,
+          lastTrip: '',
+          profileImage: '',
+        });
+        setProfileImage('');
+      }
     }
-  }, [user, form]);
+    
+    // Reset submitting state when modal state changes
+    if (!isOpen) {
+      setIsSubmitting(false);
+    }
+  }, [user, form, isOpen]);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -132,6 +138,8 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   };
 
   const handleSubmit = async (data: UserFormData) => {
+    if (isSubmitting) return; // Prevent double submission
+    
     setIsSubmitting(true);
     
     try {
@@ -151,6 +159,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         await addUser(userData);
       }
       
+      // Close modal immediately after successful operation
       onClose();
     } catch (error) {
       console.error('Erreur lors de la sauvegarde de l\'utilisateur:', error);
@@ -159,11 +168,17 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
     }
   };
 
+  const handleClose = () => {
+    if (!isSubmitting) {
+      onClose();
+    }
+  };
+
   const watchedRole = form.watch('role');
   const watchedName = form.watch('name');
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
@@ -400,7 +415,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
             )}
 
             <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={handleClose} 
+                disabled={isSubmitting}
+              >
                 Annuler
               </Button>
               <Button type="submit" disabled={isSubmitting}>

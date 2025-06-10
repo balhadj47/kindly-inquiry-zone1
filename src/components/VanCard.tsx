@@ -3,13 +3,15 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Edit, 
   Eye, 
   Trash2,
   Shield,
   Calendar,
-  FileText
+  FileText,
+  AlertTriangle
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -37,6 +39,16 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const handleQuickAction = React.useCallback(() => onQuickAction('Voir Voyages', van), [onQuickAction, van]);
   const handleDelete = React.useCallback(() => onDelete(van), [onDelete, van]);
 
+  // Check if dates are expired
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const insuranceDate = van.insurance_date ? new Date(van.insurance_date) : null;
+  const controlDate = van.control_date ? new Date(van.control_date) : null;
+  
+  const isInsuranceExpired = insuranceDate && insuranceDate < today;
+  const isControlExpired = controlDate && controlDate < today;
+
   return (
     <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
       <CardHeader className="pb-3">
@@ -54,6 +66,28 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Expiration Warnings */}
+        {(isInsuranceExpired || isControlExpired) && (
+          <div className="space-y-2">
+            {isInsuranceExpired && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs font-medium">
+                  ⚠️ Assurance expirée le {format(insuranceDate!, "dd/MM/yyyy")}
+                </AlertDescription>
+              </Alert>
+            )}
+            {isControlExpired && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs font-medium">
+                  ⚠️ Contrôle technique expiré le {format(controlDate!, "dd/MM/yyyy")}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+        )}
+
         {van.insurer && (
           <div className="flex items-center space-x-2">
             <Shield className="h-4 w-4 text-gray-500" />
@@ -63,13 +97,13 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
 
         <div className="grid grid-cols-2 gap-2 text-xs">
           {van.insurance_date && (
-            <div className="flex items-center space-x-1">
+            <div className={`flex items-center space-x-1 ${isInsuranceExpired ? 'text-red-600' : ''}`}>
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}</span>
             </div>
           )}
           {van.control_date && (
-            <div className="flex items-center space-x-1">
+            <div className={`flex items-center space-x-1 ${isControlExpired ? 'text-red-600' : ''}`}>
               <Calendar className="h-3 w-3 text-gray-400" />
               <span>Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}</span>
             </div>

@@ -9,7 +9,6 @@ import { useTripContext } from '@/contexts/TripContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import TripDetailsDialog from './TripDetailsDialog';
-import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
@@ -24,7 +23,7 @@ import {
 } from '@/components/ui/alert-dialog';
 
 const TripHistory = () => {
-  const { trips } = useTripContext();
+  const { trips, deleteTrip } = useTripContext();
   const { companies } = useCompanies();
   const { vans } = useVans();
   const { toast } = useToast();
@@ -50,29 +49,18 @@ const TripHistory = () => {
   }, [trips, searchTerm, companyFilter, vanFilter]);
 
   const handleDeleteTrip = async (tripId: number) => {
+    console.log('Delete button clicked for trip:', tripId);
     setDeletingTripId(tripId);
+    
     try {
-      const { error } = await supabase
-        .from('trips')
-        .delete()
-        .eq('id', tripId);
-
-      if (error) {
-        console.error('Error deleting trip:', error);
-        toast({
-          title: "Erreur",
-          description: "Impossible de supprimer le voyage",
-          variant: "destructive",
-        });
-        return;
-      }
-
+      await deleteTrip(tripId);
+      
       toast({
         title: "Succès",
         description: "Le voyage a été supprimé avec succès",
       });
-
-      // The trip will be removed from the list automatically when the TripContext refreshes
+      
+      console.log('Trip deleted successfully:', tripId);
     } catch (error) {
       console.error('Error deleting trip:', error);
       toast({
@@ -310,6 +298,10 @@ const TripHistory = () => {
                           size="sm"
                           className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           disabled={deletingTripId === trip.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            console.log('Delete trigger clicked for trip:', trip.id);
+                          }}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -325,7 +317,10 @@ const TripHistory = () => {
                         <AlertDialogFooter>
                           <AlertDialogCancel>Annuler</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => handleDeleteTrip(trip.id)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteTrip(trip.id);
+                            }}
                             className="bg-red-600 hover:bg-red-700"
                           >
                             Supprimer

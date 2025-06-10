@@ -42,6 +42,23 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   hasActiveFilters,
   clearFilters,
 }) => {
+  // Add null checks and default values
+  const safeUniqueStatuses = uniqueStatuses || [];
+  const safeUniqueRoles = uniqueRoles || [];
+  const safeGroups = groups || [];
+  const safeFilteredCount = filteredCount || 0;
+  const safeTotalCount = totalCount || 0;
+
+  console.log('UserFilters - Rendering with:', {
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    groupFilter,
+    uniqueStatuses: safeUniqueStatuses.length,
+    uniqueRoles: safeUniqueRoles.length,
+    groups: safeGroups.length
+  });
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -51,7 +68,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Rechercher par nom, email, ou numéro de permis..."
-              value={searchTerm}
+              value={searchTerm || ''}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="pl-10"
             />
@@ -66,7 +83,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
                 <SelectItem value="all">Tous les Statuts</SelectItem>
-                {uniqueStatuses.map(status => (
+                {safeUniqueStatuses.map(status => (
                   <SelectItem key={status} value={status}>{status}</SelectItem>
                 ))}
               </SelectContent>
@@ -79,7 +96,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
                 <SelectItem value="all">Tous les Rôles</SelectItem>
-                {uniqueRoles.map(role => (
+                {safeUniqueRoles.map(role => (
                   <SelectItem key={role} value={role}>{role}</SelectItem>
                 ))}
               </SelectContent>
@@ -92,8 +109,8 @@ const UserFilters: React.FC<UserFiltersProps> = ({
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
                 <SelectItem value="all">Tous les Groupes</SelectItem>
-                {groups.map(group => (
-                  <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                {safeGroups.map(group => (
+                  <SelectItem key={group.id} value={group.id}>{group.name || 'Groupe sans nom'}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -109,7 +126,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
           {/* Results Summary */}
           <div className="flex items-center justify-between text-sm text-gray-600">
             <span>
-              Affichage de {filteredCount} sur {totalCount} utilisateurs
+              Affichage de {safeFilteredCount} sur {safeTotalCount} utilisateurs
               {hasActiveFilters && ` (filtré)`}
             </span>
             {hasActiveFilters && (
@@ -118,7 +135,11 @@ const UserFilters: React.FC<UserFiltersProps> = ({
                 {searchTerm && <Badge variant="secondary">Recherche: "{searchTerm}"</Badge>}
                 {statusFilter !== 'all' && <Badge variant="secondary">Statut: {statusFilter}</Badge>}
                 {roleFilter !== 'all' && <Badge variant="secondary">Rôle: {roleFilter}</Badge>}
-                {groupFilter !== 'all' && <Badge variant="secondary">Groupe: {groups.find(g => g.id === groupFilter)?.name}</Badge>}
+                {groupFilter !== 'all' && (
+                  <Badge variant="secondary">
+                    Groupe: {safeGroups.find(g => g.id === groupFilter)?.name || 'Inconnu'}
+                  </Badge>
+                )}
               </div>
             )}
           </div>

@@ -47,10 +47,30 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = view === 'grid' ? 12 : 25;
 
-  const filteredUsers = users.filter(user => {
+  // Add safety checks for arrays
+  const safeUsers = users || [];
+  const safeGroups = groups || [];
+
+  console.log('UsersTab - Rendering with:', {
+    usersCount: safeUsers.length,
+    groupsCount: safeGroups.length,
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    groupFilter,
+    view,
+    currentPage
+  });
+
+  const filteredUsers = safeUsers.filter(user => {
+    if (!user) {
+      console.warn('UsersTab - Null user found in filter');
+      return false;
+    }
+
     const matchesSearch = 
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (user.name && user.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.email && user.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (user.licenseNumber && user.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase()));
 
     const matchesStatus = statusFilter === 'all' || user.status === statusFilter;
@@ -60,11 +80,18 @@ const UsersTab: React.FC<UsersTabProps> = ({
     return matchesSearch && matchesStatus && matchesRole && matchesGroup;
   });
 
-  const uniqueStatuses = [...new Set(users.map(user => user.status))];
-  const uniqueRoles = [...new Set(users.map(user => user.role))];
+  const uniqueStatuses = [...new Set(safeUsers.map(user => user?.status).filter(Boolean))];
+  const uniqueRoles = [...new Set(safeUsers.map(user => user?.role).filter(Boolean))];
+
+  console.log('UsersTab - Filter results:', {
+    filteredUsersCount: filteredUsers.length,
+    uniqueStatuses: uniqueStatuses.length,
+    uniqueRoles: uniqueRoles.length
+  });
 
   // Reset to first page when filters change
   React.useEffect(() => {
+    console.log('UsersTab - Resetting to page 1 due to filter change');
     setCurrentPage(1);
   }, [searchTerm, statusFilter, roleFilter, groupFilter, view]);
 
@@ -72,6 +99,14 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+
+  console.log('UsersTab - Pagination:', {
+    totalPages,
+    currentPage,
+    startIndex,
+    endIndex,
+    paginatedUsersCount: paginatedUsers.length
+  });
 
   return (
     <TabsContent value="users" className="space-y-4">
@@ -88,9 +123,9 @@ const UsersTab: React.FC<UsersTabProps> = ({
             setGroupFilter={setGroupFilter}
             uniqueStatuses={uniqueStatuses}
             uniqueRoles={uniqueRoles}
-            groups={groups}
+            groups={safeGroups}
             filteredCount={filteredUsers.length}
-            totalCount={users.length}
+            totalCount={safeUsers.length}
             hasActiveFilters={hasActiveFilters}
             clearFilters={clearFilters}
           />

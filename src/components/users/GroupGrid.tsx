@@ -20,7 +20,7 @@ const GroupGrid: React.FC<GroupGridProps> = ({
   onManagePermissions,
   onDeleteGroup,
 }) => {
-  if (groups.length === 0) {
+  if (!groups || groups.length === 0) {
     return (
       <Card>
         <CardContent className="text-center py-8">
@@ -32,8 +32,8 @@ const GroupGrid: React.FC<GroupGridProps> = ({
     );
   }
 
-  // Remove duplicates based on group ID and ensure unique keys
-  const uniqueGroups = groups.reduce((acc, group, index) => {
+  // Remove duplicates based on group ID with proper unique key generation
+  const uniqueGroups = groups.reduce((acc, group) => {
     const existingGroupIndex = acc.findIndex(g => g.id === group.id);
     if (existingGroupIndex === -1) {
       acc.push(group);
@@ -41,17 +41,19 @@ const GroupGrid: React.FC<GroupGridProps> = ({
     return acc;
   }, [] as UserGroup[]);
 
+  console.log('GroupGrid - Rendering groups:', uniqueGroups.length);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {uniqueGroups.map((group, index) => {
+      {uniqueGroups.map((group) => {
         const defaultGroupIds = ['admin', 'employee'];
         const isDefaultGroup = defaultGroupIds.includes(group.id);
-        const usersInGroup = users.filter(u => u.groupId === group.id).length;
+        const usersInGroup = users ? users.filter(u => u.groupId === group.id).length : 0;
         const canDelete = !isDefaultGroup && usersInGroup === 0;
 
         return (
           <GroupCard
-            key={`${group.id}-${index}`} // Ensure unique key with index fallback
+            key={group.id} // Use only group.id as key since we've ensured uniqueness
             group={group}
             usersInGroup={usersInGroup}
             canDelete={canDelete}

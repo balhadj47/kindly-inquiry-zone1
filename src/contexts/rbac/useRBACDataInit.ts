@@ -123,18 +123,18 @@ export const useRBACDataInit = ({
         if (authUser) {
           console.log('Creating fallback RBAC state...');
           
-          // Create a default group with basic permissions
+          // Create a default group with basic permissions (using permission IDs, not objects)
           const defaultGroup: Group = {
             id: 'default-group',
             name: 'Default Users',
             description: 'Default user group with basic permissions',
             color: '#3B82F6',
             permissions: [
-              { id: 'dashboard.view', name: 'View Dashboard', description: 'Can view dashboard', category: 'Dashboard' },
-              { id: 'companies.view', name: 'View Companies', description: 'Can view companies', category: 'Companies' },
-              { id: 'vans.view', name: 'View Vans', description: 'Can view vans', category: 'Vans' },
-              { id: 'trips.view', name: 'View Trips', description: 'Can view trips', category: 'Trips' },
-              { id: 'trips.log', name: 'Log Trips', description: 'Can log trips', category: 'Trips' },
+              'dashboard:read',
+              'companies:read',
+              'vans:read',
+              'trips:read',
+              'trips:create',
             ],
           };
           

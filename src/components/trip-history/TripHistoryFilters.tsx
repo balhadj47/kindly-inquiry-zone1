@@ -5,6 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { RotateCcw } from 'lucide-react';
+import { Company } from '@/hooks/useCompanies';
+import { Van } from '@/hooks/useVans';
 
 interface TripHistoryFiltersProps {
   searchTerm: string;
@@ -13,8 +15,8 @@ interface TripHistoryFiltersProps {
   setCompanyFilter: (value: string) => void;
   vanFilter: string;
   setVanFilter: (value: string) => void;
-  companies: Array<{ id: number; name: string }>;
-  vans: Array<{ id: number; license_plate: string }>;
+  companies: Company[];
+  vans: Van[];
   onClearFilters: () => void;
 }
 

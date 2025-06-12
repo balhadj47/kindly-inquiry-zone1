@@ -108,6 +108,7 @@ export type Database = {
           id: string
           name: string
           permissions: string[] | null
+          role_id: number | null
         }
         Insert: {
           color: string
@@ -115,6 +116,7 @@ export type Database = {
           id: string
           name: string
           permissions?: string[] | null
+          role_id?: number | null
         }
         Update: {
           color?: string
@@ -122,6 +124,7 @@ export type Database = {
           id?: string
           name?: string
           permissions?: string[] | null
+          role_id?: number | null
         }
         Relationships: []
       }
@@ -136,6 +139,7 @@ export type Database = {
           phone: string
           profile_image: string | null
           role: string
+          role_id: number | null
           status: string
           total_trips: number | null
         }
@@ -149,6 +153,7 @@ export type Database = {
           phone: string
           profile_image?: string | null
           role: string
+          role_id?: number | null
           status: string
           total_trips?: number | null
         }
@@ -162,6 +167,7 @@ export type Database = {
           phone?: string
           profile_image?: string | null
           role?: string
+          role_id?: number | null
           status?: string
           total_trips?: number | null
         }
@@ -223,6 +229,7 @@ export type Database = {
           phone: string
           profile_image: string | null
           role: string
+          role_id: number | null
           status: string
           total_trips: number | null
         }

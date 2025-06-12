@@ -3,12 +3,30 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Group } from '@/types/rbac';
 
 export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAction<Group[]>>) => {
+  // Helper function to get the next available role_id
+  const getNextRoleId = async (): Promise<number> => {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('role_id')
+      .order('role_id', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.error('Error getting max role_id:', error);
+      return 6; // Default fallback
+    }
+
+    const maxRoleId = data && data[0] ? data[0].role_id : 5;
+    return (maxRoleId || 5) + 1;
+  };
+
   const addGroup = async (groupData: Partial<Group>) => {
     console.log('Adding group to database:', groupData);
     
     try {
       // Generate a unique ID if not provided
       const groupId = groupData.id || crypto.randomUUID();
+      const nextRoleId = await getNextRoleId();
       
       const { data, error } = await supabase
         .from('user_groups')
@@ -18,6 +36,7 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
           description: groupData.description,
           permissions: groupData.permissions || [],
           color: groupData.color,
+          role_id: nextRoleId,
         }])
         .select();
 

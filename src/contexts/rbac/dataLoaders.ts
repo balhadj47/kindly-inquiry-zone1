@@ -27,20 +27,19 @@ export const loadInitialData = async (authUser: any) => {
       throw groupsError;
     }
 
-    // Helper function to determine groupId based on role
-    const getGroupIdForRole = (role: UserRole): string => {
-      switch (role) {
-        case 'Administrator':
+    // Helper function to determine groupId based on role_id
+    const getGroupIdForRoleId = (roleId: number | null): string => {
+      switch (roleId) {
+        case 1:
           return 'administrator';
-        case 'Chef de Groupe Armé':
-        case 'Chef de Groupe Sans Armé':
+        case 2:
           return 'supervisor';
-        case 'Chauffeur Armé':
-        case 'Chauffeur Sans Armé':
+        case 3:
           return 'driver';
-        case 'APS Armé':
-        case 'APS Sans Armé':
+        case 4:
           return 'security';
+        case 5:
+          return 'employee';
         default:
           return 'employee';
       }
@@ -54,14 +53,14 @@ export const loadInitialData = async (authUser: any) => {
       phone: user.phone,
       role: user.role as UserRole,
       status: user.status as UserStatus,
-      groupId: getGroupIdForRole(user.role as UserRole),
+      groupId: getGroupIdForRoleId(user.role_id),
       createdAt: user.created_at,
       totalTrips: user.total_trips || 0,
       lastTrip: user.last_trip,
       profileImage: user.profile_image,
     }));
 
-    // Transform database groups to RBAC Group format and ensure we have basic groups
+    // Transform database groups to RBAC Group format
     let groups: Group[] = (groupsData || []).map(group => ({
       id: group.id,
       name: group.name,
@@ -70,32 +69,21 @@ export const loadInitialData = async (authUser: any) => {
       color: group.color,
     }));
 
-    // Ensure we have an administrator group with all permissions
-    const adminGroupExists = groups.some(group => group.id === 'administrator');
-    if (!adminGroupExists) {
-      console.log('Creating default administrator group');
-      const adminGroup: Group = {
-        id: 'administrator',
-        name: 'Administrateurs',
-        description: 'Accès complet au système',
-        permissions: DEFAULT_PERMISSIONS.map(p => p.id),
-        color: '#ef4444',
-      };
-      groups.push(adminGroup);
-    }
+    // Ensure we have default groups with proper role_id mapping if they don't exist
+    const requiredGroups = [
+      { id: 'administrator', name: 'Administrateurs', description: 'Accès complet au système', permissions: DEFAULT_PERMISSIONS.map(p => p.id), color: '#ef4444' },
+      { id: 'supervisor', name: 'Superviseurs', description: 'Chefs de groupe', permissions: ['dashboard:read', 'trips:read', 'trips:create', 'trips:update', 'vans:read', 'users:read'], color: '#f59e0b' },
+      { id: 'driver', name: 'Chauffeurs', description: 'Chauffeurs', permissions: ['dashboard:read', 'trips:read', 'trips:create', 'vans:read'], color: '#10b981' },
+      { id: 'security', name: 'Sécurité', description: 'Agents de sécurité', permissions: ['dashboard:read', 'trips:read', 'trips:create'], color: '#8b5cf6' },
+      { id: 'employee', name: 'Employés', description: 'Accès de base', permissions: ['dashboard:read', 'trips:read', 'trips:create'], color: '#3b82f6' },
+    ];
 
-    // Ensure we have an employee group with basic permissions
-    const employeeGroupExists = groups.some(group => group.id === 'employee');
-    if (!employeeGroupExists) {
-      console.log('Creating default employee group');
-      const employeeGroup: Group = {
-        id: 'employee',
-        name: 'Employés',
-        description: 'Accès de base',
-        permissions: ['dashboard:read', 'trips:read', 'trips:create'],
-        color: '#3b82f6',
-      };
-      groups.push(employeeGroup);
+    for (const requiredGroup of requiredGroups) {
+      const existingGroup = groups.find(group => group.id === requiredGroup.id);
+      if (!existingGroup) {
+        console.log(`Creating default group: ${requiredGroup.name}`);
+        groups.push(requiredGroup);
+      }
     }
 
     // Use default permissions
@@ -114,7 +102,7 @@ export const loadInitialData = async (authUser: any) => {
           phone: dbUser.phone,
           role: dbUser.role as UserRole,
           status: dbUser.status as UserStatus,
-          groupId: getGroupIdForRole(dbUser.role as UserRole),
+          groupId: getGroupIdForRoleId(dbUser.role_id),
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
           lastTrip: dbUser.last_trip,

@@ -46,6 +46,7 @@ export const en: TranslationKeys = {
   createCompany: 'Create Company',
   updateCompany: 'Update Company',
   more: 'more',
+  and: 'and',
   address: 'Address',
   phone: 'Phone',
   email: 'Email',

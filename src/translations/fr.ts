@@ -46,6 +46,13 @@ export const fr: TranslationKeys = {
   createCompany: 'Créer l\'Entreprise',
   updateCompany: 'Mettre à Jour l\'Entreprise',
   more: 'plus',
+  and: 'et',
+  address: 'Adresse',
+  phone: 'Téléphone',
+  email: 'Email',
+  enterAddress: 'Entrer l\'adresse de l\'entreprise',
+  enterPhone: 'Entrer le numéro de téléphone',
+  enterEmail: 'Entrer l\'adresse email',
   
   // Trip Logger
   tripLogger: 'Enregistreur de Voyage',

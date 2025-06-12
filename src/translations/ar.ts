@@ -46,6 +46,13 @@ export const ar: TranslationKeys = {
   createCompany: 'إنشاء الشركة',
   updateCompany: 'تحديث الشركة',
   more: 'أكثر',
+  and: 'و',
+  address: 'العنوان',
+  phone: 'الهاتف',
+  email: 'البريد الإلكتروني',
+  enterAddress: 'أدخل عنوان الشركة',
+  enterPhone: 'أدخل رقم الهاتف',
+  enterEmail: 'أدخل البريد الإلكتروني',
   
   // Trip Logger
   tripLogger: 'مسجل الرحلات',

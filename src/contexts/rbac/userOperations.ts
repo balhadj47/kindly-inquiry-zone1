@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@/types/rbac';
+import type { User, UserRole, UserStatus } from '@/types/rbac';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   const addUser = async (userData: Partial<User>) => {
@@ -29,8 +29,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
-        role: data[0].role,
-        status: data[0].status,
+        role: data[0].role as UserRole,
+        status: data[0].status as UserStatus,
         groupId: 'employee', // Default groupId
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
@@ -70,8 +70,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
-        role: data[0].role,
-        status: data[0].status,
+        role: data[0].role as UserRole,
+        status: data[0].status as UserStatus,
         groupId: 'employee', // Default groupId
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
@@ -101,5 +101,13 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('User deleted successfully:', id);
   };
 
-  return { addUser, updateUser, deleteUser };
+  const changeUserPassword = async (userEmail: string, newPassword: string) => {
+    console.log('Changing password for user:', userEmail);
+    
+    // Note: This would require admin privileges or a backend function
+    // For now, we'll throw an error indicating this needs backend implementation
+    throw new Error('Password change requires backend implementation with admin privileges');
+  };
+
+  return { addUser, updateUser, deleteUser, changeUserPassword };
 };

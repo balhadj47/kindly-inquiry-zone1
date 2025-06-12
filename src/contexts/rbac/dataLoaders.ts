@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { User, Group, Permission } from '@/types/rbac';
+import type { User, Group, Permission, UserRole, UserStatus } from '@/types/rbac';
 import { DEFAULT_PERMISSIONS } from '@/types/rbac';
 
 export const loadInitialData = async (authUser: any) => {
@@ -33,8 +33,8 @@ export const loadInitialData = async (authUser: any) => {
       name: user.name,
       email: user.email,
       phone: user.phone,
-      role: user.role,
-      status: user.status,
+      role: user.role as UserRole,
+      status: user.status as UserStatus,
       groupId: 'employee', // Default groupId since we don't have group mapping yet
       createdAt: user.created_at,
       totalTrips: user.total_trips || 0,
@@ -65,8 +65,8 @@ export const loadInitialData = async (authUser: any) => {
           name: dbUser.name,
           email: dbUser.email,
           phone: dbUser.phone,
-          role: dbUser.role,
-          status: dbUser.status,
+          role: dbUser.role as UserRole,
+          status: dbUser.status as UserStatus,
           groupId: 'employee', // Default groupId
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,

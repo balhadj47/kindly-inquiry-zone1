@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TripDetailsDialogProps {
   trip: Trip | null;
@@ -30,6 +31,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
   onClose,
 }) => {
   const { users } = useRBAC();
+  const { t } = useLanguage();
 
   if (!trip) return null;
 
@@ -193,7 +195,8 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                             </Badge>
                             {userWithRoles.missionRoles.map((missionRole, roleIndex) => (
                               <Badge key={roleIndex} variant="outline" className="text-xs">
-                                {missionRole}
+                                {/* Display "Chef de Groupe" for non-driver users with mission roles */}
+                                {missionRole === 'Chef de Groupe' || (missionRole && userWithRoles.user.role !== 'Driver') ? 'Chef de Groupe' : missionRole}
                               </Badge>
                             ))}
                           </div>

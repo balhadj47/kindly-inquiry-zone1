@@ -15,6 +15,13 @@ const SidebarMenuContent = () => {
   const { currentUser, groups, loading } = useRBAC();
   const filteredMenuItems = useSidebarMenuItems();
 
+  console.log('=== SidebarMenuContent Debug ===');
+  console.log('Loading state:', loading);
+  console.log('Current user:', currentUser?.id);
+  console.log('Groups loaded:', groups.length);
+  console.log('Filtered menu items count:', filteredMenuItems.length);
+  console.log('Filtered menu items:', filteredMenuItems.map(item => item.title));
+
   // Show loading state while RBAC is initializing
   if (loading) {
     return (
@@ -30,14 +37,16 @@ const SidebarMenuContent = () => {
 
   return (
     <>
-      {/* Show debug info when no visible items and not loading */}
+      {/* Debug info when no visible items and not loading */}
       {!loading && filteredMenuItems.length === 0 && (
         <div className="p-4 text-sm text-destructive bg-destructive/10 rounded-lg mb-4 group-data-[collapsible=icon]:hidden">
           <div className="font-medium mb-2">No menu items visible</div>
           <div className="space-y-1 text-xs opacity-75">
             <div>User: {currentUser?.name || 'None'}</div>
+            <div>Role: {currentUser?.role || 'None'}</div>
             <div>Group: {currentUser?.groupId || 'None'}</div>
             <div>Groups loaded: {groups.length}</div>
+            <div>User Group Found: {groups.find(g => g.id === currentUser?.groupId)?.name || 'Not found'}</div>
           </div>
         </div>
       )}

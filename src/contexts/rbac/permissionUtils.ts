@@ -19,17 +19,11 @@ export const hasPermission = (
     return false;
   }
 
-  // Don't use cache if groups are empty (still loading)
-  if (groups.length === 0) {
-    console.log(`Permission check skipped: Groups still loading for permission ${permission}`);
-    return false;
-  }
-
   // Create cache key
   const cacheKey = `${user.id}-${user.groupId}-${permission}`;
   
-  // Check cache first
-  if (permissionCache.has(cacheKey)) {
+  // Check cache first (but skip if groups are empty)
+  if (groups.length > 0 && permissionCache.has(cacheKey)) {
     const cachedResult = permissionCache.get(cacheKey)!;
     console.log(`Permission cache hit for ${permission}: ${cachedResult}`);
     return cachedResult;
@@ -43,6 +37,11 @@ export const hasPermission = (
   if (!userGroup) {
     console.log(`Group not found: ${user.groupId}`);
     console.log(`Available groups:`, groups.map(g => ({ id: g.id, name: g.name })));
+    // If groups are loaded but user's group not found, still allow basic dashboard access
+    if (groups.length > 0 && permission === 'dashboard:read') {
+      console.log('Allowing dashboard access as fallback');
+      return true;
+    }
     return false;
   }
 
@@ -50,8 +49,11 @@ export const hasPermission = (
   
   const hasPermissionResult = userGroup.permissions.includes(permission);
   
-  // Cache the result
-  permissionCache.set(cacheKey, hasPermissionResult);
+  // Cache the result only if groups are loaded
+  if (groups.length > 0) {
+    permissionCache.set(cacheKey, hasPermissionResult);
+  }
+  
   console.log(`Permission result for ${permission}: ${hasPermissionResult}`);
   console.log(`=== End Permission Check ===`);
   

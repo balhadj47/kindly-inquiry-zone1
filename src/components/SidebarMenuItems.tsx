@@ -16,88 +16,83 @@ export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
   const { hasPermission, currentUser, groups, loading } = useRBAC();
 
-  // Memoize menu items definition with corrected permission format
-  const menuItems = useMemo(() => {
-    console.log('Creating menu items definition');
-    return [
-      {
-        title: t.dashboard,
-        href: '/',
-        icon: Database,
-        permission: 'dashboard:read',
-        badge: null,
-      },
-      {
-        title: t.companies,
-        href: '/companies',
-        icon: Building2,
-        permission: 'companies:read',
-        badge: null,
-      },
-      {
-        title: 'Camionnettes',
-        href: '/vans',
-        icon: Car,
-        permission: 'vans:read',
-        badge: null,
-      },
-      {
-        title: t.logTrip,
-        href: '/trip-logger',
-        icon: MapIcon,
-        permission: 'trips:create',
-        badge: null,
-      },
-      {
-        title: t.tripHistory,
-        href: '/trip-history',
-        icon: List,
-        permission: 'trips:read',
-        badge: null,
-      },
-      {
-        title: t.users,
-        href: '/users',
-        icon: Users,
-        permission: 'users:read',
-        badge: null,
-      },
-    ];
-  }, [t]);
+  // Memoize menu items definition
+  const menuItems = useMemo(() => [
+    {
+      title: t.dashboard,
+      href: '/',
+      icon: Database,
+      permission: 'dashboard:read',
+      badge: null,
+    },
+    {
+      title: t.companies,
+      href: '/companies',
+      icon: Building2,
+      permission: 'companies:read',
+      badge: null,
+    },
+    {
+      title: 'Camionnettes',
+      href: '/vans',
+      icon: Car,
+      permission: 'vans:read',
+      badge: null,
+    },
+    {
+      title: t.logTrip,
+      href: '/trip-logger',
+      icon: MapIcon,
+      permission: 'trips:create',
+      badge: null,
+    },
+    {
+      title: t.tripHistory,
+      href: '/trip-history',
+      icon: List,
+      permission: 'trips:read',
+      badge: null,
+    },
+    {
+      title: t.users,
+      href: '/users',
+      icon: Users,
+      permission: 'users:read',
+      badge: null,
+    },
+  ], [t]);
 
-  // Memoize filtered menu items with proper dependencies
+  // Filter menu items based on permissions
   const filteredMenuItems = useMemo(() => {
-    console.log('Filtering menu items for user:', currentUser?.id);
+    console.log('=== Menu Items Filtering Debug ===');
     console.log('Loading state:', loading);
-    console.log('Groups available:', groups.length);
+    console.log('Current user:', currentUser?.id, currentUser?.role, currentUser?.groupId);
+    console.log('Groups loaded:', groups.length);
     
-    // If still loading, return empty array
-    if (loading) {
-      console.log('Still loading RBAC data, returning empty menu');
-      return [];
+    // If still loading, show all items for now to avoid empty menu
+    if (loading || !currentUser) {
+      console.log('Still loading or no user, showing all menu items temporarily');
+      return menuItems;
     }
 
-    // If no current user, return empty array
-    if (!currentUser) {
-      console.log('No current user, returning empty menu');
-      return [];
-    }
-
-    // If no groups loaded, return empty array
+    // If no groups loaded yet, show all items temporarily
     if (groups.length === 0) {
-      console.log('No groups loaded, returning empty menu');
-      return [];
+      console.log('No groups loaded yet, showing all menu items temporarily');
+      return menuItems;
     }
 
+    // Filter items based on permissions
     const filtered = menuItems.filter(item => {
       const hasPermissionForItem = hasPermission(item.permission);
-      console.log(`Menu item ${item.title} permission ${item.permission}: ${hasPermissionForItem}`);
+      console.log(`Menu item "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
       return hasPermissionForItem;
     });
 
-    console.log('Filtered menu items:', filtered.map(item => item.title));
+    console.log('Final filtered menu items:', filtered.map(item => item.title));
+    console.log('=== End Menu Items Filtering ===');
+    
     return filtered;
-  }, [menuItems, hasPermission, currentUser?.id, currentUser?.groupId, groups.length, loading]);
+  }, [menuItems, hasPermission, currentUser, groups, loading]);
 
   return filteredMenuItems;
 };

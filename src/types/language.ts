@@ -46,6 +46,12 @@ export interface TranslationKeys {
   createCompany: string;
   updateCompany: string;
   more: string;
+  address: string;
+  phone: string;
+  email: string;
+  enterAddress: string;
+  enterPhone: string;
+  enterEmail: string;
   
   // Trip Logger
   tripLogger: string;
@@ -164,6 +170,7 @@ export interface TranslationKeys {
   byBranch: string;
   dateRange: string;
   today: string;
+  thisWeek: string;
   thisWeek: string;
   thisMonth: string;
   allTime: string;

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Edit, Trash2, MapPin, Calendar } from 'lucide-react';
+import { Building2, Edit, Trash2, MapPin, Calendar, Phone, Mail } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Company } from '@/hooks/useCompanies';
 
@@ -28,24 +28,51 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
               <CardTitle className="text-lg">{company.name}</CardTitle>
               <div className="flex items-center text-sm text-gray-500 mt-1">
                 <Calendar className="h-3 w-3 mr-1" />
-                Créée le {new Date(company.created_at).toLocaleDateString('fr-FR')}
+                Created on {new Date(company.created_at).toLocaleDateString()}
               </div>
             </div>
           </div>
           <Badge className="bg-blue-100 text-blue-800">
-            {company.branches.length} succursales
+            {company.branches.length} {t.branches.toLowerCase()}
           </Badge>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Company Contact Information */}
+        <div className="space-y-2">
+          {company.address && (
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{company.address}</span>
+            </div>
+          )}
+          
+          {company.phone && (
+            <div className="flex items-center space-x-2">
+              <Phone className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{company.phone}</span>
+            </div>
+          )}
+          
+          {company.email && (
+            <div className="flex items-center space-x-2">
+              <Mail className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{company.email}</span>
+            </div>
+          )}
+        </div>
+
+        {/* Branches Information */}
         {company.branches.length > 0 && (
-          <div className="flex items-center space-x-2">
-            <MapPin className="h-4 w-4 text-gray-500" />
-            <span className="text-sm">
-              Succursales: {company.branches.slice(0, 2).map(b => b.name).join(', ')}
-              {company.branches.length > 2 && ` et ${company.branches.length - 2} autres`}
-            </span>
+          <div className="border-t pt-3">
+            <div className="flex items-center space-x-2">
+              <Building2 className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">
+                {t.branches}: {company.branches.slice(0, 2).map(b => b.name).join(', ')}
+                {company.branches.length > 2 && ` ${t.and} ${company.branches.length - 2} ${t.more}`}
+              </span>
+            </div>
           </div>
         )}
 
@@ -57,7 +84,7 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
             className="flex-1"
           >
             <Edit className="h-3 w-3 mr-1" />
-            Modifier
+            {t.edit}
           </Button>
           <Button
             variant="outline"

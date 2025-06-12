@@ -6,7 +6,13 @@ import { Company, Branch } from './useCompanies';
 export const useCompaniesActions = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const createCompany = async (companyData: { name: string; branches: string[] }) => {
+  const createCompany = async (companyData: { 
+    name: string; 
+    address?: string; 
+    phone?: string; 
+    email?: string; 
+    branches: string[] 
+  }) => {
     setIsLoading(true);
     try {
       console.log('Creating company:', companyData);
@@ -15,7 +21,10 @@ export const useCompaniesActions = () => {
       const { data: company, error: companyError } = await supabase
         .from('companies')
         .insert({
-          name: companyData.name
+          name: companyData.name,
+          address: companyData.address || null,
+          phone: companyData.phone || null,
+          email: companyData.email || null
         })
         .select()
         .single();
@@ -55,7 +64,13 @@ export const useCompaniesActions = () => {
     }
   };
 
-  const updateCompany = async (companyId: string, companyData: { name: string; branches: string[] }) => {
+  const updateCompany = async (companyId: string, companyData: { 
+    name: string; 
+    address?: string; 
+    phone?: string; 
+    email?: string; 
+    branches: string[] 
+  }) => {
     setIsLoading(true);
     try {
       console.log('Updating company:', companyId, companyData);
@@ -63,7 +78,12 @@ export const useCompaniesActions = () => {
       // Update the company
       const { error: companyError } = await supabase
         .from('companies')
-        .update({ name: companyData.name })
+        .update({ 
+          name: companyData.name,
+          address: companyData.address || null,
+          phone: companyData.phone || null,
+          email: companyData.email || null
+        })
         .eq('id', companyId);
 
       if (companyError) {

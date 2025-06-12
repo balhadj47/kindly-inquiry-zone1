@@ -12,6 +12,9 @@ export interface Branch {
 export interface Company {
   id: string;
   name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
   created_at: string;
   branches: Branch[];
 }

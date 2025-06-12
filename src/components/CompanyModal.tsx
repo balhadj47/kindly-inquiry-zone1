@@ -23,6 +23,9 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
   const { createCompany, updateCompany, isLoading } = useCompaniesActions();
   const [formData, setFormData] = useState({
     name: '',
+    address: '',
+    phone: '',
+    email: '',
     branches: [] as string[],
   });
   const [newBranch, setNewBranch] = useState('');
@@ -31,11 +34,17 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
     if (company) {
       setFormData({
         name: company.name,
+        address: company.address || '',
+        phone: company.phone || '',
+        email: company.email || '',
         branches: company.branches?.map(b => b.name) || [],
       });
     } else {
       setFormData({
         name: '',
+        address: '',
+        phone: '',
+        email: '',
         branches: [],
       });
     }
@@ -62,30 +71,30 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
     e.preventDefault();
     
     if (!formData.name.trim()) {
-      toast.error('Le nom de l\'entreprise est requis');
+      toast.error('Company name is required');
       return;
     }
 
     try {
       if (company) {
         await updateCompany(company.id, formData);
-        toast.success('Entreprise mise à jour avec succès');
+        toast.success('Company updated successfully');
       } else {
         await createCompany(formData);
-        toast.success('Entreprise créée avec succès');
+        toast.success('Company created successfully');
       }
       
       onSuccess?.();
       onClose();
     } catch (error) {
       console.error('Error saving company:', error);
-      toast.error('Erreur lors de la sauvegarde de l\'entreprise');
+      toast.error('Error saving company');
     }
   };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             {company ? t.editCompany : t.addNewCompany}
@@ -94,7 +103,7 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company-name">{t.companyName}</Label>
+            <Label htmlFor="company-name">{t.companyName} *</Label>
             <Input
               id="company-name"
               value={formData.name}
@@ -102,6 +111,40 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
               placeholder={t.enterCompanyName}
               required
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="company-address">{t.address}</Label>
+            <Input
+              id="company-address"
+              value={formData.address}
+              onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+              placeholder={t.enterAddress}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="company-phone">{t.phone}</Label>
+              <Input
+                id="company-phone"
+                value={formData.phone}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder={t.enterPhone}
+                type="tel"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="company-email">{t.email}</Label>
+              <Input
+                id="company-email"
+                value={formData.email}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder={t.enterEmail}
+                type="email"
+              />
+            </div>
           </div>
 
           <div className="space-y-4">
@@ -147,7 +190,7 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
               {t.cancel}
             </Button>
             <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Sauvegarde...' : (company ? t.updateCompany : t.createCompany)}
+              {isLoading ? 'Saving...' : (company ? t.updateCompany : t.createCompany)}
             </Button>
           </div>
         </form>

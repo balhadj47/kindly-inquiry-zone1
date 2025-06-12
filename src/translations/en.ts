@@ -46,6 +46,12 @@ export const en: TranslationKeys = {
   createCompany: 'Create Company',
   updateCompany: 'Update Company',
   more: 'more',
+  address: 'Address',
+  phone: 'Phone',
+  email: 'Email',
+  enterAddress: 'Enter company address',
+  enterPhone: 'Enter phone number',
+  enterEmail: 'Enter email address',
   
   // Trip Logger
   tripLogger: 'Trip Logger',

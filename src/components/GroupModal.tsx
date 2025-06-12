@@ -21,18 +21,18 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    color: 'bg-blue-100 text-blue-800',
+    color: '#3b82f6',
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const colorOptions = [
-    { value: 'bg-blue-100 text-blue-800', label: 'Blue' },
-    { value: 'bg-green-100 text-green-800', label: 'Green' },
-    { value: 'bg-red-100 text-red-800', label: 'Red' },
-    { value: 'bg-yellow-100 text-yellow-800', label: 'Yellow' },
-    { value: 'bg-purple-100 text-purple-800', label: 'Purple' },
-    { value: 'bg-gray-100 text-gray-800', label: 'Gray' },
+    { value: '#3b82f6', label: 'Blue', class: 'bg-blue-100 text-blue-800' },
+    { value: '#10b981', label: 'Green', class: 'bg-green-100 text-green-800' },
+    { value: '#ef4444', label: 'Red', class: 'bg-red-100 text-red-800' },
+    { value: '#f59e0b', label: 'Yellow', class: 'bg-yellow-100 text-yellow-800' },
+    { value: '#8b5cf6', label: 'Purple', class: 'bg-purple-100 text-purple-800' },
+    { value: '#6b7280', label: 'Gray', class: 'bg-gray-100 text-gray-800' },
   ];
 
   useEffect(() => {
@@ -46,13 +46,15 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
       setFormData({
         name: '',
         description: '',
-        color: 'bg-blue-100 text-blue-800',
+        color: '#3b82f6',
       });
     }
-  }, [group]);
+  }, [group, isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     
     try {
@@ -70,6 +72,7 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
       onClose();
     } catch (error) {
       console.error('Error saving group:', error);
+      alert('Erreur lors de la sauvegarde du groupe. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
     }
@@ -79,23 +82,25 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const selectedColorOption = colorOptions.find(option => option.value === formData.color);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {group ? 'Edit Group' : 'Add New Group'}
+            {group ? 'Modifier le Groupe' : 'Ajouter un Nouveau Groupe'}
           </DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Group Name</Label>
+            <Label htmlFor="name">Nom du Groupe</Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="e.g., Managers"
+              placeholder="ex: Managers"
               required
               disabled={isSubmitting}
             />
@@ -107,23 +112,26 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
               id="description"
               value={formData.description}
               onChange={(e) => handleInputChange('description', e.target.value)}
-              placeholder="e.g., Management team with elevated permissions"
+              placeholder="ex: Équipe de direction avec permissions élevées"
               rows={3}
               disabled={isSubmitting}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="color">Badge Color</Label>
+            <Label htmlFor="color">Couleur du Badge</Label>
             <Select value={formData.color} onValueChange={(value) => handleInputChange('color', value)} disabled={isSubmitting}>
               <SelectTrigger>
-                <SelectValue placeholder="Select color" />
+                <SelectValue placeholder="Sélectionner une couleur" />
               </SelectTrigger>
               <SelectContent>
                 {colorOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center space-x-2">
-                      <div className={`w-4 h-4 rounded ${option.value}`}></div>
+                      <div 
+                        className="w-4 h-4 rounded"
+                        style={{ backgroundColor: option.value }}
+                      ></div>
                       <span>{option.label}</span>
                     </div>
                   </SelectItem>
@@ -134,10 +142,10 @@ const GroupModal: React.FC<GroupModalProps> = ({ isOpen, onClose, group }) => {
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
+              Annuler
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : (group ? 'Update Group' : 'Create Group')}
+              {isSubmitting ? 'Sauvegarde...' : (group ? 'Mettre à Jour le Groupe' : 'Créer le Groupe')}
             </Button>
           </div>
         </form>

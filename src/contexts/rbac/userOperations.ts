@@ -6,6 +6,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
   const addUser = async (userData: Partial<User>) => {
     console.log('Adding user to database:', userData);
     
+    // Generate a unique ID if not provided
+    const userId = userData.id || crypto.randomUUID();
+    
     const { data, error } = await supabase
       .from('users')
       .insert([{
@@ -15,6 +18,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         role: userData.role,
         status: userData.status || 'Active',
         profile_image: userData.profileImage,
+        total_trips: userData.totalTrips || 0,
+        last_trip: userData.lastTrip || null,
       }])
       .select();
 
@@ -24,6 +29,25 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
 
     if (data && data[0]) {
+      // Helper function to determine groupId based on role
+      const getGroupIdForRole = (role: UserRole): string => {
+        switch (role) {
+          case 'Administrator':
+            return 'administrator';
+          case 'Chef de Groupe Armé':
+          case 'Chef de Groupe Sans Armé':
+            return 'supervisor';
+          case 'Chauffeur Armé':
+          case 'Chauffeur Sans Armé':
+            return 'driver';
+          case 'APS Armé':
+          case 'APS Sans Armé':
+            return 'security';
+          default:
+            return 'employee';
+        }
+      };
+
       const newUser: User = {
         id: data[0].id.toString(),
         name: data[0].name,
@@ -31,7 +55,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: data[0].phone,
         role: data[0].role as UserRole,
         status: data[0].status as UserStatus,
-        groupId: 'administrator', // Set admin users to administrator group
+        groupId: getGroupIdForRole(data[0].role as UserRole),
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,
@@ -55,6 +79,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         role: userData.role,
         status: userData.status,
         profile_image: userData.profileImage,
+        total_trips: userData.totalTrips,
+        last_trip: userData.lastTrip,
       })
       .eq('id', parseInt(id))
       .select();
@@ -65,6 +91,25 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
 
     if (data && data[0]) {
+      // Helper function to determine groupId based on role
+      const getGroupIdForRole = (role: UserRole): string => {
+        switch (role) {
+          case 'Administrator':
+            return 'administrator';
+          case 'Chef de Groupe Armé':
+          case 'Chef de Groupe Sans Armé':
+            return 'supervisor';
+          case 'Chauffeur Armé':
+          case 'Chauffeur Sans Armé':
+            return 'driver';
+          case 'APS Armé':
+          case 'APS Sans Armé':
+            return 'security';
+          default:
+            return 'employee';
+        }
+      };
+
       const updatedUser: User = {
         id: data[0].id.toString(),
         name: data[0].name,
@@ -72,7 +117,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: data[0].phone,
         role: data[0].role as UserRole,
         status: data[0].status as UserStatus,
-        groupId: data[0].role === 'Administrator' ? 'administrator' : 'employee',
+        groupId: getGroupIdForRole(data[0].role as UserRole),
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,

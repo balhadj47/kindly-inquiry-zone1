@@ -129,7 +129,7 @@ export const useUserActionHandlers = () => {
         return;
       }
 
-      const defaultGroupIds = ['admin', 'employee', 'driver'];
+      const defaultGroupIds = ['administrator', 'employee', 'supervisor', 'driver', 'security'];
       if (defaultGroupIds.includes(group.id)) {
         console.warn('UserActionHandlers - Cannot delete default group:', group.id);
         alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);

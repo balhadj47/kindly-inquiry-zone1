@@ -6,13 +6,16 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
   const addGroup = async (groupData: Partial<Group>) => {
     console.log('Adding group to database:', groupData);
     
+    // Generate a unique ID if not provided
+    const groupId = groupData.id || crypto.randomUUID();
+    
     const { data, error } = await supabase
       .from('user_groups')
       .insert([{
-        id: groupData.id,
+        id: groupId,
         name: groupData.name,
         description: groupData.description,
-        permissions: groupData.permissions,
+        permissions: groupData.permissions || [],
         color: groupData.color,
       }])
       .select();
@@ -69,6 +72,12 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
 
   const deleteGroup = async (id: string) => {
     console.log('Deleting group from database:', id);
+    
+    // Check if this is a protected default group
+    const defaultGroupIds = ['administrator', 'employee', 'supervisor', 'driver', 'security'];
+    if (defaultGroupIds.includes(id)) {
+      throw new Error('Cannot delete default system groups');
+    }
     
     const { error } = await supabase
       .from('user_groups')

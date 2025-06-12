@@ -69,13 +69,61 @@ export const loadInitialData = async (authUser: any) => {
       color: group.color,
     }));
 
-    // Ensure we have default groups with proper role_id mapping if they don't exist
+    // Ensure we have default groups with proper permissions format that matches menu expectations
     const requiredGroups = [
-      { id: 'administrator', name: 'Administrateurs', description: 'Accès complet au système', permissions: DEFAULT_PERMISSIONS.map(p => p.id), color: '#ef4444' },
-      { id: 'supervisor', name: 'Superviseurs', description: 'Chefs de groupe', permissions: ['dashboard:read', 'trips:read', 'trips:create', 'trips:update', 'vans:read', 'users:read'], color: '#f59e0b' },
-      { id: 'driver', name: 'Chauffeurs', description: 'Chauffeurs', permissions: ['dashboard:read', 'trips:read', 'trips:create', 'vans:read'], color: '#10b981' },
-      { id: 'security', name: 'Sécurité', description: 'Agents de sécurité', permissions: ['dashboard:read', 'trips:read', 'trips:create'], color: '#8b5cf6' },
-      { id: 'employee', name: 'Employés', description: 'Accès de base', permissions: ['dashboard:read', 'trips:read', 'trips:create'], color: '#3b82f6' },
+      { 
+        id: 'administrator', 
+        name: 'Administrateurs', 
+        description: 'Accès complet au système', 
+        permissions: [
+          'dashboard:read',
+          'companies:read', 
+          'companies:create',
+          'companies:update',
+          'companies:delete',
+          'vans:read',
+          'vans:create', 
+          'vans:update',
+          'vans:delete',
+          'users:read',
+          'users:create',
+          'users:update', 
+          'users:delete',
+          'trips:read',
+          'trips:create',
+          'trips:update',
+          'trips:delete'
+        ], 
+        color: '#ef4444' 
+      },
+      { 
+        id: 'supervisor', 
+        name: 'Superviseurs', 
+        description: 'Chefs de groupe', 
+        permissions: ['dashboard:read', 'trips:read', 'trips:create', 'trips:update', 'vans:read', 'users:read'], 
+        color: '#f59e0b' 
+      },
+      { 
+        id: 'driver', 
+        name: 'Chauffeurs', 
+        description: 'Chauffeurs', 
+        permissions: ['dashboard:read', 'trips:read', 'trips:create', 'vans:read'], 
+        color: '#10b981' 
+      },
+      { 
+        id: 'security', 
+        name: 'Sécurité', 
+        description: 'Agents de sécurité', 
+        permissions: ['dashboard:read', 'trips:read', 'trips:create'], 
+        color: '#8b5cf6' 
+      },
+      { 
+        id: 'employee', 
+        name: 'Employés', 
+        description: 'Accès de base', 
+        permissions: ['dashboard:read', 'trips:read', 'trips:create'], 
+        color: '#3b82f6' 
+      },
     ];
 
     for (const requiredGroup of requiredGroups) {
@@ -83,6 +131,10 @@ export const loadInitialData = async (authUser: any) => {
       if (!existingGroup) {
         console.log(`Creating default group: ${requiredGroup.name}`);
         groups.push(requiredGroup);
+      } else {
+        // Update existing group with correct permissions format
+        console.log(`Updating permissions for existing group: ${requiredGroup.name}`);
+        existingGroup.permissions = requiredGroup.permissions;
       }
     }
 
@@ -123,7 +175,8 @@ export const loadInitialData = async (authUser: any) => {
       currentUser: currentUser?.id,
       currentUserRole: currentUser?.role,
       currentUserGroupId: currentUser?.groupId,
-      authUserId: authUser?.id
+      authUserId: authUser?.id,
+      adminGroupPermissions: groups.find(g => g.id === 'administrator')?.permissions
     });
     
     return {

@@ -27,6 +27,25 @@ export const loadInitialData = async (authUser: any) => {
       throw groupsError;
     }
 
+    // Helper function to determine groupId based on role
+    const getGroupIdForRole = (role: UserRole): string => {
+      switch (role) {
+        case 'Administrator':
+          return 'administrator';
+        case 'Chef de Groupe Armé':
+        case 'Chef de Groupe Sans Armé':
+          return 'supervisor';
+        case 'Chauffeur Armé':
+        case 'Chauffeur Sans Armé':
+          return 'driver';
+        case 'APS Armé':
+        case 'APS Sans Armé':
+          return 'security';
+        default:
+          return 'employee';
+      }
+    };
+
     // Transform database users to RBAC User format
     const users: User[] = (usersData || []).map(user => ({
       id: user.id.toString(),
@@ -35,21 +54,49 @@ export const loadInitialData = async (authUser: any) => {
       phone: user.phone,
       role: user.role as UserRole,
       status: user.status as UserStatus,
-      groupId: 'employee', // Default groupId since we don't have group mapping yet
+      groupId: getGroupIdForRole(user.role as UserRole),
       createdAt: user.created_at,
       totalTrips: user.total_trips || 0,
       lastTrip: user.last_trip,
       profileImage: user.profile_image,
     }));
 
-    // Transform database groups to RBAC Group format
-    const groups: Group[] = (groupsData || []).map(group => ({
+    // Transform database groups to RBAC Group format and ensure we have basic groups
+    let groups: Group[] = (groupsData || []).map(group => ({
       id: group.id,
       name: group.name,
       description: group.description,
       permissions: group.permissions || [],
       color: group.color,
     }));
+
+    // Ensure we have an administrator group with all permissions
+    const adminGroupExists = groups.some(group => group.id === 'administrator');
+    if (!adminGroupExists) {
+      console.log('Creating default administrator group');
+      const adminGroup: Group = {
+        id: 'administrator',
+        name: 'Administrateurs',
+        description: 'Accès complet au système',
+        permissions: DEFAULT_PERMISSIONS.map(p => p.id),
+        color: '#ef4444',
+      };
+      groups.push(adminGroup);
+    }
+
+    // Ensure we have an employee group with basic permissions
+    const employeeGroupExists = groups.some(group => group.id === 'employee');
+    if (!employeeGroupExists) {
+      console.log('Creating default employee group');
+      const employeeGroup: Group = {
+        id: 'employee',
+        name: 'Employés',
+        description: 'Accès de base',
+        permissions: ['dashboard:read', 'trips:read', 'trips:create'],
+        color: '#3b82f6',
+      };
+      groups.push(employeeGroup);
+    }
 
     // Use default permissions
     const permissions = DEFAULT_PERMISSIONS;
@@ -67,7 +114,7 @@ export const loadInitialData = async (authUser: any) => {
           phone: dbUser.phone,
           role: dbUser.role as UserRole,
           status: dbUser.status as UserStatus,
-          groupId: 'employee', // Default groupId
+          groupId: getGroupIdForRole(dbUser.role as UserRole),
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
           lastTrip: dbUser.last_trip,
@@ -86,6 +133,8 @@ export const loadInitialData = async (authUser: any) => {
       groupsCount: groups.length,
       permissionsCount: permissions.length,
       currentUser: currentUser?.id,
+      currentUserRole: currentUser?.role,
+      currentUserGroupId: currentUser?.groupId,
       authUserId: authUser?.id
     });
     

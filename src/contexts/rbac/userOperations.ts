@@ -31,7 +31,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: data[0].phone,
         role: data[0].role as UserRole,
         status: data[0].status as UserStatus,
-        groupId: 'employee', // Default groupId
+        groupId: 'administrator', // Set admin users to administrator group
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,
@@ -43,7 +43,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
   };
 
-  const updateUser = async (id: string, userData: Partial<User>) => {
+  const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
     console.log('Updating user in database:', id, userData);
     
     const { data, error } = await supabase
@@ -72,7 +72,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: data[0].phone,
         role: data[0].role as UserRole,
         status: data[0].status as UserStatus,
-        groupId: 'employee', // Default groupId
+        groupId: data[0].role === 'Administrator' ? 'administrator' : 'employee',
         createdAt: data[0].created_at,
         totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,
@@ -81,7 +81,10 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       
       setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
       console.log('User updated successfully:', updatedUser.id);
+      return updatedUser;
     }
+
+    throw new Error('Failed to update user');
   };
 
   const deleteUser = async (id: string) => {

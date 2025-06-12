@@ -9,6 +9,11 @@ export const hasPermission = (
   user: RBACUser | null,
   groups: RBACGroup[]
 ): boolean => {
+  console.log(`=== Permission Check Debug ===`);
+  console.log(`Checking permission: ${permission}`);
+  console.log(`User:`, user ? { id: user.id, role: user.role, groupId: user.groupId } : 'null');
+  console.log(`Groups available:`, groups.map(g => ({ id: g.id, name: g.name, permissions: g.permissions })));
+
   if (!user || !user.groupId) {
     console.log(`Permission check failed: No user or groupId. User: ${user?.id}, GroupId: ${user?.groupId}`);
     return false;
@@ -37,6 +42,7 @@ export const hasPermission = (
   
   if (!userGroup) {
     console.log(`Group not found: ${user.groupId}`);
+    console.log(`Available groups:`, groups.map(g => ({ id: g.id, name: g.name })));
     return false;
   }
 
@@ -46,7 +52,8 @@ export const hasPermission = (
   
   // Cache the result
   permissionCache.set(cacheKey, hasPermissionResult);
-  console.log(`Cached permission for ${permission}: ${hasPermissionResult}`);
+  console.log(`Permission result for ${permission}: ${hasPermissionResult}`);
+  console.log(`=== End Permission Check ===`);
   
   return hasPermissionResult;
 };

@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '@/types/language';
 
 export const fr: TranslationKeys = {
@@ -7,7 +6,7 @@ export const fr: TranslationKeys = {
   companies: 'Entreprises',
   vansDrivers: 'Camionnettes et Chauffeurs',
   users: 'Utilisateurs',
-  logTrip: 'Enregistrer Voyage',
+  logTrip: 'Enregistrer une programme',
   tripHistory: 'Historique des Voyages',
   settings: 'Paramètres',
   

@@ -1,9 +1,11 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { UserGroup } from '@/types/rbac';
+import type { Group } from '@/types/rbac';
 
-export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAction<UserGroup[]>>) => {
-  const addGroup = async (groupData: Partial<UserGroup>) => {
+export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAction<Group[]>>) => {
+  const addGroup = async (groupData: Partial<Group>) => {
+    console.log('Adding group to database:', groupData);
+    
     const { data, error } = await supabase
       .from('user_groups')
       .insert([{
@@ -21,7 +23,7 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
     }
 
     if (data && data[0]) {
-      const newGroup = {
+      const newGroup: Group = {
         id: data[0].id,
         name: data[0].name,
         description: data[0].description,
@@ -29,10 +31,13 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
         color: data[0].color,
       };
       setGroups(prev => [...prev, newGroup]);
+      console.log('Group added successfully:', newGroup.id);
     }
   };
 
-  const updateGroup = async (id: string, groupData: Partial<UserGroup>) => {
+  const updateGroup = async (id: string, groupData: Partial<Group>) => {
+    console.log('Updating group in database:', id, groupData);
+    
     const { data, error } = await supabase
       .from('user_groups')
       .update({
@@ -50,7 +55,7 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
     }
 
     if (data && data[0]) {
-      const updatedGroup = {
+      const updatedGroup: Group = {
         id: data[0].id,
         name: data[0].name,
         description: data[0].description,
@@ -58,10 +63,13 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
         color: data[0].color,
       };
       setGroups(prev => prev.map(group => group.id === id ? updatedGroup : group));
+      console.log('Group updated successfully:', updatedGroup.id);
     }
   };
 
   const deleteGroup = async (id: string) => {
+    console.log('Deleting group from database:', id);
+    
     const { error } = await supabase
       .from('user_groups')
       .delete()
@@ -73,6 +81,7 @@ export const createGroupOperations = (setGroups: React.Dispatch<React.SetStateAc
     }
 
     setGroups(prev => prev.filter(group => group.id !== id));
+    console.log('Group deleted successfully:', id);
   };
 
   return { addGroup, updateGroup, deleteGroup };

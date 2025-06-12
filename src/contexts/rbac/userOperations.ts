@@ -1,20 +1,19 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { User, UserRole, UserStatus } from '@/types/rbac';
+import type { User } from '@/types/rbac';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   const addUser = async (userData: Partial<User>) => {
-    console.log('Adding user with data:', userData);
+    console.log('Adding user to database:', userData);
+    
     const { data, error } = await supabase
       .from('users')
       .insert([{
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        role: userData.role || 'Employee',
+        role: userData.role,
         status: userData.status || 'Active',
-        total_trips: userData.totalTrips || 0,
-        last_trip: userData.lastTrip,
         profile_image: userData.profileImage,
       }])
       .select();
@@ -30,21 +29,23 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
-        groupId: userData.role || 'Employee', // Use role as groupId
-        role: data[0].role as UserRole,
-        status: data[0].status as UserStatus,
+        role: data[0].role,
+        status: data[0].status,
+        groupId: 'employee', // Default groupId
         createdAt: data[0].created_at,
-        totalTrips: data[0].total_trips,
+        totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,
         profileImage: data[0].profile_image,
       };
-      console.log('User added successfully, updating state:', newUser);
+      
       setUsers(prev => [...prev, newUser]);
+      console.log('User added successfully:', newUser.id);
     }
   };
 
   const updateUser = async (id: string, userData: Partial<User>) => {
-    console.log('Updating user with ID:', id, 'Data:', userData);
+    console.log('Updating user in database:', id, userData);
+    
     const { data, error } = await supabase
       .from('users')
       .update({
@@ -53,8 +54,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: userData.phone,
         role: userData.role,
         status: userData.status,
-        total_trips: userData.totalTrips,
-        last_trip: userData.lastTrip,
         profile_image: userData.profileImage,
       })
       .eq('id', parseInt(id))
@@ -71,31 +70,23 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: data[0].name,
         email: data[0].email,
         phone: data[0].phone,
-        groupId: data[0].role, // Use role as groupId
-        role: data[0].role as UserRole,
-        status: data[0].status as UserStatus,
+        role: data[0].role,
+        status: data[0].status,
+        groupId: 'employee', // Default groupId
         createdAt: data[0].created_at,
-        totalTrips: data[0].total_trips,
+        totalTrips: data[0].total_trips || 0,
         lastTrip: data[0].last_trip,
         profileImage: data[0].profile_image,
       };
-      console.log('User updated successfully, updating state with:', updatedUser);
       
-      // Force a state update with a new array reference
-      setUsers(prev => {
-        const newUsers = prev.map(user => user.id === id ? updatedUser : user);
-        console.log('Updated users array:', newUsers);
-        return newUsers;
-      });
-      
-      return updatedUser;
-    } else {
-      console.error('No data returned from update operation');
-      throw new Error('Failed to update user - no data returned');
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+      console.log('User updated successfully:', updatedUser.id);
     }
   };
 
   const deleteUser = async (id: string) => {
+    console.log('Deleting user from database:', id);
+    
     const { error } = await supabase
       .from('users')
       .delete()
@@ -107,39 +98,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
 
     setUsers(prev => prev.filter(user => user.id !== id));
+    console.log('User deleted successfully:', id);
   };
 
-  const changeUserPassword = async (userEmail: string, newPassword: string) => {
-    try {
-      const { data: authData, error: fetchError } = await supabase.auth.admin.listUsers();
-      
-      if (fetchError) {
-        console.error('Error fetching users:', fetchError);
-        throw fetchError;
-      }
-
-      const authUser = authData.users.find((user: any) => user.email === userEmail);
-      
-      if (!authUser) {
-        throw new Error('User not found');
-      }
-
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        authUser.id,
-        { password: newPassword }
-      );
-
-      if (updateError) {
-        console.error('Error updating password:', updateError);
-        throw updateError;
-      }
-
-      console.log('Password updated successfully for user:', userEmail);
-    } catch (error) {
-      console.error('Error changing user password:', error);
-      throw error;
-    }
-  };
-
-  return { addUser, updateUser, deleteUser, changeUserPassword };
+  return { addUser, updateUser, deleteUser };
 };

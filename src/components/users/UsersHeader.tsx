@@ -1,7 +1,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Plus, Users as UsersIcon } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
+import AddRandomUsersButton from './AddRandomUsersButton';
 
 interface UsersHeaderProps {
   onAddUser: () => void;
@@ -10,20 +12,30 @@ interface UsersHeaderProps {
 
 const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
   const { hasPermission } = useRBAC();
-  const canManageGroups = hasPermission('users.manage_groups');
 
   return (
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-      <h1 className="text-3xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
-      <div className="flex space-x-2 mt-4 md:mt-0">
-        {hasPermission('users.create') && (
-          <Button onClick={onAddUser}>
-            Ajouter un Nouvel Utilisateur
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
+        <p className="text-muted-foreground">
+          Gérez les utilisateurs et leurs permissions dans le système.
+        </p>
+      </div>
+      
+      <div className="flex items-center gap-2">
+        <AddRandomUsersButton />
+        
+        {hasPermission('users:create') && (
+          <Button onClick={onAddUser} className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Nouvel Utilisateur
           </Button>
         )}
-        {canManageGroups && (
-          <Button variant="outline" onClick={onAddGroup}>
-            Ajouter un Groupe
+        
+        {hasPermission('groups:create') && (
+          <Button onClick={onAddGroup} variant="outline" className="flex items-center gap-2">
+            <UsersIcon className="h-4 w-4" />
+            Nouveau Groupe
           </Button>
         )}
       </div>

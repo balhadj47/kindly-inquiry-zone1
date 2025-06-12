@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import type { User, Group } from '@/types/rbac';
 import { createPermissionUtils } from './permissionUtils';
 import { createUserOperations } from './userOperations';
+import { createGroupOperations } from './groupOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
@@ -18,11 +19,9 @@ export const useRBACOperations = ({
   setGroups,
 }: UseRBACOperationsProps) => {
   // Memoize permission utils to prevent recreation on every render
-  // Only create when we have both user and groups data
   const permissionUtils = useMemo(() => {
     console.log('Creating permission utils - User:', currentUser?.id, 'Groups:', groups.length);
     
-    // Wait for groups to be loaded before creating permission utils
     if (!currentUser || groups.length === 0) {
       console.log('Skipping permission utils creation - missing data');
       return {
@@ -42,36 +41,7 @@ export const useRBACOperations = ({
   }, [currentUser?.id, currentUser?.groupId, groups.length, groups]);
 
   const userOperations = useMemo(() => createUserOperations(setUsers), [setUsers]);
-
-  // Group operations - memoized to prevent recreation
-  const groupOperations = useMemo(() => {
-    const addGroup = async (groupData: any): Promise<void> => {
-      console.log('Adding group:', groupData);
-      const newGroup: Group = {
-        id: Date.now().toString(),
-        name: groupData.name,
-        description: groupData.description,
-        color: groupData.color,
-        permissions: groupData.permissions || [],
-      };
-      
-      setGroups(prev => [...prev, newGroup]);
-    };
-
-    const updateGroup = async (groupId: string, groupData: any): Promise<void> => {
-      console.log('Updating group:', groupId, groupData);
-      setGroups(prev => prev.map(group => 
-        group.id === groupId ? { ...group, ...groupData } : group
-      ));
-    };
-
-    const deleteGroup = async (groupId: string): Promise<void> => {
-      console.log('Deleting group:', groupId);
-      setGroups(prev => prev.filter(group => group.id !== groupId));
-    };
-
-    return { addGroup, updateGroup, deleteGroup };
-  }, [setGroups]);
+  const groupOperations = useMemo(() => createGroupOperations(setGroups), [setGroups]);
 
   return useMemo(() => ({
     ...userOperations,

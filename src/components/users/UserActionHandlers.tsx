@@ -13,48 +13,15 @@ export const useUserActionHandlers = () => {
   
   const { users, deleteGroup, deleteUser, currentUser } = useRBAC();
 
-  // Safe modal state setters
-  const safeSetUserModal = useCallback((isOpen: boolean) => {
-    try {
-      setIsUserModalOpen(isOpen);
-    } catch (error) {
-      console.error('Error setting user modal state:', error);
-    }
-  }, []);
-
-  const safeSetGroupModal = useCallback((isOpen: boolean) => {
-    try {
-      setIsGroupModalOpen(isOpen);
-    } catch (error) {
-      console.error('Error setting group modal state:', error);
-    }
-  }, []);
-
-  const safeSetPermissionsModal = useCallback((isOpen: boolean) => {
-    try {
-      setIsPermissionsModalOpen(isOpen);
-    } catch (error) {
-      console.error('Error setting permissions modal state:', error);
-    }
-  }, []);
-
-  const safeSetPasswordModal = useCallback((isOpen: boolean) => {
-    try {
-      setIsPasswordModalOpen(isOpen);
-    } catch (error) {
-      console.error('Error setting password modal state:', error);
-    }
-  }, []);
-
   const handleAddUser = useCallback(() => {
     try {
       console.log('UserActionHandlers - Adding new user');
       setSelectedUser(null);
-      safeSetUserModal(true);
+      setIsUserModalOpen(true);
     } catch (error) {
       console.error('Error handling add user:', error);
     }
-  }, [safeSetUserModal]);
+  }, []);
 
   const handleEditUser = useCallback((user: User) => {
     try {
@@ -64,11 +31,11 @@ export const useUserActionHandlers = () => {
       }
       console.log('UserActionHandlers - Editing user:', user.id);
       setSelectedUser(user);
-      safeSetUserModal(true);
+      setIsUserModalOpen(true);
     } catch (error) {
       console.error('Error handling edit user:', error);
     }
-  }, [safeSetUserModal]);
+  }, []);
 
   const handleChangePassword = useCallback((user: User) => {
     try {
@@ -78,11 +45,11 @@ export const useUserActionHandlers = () => {
       }
       console.log('UserActionHandlers - Changing password for user:', user.id);
       setSelectedUser(user);
-      safeSetPasswordModal(true);
+      setIsPasswordModalOpen(true);
     } catch (error) {
       console.error('Error handling change password:', error);
     }
-  }, [safeSetPasswordModal]);
+  }, []);
 
   const handleDeleteUser = useCallback(async (user: User) => {
     try {
@@ -97,9 +64,11 @@ export const useUserActionHandlers = () => {
         return;
       }
 
-      console.log('UserActionHandlers - Deleting user:', user.id);
-      await deleteUser(user.id);
-      console.log('UserActionHandlers - User deleted successfully');
+      if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.name}" ?`)) {
+        console.log('UserActionHandlers - Deleting user:', user.id);
+        await deleteUser(user.id);
+        console.log('UserActionHandlers - User deleted successfully');
+      }
     } catch (error) {
       console.error('UserActionHandlers - Error deleting user:', error);
       alert("Erreur lors de la suppression de l'utilisateur. Veuillez réessayer.");
@@ -110,11 +79,11 @@ export const useUserActionHandlers = () => {
     try {
       console.log('UserActionHandlers - Adding new group');
       setSelectedGroup(null);
-      safeSetGroupModal(true);
+      setIsGroupModalOpen(true);
     } catch (error) {
       console.error('Error handling add group:', error);
     }
-  }, [safeSetGroupModal]);
+  }, []);
 
   const handleEditGroup = useCallback((group: UserGroup) => {
     try {
@@ -124,11 +93,11 @@ export const useUserActionHandlers = () => {
       }
       console.log('UserActionHandlers - Editing group:', group.id);
       setSelectedGroup(group);
-      safeSetGroupModal(true);
+      setIsGroupModalOpen(true);
     } catch (error) {
       console.error('Error handling edit group:', error);
     }
-  }, [safeSetGroupModal]);
+  }, []);
 
   const handleManagePermissions = useCallback((group: UserGroup) => {
     try {
@@ -138,11 +107,11 @@ export const useUserActionHandlers = () => {
       }
       console.log('UserActionHandlers - Managing permissions for group:', group.id);
       setSelectedGroup(group);
-      safeSetPermissionsModal(true);
+      setIsPermissionsModalOpen(true);
     } catch (error) {
       console.error('Error handling manage permissions:', error);
     }
-  }, [safeSetPermissionsModal]);
+  }, []);
 
   const handleDeleteGroup = useCallback(async (group: UserGroup) => {
     try {
@@ -160,16 +129,18 @@ export const useUserActionHandlers = () => {
         return;
       }
 
-      const defaultGroupIds = ['admin', 'employee'];
+      const defaultGroupIds = ['admin', 'employee', 'driver'];
       if (defaultGroupIds.includes(group.id)) {
         console.warn('UserActionHandlers - Cannot delete default group:', group.id);
         alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);
         return;
       }
 
-      console.log('UserActionHandlers - Deleting group:', group.id);
-      await deleteGroup(group.id);
-      console.log('UserActionHandlers - Group deleted successfully');
+      if (window.confirm(`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ? Cette action ne peut pas être annulée.`)) {
+        console.log('UserActionHandlers - Deleting group:', group.id);
+        await deleteGroup(group.id);
+        console.log('UserActionHandlers - Group deleted successfully');
+      }
     } catch (error) {
       console.error('UserActionHandlers - Error deleting group:', error);
       alert("Erreur lors de la suppression du groupe. Veuillez réessayer.");
@@ -179,13 +150,13 @@ export const useUserActionHandlers = () => {
   return {
     // Modal states
     isUserModalOpen,
-    setIsUserModalOpen: safeSetUserModal,
+    setIsUserModalOpen,
     isGroupModalOpen,
-    setIsGroupModalOpen: safeSetGroupModal,
+    setIsGroupModalOpen,
     isPermissionsModalOpen,
-    setIsPermissionsModalOpen: safeSetPermissionsModal,
+    setIsPermissionsModalOpen,
     isPasswordModalOpen,
-    setIsPasswordModalOpen: safeSetPasswordModal,
+    setIsPasswordModalOpen,
     selectedUser,
     selectedGroup,
     // Handlers

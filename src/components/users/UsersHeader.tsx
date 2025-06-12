@@ -3,7 +3,6 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, Users as UsersIcon } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
-import AddRandomUsersButton from './AddRandomUsersButton';
 
 interface UsersHeaderProps {
   onAddUser: () => void;
@@ -23,8 +22,6 @@ const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
       </div>
       
       <div className="flex items-center gap-2">
-        <AddRandomUsersButton />
-        
         {hasPermission('users:create') && (
           <Button onClick={onAddUser} className="flex items-center gap-2">
             <Plus className="h-4 w-4" />

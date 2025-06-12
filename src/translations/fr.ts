@@ -182,8 +182,4 @@ export const fr: TranslationKeys = {
   recentTrips: 'Voyages Récents',
   noTripsFoundMessage: 'Aucun voyage trouvé. Essayez d\'enregistrer un nouveau voyage!',
   viewDetails: 'Voir les Détails',
-
-  // Mission roles - updated terminology
-  missionRole: 'Chef de Groupe',
-  missionRoles: 'Chefs de Groupe',
 };

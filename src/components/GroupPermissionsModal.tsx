@@ -27,16 +27,21 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+    
     setIsSubmitting(true);
     
     try {
       if (group) {
+        console.log('Updating group permissions:', group.id, selectedPermissions);
         await updateGroup(group.id, { permissions: selectedPermissions });
+        console.log('Group permissions updated successfully');
       }
       
       onClose();
     } catch (error) {
       console.error('Error updating permissions:', error);
+      alert('Erreur lors de la mise à jour des permissions. Veuillez réessayer.');
     } finally {
       setIsSubmitting(false);
     }
@@ -76,7 +81,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
       <DialogContent className="sm:max-w-[800px] max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            Manage Permissions for {group.name}
+            Gérer les Permissions pour {group.name}
           </DialogTitle>
         </DialogHeader>
         
@@ -84,7 +89,6 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {Object.entries(groupedPermissions).map(([category, categoryPermissions]) => {
               const allSelected = categoryPermissions.every(p => selectedPermissions.includes(p.id));
-              const someSelected = categoryPermissions.some(p => selectedPermissions.includes(p.id));
               
               return (
                 <Card key={category}>
@@ -98,7 +102,7 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
                         onClick={() => handleSelectAll(category, categoryPermissions)}
                         disabled={isSubmitting}
                       >
-                        {allSelected ? 'Deselect All' : 'Select All'}
+                        {allSelected ? 'Tout Désélectionner' : 'Tout Sélectionner'}
                       </Button>
                     </div>
                   </CardHeader>
@@ -134,14 +138,14 @@ const GroupPermissionsModal: React.FC<GroupPermissionsModalProps> = ({ isOpen, o
 
           <div className="flex justify-between items-center pt-4 border-t">
             <p className="text-sm text-gray-600">
-              {selectedPermissions.length} of {permissions.length} permissions selected
+              {selectedPermissions.length} sur {permissions.length} permissions sélectionnées
             </p>
             <div className="flex space-x-2">
               <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-                Cancel
+                Annuler
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? 'Saving...' : 'Save Permissions'}
+                {isSubmitting ? 'Sauvegarde...' : 'Sauvegarder les Permissions'}
               </Button>
             </div>
           </div>

@@ -1,6 +1,6 @@
 
 import { useState, useCallback } from 'react';
-import { User, UserGroup } from '@/types/rbac';
+import { User, Group } from '@/types/rbac';
 import { useRBAC } from '@/contexts/RBACContext';
 
 export const useUserActionHandlers = () => {
@@ -9,7 +9,7 @@ export const useUserActionHandlers = () => {
   const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<UserGroup | null>(null);
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   
   const { users, deleteGroup, deleteUser, currentUser } = useRBAC();
 
@@ -85,7 +85,7 @@ export const useUserActionHandlers = () => {
     }
   }, []);
 
-  const handleEditGroup = useCallback((group: UserGroup) => {
+  const handleEditGroup = useCallback((group: Group) => {
     try {
       if (!group || !group.id) {
         console.error('UserActionHandlers - Invalid group data for edit:', group);
@@ -99,7 +99,7 @@ export const useUserActionHandlers = () => {
     }
   }, []);
 
-  const handleManagePermissions = useCallback((group: UserGroup) => {
+  const handleManagePermissions = useCallback((group: Group) => {
     try {
       if (!group || !group.id) {
         console.error('UserActionHandlers - Invalid group data for permissions:', group);
@@ -113,7 +113,7 @@ export const useUserActionHandlers = () => {
     }
   }, []);
 
-  const handleDeleteGroup = useCallback(async (group: UserGroup) => {
+  const handleDeleteGroup = useCallback(async (group: Group) => {
     try {
       if (!group || !group.id) {
         console.error('UserActionHandlers - Invalid group data for delete:', group);

@@ -1,15 +1,15 @@
 
 import React from 'react';
 import { TabsContent } from '@/components/ui/tabs';
-import { UserGroup } from '@/types/rbac';
+import { Group } from '@/types/rbac';
 import GroupGrid from './GroupGrid';
 
 interface GroupsTabProps {
-  groups: UserGroup[];
+  groups: Group[];
   users: any[];
-  onEditGroup: (group: UserGroup) => void;
-  onManagePermissions: (group: UserGroup) => void;
-  onDeleteGroup: (group: UserGroup) => void;
+  onEditGroup: (group: Group) => void;
+  onManagePermissions: (group: Group) => void;
+  onDeleteGroup: (group: Group) => void;
 }
 
 const GroupsTab: React.FC<GroupsTabProps> = ({

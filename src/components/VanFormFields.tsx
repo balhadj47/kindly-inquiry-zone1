@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +38,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
           id="reference-code"
           value={formData.referenceCode}
           onChange={(e) => onInputChange('referenceCode', e.target.value)}
-          placeholder="Ex : REF-123 (ce code doit être unique)"
+          placeholder="reference of van example M-025"
           className="text-base touch-manipulation"
           required
         />
@@ -50,7 +51,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             id="plate-number"
             value={formData.plateNumber}
             onChange={(e) => onInputChange('plateNumber', e.target.value)}
-            placeholder="Ex : VAN-001 (immatriculation officielle)"
+            placeholder="license plate example: 002502-322-16"
             className="text-base touch-manipulation"
             required
           />
@@ -184,3 +185,4 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
 };
 
 export default VanFormFields;
+

@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { SupportedLanguage, TranslationKeys } from '@/types/language';
 import { translations } from '@/translations';
 
@@ -25,16 +25,26 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  // Fixed to French only
-  const language: SupportedLanguage = 'fr';
-  const setLanguage = () => {}; // No-op since we're French only
+  // Use proper React state management instead of hardcoded value
+  const [language, setLanguageState] = useState<SupportedLanguage>('fr');
   
-  const isRTL = false;
+  const setLanguage = (lang: SupportedLanguage) => {
+    setLanguageState(lang);
+  };
+  
+  const isRTL = language === 'ar';
   const t = translations[language];
 
+  const contextValue: LanguageContextType = {
+    language,
+    setLanguage,
+    t,
+    isRTL
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t, isRTL }}>
-      <div dir="ltr">
+    <LanguageContext.Provider value={contextValue}>
+      <div dir={isRTL ? 'rtl' : 'ltr'}>
         {children}
       </div>
     </LanguageContext.Provider>

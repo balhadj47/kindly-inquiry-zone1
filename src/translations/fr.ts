@@ -1,3 +1,4 @@
+
 import { TranslationKeys } from '@/types/language';
 
 export const fr: TranslationKeys = {
@@ -206,7 +207,7 @@ export const fr: TranslationKeys = {
   branchId: 'ID de la Succursale',
   createdDate: 'Date de Création',
   noAddressProvided: 'Aucune adresse fournie',
-  noPhone: 'Aucun téléphone fourni',
+  noPhoneProvided: 'Aucun téléphone fourni',
   noEmailProvided: 'Aucun email fourni',
   branchOf: 'Succursale de',
   companyStatus: 'Statut de l\'Entreprise',

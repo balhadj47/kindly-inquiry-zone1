@@ -102,7 +102,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
             <CardContent className="p-4">
               <h3 className="text-lg font-semibold mb-4 flex items-center">
                 <FileText className="h-5 w-5 mr-2 text-blue-600" />
-                Informations du Voyage
+                Informations du Programme
               </h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

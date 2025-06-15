@@ -69,8 +69,8 @@ export const loadInitialData = async (authUser: any) => {
       color: group.color,
     }));
 
-    // Ensure we have default groups with proper permissions format that matches menu expectations
-    const requiredGroups = [
+    // Only ensure essential system groups exist if they're not already in the database
+    const essentialGroups = [
       { 
         id: 'administrator', 
         name: 'Administrateurs', 
@@ -92,49 +92,50 @@ export const loadInitialData = async (authUser: any) => {
           'trips:read',
           'trips:create',
           'trips:update',
-          'trips:delete'
+          'trips:delete',
+          'groups:read',
+          'groups:create',
+          'groups:update',
+          'groups:delete'
         ], 
         color: '#ef4444' 
       },
       { 
         id: 'supervisor', 
         name: 'Superviseurs', 
-        description: 'Chefs de groupe', 
+        description: 'Supervision des opérations', 
         permissions: ['dashboard:read', 'trips:read', 'trips:create', 'trips:update', 'vans:read', 'users:read'], 
         color: '#f59e0b' 
       },
       { 
         id: 'driver', 
         name: 'Chauffeurs', 
-        description: 'Chauffeurs', 
+        description: 'Conducteurs de véhicules', 
         permissions: ['dashboard:read', 'trips:read', 'trips:create', 'vans:read'], 
         color: '#10b981' 
       },
       { 
         id: 'security', 
         name: 'Sécurité', 
-        description: 'Agents de sécurité', 
+        description: 'Personnel de sécurité', 
         permissions: ['dashboard:read', 'trips:read', 'trips:create'], 
         color: '#8b5cf6' 
       },
       { 
         id: 'employee', 
         name: 'Employés', 
-        description: 'Accès de base', 
-        permissions: ['dashboard:read', 'trips:read', 'trips:create'], 
+        description: 'Employés standards', 
+        permissions: ['dashboard:read', 'trips:read'], 
         color: '#3b82f6' 
       },
     ];
 
-    for (const requiredGroup of requiredGroups) {
-      const existingGroup = groups.find(group => group.id === requiredGroup.id);
+    // Only add essential groups if they don't exist in the database
+    for (const essentialGroup of essentialGroups) {
+      const existingGroup = groups.find(group => group.id === essentialGroup.id);
       if (!existingGroup) {
-        console.log(`Creating default group: ${requiredGroup.name}`);
-        groups.push(requiredGroup);
-      } else {
-        // Update existing group with correct permissions format
-        console.log(`Updating permissions for existing group: ${requiredGroup.name}`);
-        existingGroup.permissions = requiredGroup.permissions;
+        console.log(`Adding essential system group: ${essentialGroup.name}`);
+        groups.push(essentialGroup);
       }
     }
 
@@ -163,9 +164,9 @@ export const loadInitialData = async (authUser: any) => {
       }
     }
 
-    // If no current user found from auth, use first admin or first user
+    // Only use admin fallback if no current user found and there are users in the database
     if (!currentUser && users.length > 0) {
-      currentUser = users.find(user => user.role === 'Administrator') || users[0];
+      currentUser = users.find(user => user.role === 'Administrator') || null;
     }
     
     console.log('Database data loaded successfully:', {
@@ -175,8 +176,7 @@ export const loadInitialData = async (authUser: any) => {
       currentUser: currentUser?.id,
       currentUserRole: currentUser?.role,
       currentUserGroupId: currentUser?.groupId,
-      authUserId: authUser?.id,
-      adminGroupPermissions: groups.find(g => g.id === 'administrator')?.permissions
+      authUserId: authUser?.id
     });
     
     return {

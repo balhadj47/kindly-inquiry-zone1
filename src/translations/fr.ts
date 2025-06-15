@@ -7,8 +7,8 @@ export const fr: TranslationKeys = {
   companies: 'Entreprises',
   vansDrivers: 'Camionnettes et Chauffeurs',
   users: 'Utilisateurs',
-  logTrip: 'Enregistrer une programme',
-  tripHistory: 'Historique des Voyages',
+  logTrip: 'Enregistrer un Programme',
+  tripHistory: 'Historique des Programmes',
   settings: 'Paramètres',
   
   // Common
@@ -27,7 +27,7 @@ export const fr: TranslationKeys = {
   logout: 'Déconnexion',
   
   // Dashboard
-  totalTrips: 'Total des Voyages',
+  totalTrips: 'Total des Programmes',
   activeVans: 'Camionnettes Actives',
   totalBranches: 'Total des Succursales',
   recentActivity: 'Activité Récente',
@@ -55,10 +55,10 @@ export const fr: TranslationKeys = {
   enterEmail: 'Entrer l\'adresse email',
   
   // Trip Logger
-  tripLogger: 'Enregistreur de Voyage',
+  tripLogger: 'Enregistreur de Programme',
   recordVanVisits: 'Enregistrer les visites de camionnettes aux succursales',
   currentTime: 'Heure Actuelle',
-  logNewTrip: 'Nouveau Voyage',
+  logNewTrip: 'Nouveau Programme',
   selectVan: 'Sélectionner Camionnette',
   chooseVan: 'Choisir une camionnette',
   selectCompany: 'Sélectionner Entreprise',
@@ -67,16 +67,16 @@ export const fr: TranslationKeys = {
   chooseBranch: 'Choisir une succursale',
   selectCompanyFirst: 'Sélectionner d\'abord l\'entreprise',
   notes: 'Notes (Optionnel)',
-  notesPlaceholder: 'Notes supplémentaires sur ce voyage...',
+  notesPlaceholder: 'Notes supplémentaires sur ce programme...',
   logTripVisit: 'Enregistrer la Visite',
-  tripsToday: 'Voyages Aujourd\'hui',
+  tripsToday: 'Programmes Aujourd\'hui',
   
   // Trip History
   filterByCompany: 'Filtrer par Entreprise',
   filterByVan: 'Filtrer par Camionnette',
   allCompanies: 'Toutes les Entreprises',
   allVans: 'Toutes les Camionnettes',
-  noTripsFound: 'Aucun voyage trouvé',
+  noTripsFound: 'Aucun programme trouvé',
   timeAgo: {
     minsAgo: 'min',
     hoursAgo: 'h',
@@ -113,8 +113,8 @@ export const fr: TranslationKeys = {
   tryAdjustingSearch: 'Essayez d\'ajuster vos termes de recherche ou ajoutez un nouvel utilisateur.',
   clearAllFilters: 'Effacer tous les filtres',
   viewHistory: 'Voir l\'Historique',
-  totalTripsLabel: 'Total des Voyages:',
-  lastTripLabel: 'Dernier Voyage:',
+  totalTripsLabel: 'Total des Programmes:',
+  lastTripLabel: 'Dernier Programme:',
   permissions: 'Permissions',
   cannotDeleteGroup: 'Impossible de supprimer le groupe',
   usersAssigned: 'utilisateur(s) assigné(s). Veuillez réassigner ces utilisateurs à un autre groupe d\'abord.',
@@ -160,12 +160,12 @@ export const fr: TranslationKeys = {
   vanNotFound: 'Camionnette non trouvée',
   companyNotFound: 'Entreprise ou succursale non trouvée',
   branchNotFound: 'Succursale non trouvée',
-  tripLoggedSuccessfully: 'Voyage enregistré avec succès',
+  tripLoggedSuccessfully: 'Programme enregistré avec succès',
   
   // Trip History additional
-  searchTrips: 'Rechercher des voyages...',
+  searchTrips: 'Rechercher des programmes...',
   filterBy: 'Filtrer par...',
-  allTrips: 'Tous les Voyages',
+  allTrips: 'Tous les Programmes',
   byVan: 'Par Camionnette',
   byCompany: 'Par Entreprise',
   byBranch: 'Par Succursale',
@@ -175,11 +175,11 @@ export const fr: TranslationKeys = {
   thisMonth: 'Ce Mois',
   allTime: 'Toute Période',
   export: 'Exporter',
-  totalTripsCount: 'Total des Voyages',
+  totalTripsCount: 'Total des Programmes',
   uniqueVans: 'Camionnettes Uniques',
   companiesCount: 'Entreprises',
   branchesCount: 'Succursales',
-  recentTrips: 'Voyages Récents',
-  noTripsFoundMessage: 'Aucun voyage trouvé. Essayez d\'enregistrer un nouveau voyage!',
+  recentTrips: 'Programmes Récents',
+  noTripsFoundMessage: 'Aucun programme trouvé. Essayez d\'enregistrer un nouveau programme!',
   viewDetails: 'Voir les Détails',
 };

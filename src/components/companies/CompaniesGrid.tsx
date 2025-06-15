@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Company } from '@/hooks/useCompanies';
 import CompanyCard from './CompanyCard';
 
@@ -8,11 +7,10 @@ interface CompaniesGridProps {
   companies: Company[];
   onEditCompany: (company: Company) => void;
   onDeleteCompany: (company: Company) => void;
+  onShowCompanyDetail: (company: Company) => void;
 }
 
-const CompaniesGrid = ({ companies, onEditCompany, onDeleteCompany }: CompaniesGridProps) => {
-  const navigate = useNavigate();
-
+const CompaniesGrid = ({ companies, onEditCompany, onDeleteCompany, onShowCompanyDetail }: CompaniesGridProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
       {companies.map((company) => (
@@ -20,9 +18,9 @@ const CompaniesGrid = ({ companies, onEditCompany, onDeleteCompany }: CompaniesG
           key={company.id}
           className="cursor-pointer"
           onClick={(e) => {
-            // Make sure not to trigger when clicking edit/delete
+            // Don't trigger details on edit/delete
             if ((e.target as HTMLElement).closest('button')) return;
-            navigate(`/companies/${company.id}`);
+            onShowCompanyDetail(company);
           }}
         >
           <CompanyCard
@@ -37,3 +35,4 @@ const CompaniesGrid = ({ companies, onEditCompany, onDeleteCompany }: CompaniesG
 };
 
 export default CompaniesGrid;
+

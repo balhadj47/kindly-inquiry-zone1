@@ -7,6 +7,9 @@ export interface Branch {
   name: string;
   company_id: string;
   created_at: string;
+  address?: string;
+  phone?: string;
+  email?: string;
 }
 
 export interface Company {
@@ -53,7 +56,10 @@ export const useCompanies = () => {
             id,
             name,
             company_id,
-            created_at
+            created_at,
+            address,
+            phone,
+            email
           )
         `);
 

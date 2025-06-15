@@ -106,7 +106,7 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
                       className="group p-4 border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50/50 transition-all duration-200 cursor-pointer"
                       onClick={() => onBranchClick && onBranchClick(branch.id)}
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-2">
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900 group-hover:text-blue-700 transition-colors">
                             {branch.name}
@@ -116,6 +116,28 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
                           </p>
                         </div>
                         <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                      </div>
+                      
+                      {/* Branch contact info preview */}
+                      <div className="text-xs text-gray-500 space-y-1">
+                        {branch.address && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            <span className="truncate">{branch.address}</span>
+                          </div>
+                        )}
+                        {branch.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="h-3 w-3" />
+                            <span>{branch.phone}</span>
+                          </div>
+                        )}
+                        {branch.email && (
+                          <div className="flex items-center gap-1">
+                            <Mail className="h-3 w-3" />
+                            <span className="truncate">{branch.email}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

@@ -11,22 +11,31 @@ export type Database = {
     Tables: {
       branches: {
         Row: {
+          address: string | null
           company_id: string
           created_at: string
+          email: string | null
           id: string
           name: string
+          phone: string | null
         }
         Insert: {
+          address?: string | null
           company_id: string
           created_at?: string
+          email?: string | null
           id?: string
           name: string
+          phone?: string | null
         }
         Update: {
+          address?: string | null
           company_id?: string
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
+          phone?: string | null
         }
         Relationships: [
           {

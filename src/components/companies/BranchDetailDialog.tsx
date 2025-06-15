@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Building2, Calendar, ArrowLeft, MapPin, Users, Clock } from "lucide-react";
+import { Building2, Calendar, ArrowLeft, MapPin, Users, Clock, Phone, Mail } from "lucide-react";
 import { Company, Branch } from "@/hooks/useCompanies";
 
 interface BranchDetailDialogProps {
@@ -68,6 +68,36 @@ const BranchDetailDialog: React.FC<BranchDetailDialogProps> = ({
               <h3 className="text-lg font-semibold mb-4">Branch Details</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
+                  <MapPin className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Address</p>
+                    <p className="text-gray-900">
+                      {branch.address || <span className="italic text-gray-400">No address provided</span>}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Phone className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                    <p className="text-gray-900">
+                      {branch.phone || <span className="italic text-gray-400">No phone provided</span>}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <Mail className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">Email Address</p>
+                    <p className="text-gray-900">
+                      {branch.email || <span className="italic text-gray-400">No email provided</span>}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start gap-3">
                   <Calendar className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-gray-700">Created Date</p>
@@ -88,14 +118,6 @@ const BranchDetailDialog: React.FC<BranchDetailDialogProps> = ({
                     <p className="text-gray-900 font-mono text-sm bg-gray-100 px-2 py-1 rounded">
                       {branch.id}
                     </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start gap-3">
-                  <Users className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-700">Parent Company</p>
-                    <p className="text-gray-900">{company.name}</p>
                   </div>
                 </div>
               </div>

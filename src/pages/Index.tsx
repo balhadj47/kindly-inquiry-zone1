@@ -28,7 +28,7 @@ const AppContent = () => {
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
               {hasPermission('companies:read') && (
-                <Route path="/companies" element={<Companies />} />
+                <Route path="/companies/*" element={<Companies />} />
               )}
               {hasPermission('vans:read') && (
                 <Route path="/vans" element={<Vans />} />

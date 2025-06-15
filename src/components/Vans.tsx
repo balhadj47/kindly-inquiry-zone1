@@ -24,33 +24,43 @@ const Vans = () => {
     }
   };
 
+  // Safeguard filter and string conversion against undefined/null/bad data
   const filteredAndSortedVans = useMemo(() => {
     let filtered = vans.filter(van => {
-      const licensePlate = van.license_plate ?? '';
-      const model = van.model ?? '';
+      if (!van || typeof van !== 'object') return false;
+      // Ensure string comparison even if property is null or not string
+      const licensePlateStr = typeof van.license_plate === 'string' ? van.license_plate : (van.license_plate ? String(van.license_plate) : '');
+      const modelStr = typeof van.model === 'string' ? van.model : (van.model ? String(van.model) : '');
       return (
-        licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        model.toLowerCase().includes(searchTerm.toLowerCase())
+        licensePlateStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        modelStr.toLowerCase().includes(searchTerm.toLowerCase())
       );
     });
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(van => {
-        const vanStatus = van.status || 'Actif';
+        const vanStatus = typeof van.status === 'string' ? van.status : 'Actif';
         return vanStatus === statusFilter;
       });
     }
 
     return filtered.sort((a, b) => {
       const direction = sortDirection === 'asc' ? 1 : -1;
+      let aVal: string = '', bVal: string = '';
       switch (sortField) {
         case 'model':
-          return direction * (a.model ?? '').localeCompare(b.model ?? '');
+          aVal = typeof a.model === 'string' ? a.model : '';
+          bVal = typeof b.model === 'string' ? b.model : '';
+          return direction * aVal.localeCompare(bVal);
         case 'status':
-          return direction * ((a.status || 'Actif').localeCompare(b.status || 'Actif'));
+          aVal = typeof a.status === 'string' ? a.status : 'Actif';
+          bVal = typeof b.status === 'string' ? b.status : 'Actif';
+          return direction * aVal.localeCompare(bVal);
         case 'license_plate':
         default:
-          return direction * (a.license_plate ?? '').localeCompare(b.license_plate ?? '');
+          aVal = typeof a.license_plate === 'string' ? a.license_plate : '';
+          bVal = typeof b.license_plate === 'string' ? b.license_plate : '';
+          return direction * aVal.localeCompare(bVal);
       }
     });
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);

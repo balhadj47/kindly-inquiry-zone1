@@ -181,9 +181,10 @@ export type Database = {
           id: string
           insurance_date: string | null
           insurer: string | null
-          license_plate: string
+          license_plate: string | null
           model: string
           notes: string | null
+          reference_code: string
           status: string | null
         }
         Insert: {
@@ -193,9 +194,10 @@ export type Database = {
           id?: string
           insurance_date?: string | null
           insurer?: string | null
-          license_plate: string
+          license_plate?: string | null
           model: string
           notes?: string | null
+          reference_code: string
           status?: string | null
         }
         Update: {
@@ -205,9 +207,10 @@ export type Database = {
           id?: string
           insurance_date?: string | null
           insurer?: string | null
-          license_plate?: string
+          license_plate?: string | null
           model?: string
           notes?: string | null
+          reference_code?: string
           status?: string | null
         }
         Relationships: []

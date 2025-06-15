@@ -25,10 +25,14 @@ const Vans = () => {
   };
 
   const filteredAndSortedVans = useMemo(() => {
-    let filtered = vans.filter(van =>
-      van.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      van.model.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    let filtered = vans.filter(van => {
+      const licensePlate = van.license_plate ?? '';
+      const model = van.model ?? '';
+      return (
+        licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        model.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    });
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(van => {
@@ -41,12 +45,12 @@ const Vans = () => {
       const direction = sortDirection === 'asc' ? 1 : -1;
       switch (sortField) {
         case 'model':
-          return direction * a.model.localeCompare(b.model);
+          return direction * (a.model ?? '').localeCompare(b.model ?? '');
         case 'status':
-          return direction * (a.status || 'Actif').localeCompare(b.status || 'Actif');
+          return direction * ((a.status || 'Actif').localeCompare(b.status || 'Actif'));
         case 'license_plate':
         default:
-          return direction * a.license_plate.localeCompare(b.license_plate);
+          return direction * (a.license_plate ?? '').localeCompare(b.license_plate ?? '');
       }
     });
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);

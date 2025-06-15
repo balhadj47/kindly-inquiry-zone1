@@ -17,7 +17,7 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
   const { t } = useLanguage();
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02]">
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] focus:outline focus:ring-2 focus:ring-ring">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3">
@@ -80,7 +80,7 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onEdit(company)}
+            onClick={(e) => { e.stopPropagation(); onEdit(company); }}
             className="flex-1"
           >
             <Edit className="h-3 w-3 mr-1" />
@@ -89,7 +89,7 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => onDelete(company)}
+            onClick={(e) => { e.stopPropagation(); onDelete(company); }}
             className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3"
           >
             <Trash2 className="h-3 w-3" />

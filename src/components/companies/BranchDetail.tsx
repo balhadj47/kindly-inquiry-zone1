@@ -1,11 +1,15 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useBranchActions } from '@/hooks/useBranchActions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Building2, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { ChevronLeft, Building2, MapPin, Phone, Mail, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Branch } from '@/hooks/useCompanies';
+import BranchModal from './BranchModal';
+import BranchDeleteDialog from './BranchDeleteDialog';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,9 +21,13 @@ import {
 
 const BranchDetail = () => {
   const { branchId } = useParams<{ branchId: string }>();
-  const { companies } = useCompanies();
+  const { companies, refetch } = useCompanies();
+  const { deleteBranch, isLoading: isDeleting } = useBranchActions();
   const navigate = useNavigate();
   const { t } = useLanguage();
+
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   // Find the branch and its company
   let branch = null;
@@ -33,6 +41,29 @@ const BranchDetail = () => {
       break;
     }
   }
+
+  const handleEditBranch = () => {
+    setIsBranchModalOpen(true);
+  };
+
+  const handleDeleteBranch = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!branch) return;
+
+    try {
+      await deleteBranch(branch.id);
+      navigate(`/companies/${company?.id}`);
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+    }
+  };
+
+  const handleBranchModalSuccess = () => {
+    refetch();
+  };
 
   if (!branch || !company) {
     return (
@@ -93,17 +124,37 @@ const BranchDetail = () => {
       {/* Branch Information Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-start space-x-4">
-            <div className="bg-green-100 p-3 rounded-lg">
-              <Building2 className="h-6 w-6 text-green-600" />
-            </div>
-            <div className="flex-1">
-              <CardTitle className="text-3xl">{branch.name}</CardTitle>
-              <p className="text-lg text-gray-600 mt-2">{t.branchOf} {company.name}</p>
-              <div className="flex items-center text-sm text-gray-500 mt-2">
-                <Calendar className="h-4 w-4 mr-1" />
-                {t.createdOn} {new Date(branch.created_at).toLocaleDateString('fr-FR')}
+          <div className="flex items-start justify-between">
+            <div className="flex items-start space-x-4">
+              <div className="bg-green-100 p-3 rounded-lg">
+                <Building2 className="h-6 w-6 text-green-600" />
               </div>
+              <div className="flex-1">
+                <CardTitle className="text-3xl">{branch.name}</CardTitle>
+                <p className="text-lg text-gray-600 mt-2">{t.branchOf} {company.name}</p>
+                <div className="flex items-center text-sm text-gray-500 mt-2">
+                  <Calendar className="h-4 w-4 mr-1" />
+                  {t.createdOn} {new Date(branch.created_at).toLocaleDateString('fr-FR')}
+                </div>
+              </div>
+            </div>
+            <div className="flex space-x-2">
+              <Button
+                onClick={handleEditBranch}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                <Edit className="h-4 w-4" />
+                {t.editBranch}
+              </Button>
+              <Button
+                onClick={handleDeleteBranch}
+                variant="outline"
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                {t.deleteBranch}
+              </Button>
             </div>
           </div>
         </CardHeader>
@@ -173,6 +224,24 @@ const BranchDetail = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      <BranchModal
+        isOpen={isBranchModalOpen}
+        onClose={() => setIsBranchModalOpen(false)}
+        branch={branch}
+        companyId={company.id}
+        companyName={company.name}
+        onSuccess={handleBranchModalSuccess}
+      />
+
+      <BranchDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        branch={branch}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

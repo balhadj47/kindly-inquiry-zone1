@@ -1,12 +1,16 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useBranchActions } from '@/hooks/useBranchActions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, Building2, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { ChevronLeft, Building2, MapPin, Phone, Mail, Calendar, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Branch } from '@/hooks/useCompanies';
 import BranchCard from './BranchCard';
+import BranchModal from './BranchModal';
+import BranchDeleteDialog from './BranchDeleteDialog';
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,13 +22,50 @@ import {
 
 const CompanyDetail = () => {
   const { companyId } = useParams<{ companyId: string }>();
-  const { companies } = useCompanies();
+  const { companies, refetch } = useCompanies();
+  const { deleteBranch, isLoading: isDeleting } = useBranchActions();
   const company = companies.find((c) => c.id === companyId);
   const navigate = useNavigate();
   const { t } = useLanguage();
 
-  const handleBranchClick = (branch: any) => {
+  const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+
+  const handleBranchClick = (branch: Branch) => {
     navigate(`/companies/branch/${branch.id}`);
+  };
+
+  const handleAddBranch = () => {
+    setSelectedBranch(null);
+    setIsBranchModalOpen(true);
+  };
+
+  const handleEditBranch = (branch: Branch) => {
+    setSelectedBranch(branch);
+    setIsBranchModalOpen(true);
+  };
+
+  const handleDeleteBranch = (branch: Branch) => {
+    setSelectedBranch(branch);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedBranch) return;
+
+    try {
+      await deleteBranch(selectedBranch.id);
+      refetch();
+      setIsDeleteDialogOpen(false);
+      setSelectedBranch(null);
+    } catch (error) {
+      console.error('Error deleting branch:', error);
+    }
+  };
+
+  const handleBranchModalSuccess = () => {
+    refetch();
   };
 
   if (!company) {
@@ -153,9 +194,15 @@ const CompanyDetail = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">{t.branches}</h2>
-          <span className="text-sm text-gray-500">
-            {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches.toLowerCase()}
-          </span>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm text-gray-500">
+              {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches.toLowerCase()}
+            </span>
+            <Button onClick={handleAddBranch} className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              {t.addNewBranch}
+            </Button>
+          </div>
         </div>
 
         {company.branches.length === 0 ? (
@@ -163,9 +210,13 @@ const CompanyDetail = () => {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Building2 className="h-12 w-12 text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noBranchesAvailable}</h3>
-              <p className="text-gray-500 text-center">
+              <p className="text-gray-500 text-center mb-4">
                 Cette entreprise n'a pas encore de succursales enregistrées.
               </p>
+              <Button onClick={handleAddBranch} className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                {t.addFirstBranch}
+              </Button>
             </CardContent>
           </Card>
         ) : (
@@ -175,11 +226,31 @@ const CompanyDetail = () => {
                 key={branch.id}
                 branch={branch}
                 onClick={handleBranchClick}
+                onEdit={handleEditBranch}
+                onDelete={handleDeleteBranch}
               />
             ))}
           </div>
         )}
       </div>
+
+      {/* Modals */}
+      <BranchModal
+        isOpen={isBranchModalOpen}
+        onClose={() => setIsBranchModalOpen(false)}
+        branch={selectedBranch}
+        companyId={company.id}
+        companyName={company.name}
+        onSuccess={handleBranchModalSuccess}
+      />
+
+      <BranchDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        branch={selectedBranch}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
+      />
     </div>
   );
 };

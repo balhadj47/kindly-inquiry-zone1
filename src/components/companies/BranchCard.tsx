@@ -2,22 +2,41 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Building2, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Building2, MapPin, Phone, Mail, Calendar, Edit, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Branch } from '@/hooks/useCompanies';
 
 interface BranchCardProps {
   branch: Branch;
   onClick: (branch: Branch) => void;
+  onEdit?: (branch: Branch) => void;
+  onDelete?: (branch: Branch) => void;
 }
 
-const BranchCard = ({ branch, onClick }: BranchCardProps) => {
+const BranchCard = ({ branch, onClick, onEdit, onDelete }: BranchCardProps) => {
   const { t } = useLanguage();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't trigger navigation on button clicks
+    if ((e.target as HTMLElement).closest('button')) return;
+    onClick(branch);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(branch);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete?.(branch);
+  };
 
   return (
     <Card 
       className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] cursor-pointer focus:outline focus:ring-2 focus:ring-ring"
-      onClick={() => onClick(branch)}
+      onClick={handleCardClick}
     >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -33,9 +52,35 @@ const BranchCard = ({ branch, onClick }: BranchCardProps) => {
               </div>
             </div>
           </div>
-          <Badge className="bg-green-100 text-green-800">
-            {t.activeBranch}
-          </Badge>
+          <div className="flex items-center space-x-1">
+            <Badge className="bg-green-100 text-green-800">
+              {t.activeBranch}
+            </Badge>
+            {(onEdit || onDelete) && (
+              <div className="flex space-x-1 ml-2">
+                {onEdit && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleEdit}
+                    className="h-8 w-8 p-0 hover:bg-blue-100"
+                  >
+                    <Edit className="h-4 w-4 text-blue-600" />
+                  </Button>
+                )}
+                {onDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleDelete}
+                    className="h-8 w-8 p-0 hover:bg-red-100"
+                  >
+                    <Trash2 className="h-4 w-4 text-red-600" />
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </CardHeader>
 

@@ -242,7 +242,7 @@ export const fr: TranslationKeys = {
   noCompanyFoundMessage: 'Aucune entreprise trouvée',
   addFirstCompany: 'Commencez par ajouter votre première entreprise',
   addYourFirstCompany: 'Ajouter Votre Première Entreprise',
-  confirmD​eletion: 'Confirmer la suppression',
+  confirmDeletion: 'Confirmer la suppression',
   areYouSureDelete: 'Êtes-vous sûr de vouloir supprimer l\'entreprise',
   thisWillAlsoDelete: 'Cette action supprimera également toutes les succursales associées',
   branch: 'succursale',

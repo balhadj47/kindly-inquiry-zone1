@@ -36,12 +36,12 @@ const CompanyDeleteDialog = ({
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+          <AlertDialogTitle>{t.confirmDeletion}</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer l'entreprise "{company.name}" ? 
-            Cette action supprimera également toutes les succursales associées ({company.branches.length} succursale{company.branches.length !== 1 ? 's' : ''}).
+            {t.areYouSureDelete} "{company.name}" ? 
+            {t.thisWillAlsoDelete} ({company.branches.length} {company.branches.length !== 1 ? t.branches : t.branch}).
             <br /><br />
-            <strong>Cette action est irréversible.</strong>
+            <strong>{t.thisActionIsIrreversible}</strong>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -53,7 +53,7 @@ const CompanyDeleteDialog = ({
             disabled={isLoading}
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            {isLoading ? 'Suppression...' : 'Supprimer'}
+            {isLoading ? t.deleting : t.delete}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

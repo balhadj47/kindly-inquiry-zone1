@@ -30,7 +30,7 @@ const VanFormActions = ({ isSubmitting, isEditing, onCancel }: VanFormActionsPro
         size="lg"
         disabled={isSubmitting}
       >
-        {isSubmitting ? 'Enregistrement...' : (isEditing ? t.updateVan : t.createVan)}
+        {isSubmitting ? t.saving : (isEditing ? t.updateVan : t.createVan)}
       </Button>
     </div>
   );

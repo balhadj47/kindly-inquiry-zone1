@@ -16,6 +16,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface GroupCardProps {
   group: Group;
@@ -36,6 +37,8 @@ const GroupCard: React.FC<GroupCardProps> = ({
   onManagePermissions,
   onDelete,
 }) => {
+  const { t } = useLanguage();
+
   return (
     <Card className="hover:shadow-lg transition-shadow">
       <CardHeader className="pb-3">
@@ -51,7 +54,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="text-sm text-gray-600">
-          <p><span className="font-medium">Permissions:</span> {group.permissions.length}</p>
+          <p><span className="font-medium">{t.permissions}:</span> {group.permissions.length}</p>
         </div>
         
         <div className="flex space-x-2 pt-2">
@@ -61,7 +64,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
             onClick={() => onEdit(group)}
             className="flex-1"
           >
-            Modifier
+            {t.modify}
           </Button>
           <Button
             variant="outline"
@@ -70,7 +73,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
             className="flex-1"
           >
             <Settings className="h-4 w-4 mr-1" />
-            Permissions
+            {t.permissions}
           </Button>
           {canDelete && (
             <AlertDialog>
@@ -85,19 +88,18 @@ const GroupCard: React.FC<GroupCardProps> = ({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer le groupe</AlertDialogTitle>
+                  <AlertDialogTitle>{t.deleteGroup}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Êtes-vous sûr de vouloir supprimer le groupe "{group.name}" ? 
-                    Cette action ne peut pas être annulée.
+                    {t.deleteGroupConfirm.replace('{name}', group.name)}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(group)}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    Supprimer
+                    {t.delete}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -108,8 +110,8 @@ const GroupCard: React.FC<GroupCardProps> = ({
         {!canDelete && (
           <p className="text-xs text-gray-500 mt-2">
             {isDefaultGroup 
-              ? "Groupe par défaut - Ne peut pas être supprimé"
-              : `Impossible de supprimer - ${usersInGroup} utilisateur(s) assigné(s)`
+              ? t.defaultGroupCannotDelete
+              : t.cannotDeleteGroupHasUsers.replace('{count}', usersInGroup.toString())
             }
           </p>
         )}

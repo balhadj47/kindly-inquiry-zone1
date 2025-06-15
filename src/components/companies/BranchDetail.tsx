@@ -5,6 +5,7 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const BranchDetail = () => {
   const { branchId } = useParams<{ branchId: string }>();
@@ -15,20 +16,21 @@ const BranchDetail = () => {
   );
   const branchData = flatBranches.find((b) => b.id === branchId);
   const navigate = useNavigate();
+  const { t } = useLanguage();
 
   if (!branchData) {
     return (
       <div className="space-y-2 py-8">
         <Button variant="ghost" size="sm" onClick={() => navigate(-1)}>
           <ChevronLeft className="h-4 w-4 mr-2" />
-          Back
+          {t.back}
         </Button>
         <Card>
           <CardHeader>
-            <CardTitle>Branch Not Found</CardTitle>
+            <CardTitle>{t.branchNotFoundFull}</CardTitle>
           </CardHeader>
           <CardContent>
-            Unable to find branch with this ID.
+            {t.unableToFindBranch}
           </CardContent>
         </Card>
       </div>
@@ -39,19 +41,19 @@ const BranchDetail = () => {
     <div className="space-y-2 py-8 max-w-xl mx-auto">
       <Button variant="ghost" size="sm" onClick={() => navigate(`/companies/${branchData.company.id}`)}>
         <ChevronLeft className="h-4 w-4 mr-2" />
-        Back to {branchData.company.name}
+        {t.backTo} {branchData.company.name}
       </Button>
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl">{branchData.name}</CardTitle>
           <div className="text-gray-600 text-sm mt-1">
-            Created on {new Date(branchData.created_at).toLocaleDateString()}
+            {t.createdOn} {new Date(branchData.created_at).toLocaleDateString('fr-FR')}
           </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
             <div>
-              <span className="font-semibold">Company:</span>&nbsp;
+              <span className="font-semibold">{t.company}:</span>&nbsp;
               <Button 
                 variant="link" 
                 className="p-0 h-auto text-blue-600 underline underline-offset-2 text-base"
@@ -61,10 +63,10 @@ const BranchDetail = () => {
               </Button>
             </div>
             <div>
-              <span className="font-semibold">Branch ID:</span> {branchData.id}
+              <span className="font-semibold">{t.branchId}:</span> {branchData.id}
             </div>
             <div>
-              <span className="font-semibold">Created On:</span> {new Date(branchData.created_at).toLocaleDateString()}
+              <span className="font-semibold">{t.createdOn}:</span> {new Date(branchData.created_at).toLocaleDateString('fr-FR')}
             </div>
           </div>
         </CardContent>

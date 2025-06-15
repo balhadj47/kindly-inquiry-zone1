@@ -3,6 +3,7 @@ import React from 'react';
 import { Control } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface DriverFieldsProps {
   control: Control<any>;
@@ -10,6 +11,8 @@ interface DriverFieldsProps {
 }
 
 const DriverFields: React.FC<DriverFieldsProps> = ({ control, isSubmitting }) => {
+  const { t } = useLanguage();
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
       <FormField
@@ -17,7 +20,7 @@ const DriverFields: React.FC<DriverFieldsProps> = ({ control, isSubmitting }) =>
         name="licenseNumber"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Numéro de Permis</FormLabel>
+            <FormLabel>{t.licenseNumber}</FormLabel>
             <FormControl>
               <Input
                 {...field}
@@ -35,7 +38,7 @@ const DriverFields: React.FC<DriverFieldsProps> = ({ control, isSubmitting }) =>
         name="totalTrips"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Total des Voyages</FormLabel>
+            <FormLabel>{t.totalTripsDriver}</FormLabel>
             <FormControl>
               <Input
                 {...field}
@@ -56,7 +59,7 @@ const DriverFields: React.FC<DriverFieldsProps> = ({ control, isSubmitting }) =>
         name="lastTrip"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Dernier Voyage</FormLabel>
+            <FormLabel>{t.lastTrip}</FormLabel>
             <FormControl>
               <Input
                 {...field}

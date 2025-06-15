@@ -3,10 +3,12 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { VanFormData } from './useVanForm';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const handleSubmit = async (formData: VanFormData) => {
     setIsSubmitting(true);
@@ -34,7 +36,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         if (error) {
           console.error('Error updating van:', error);
           toast({
-            title: "Erreur",
+            title: t.error,
             description: "Impossible de modifier la camionnette",
             variant: "destructive",
           });
@@ -42,7 +44,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         }
 
         toast({
-          title: "Succès",
+          title: t.success,
           description: `La camionnette ${formData.plateNumber} a été modifiée avec succès`,
         });
       } else {
@@ -54,7 +56,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         if (error) {
           console.error('Error creating van:', error);
           toast({
-            title: "Erreur",
+            title: t.error,
             description: "Impossible de créer la camionnette",
             variant: "destructive",
           });
@@ -62,7 +64,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         }
 
         toast({
-          title: "Succès",
+          title: t.success,
           description: `La camionnette ${formData.plateNumber} a été créée avec succès`,
         });
       }
@@ -73,7 +75,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     } catch (error) {
       console.error('Error saving van:', error);
       toast({
-        title: "Erreur",
+        title: t.error,
         description: "Une erreur s'est produite lors de la sauvegarde",
         variant: "destructive",
       });

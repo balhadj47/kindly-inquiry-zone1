@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Building2, MapPin, Phone, Mail, Calendar, Users, ArrowRight } from "lucide-react";
 import { Company } from "@/hooks/useCompanies";
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CompanyDetailDialogProps {
   company: Company | null;
@@ -15,6 +16,8 @@ interface CompanyDetailDialogProps {
 }
 
 const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open, onClose, onBranchClick }) => {
+  const { t } = useLanguage();
+
   if (!company) return null;
 
   return (
@@ -32,7 +35,7 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
               <div className="flex items-center gap-2 mt-2">
                 <Calendar className="h-4 w-4 text-gray-500" />
                 <span className="text-sm text-gray-600">
-                  Created on {new Date(company.created_at).toLocaleDateString('en-US', {
+                  {t.createdOn} {new Date(company.created_at).toLocaleDateString('fr-FR', {
                     year: 'numeric',
                     month: 'long',
                     day: 'numeric'
@@ -41,7 +44,7 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
               </div>
             </div>
             <Badge variant="secondary" className="bg-blue-50 text-blue-700 px-3 py-1">
-              {company.branches.length} {company.branches.length === 1 ? 'Branch' : 'Branches'}
+              {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches}
             </Badge>
           </div>
         </DialogHeader>
@@ -50,14 +53,14 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
           {/* Company Information Card */}
           <Card className="h-fit">
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Company Information</h3>
+              <h3 className="text-lg font-semibold mb-4">{t.companyInformation}</h3>
               <div className="space-y-4">
                 <div className="flex items-start gap-3">
                   <MapPin className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Address</p>
+                    <p className="text-sm font-medium text-gray-700">{t.address}</p>
                     <p className="text-gray-900">
-                      {company.address || <span className="italic text-gray-400">No address provided</span>}
+                      {company.address || <span className="italic text-gray-400">{t.noAddressProvided}</span>}
                     </p>
                   </div>
                 </div>
@@ -65,9 +68,9 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
                 <div className="flex items-start gap-3">
                   <Phone className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Phone Number</p>
+                    <p className="text-sm font-medium text-gray-700">{t.phone}</p>
                     <p className="text-gray-900">
-                      {company.phone || <span className="italic text-gray-400">No phone provided</span>}
+                      {company.phone || <span className="italic text-gray-400">{t.noPhoneProvided}</span>}
                     </p>
                   </div>
                 </div>
@@ -75,9 +78,9 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
                 <div className="flex items-start gap-3">
                   <Mail className="h-5 w-5 text-gray-500 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="text-sm font-medium text-gray-700">Email Address</p>
+                    <p className="text-sm font-medium text-gray-700">{t.email}</p>
                     <p className="text-gray-900">
-                      {company.email || <span className="italic text-gray-400">No email provided</span>}
+                      {company.email || <span className="italic text-gray-400">{t.noEmailProvided}</span>}
                     </p>
                   </div>
                 </div>
@@ -90,13 +93,13 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
             <CardContent className="p-6">
               <div className="flex items-center gap-2 mb-4">
                 <Users className="h-5 w-5 text-gray-600" />
-                <h3 className="text-lg font-semibold">Branches</h3>
+                <h3 className="text-lg font-semibold">{t.branches}</h3>
               </div>
               
               {company.branches.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <Building2 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p className="text-sm">No branches available</p>
+                  <p className="text-sm">{t.noBranchesAvailable}</p>
                 </div>
               ) : (
                 <div className="space-y-3">
@@ -112,7 +115,7 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
                             {branch.name}
                           </h4>
                           <p className="text-sm text-gray-500 mt-1">
-                            Created {new Date(branch.created_at).toLocaleDateString()}
+                            {t.created} {new Date(branch.created_at).toLocaleDateString('fr-FR')}
                           </p>
                         </div>
                         <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-blue-600 transition-colors" />
@@ -152,23 +155,23 @@ const CompanyDetailDialog: React.FC<CompanyDetailDialogProps> = ({ company, open
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-2xl font-bold text-blue-600">{company.branches.length}</div>
-              <div className="text-sm text-gray-600">Total Branches</div>
+              <div className="text-sm text-gray-600">{t.totalBranchesLabel}</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">Active</div>
-              <div className="text-sm text-gray-600">Company Status</div>
+              <div className="text-2xl font-bold text-green-600">Actif</div>
+              <div className="text-sm text-gray-600">{t.companyStatus}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-purple-600">
                 {new Date().getFullYear() - new Date(company.created_at).getFullYear() || '< 1'}
               </div>
-              <div className="text-sm text-gray-600">Years Active</div>
+              <div className="text-sm text-gray-600">{t.yearsActive}</div>
             </div>
             <div className="text-center">
               <div className="text-2xl font-bold text-orange-600">
-                {company.branches.length > 0 ? 'Multi' : 'Single'}
+                {company.branches.length > 0 ? t.multi : t.single}
               </div>
-              <div className="text-sm text-gray-600">Branch Type</div>
+              <div className="text-sm text-gray-600">{t.branchType}</div>
             </div>
           </div>
         </div>

@@ -28,7 +28,7 @@ const CompanyCard = ({ company, onEdit, onDelete }: CompanyCardProps) => {
               <CardTitle className="text-lg">{company.name}</CardTitle>
               <div className="flex items-center text-sm text-gray-500 mt-1">
                 <Calendar className="h-3 w-3 mr-1" />
-                Created on {new Date(company.created_at).toLocaleDateString()}
+                {t.createdOn} {new Date(company.created_at).toLocaleDateString('fr-FR')}
               </div>
             </div>
           </div>

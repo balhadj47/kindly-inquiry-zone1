@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '@/types/language';
 
 export const ar: TranslationKeys = {
@@ -53,6 +52,16 @@ export const ar: TranslationKeys = {
   enterAddress: 'أدخل عنوان الشركة',
   enterPhone: 'أدخل رقم الهاتف',
   enterEmail: 'أدخل البريد الإلكتروني',
+  
+  // Branch Management
+  addNewBranch: 'إضافة فرع جديد',
+  editBranch: 'تعديل الفرع',
+  deleteBranch: 'حذف الفرع',
+  deleteBranchConfirmation: 'هل أنت متأكد من أنك تريد حذف الفرع',
+  branchName: 'اسم الفرع',
+  updateBranch: 'تحديث الفرع',
+  createBranch: 'إنشاء الفرع',
+  addFirstBranch: 'إضافة أول فرع',
   
   // Trip Logger
   tripLogger: 'مسجل الرحلات',

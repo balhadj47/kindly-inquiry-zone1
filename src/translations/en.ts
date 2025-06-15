@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '@/types/language';
 
 export const en: TranslationKeys = {
@@ -53,6 +52,16 @@ export const en: TranslationKeys = {
   enterAddress: 'Enter company address',
   enterPhone: 'Enter phone number',
   enterEmail: 'Enter email address',
+  
+  // Branch Management
+  addNewBranch: 'Add New Branch',
+  editBranch: 'Edit Branch',
+  deleteBranch: 'Delete Branch',
+  deleteBranchConfirmation: 'Are you sure you want to delete the branch',
+  branchName: 'Branch Name',
+  updateBranch: 'Update Branch',
+  createBranch: 'Create Branch',
+  addFirstBranch: 'Add First Branch',
   
   // Trip Logger
   tripLogger: 'Trip Logger',

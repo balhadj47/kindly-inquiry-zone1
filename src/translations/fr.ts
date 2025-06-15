@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '@/types/language';
 
 export const fr: TranslationKeys = {
@@ -53,6 +52,16 @@ export const fr: TranslationKeys = {
   enterAddress: 'Entrer l\'adresse de l\'entreprise',
   enterPhone: 'Entrer le numéro de téléphone',
   enterEmail: 'Entrer l\'adresse email',
+  
+  // Branch Management
+  addNewBranch: 'Ajouter Nouvelle Succursale',
+  editBranch: 'Modifier la Succursale',
+  deleteBranch: 'Supprimer la Succursale',
+  deleteBranchConfirmation: 'Êtes-vous sûr de vouloir supprimer la succursale',
+  branchName: 'Nom de la Succursale',
+  updateBranch: 'Mettre à Jour la Succursale',
+  createBranch: 'Créer la Succursale',
+  addFirstBranch: 'Ajouter Première Succursale',
   
   // Trip Logger
   tripLogger: 'Enregistreur de Programme',
@@ -197,7 +206,7 @@ export const fr: TranslationKeys = {
   branchId: 'ID de la Succursale',
   createdDate: 'Date de Création',
   noAddressProvided: 'Aucune adresse fournie',
-  noPhoneProvided: 'Aucun téléphone fourni',
+  noPhone: 'Aucun téléphone fourni',
   noEmailProvided: 'Aucun email fourni',
   branchOf: 'Succursale de',
   companyStatus: 'Statut de l\'Entreprise',

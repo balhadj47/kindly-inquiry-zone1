@@ -1,4 +1,3 @@
-
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 
 export interface TranslationKeys {
@@ -53,6 +52,16 @@ export interface TranslationKeys {
   enterAddress: string;
   enterPhone: string;
   enterEmail: string;
+  
+  // Branch Management
+  addNewBranch: string;
+  editBranch: string;
+  deleteBranch: string;
+  deleteBranchConfirmation: string;
+  branchName: string;
+  updateBranch: string;
+  createBranch: string;
+  addFirstBranch: string;
   
   // Trip Logger
   tripLogger: string;

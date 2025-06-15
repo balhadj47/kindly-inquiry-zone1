@@ -16,7 +16,7 @@ import { VanFormData } from '@/hooks/useVanForm';
 interface VanFormFieldsProps {
   formData: VanFormData;
   onInputChange: (field: keyof VanFormData, value: any) => void;
-  onDateChange: (field: string, date: Date | undefined) => void;
+  onDateChange: (field: keyof VanFormData, date: Date | undefined) => void;
 }
 
 const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsProps) => {
@@ -24,20 +24,26 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
 
   // Check if dates are expired
   const today = new Date();
-  today.setHours(0, 0, 0, 0); // Reset time to start of day for accurate comparison
-  
+  today.setHours(0, 0, 0, 0);
+
   const isInsuranceExpired = formData.insuranceDate && formData.insuranceDate < today;
   const isControlExpired = formData.controlDate && formData.controlDate < today;
 
-  // Debug logging
-  console.log('🚐 VanFormFields - Insurance Date:', formData.insuranceDate);
-  console.log('🚐 VanFormFields - Control Date:', formData.controlDate);
-  console.log('🚐 VanFormFields - Today:', today);
-  console.log('🚐 VanFormFields - Insurance Expired:', isInsuranceExpired);
-  console.log('🚐 VanFormFields - Control Expired:', isControlExpired);
-
   return (
     <div className="space-y-4">
+      {/* NEW: Reference Code is now the first input */}
+      <div className="space-y-2">
+        <Label htmlFor="reference-code" className="text-sm sm:text-base">Code de référence</Label>
+        <Input
+          id="reference-code"
+          value={formData.referenceCode}
+          onChange={(e) => onInputChange('referenceCode', e.target.value)}
+          placeholder="e.g., REF-123"
+          className="text-base touch-manipulation"
+          required
+        />
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="plate-number" className="text-sm sm:text-base">{t.plateNumber}</Label>

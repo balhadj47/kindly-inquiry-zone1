@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 
 export interface VanFormData {
+  referenceCode: string;
   plateNumber: string;
   model: string;
   status: string;
@@ -13,6 +14,7 @@ export interface VanFormData {
 
 export const useVanForm = (van: any) => {
   const [formData, setFormData] = useState<VanFormData>({
+    referenceCode: '',
     plateNumber: '',
     model: '',
     status: 'Active',
@@ -25,6 +27,7 @@ export const useVanForm = (van: any) => {
   useEffect(() => {
     if (van) {
       setFormData({
+        referenceCode: van.reference_code || '',
         plateNumber: van.license_plate || van.plateNumber || '',
         model: van.model || '',
         status: van.status || 'Active',
@@ -35,6 +38,7 @@ export const useVanForm = (van: any) => {
       });
     } else {
       setFormData({
+        referenceCode: '',
         plateNumber: '',
         model: '',
         status: 'Active',
@@ -50,7 +54,7 @@ export const useVanForm = (van: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleDateChange = (field: string, date: Date | undefined) => {
+  const handleDateChange = (field: keyof VanFormData, date: Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: date }));
   };
 

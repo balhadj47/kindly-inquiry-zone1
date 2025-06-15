@@ -53,7 +53,14 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-lg">{van.license_plate}</CardTitle>
+            <div className="flex items-center space-x-2 mb-1">
+              {van.reference_code && (
+                <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded font-mono font-semibold uppercase border border-blue-200">
+                  {van.reference_code}
+                </span>
+              )}
+              <CardTitle className="text-lg">{van.license_plate}</CardTitle>
+            </div>
             <p className="text-sm text-gray-600">{van.model}</p>
           </div>
           {van.status && (

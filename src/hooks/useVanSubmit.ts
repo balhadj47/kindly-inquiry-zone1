@@ -12,8 +12,9 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Prepare van data with all fields
+      // Prepare van data with all fields including reference_code
       const vanData = {
+        reference_code: formData.referenceCode,
         license_plate: formData.plateNumber,
         model: formData.model,
         status: formData.status,

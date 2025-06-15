@@ -32,7 +32,24 @@ export const hasPermission = (
   console.log(`Permission cache miss for ${permission}, calculating...`);
   console.log(`Looking for group: ${user.groupId} in groups:`, groups.map(g => g.id));
   
-  const userGroup = groups.find(group => group.id === user.groupId);
+  // Try to find the group by ID first
+  let userGroup = groups.find(group => group.id === user.groupId);
+  
+  // If not found by ID, and the user is an administrator, try to find the administrator group
+  if (!userGroup && user.role === 'Administrator') {
+    console.log('Administrator user, looking for administrator group by ID');
+    userGroup = groups.find(group => group.id === 'administrator');
+    
+    if (!userGroup) {
+      console.log('No administrator group found by ID, checking all groups for administrator permissions');
+      // Look for any group that has all admin permissions as fallback
+      userGroup = groups.find(group => 
+        group.permissions.includes('users:read') && 
+        group.permissions.includes('companies:read') &&
+        group.permissions.includes('dashboard:read')
+      );
+    }
+  }
   
   if (!userGroup) {
     console.log(`Group not found: ${user.groupId}`);
@@ -45,9 +62,11 @@ export const hasPermission = (
     return false;
   }
 
-  console.log(`Found group: ${userGroup.name} with permissions:`, userGroup.permissions);
+  console.log(`Found group: ${userGroup.name} (ID: ${userGroup.id}) with permissions:`, userGroup.permissions);
   
-  const hasPermissionResult = userGroup.permissions.includes(permission);
+  // Ensure permissions is an array
+  const permissions = Array.isArray(userGroup.permissions) ? userGroup.permissions : [];
+  const hasPermissionResult = permissions.includes(permission);
   
   // Cache the result only if groups are loaded
   if (groups.length > 0) {

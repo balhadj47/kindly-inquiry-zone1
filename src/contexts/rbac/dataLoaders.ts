@@ -65,11 +65,11 @@ export const loadInitialData = async (authUser: any) => {
       id: group.id,
       name: group.name,
       description: group.description,
-      permissions: group.permissions || [],
+      permissions: Array.isArray(group.permissions) ? group.permissions : [],
       color: group.color,
     }));
 
-    // Only ensure essential system groups exist if they're not already in the database
+    // Define essential system groups with correct permissions format
     const essentialGroups = [
       { 
         id: 'administrator', 
@@ -130,21 +130,20 @@ export const loadInitialData = async (authUser: any) => {
       },
     ];
 
-    // Force update the administrator group to use the correct permission format
-    const existingAdminGroup = groups.find(group => group.id === 'administrator');
-    if (existingAdminGroup) {
-      console.log('Updating existing administrator group permissions to use correct format');
-      existingAdminGroup.permissions = essentialGroups[0].permissions;
-    } else {
-      console.log('Adding essential administrator group');
-      groups.push(essentialGroups[0]);
-    }
-
-    // Only add other essential groups if they don't exist in the database
-    for (let i = 1; i < essentialGroups.length; i++) {
-      const essentialGroup = essentialGroups[i];
-      const existingGroup = groups.find(group => group.id === essentialGroup.id);
-      if (!existingGroup) {
+    // Ensure all essential groups exist with correct permissions
+    for (const essentialGroup of essentialGroups) {
+      const existingGroupIndex = groups.findIndex(group => group.id === essentialGroup.id);
+      
+      if (existingGroupIndex >= 0) {
+        // Update existing group with correct permissions
+        console.log(`Updating existing group: ${essentialGroup.name} with correct permissions`);
+        groups[existingGroupIndex] = {
+          ...groups[existingGroupIndex],
+          permissions: essentialGroup.permissions, // Force update permissions
+          name: essentialGroup.name, // Ensure name consistency
+        };
+      } else {
+        // Add missing essential group
         console.log(`Adding essential system group: ${essentialGroup.name}`);
         groups.push(essentialGroup);
       }
@@ -188,6 +187,7 @@ export const loadInitialData = async (authUser: any) => {
       currentUserRole: currentUser?.role,
       currentUserGroupId: currentUser?.groupId,
       authUserId: authUser?.id,
+      administratorGroup: groups.find(g => g.id === 'administrator'),
       administratorGroupPermissions: groups.find(g => g.id === 'administrator')?.permissions
     });
     

@@ -12,13 +12,13 @@ import { useSidebarMenuItems } from './SidebarMenuItems';
 
 const SidebarMenuContent = () => {
   const location = useLocation();
-  const { currentUser, groups, loading } = useRBAC();
+  const { currentUser, roles, loading } = useRBAC();
   const filteredMenuItems = useSidebarMenuItems();
 
   console.log('=== SidebarMenuContent Debug ===');
   console.log('Loading state:', loading);
   console.log('Current user:', currentUser?.id);
-  console.log('Groups loaded:', groups.length);
+  console.log('Roles loaded:', roles.length);
   console.log('Filtered menu items count:', filteredMenuItems.length);
   console.log('Filtered menu items:', filteredMenuItems.map(item => item.title));
 
@@ -44,9 +44,8 @@ const SidebarMenuContent = () => {
           <div className="space-y-1 text-xs opacity-75">
             <div>User: {currentUser?.name || 'None'}</div>
             <div>Role: {currentUser?.role || 'None'}</div>
-            <div>Group: {currentUser?.groupId || 'None'}</div>
-            <div>Groups loaded: {groups.length}</div>
-            <div>User Group Found: {groups.find(g => g.id === currentUser?.groupId)?.name || 'Not found'}</div>
+            <div>Roles loaded: {roles.length}</div>
+            <div>User Role Found: {roles.find(r => r.name === currentUser?.role)?.name || 'Not found'}</div>
           </div>
         </div>
       )}

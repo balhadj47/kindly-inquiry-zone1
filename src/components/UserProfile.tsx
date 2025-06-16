@@ -10,13 +10,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Link } from 'react-router-dom';
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
-  const { groups } = useRBAC();
   const { t } = useLanguage();
 
   const handleSignOut = async () => {

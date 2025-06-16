@@ -91,15 +91,12 @@ const Users = () => {
       <UsersNavigation canManageGroups={false}>
         <UsersTab
           users={users || []}
-          roles={[]}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
           setStatusFilter={setStatusFilter}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
-          groupFilter="all"
-          setGroupFilter={() => {}}
           clearFilters={clearFilters}
           hasActiveFilters={hasActiveFilters}
           onEditUser={handleEditUser}
@@ -111,14 +108,9 @@ const Users = () => {
       <UsersModals
         isUserModalOpen={isUserModalOpen}
         setIsUserModalOpen={setIsUserModalOpen}
-        isGroupModalOpen={false}
-        setIsGroupModalOpen={() => {}}
-        isPermissionsModalOpen={false}
-        setIsPermissionsModalOpen={() => {}}
         isPasswordModalOpen={isPasswordModalOpen}
         setIsPasswordModalOpen={setIsPasswordModalOpen}
         selectedUser={selectedUser}
-        selectedGroup={null}
       />
     </div>
   );

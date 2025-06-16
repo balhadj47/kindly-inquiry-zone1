@@ -11,15 +11,12 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UsersTabProps {
   users: User[];
-  groups: any[];
   searchTerm: string;
   setSearchTerm: (term: string) => void;
   statusFilter: string;
   setStatusFilter: (status: string) => void;
   roleFilter: string;
   setRoleFilter: (role: string) => void;
-  groupFilter: string;
-  setGroupFilter: (group: string) => void;
   clearFilters: () => void;
   hasActiveFilters: boolean;
   onEditUser: (user: User) => void;
@@ -29,15 +26,12 @@ interface UsersTabProps {
 
 const UsersTab: React.FC<UsersTabProps> = ({
   users,
-  groups,
   searchTerm,
   setSearchTerm,
   statusFilter,
   setStatusFilter,
   roleFilter,
   setRoleFilter,
-  groupFilter,
-  setGroupFilter,
   clearFilters,
   hasActiveFilters,
   onEditUser,
@@ -58,14 +52,6 @@ const UsersTab: React.FC<UsersTabProps> = ({
     return users.filter(user => user && typeof user === 'object' && user.id);
   }, [users]);
 
-  const safeGroups = useMemo(() => {
-    if (!Array.isArray(groups)) {
-      console.warn('UsersTab - groups prop is not an array:', typeof groups);
-      return [];
-    }
-    return groups.filter(group => group && typeof group === 'object' && group.id);
-  }, [groups]);
-
   // Memoize filtered users to prevent unnecessary recalculations
   const filteredUsers = useMemo(() => {
     try {
@@ -84,15 +70,14 @@ const UsersTab: React.FC<UsersTabProps> = ({
 
         const matchesStatus = !statusFilter || statusFilter === 'all' || user.status === statusFilter;
         const matchesRole = !roleFilter || roleFilter === 'all' || user.role === roleFilter;
-        const matchesGroup = !groupFilter || groupFilter === 'all' || user.groupId === groupFilter;
 
-        return matchesSearch && matchesStatus && matchesRole && matchesGroup;
+        return matchesSearch && matchesStatus && matchesRole;
       });
     } catch (error) {
       console.error('Error filtering users:', error);
       return [];
     }
-  }, [safeUsers, searchTerm, statusFilter, roleFilter, groupFilter]);
+  }, [safeUsers, searchTerm, statusFilter, roleFilter]);
 
   // Memoize unique values
   const uniqueStatuses = useMemo(() => {
@@ -143,7 +128,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
   React.useEffect(() => {
     console.log('UsersTab - Resetting to page 1 due to filter change');
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, roleFilter, groupFilter, view]);
+  }, [searchTerm, statusFilter, roleFilter, view]);
 
   // Calculate pagination safely
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
@@ -154,11 +139,9 @@ const UsersTab: React.FC<UsersTabProps> = ({
 
   console.log('UsersTab - Rendering with safe data:', {
     usersCount: safeUsers.length,
-    groupsCount: safeGroups.length,
     searchTerm,
     statusFilter,
     roleFilter,
-    groupFilter,
     view,
     currentPage: safeCurrentPage,
     filteredUsersCount: filteredUsers.length,
@@ -177,11 +160,11 @@ const UsersTab: React.FC<UsersTabProps> = ({
           setStatusFilter={setStatusFilter}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
-          groupFilter={groupFilter}
-          setGroupFilter={setGroupFilter}
+          groupFilter="all"
+          setGroupFilter={() => {}}
           uniqueStatuses={uniqueStatuses}
           uniqueRoles={uniqueRoles}
-          groups={safeGroups}
+          groups={[]}
           filteredCount={filteredUsers.length}
           totalCount={safeUsers.length}
           hasActiveFilters={hasActiveFilters}

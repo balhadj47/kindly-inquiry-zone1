@@ -2,15 +2,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus, Users as UsersIcon } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 
 interface UsersHeaderProps {
   onAddUser: () => void;
-  onAddGroup: () => void;
 }
 
-const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
+const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser }) => {
   const { hasPermission } = useRBAC();
 
   return (
@@ -37,24 +36,6 @@ const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Nouvel Utilisateur</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-          
-          {hasPermission('groups:create') && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={onAddGroup} 
-                  variant="outline" 
-                  size="icon"
-                  className="w-12 h-12 rounded-md border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                >
-                  <UsersIcon className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nouveau Groupe</p>
               </TooltipContent>
             </Tooltip>
           )}

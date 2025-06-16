@@ -13,10 +13,9 @@ import SidebarMenuContent from './SidebarMenuContent';
 import UserProfile from './UserProfile';
 
 const AppSidebar = () => {
-  const { currentUser, groups, loading } = useRBAC();
+  const { currentUser, loading } = useRBAC();
 
   console.log('AppSidebar render - currentUser:', currentUser);
-  console.log('AppSidebar render - groups:', groups);
   console.log('AppSidebar render - loading:', loading);
 
   if (loading) {

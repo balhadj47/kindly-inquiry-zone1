@@ -14,7 +14,7 @@ import { useRBAC } from '@/contexts/RBACContext';
 
 export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
-  const { hasPermission, currentUser, groups, loading } = useRBAC();
+  const { hasPermission, currentUser, roles, loading } = useRBAC();
 
   // Memoize menu items definition
   const menuItems = useMemo(() => [
@@ -66,8 +66,8 @@ export const useSidebarMenuItems = () => {
   const filteredMenuItems = useMemo(() => {
     console.log('=== Menu Items Filtering Debug ===');
     console.log('Loading state:', loading);
-    console.log('Current user:', currentUser?.id, currentUser?.role, currentUser?.groupId);
-    console.log('Groups loaded:', groups.length);
+    console.log('Current user:', currentUser?.id, currentUser?.role);
+    console.log('Roles loaded:', roles.length);
     
     // If still loading, show all items for now to avoid empty menu
     if (loading || !currentUser) {
@@ -75,9 +75,9 @@ export const useSidebarMenuItems = () => {
       return menuItems;
     }
 
-    // If no groups loaded yet, show all items temporarily
-    if (groups.length === 0) {
-      console.log('No groups loaded yet, showing all menu items temporarily');
+    // If no roles loaded yet, show all items temporarily
+    if (roles.length === 0) {
+      console.log('No roles loaded yet, showing all menu items temporarily');
       return menuItems;
     }
 
@@ -92,7 +92,7 @@ export const useSidebarMenuItems = () => {
     console.log('=== End Menu Items Filtering ===');
     
     return filtered;
-  }, [menuItems, hasPermission, currentUser, groups, loading]);
+  }, [menuItems, hasPermission, currentUser, roles, loading]);
 
   return filteredMenuItems;
 };

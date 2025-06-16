@@ -1,17 +1,14 @@
 
 import { useState, useCallback } from 'react';
-import { User, Group } from '@/types/rbac';
+import { User } from '@/types/rbac';
 import { useRBAC } from '@/contexts/RBACContext';
 
 export const useUserActionHandlers = () => {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
-  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
-  const [isPermissionsModalOpen, setIsPermissionsModalOpen] = useState(false);
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   
-  const { users, deleteGroup, deleteUser, currentUser } = useRBAC();
+  const { users, deleteUser, currentUser } = useRBAC();
 
   const handleAddUser = useCallback(() => {
     try {
@@ -75,98 +72,17 @@ export const useUserActionHandlers = () => {
     }
   }, [deleteUser, currentUser]);
 
-  const handleAddGroup = useCallback(() => {
-    try {
-      console.log('UserActionHandlers - Adding new group');
-      setSelectedGroup(null);
-      setIsGroupModalOpen(true);
-    } catch (error) {
-      console.error('Error handling add group:', error);
-    }
-  }, []);
-
-  const handleEditGroup = useCallback((group: Group) => {
-    try {
-      if (!group || !group.id) {
-        console.error('UserActionHandlers - Invalid group data for edit:', group);
-        return;
-      }
-      console.log('UserActionHandlers - Editing group:', group.id);
-      setSelectedGroup(group);
-      setIsGroupModalOpen(true);
-    } catch (error) {
-      console.error('Error handling edit group:', error);
-    }
-  }, []);
-
-  const handleManagePermissions = useCallback((group: Group) => {
-    try {
-      if (!group || !group.id) {
-        console.error('UserActionHandlers - Invalid group data for permissions:', group);
-        return;
-      }
-      console.log('UserActionHandlers - Managing permissions for group:', group.id);
-      setSelectedGroup(group);
-      setIsPermissionsModalOpen(true);
-    } catch (error) {
-      console.error('Error handling manage permissions:', error);
-    }
-  }, []);
-
-  const handleDeleteGroup = useCallback(async (group: Group) => {
-    try {
-      if (!group || !group.id) {
-        console.error('UserActionHandlers - Invalid group data for delete:', group);
-        return;
-      }
-
-      const safeUsers = Array.isArray(users) ? users : [];
-      const usersInGroup = safeUsers.filter(user => user && user.groupId === group.id);
-      
-      if (usersInGroup.length > 0) {
-        console.warn('UserActionHandlers - Cannot delete group with users:', group.id, usersInGroup.length);
-        alert(`Impossible de supprimer le groupe "${group.name}" car ${usersInGroup.length} utilisateur(s) y sont assignés. Veuillez d'abord réassigner ces utilisateurs à un autre groupe.`);
-        return;
-      }
-
-      const defaultGroupIds = ['administrator', 'employee', 'supervisor', 'driver', 'security'];
-      if (defaultGroupIds.includes(group.id)) {
-        console.warn('UserActionHandlers - Cannot delete default group:', group.id);
-        alert(`Impossible de supprimer le groupe par défaut "${group.name}".`);
-        return;
-      }
-
-      if (window.confirm(`Êtes-vous sûr de vouloir supprimer le groupe "${group.name}" ? Cette action ne peut pas être annulée.`)) {
-        console.log('UserActionHandlers - Deleting group:', group.id);
-        await deleteGroup(group.id);
-        console.log('UserActionHandlers - Group deleted successfully');
-      }
-    } catch (error) {
-      console.error('UserActionHandlers - Error deleting group:', error);
-      alert("Erreur lors de la suppression du groupe. Veuillez réessayer.");
-    }
-  }, [deleteGroup, users]);
-
   return {
     // Modal states
     isUserModalOpen,
     setIsUserModalOpen,
-    isGroupModalOpen,
-    setIsGroupModalOpen,
-    isPermissionsModalOpen,
-    setIsPermissionsModalOpen,
     isPasswordModalOpen,
     setIsPasswordModalOpen,
     selectedUser,
-    selectedGroup,
     // Handlers
     handleAddUser,
     handleEditUser,
     handleChangePassword,
     handleDeleteUser,
-    handleAddGroup,
-    handleEditGroup,
-    handleManagePermissions,
-    handleDeleteGroup,
   };
 };

@@ -1,84 +1,128 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { User, Role, Permission, UserRole, UserStatus } from '@/types/rbac';
+import { User, Role } from '@/types/rbac';
 
-export const loadInitialData = async (authUser: any) => {
-  console.log('Loading initial RBAC data from database for user:', authUser?.id);
-  
+export const loadUsers = async (): Promise<User[]> => {
   try {
-    // Load users from database
-    const { data: usersData, error: usersError } = await supabase
+    console.log('🔄 Loading users from database...');
+    const { data, error } = await supabase
       .from('users')
-      .select('*');
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (usersError) {
-      console.error('Error loading users from database:', usersError);
-      throw usersError;
+    if (error) {
+      console.error('❌ Error loading users:', error);
+      return [];
     }
 
-    // Transform database users to RBAC User format
-    const users: User[] = (usersData || []).map(user => ({
-      id: user.id.toString(),
-      name: user.name,
-      email: user.email,
-      phone: user.phone,
-      role: user.role as UserRole,
-      status: user.status as UserStatus,
-      createdAt: user.created_at,
-      totalTrips: user.total_trips || 0,
-      lastTrip: user.last_trip,
-      profileImage: user.profile_image,
-    }));
-
-    // Start with empty roles - no demo data
-    const roles: Role[] = [];
-
-    // Start with empty permissions - no demo data
-    const permissions: Permission[] = [];
-    
-    // Find current user from database users
-    let currentUser: User | null = null;
-    if (authUser?.id) {
-      // Try to find user by auth_user_id
-      const dbUser = usersData?.find(user => user.auth_user_id === authUser.id);
-      if (dbUser) {
-        currentUser = {
-          id: dbUser.id.toString(),
-          name: dbUser.name,
-          email: dbUser.email,
-          phone: dbUser.phone,
-          role: dbUser.role as UserRole,
-          status: dbUser.status as UserStatus,
-          createdAt: dbUser.created_at,
-          totalTrips: dbUser.total_trips || 0,
-          lastTrip: dbUser.last_trip,
-          profileImage: dbUser.profile_image,
-        };
-      }
-    }
-    
-    console.log('Database data loaded successfully:', {
-      usersCount: users.length,
-      rolesCount: roles.length,
-      permissionsCount: permissions.length,
-      currentUser: currentUser?.id,
-      currentUserRole: currentUser?.role,
-      authUserId: authUser?.id,
-    });
-    
-    return {
-      users,
-      roles,
-      permissions,
-      currentUser,
-    };
+    console.log('✅ Users loaded successfully:', data?.length || 0);
+    return data || [];
   } catch (error) {
-    console.error('Error loading RBAC data from database:', error);
-    return {
-      users: [],
-      roles: [],
-      permissions: [],
-      currentUser: null,
-    };
+    console.error('❌ Exception loading users:', error);
+    return [];
+  }
+};
+
+export const loadRoles = async (): Promise<Role[]> => {
+  try {
+    console.log('🔄 Loading roles from database...');
+    const { data, error } = await supabase
+      .from('roles')
+      .select('*')
+      .order('name');
+
+    if (error) {
+      console.error('❌ Error loading roles:', error);
+      // Return default roles if database query fails
+      console.log('🔄 Falling back to default roles...');
+      return getDefaultRoles();
+    }
+
+    const roles = data || [];
+    console.log('✅ Roles loaded successfully:', roles.length);
+    
+    // If no roles in database, create default ones
+    if (roles.length === 0) {
+      console.log('🔄 No roles found, creating default roles...');
+      return await createDefaultRoles();
+    }
+
+    return roles;
+  } catch (error) {
+    console.error('❌ Exception loading roles:', error);
+    console.log('🔄 Falling back to default roles...');
+    return getDefaultRoles();
+  }
+};
+
+const getDefaultRoles = (): Role[] => {
+  return [
+    {
+      id: '1',
+      name: 'Administrator',
+      permissions: [
+        'users:read', 'users:create', 'users:update', 'users:delete',
+        'vans:read', 'vans:create', 'vans:update', 'vans:delete',
+        'trips:read', 'trips:create', 'trips:update', 'trips:delete',
+        'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+        'dashboard:read', 'settings:read', 'settings:update'
+      ],
+      description: 'Full system access'
+    },
+    {
+      id: '2',
+      name: 'Supervisor',
+      permissions: [
+        'users:read', 'users:update',
+        'vans:read', 'vans:update',
+        'trips:read', 'trips:create', 'trips:update',
+        'companies:read',
+        'dashboard:read'
+      ],
+      description: 'Supervisory access'
+    },
+    {
+      id: '3',
+      name: 'Driver',
+      permissions: [
+        'trips:read', 'trips:create',
+        'vans:read',
+        'companies:read',
+        'dashboard:read'
+      ],
+      description: 'Driver access'
+    },
+    {
+      id: '4',
+      name: 'Employee',
+      permissions: [
+        'dashboard:read',
+        'trips:read',
+        'companies:read'
+      ],
+      description: 'Basic employee access'
+    }
+  ];
+};
+
+const createDefaultRoles = async (): Promise<Role[]> => {
+  try {
+    const defaultRoles = getDefaultRoles();
+    
+    const { data, error } = await supabase
+      .from('roles')
+      .insert(defaultRoles)
+      .select();
+
+    if (error) {
+      console.error('❌ Error creating default roles:', error);
+      return defaultRoles; // Return local defaults if database insert fails
+    }
+
+    console.log('✅ Default roles created successfully');
+    return data || defaultRoles;
+  } catch (error) {
+    console.error('❌ Exception creating default roles:', error);
+    return getDefaultRoles(); // Return local defaults
   }
 };

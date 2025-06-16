@@ -1,68 +1,58 @@
 
 import { useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { loadInitialData } from './dataLoaders';
-import type { User, Role, Permission } from '@/types/rbac';
+import { loadUsers, loadRoles } from './dataLoaders';
+import { createPermissionUtils } from './permissionUtils';
+import { RBACState, RBACActions } from './types';
 
-interface UseRBACDataInitProps {
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
-  setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
-  setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
-  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-}
-
-export const useRBACDataInit = ({
-  setUsers,
-  setRoles,
-  setPermissions,
-  setCurrentUser,
-  setLoading,
-}: UseRBACDataInitProps) => {
-  const { user: authUser } = useAuth();
+export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
+  const { loading, users, roles } = state;
+  const { setUsers, setRoles, setLoading, setError } = actions;
 
   useEffect(() => {
-    let isMounted = true;
-
     const initializeData = async () => {
+      console.log('🚀 Initializing RBAC data...');
+      setLoading(true);
+      setError(null);
+
       try {
-        console.log('Initializing RBAC data...');
-        setLoading(true);
-        
-        const data = await loadInitialData(authUser);
-        
-        if (!isMounted) return;
-        
-        console.log('RBAC data loaded:', {
-          usersCount: data.users.length,
-          rolesCount: data.roles.length,
-          permissionsCount: data.permissions.length,
-          currentUser: data.currentUser?.id
-        });
-        
-        setUsers(data.users);
-        setRoles(data.roles);
-        setPermissions(data.permissions);
-        setCurrentUser(data.currentUser);
+        // Load roles first as they're needed for permission utils
+        console.log('📊 Loading roles...');
+        const rolesData = await loadRoles();
+        setRoles(rolesData);
+        console.log('✅ Roles set:', rolesData.length);
+
+        // Load users
+        console.log('👥 Loading users...');
+        const usersData = await loadUsers();
+        setUsers(usersData);
+        console.log('✅ Users set:', usersData.length);
+
+        // Create permission utilities after both are loaded
+        if (rolesData.length > 0) {
+          console.log('🔧 Creating permission utilities...');
+          createPermissionUtils(usersData, rolesData);
+          console.log('✅ Permission utilities created');
+        } else {
+          console.warn('⚠️ No roles available for permission utils');
+        }
+
       } catch (error) {
-        console.error('Error initializing RBAC data:', error);
-        if (isMounted) {
-          setUsers([]);
-          setRoles([]);
-          setPermissions([]);
-          setCurrentUser(null);
-        }
+        console.error('❌ Error initializing RBAC data:', error);
+        setError('Failed to initialize user and role data');
       } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        setLoading(false);
+        console.log('✅ RBAC data initialization complete');
       }
     };
 
     initializeData();
+  }, []); // Only run once on mount
 
-    return () => {
-      isMounted = false;
-    };
-  }, [authUser?.id, setUsers, setRoles, setPermissions, setCurrentUser, setLoading]);
+  // Re-create permission utils when roles change
+  useEffect(() => {
+    if (!loading && roles.length > 0) {
+      console.log('🔄 Roles changed, updating permission utilities...');
+      createPermissionUtils(users, roles);
+    }
+  }, [roles, users, loading]);
 };

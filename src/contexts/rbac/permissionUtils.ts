@@ -1,64 +1,78 @@
 
-import type { User, Role } from '@/types/rbac';
+import { User, Role } from '@/types/rbac';
 
-let permissionCache: Record<string, boolean> = {};
+let permissionCache = new Map<string, boolean>();
+let usersData: User[] = [];
+let rolesData: Role[] = [];
 
-export const clearPermissionCache = () => {
-  console.log('Clearing permission cache');
-  permissionCache = {};
+export const createPermissionUtils = (users: User[], roles: Role[]) => {
+  console.log('🔧 Creating permission utils with:', { 
+    usersCount: users.length, 
+    rolesCount: roles.length 
+  });
+  
+  if (users.length === 0 || roles.length === 0) {
+    console.warn('⚠️ Skipping permission utils creation - missing data');
+    return;
+  }
+
+  usersData = users;
+  rolesData = roles;
+  permissionCache.clear();
+  console.log('✅ Permission utilities created successfully');
 };
 
-export const createPermissionUtils = (currentUser: User | null, roles: Role[]) => {
-  const hasPermission = (permission: string): boolean => {
-    if (!currentUser) {
-      console.log('No current user, denying permission:', permission);
+export const hasPermission = (userId: string, permission: string): boolean => {
+  const cacheKey = `${userId}-${permission}`;
+  
+  // Check cache first
+  if (permissionCache.has(cacheKey)) {
+    return permissionCache.get(cacheKey)!;
+  }
+
+  try {
+    // Find user
+    const user = usersData.find(u => u.id.toString() === userId.toString());
+    if (!user) {
+      console.warn(`⚠️ User not found: ${userId}`);
+      permissionCache.set(cacheKey, false);
       return false;
     }
 
-    // Create cache key
-    const cacheKey = `${currentUser.id}-${permission}`;
+    // Find role
+    const role = rolesData.find(r => r.name === user.role);
+    if (!role) {
+      console.warn(`⚠️ Role not found: ${user.role}`);
+      permissionCache.set(cacheKey, false);
+      return false;
+    }
+
+    // Check permission
+    const hasAccess = role.permissions.includes(permission);
+    permissionCache.set(cacheKey, hasAccess);
     
-    // Check cache first
-    if (permissionCache[cacheKey] !== undefined) {
-      return permissionCache[cacheKey];
-    }
+    return hasAccess;
+  } catch (error) {
+    console.error('❌ Error checking permission:', error);
+    permissionCache.set(cacheKey, false);
+    return false;
+  }
+};
 
-    // Find the user's role
-    const userRole = roles.find(role => 
-      role.id === currentUser.role.toLowerCase().replace(/\s+/g, '-') ||
-      role.name === currentUser.role
-    );
+export const clearPermissionCache = () => {
+  console.log('🧹 Clearing permission cache');
+  permissionCache.clear();
+};
 
-    if (!userRole) {
-      console.log('No role found for user, denying permission:', permission, 'user role:', currentUser.role);
-      permissionCache[cacheKey] = false;
-      return false;
-    }
+export const getUserPermissions = (userId: string): string[] => {
+  try {
+    const user = usersData.find(u => u.id.toString() === userId.toString());
+    if (!user) return [];
 
-    const hasPermissionResult = userRole.permissions.includes(permission);
-    console.log('Permission check:', {
-      user: currentUser.name,
-      userRole: userRole.name,
-      permission,
-      hasPermission: hasPermissionResult,
-      rolePermissions: userRole.permissions
-    });
-
-    // Cache the result
-    permissionCache[cacheKey] = hasPermissionResult;
-    return hasPermissionResult;
-  };
-
-  const getMenuItemPermissions = () => {
-    return {
-      dashboard: hasPermission('dashboard:read'),
-      companies: hasPermission('companies:read'),
-      vans: hasPermission('vans:read'),
-      users: hasPermission('users:read'),
-      tripLogger: hasPermission('trips:create'),
-      tripHistory: hasPermission('trips:read'),
-    };
-  };
-
-  return { hasPermission, getMenuItemPermissions };
+    const role = rolesData.find(r => r.name === user.role);
+    return role?.permissions || [];
+  } catch (error) {
+    console.error('❌ Error getting user permissions:', error);
+    return [];
+  }
 };

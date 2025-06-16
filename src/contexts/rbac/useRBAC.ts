@@ -10,27 +10,27 @@ export const useRBAC = () => {
     throw new Error('useRBAC must be used within a RBACProvider');
   }
 
-  const { state, actions } = context;
+  const { currentUser, users, roles, permissions, loading } = context;
   
   const hasPermission = (permission: string): boolean => {
-    if (!state.currentUser) {
+    if (!currentUser) {
       console.log('🚫 No current user for permission check:', permission);
       return false;
     }
 
-    if (state.loading) {
+    if (loading) {
       console.log('⏳ RBAC still loading, allowing access temporarily:', permission);
       return true; // Allow access while loading to prevent UI flash
     }
 
-    if (state.roles.length === 0) {
+    if (roles.length === 0) {
       console.warn('⚠️ No roles loaded, denying permission:', permission);
       return false;
     }
 
     try {
-      const result = checkPermission(state.currentUser.id.toString(), permission);
-      console.log(`🔐 Permission check: ${permission} = ${result} for user ${state.currentUser.id}`);
+      const result = checkPermission(currentUser.id.toString(), permission);
+      console.log(`🔐 Permission check: ${permission} = ${result} for user ${currentUser.id}`);
       return result;
     } catch (error) {
       console.error('❌ Error in permission check:', error);
@@ -39,8 +39,12 @@ export const useRBAC = () => {
   };
 
   return {
-    ...state,
-    ...actions,
+    currentUser,
+    users,
+    roles,
+    permissions,
+    loading,
     hasPermission,
+    ...context,
   };
 };

@@ -6,6 +6,22 @@ export type RBACUser = User;
 export type RBACRole = Role;
 export type RBACPermission = Permission;
 
+export interface RBACState {
+  currentUser: User | null;
+  users: User[];
+  roles: Role[];
+  permissions: Permission[];
+  loading: boolean;
+}
+
+export interface RBACActions {
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
+  setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
+  setCurrentUser: (user: User | null) => void;
+  setLoading: (loading: boolean) => void;
+}
+
 export interface RBACContextType {
   // State
   currentUser: User | null;

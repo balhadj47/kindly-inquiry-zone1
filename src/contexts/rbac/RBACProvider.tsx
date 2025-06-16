@@ -20,13 +20,23 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser,
   } = useRBACState();
 
-  useRBACDataInit({
+  const state = {
+    currentUser,
+    users,
+    roles,
+    permissions,
+    loading,
+  };
+
+  const actions = {
     setUsers,
     setRoles,
     setPermissions,
     setCurrentUser,
     setLoading,
-  });
+  };
+
+  useRBACDataInit(state, actions);
 
   const operations = useRBACOperations({
     currentUser,

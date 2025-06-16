@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useVans } from '@/hooks/useVans';
 
 interface TripDetailsDialogProps {
   trip: Trip | null;
@@ -29,8 +30,17 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
   onClose,
 }) => {
   const { users } = useRBAC();
+  const { vans } = useVans();
 
   if (!trip) return null;
+
+  const getVanDisplayName = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    if (van) {
+      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
+    }
+    return vanId;
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -125,7 +135,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                   <Truck className="h-5 w-5 text-purple-600" />
                   <div>
                     <p className="text-sm text-gray-500">Camionnette</p>
-                    <p className="font-medium">{trip.van}</p>
+                    <p className="font-medium">{getVanDisplayName(trip.van)}</p>
                   </div>
                 </div>
 

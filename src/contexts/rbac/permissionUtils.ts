@@ -1,11 +1,26 @@
 
 import type { User, Role } from '@/types/rbac';
 
+let permissionCache: Record<string, boolean> = {};
+
+export const clearPermissionCache = () => {
+  console.log('Clearing permission cache');
+  permissionCache = {};
+};
+
 export const createPermissionUtils = (currentUser: User | null, roles: Role[]) => {
   const hasPermission = (permission: string): boolean => {
     if (!currentUser) {
       console.log('No current user, denying permission:', permission);
       return false;
+    }
+
+    // Create cache key
+    const cacheKey = `${currentUser.id}-${permission}`;
+    
+    // Check cache first
+    if (permissionCache[cacheKey] !== undefined) {
+      return permissionCache[cacheKey];
     }
 
     // Find the user's role
@@ -16,6 +31,7 @@ export const createPermissionUtils = (currentUser: User | null, roles: Role[]) =
 
     if (!userRole) {
       console.log('No role found for user, denying permission:', permission, 'user role:', currentUser.role);
+      permissionCache[cacheKey] = false;
       return false;
     }
 
@@ -28,6 +44,8 @@ export const createPermissionUtils = (currentUser: User | null, roles: Role[]) =
       rolePermissions: userRole.permissions
     });
 
+    // Cache the result
+    permissionCache[cacheKey] = hasPermissionResult;
     return hasPermissionResult;
   };
 

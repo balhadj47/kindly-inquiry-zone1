@@ -6,13 +6,12 @@ import { RBACState, RBACActions } from './types';
 
 export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
   const { loading, users, roles } = state;
-  const { setUsers, setRoles, setLoading, setError } = actions;
+  const { setUsers, setRoles, setLoading } = actions;
 
   useEffect(() => {
     const initializeData = async () => {
       console.log('🚀 Initializing RBAC data...');
       setLoading(true);
-      setError(null);
 
       try {
         // Load roles first as they're needed for permission utils
@@ -38,7 +37,6 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
 
       } catch (error) {
         console.error('❌ Error initializing RBAC data:', error);
-        setError('Failed to initialize user and role data');
       } finally {
         setLoading(false);
         console.log('✅ RBAC data initialization complete');

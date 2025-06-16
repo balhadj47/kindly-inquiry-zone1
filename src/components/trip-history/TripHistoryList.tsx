@@ -54,9 +54,14 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
     if (van) {
-      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
+      return van.license_plate ? `${van.license_plate}` : van.model;
     }
     return vanId;
+  };
+
+  const getVanModel = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    return van?.model || '';
   };
 
   const formatDate = (dateString: string) => {
@@ -158,190 +163,223 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Historique des Voyages ({filteredTrips.length})</CardTitle>
+      <Card className="shadow-sm border-gray-200">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-xl font-semibold text-gray-900">
+            Historique des Voyages ({filteredTrips.length})
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           {filteredTrips.length === 0 ? (
             <TripHistoryEmptyState 
               filteredTripsCount={filteredTrips.length}
               totalTripsCount={totalTrips.length}
             />
           ) : (
-            <div className="space-y-4">
-              {filteredTrips.map((trip) => (
-                <div
-                  key={trip.id}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <div
-                    className="flex-1 space-y-2 cursor-pointer"
-                    onClick={() => onTripClick(trip)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {getTripTitle(trip)}
-                      </h3>
-                      <div className="flex items-center space-x-2">
-                        <Badge variant="outline" className="text-purple-600">
-                          <Truck className="h-3 w-3 mr-1" />
-                          {getVanDisplayName(trip.van)}
-                        </Badge>
-                        <Badge 
-                          variant={trip.status === 'active' ? 'default' : 'secondary'}
-                          className={trip.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}
-                        >
-                          {trip.status === 'active' ? 'En Mission' : 'Terminé'}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center space-x-4 text-sm">
-                      <Badge variant="outline" className="text-blue-600">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(trip.timestamp)}
-                      </Badge>
-                      <Badge variant="outline" className="text-green-600">
-                        <Clock className="h-3 w-3 mr-1" />
-                        {formatTime(trip.timestamp)}
-                      </Badge>
-                    </div>
+            filteredTrips.map((trip) => (
+              <div
+                key={trip.id}
+                className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer"
+                onClick={() => onTripClick(trip)}
+              >
+                {/* Header with title and status */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                      {getTripTitle(trip)}
+                    </h3>
+                  </div>
+                  <div className="flex items-center gap-3 ml-4">
+                    <Badge 
+                      variant={trip.status === 'active' ? 'default' : 'secondary'}
+                      className={`px-3 py-1 text-sm font-medium ${
+                        trip.status === 'active' 
+                          ? 'bg-green-100 text-green-800 border-green-200' 
+                          : 'bg-gray-100 text-gray-600 border-gray-200'
+                      }`}
+                    >
+                      {trip.status === 'active' ? 'En Mission' : 'Terminé'}
+                    </Badge>
+                  </div>
+                </div>
 
-                    {/* Kilometer information */}
-                    {(trip.startKm || trip.endKm) && (
-                      <div className="flex items-center space-x-4 text-sm">
-                        {trip.startKm && (
-                          <Badge variant="outline" className="text-orange-600">
-                            <KmIcon className="h-3 w-3 mr-1" />
-                            Début: {trip.startKm.toLocaleString()} km
-                          </Badge>
-                        )}
-                        {trip.endKm && (
-                          <Badge variant="outline" className="text-red-600">
-                            <KmIcon className="h-3 w-3 mr-1" />
-                            Fin: {trip.endKm.toLocaleString()} km
-                          </Badge>
-                        )}
-                        {calculateDistance(trip) && (
-                          <Badge variant="outline" className="text-indigo-600">
-                            <MapPin className="h-3 w-3 mr-1" />
-                            Distance: {calculateDistance(trip)} km
-                          </Badge>
-                        )}
+                {/* Van and User Info */}
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <Truck className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-purple-600">{getVanDisplayName(trip.van)}</p>
+                      <p className="text-xs text-gray-500">{getVanModel(trip.van)}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <Users className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <span className="text-sm font-medium text-blue-600">
+                      {trip.userIds?.length || 0} utilisateurs
+                    </span>
+                  </div>
+                </div>
+
+                {/* Date, Time and Distance Info */}
+                <div className="flex items-center gap-6 mb-4">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">{formatDate(trip.timestamp)}</span>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-gray-500" />
+                    <span className="text-sm text-gray-600">{formatTime(trip.timestamp)}</span>
+                  </div>
+                </div>
+
+                {/* Kilometer information */}
+                {(trip.startKm || trip.endKm) && (
+                  <div className="flex items-center gap-6 mb-4">
+                    {trip.startKm && (
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-orange-100 rounded-md">
+                          <KmIcon className="h-3 w-3 text-orange-600" />
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          Début: <span className="font-medium">{trip.startKm.toLocaleString()} km</span>
+                        </span>
                       </div>
                     )}
-
-                    {trip.notes && (
-                      <div className="flex items-center text-sm text-gray-500">
-                        <FileText className="h-4 w-4 mr-1" />
-                        <span className="truncate">{trip.notes}</span>
+                    {trip.endKm && (
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-red-100 rounded-md">
+                          <KmIcon className="h-3 w-3 text-red-600" />
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          Fin: <span className="font-medium">{trip.endKm.toLocaleString()} km</span>
+                        </span>
+                      </div>
+                    )}
+                    {calculateDistance(trip) && (
+                      <div className="flex items-center gap-2">
+                        <div className="p-1.5 bg-indigo-100 rounded-md">
+                          <MapPin className="h-3 w-3 text-indigo-600" />
+                        </div>
+                        <span className="text-sm text-gray-600">
+                          Distance: <span className="font-medium">{calculateDistance(trip)} km</span>
+                        </span>
                       </div>
                     )}
                   </div>
+                )}
 
-                  <div className="flex items-center space-x-2">
-                    <Badge className="bg-green-100 text-green-800">
-                      {trip.userIds?.length || 0} utilisateurs
-                    </Badge>
-                    
-                    {trip.status === 'active' && (
-                      <Dialog open={endKmDialogOpen} onOpenChange={setEndKmDialogOpen}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-green-600 hover:text-green-700 hover:bg-green-50"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEndTrip(trip);
-                            }}
-                          >
-                            <CheckCircle className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>Terminer le voyage</DialogTitle>
-                          </DialogHeader>
-                          <div className="space-y-4">
-                            <p>Voyage: {getTripTitle(trip)}</p>
-                            {trip.startKm && (
-                              <p className="text-sm text-muted-foreground">
-                                Kilomètres de début: {trip.startKm.toLocaleString()} km
-                              </p>
-                            )}
-                            <div>
-                              <Label htmlFor="endKm">Kilomètres de fin</Label>
-                              <Input
-                                id="endKm"
-                                type="number"
-                                placeholder="Entrez les kilomètres de fin"
-                                value={endKmValue}
-                                onChange={(e) => setEndKmValue(e.target.value)}
-                                min={trip.startKm || 0}
-                              />
-                            </div>
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => setEndKmDialogOpen(false)}
-                              >
-                                Annuler
-                              </Button>
-                              <Button
-                                onClick={handleEndTripConfirm}
-                                className="bg-green-600 hover:bg-green-700"
-                              >
-                                Terminer le voyage
-                              </Button>
-                            </div>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-                    )}
-                    
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
+                {/* Notes */}
+                {trip.notes && (
+                  <div className="flex items-start gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
+                    <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm text-gray-700">{trip.notes}</p>
+                  </div>
+                )}
+
+                {/* Action buttons */}
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                  {trip.status === 'active' && (
+                    <Dialog open={endKmDialogOpen} onOpenChange={setEndKmDialogOpen}>
+                      <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          disabled={deletingTripId === trip.id}
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
                           onClick={(e) => {
                             e.stopPropagation();
-                            console.log('Delete trigger clicked for trip:', trip.id);
+                            handleEndTrip(trip);
                           }}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          Terminer
                         </Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Supprimer le voyage</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDate(trip.timestamp)} ? 
-                            Cette action ne peut pas être annulée.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDeleteTrip(trip.id);
-                            }}
-                            className="bg-red-600 hover:bg-red-700"
-                          >
-                            Supprimer
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </div>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>Terminer le voyage</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <p>Voyage: {getTripTitle(trip)}</p>
+                          {trip.startKm && (
+                            <p className="text-sm text-muted-foreground">
+                              Kilomètres de début: {trip.startKm.toLocaleString()} km
+                            </p>
+                          )}
+                          <div>
+                            <Label htmlFor="endKm">Kilomètres de fin</Label>
+                            <Input
+                              id="endKm"
+                              type="number"
+                              placeholder="Entrez les kilomètres de fin"
+                              value={endKmValue}
+                              onChange={(e) => setEndKmValue(e.target.value)}
+                              min={trip.startKm || 0}
+                            />
+                          </div>
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => setEndKmDialogOpen(false)}
+                            >
+                              Annuler
+                            </Button>
+                            <Button
+                              onClick={handleEndTripConfirm}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              Terminer le voyage
+                            </Button>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                  
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                        disabled={deletingTripId === trip.id}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Supprimer le voyage</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDate(trip.timestamp)} ? 
+                          Cette action ne peut pas être annulée.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDeleteTrip(trip.id);
+                          }}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Supprimer
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))
           )}
         </CardContent>
       </Card>

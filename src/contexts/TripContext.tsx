@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
-import { insertTrip, fetchTrips, updateTripStatus, deleteTripById } from './trip/TripDatabaseOperations';
+import { insertTripToDatabase, fetchTripsFromDatabase, updateTripInDatabase, deleteTripFromDatabase } from './trip/TripDatabaseOperations';
 import { transformDatabaseTrips } from './trip/tripTransformers';
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
@@ -12,7 +12,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loadTrips = async () => {
     try {
-      const data = await fetchTrips();
+      const data = await fetchTripsFromDatabase();
       const transformedTrips = transformDatabaseTrips(data);
       setTrips(transformedTrips);
       setError(null);
@@ -49,7 +49,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         startKm: tripData.startKm
       };
 
-      const newTrip = await insertTrip(tripToInsert);
+      const newTrip = await insertTripToDatabase(tripToInsert);
       console.log('TripProvider: Trip inserted successfully:', newTrip);
       
       await loadTrips();
@@ -64,7 +64,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const deleteTrip = async (tripId: number) => {
     try {
-      await deleteTripById(tripId);
+      await deleteTripFromDatabase(tripId);
       await loadTrips();
       setError(null);
     } catch (error) {
@@ -76,7 +76,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const endTrip = async (tripId: number, endKm: number) => {
     try {
-      await updateTripStatus(tripId, endKm);
+      await updateTripInDatabase(tripId, endKm);
       await loadTrips();
       setError(null);
     } catch (error) {
@@ -109,3 +109,9 @@ export const useTrip = () => {
   }
   return context;
 };
+
+// Export the hook with the expected name for backward compatibility
+export const useTripContext = useTrip;
+
+// Re-export types for easy access
+export type { Trip, TripContextType, UserWithRoles } from './trip/types';

@@ -1,6 +1,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useVans } from '@/hooks/useVans';
+import { useVanDelete } from '@/hooks/useVanDelete';
 import VanStats from './VanStats';
 import VanFilters from './VanFilters';
 import VanList from './VanList';
@@ -8,6 +9,7 @@ import VanModal from './VanModal';
 
 const Vans = () => {
   const { vans, refetch } = useVans();
+  const { deleteVan, isDeleting } = useVanDelete(() => refetch());
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
@@ -79,8 +81,8 @@ const Vans = () => {
     console.log(`Quick action: ${action} for van:`, van);
   };
 
-  const handleDeleteVan = (van: any) => {
-    console.log('Delete van:', van);
+  const handleDeleteVan = async (van: any) => {
+    await deleteVan(van);
   };
 
   const handleModalClose = () => {

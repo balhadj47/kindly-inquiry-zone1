@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ import TripHistoryEmptyState from './TripHistoryEmptyState';
 import { useTrip } from '@/contexts/TripContext';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TripHistoryListProps {
   filteredTrips: Trip[];
@@ -47,6 +49,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   const { endTrip } = useTrip();
   const { vans } = useVans();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [endKmDialogOpen, setEndKmDialogOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [endKmValue, setEndKmValue] = useState('');
@@ -69,7 +72,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
     return date.toLocaleDateString('fr-FR', {
       day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: isMobile ? '2-digit' : 'numeric'
     });
   };
 
@@ -103,7 +106,9 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
 
   const getTripTitle = (trip: Trip) => {
     const driverInfo = getDriverInfo(trip.driver);
-    return `${trip.company} - ${trip.branch} - ${driverInfo.firstName}`;
+    return isMobile 
+      ? `${trip.company} - ${driverInfo.firstName}`
+      : `${trip.company} - ${trip.branch} - ${driverInfo.firstName}`;
   };
 
   const handleEndTrip = (trip: Trip) => {
@@ -165,7 +170,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
     <>
       <Card className="shadow-sm border-gray-200">
         <CardHeader className="pb-4">
-          <CardTitle className="text-xl font-semibold text-gray-900">
+          <CardTitle className={`${isMobile ? 'text-lg' : 'text-xl'} font-semibold text-gray-900`}>
             Historique des Voyages ({filteredTrips.length})
           </CardTitle>
         </CardHeader>
@@ -179,20 +184,23 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
             filteredTrips.map((trip) => (
               <div
                 key={trip.id}
-                className="group bg-white border border-gray-200 rounded-xl p-6 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer"
+                className="group bg-white border border-gray-200 rounded-xl p-4 sm:p-6 hover:shadow-md hover:border-gray-300 transition-all duration-200 cursor-pointer"
                 onClick={() => onTripClick(trip)}
               >
                 {/* Header with title and status */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <div className={`flex items-start justify-between mb-3 ${isMobile ? 'flex-col space-y-2' : ''}`}>
+                  <div className="flex-1 min-w-0">
+                    <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold text-gray-900 mb-1 truncate`}>
                       {getTripTitle(trip)}
                     </h3>
+                    {isMobile && trip.branch && (
+                      <p className="text-sm text-gray-500">{trip.branch}</p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-3 ml-4">
+                  <div className={`flex items-center gap-3 ${isMobile ? 'w-full justify-start' : 'ml-4'}`}>
                     <Badge 
                       variant={trip.status === 'active' ? 'default' : 'secondary'}
-                      className={`px-3 py-1 text-sm font-medium ${
+                      className={`px-2 sm:px-3 py-1 text-xs sm:text-sm font-medium ${
                         trip.status === 'active' 
                           ? 'bg-green-100 text-green-800 border-green-200' 
                           : 'bg-gray-100 text-gray-600 border-gray-200'
@@ -204,69 +212,69 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                 </div>
 
                 {/* Van and User Info */}
-                <div className="flex items-center gap-6 mb-4">
+                <div className={`flex items-center gap-4 sm:gap-6 mb-3 ${isMobile ? 'flex-col items-start space-y-2' : ''}`}>
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <Truck className="h-4 w-4 text-purple-600" />
+                    <div className="p-1.5 sm:p-2 bg-purple-100 rounded-lg">
+                      <Truck className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-purple-600">{getVanDisplayName(trip.van)}</p>
+                      <p className="text-xs sm:text-sm font-medium text-purple-600">{getVanDisplayName(trip.van)}</p>
                       <p className="text-xs text-gray-500">{getVanModel(trip.van)}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <div className="p-2 bg-blue-100 rounded-lg">
-                      <Users className="h-4 w-4 text-blue-600" />
+                    <div className="p-1.5 sm:p-2 bg-blue-100 rounded-lg">
+                      <Users className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     </div>
-                    <span className="text-sm font-medium text-blue-600">
+                    <span className="text-xs sm:text-sm font-medium text-blue-600">
                       {trip.userIds?.length || 0} utilisateurs
                     </span>
                   </div>
                 </div>
 
                 {/* Date, Time and Distance Info */}
-                <div className="flex items-center gap-6 mb-4">
+                <div className={`flex items-center gap-4 sm:gap-6 mb-3 ${isMobile ? 'flex-col items-start space-y-2' : ''}`}>
                   <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{formatDate(trip.timestamp)}</span>
+                    <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm text-gray-600">{formatDate(trip.timestamp)}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm text-gray-600">{formatTime(trip.timestamp)}</span>
+                    <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
+                    <span className="text-xs sm:text-sm text-gray-600">{formatTime(trip.timestamp)}</span>
                   </div>
                 </div>
 
                 {/* Kilometer information */}
                 {(trip.startKm || trip.endKm) && (
-                  <div className="flex items-center gap-6 mb-4">
+                  <div className={`flex items-center gap-4 sm:gap-6 mb-3 ${isMobile ? 'flex-col items-start space-y-2' : 'flex-wrap'}`}>
                     {trip.startKm && (
                       <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-orange-100 rounded-md">
-                          <KmIcon className="h-3 w-3 text-orange-600" />
+                        <div className="p-1 sm:p-1.5 bg-orange-100 rounded-md">
+                          <KmIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-orange-600" />
                         </div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           Début: <span className="font-medium">{trip.startKm.toLocaleString()} km</span>
                         </span>
                       </div>
                     )}
                     {trip.endKm && (
                       <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-red-100 rounded-md">
-                          <KmIcon className="h-3 w-3 text-red-600" />
+                        <div className="p-1 sm:p-1.5 bg-red-100 rounded-md">
+                          <KmIcon className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-red-600" />
                         </div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           Fin: <span className="font-medium">{trip.endKm.toLocaleString()} km</span>
                         </span>
                       </div>
                     )}
                     {calculateDistance(trip) && (
                       <div className="flex items-center gap-2">
-                        <div className="p-1.5 bg-indigo-100 rounded-md">
-                          <MapPin className="h-3 w-3 text-indigo-600" />
+                        <div className="p-1 sm:p-1.5 bg-indigo-100 rounded-md">
+                          <MapPin className="h-2.5 w-2.5 sm:h-3 sm:w-3 text-indigo-600" />
                         </div>
-                        <span className="text-sm text-gray-600">
+                        <span className="text-xs sm:text-sm text-gray-600">
                           Distance: <span className="font-medium">{calculateDistance(trip)} km</span>
                         </span>
                       </div>
@@ -276,43 +284,43 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
 
                 {/* Notes */}
                 {trip.notes && (
-                  <div className="flex items-start gap-2 mb-4 p-3 bg-gray-50 rounded-lg">
-                    <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                    <p className="text-sm text-gray-700">{trip.notes}</p>
+                  <div className="flex items-start gap-2 mb-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                    <FileText className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs sm:text-sm text-gray-700 break-words">{trip.notes}</p>
                   </div>
                 )}
 
                 {/* Action buttons */}
-                <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-100">
+                <div className={`flex items-center gap-2 pt-2 border-t border-gray-100 ${isMobile ? 'justify-center' : 'justify-end'}`}>
                   {trip.status === 'active' && (
                     <Dialog open={endKmDialogOpen} onOpenChange={setEndKmDialogOpen}>
                       <DialogTrigger asChild>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200"
+                          className="text-green-600 hover:text-green-700 hover:bg-green-50 border-green-200 text-xs sm:text-sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleEndTrip(trip);
                           }}
                         >
-                          <CheckCircle className="h-4 w-4 mr-1" />
-                          Terminer
+                          <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
+                          {isMobile ? 'Terminer' : 'Terminer'}
                         </Button>
                       </DialogTrigger>
-                      <DialogContent>
+                      <DialogContent className={isMobile ? 'w-[95vw] max-w-md' : ''}>
                         <DialogHeader>
-                          <DialogTitle>Terminer le voyage</DialogTitle>
+                          <DialogTitle className={isMobile ? 'text-base' : ''}>Terminer le voyage</DialogTitle>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <p>Voyage: {getTripTitle(trip)}</p>
+                          <p className={`${isMobile ? 'text-sm' : ''}`}>Voyage: {getTripTitle(trip)}</p>
                           {trip.startKm && (
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs sm:text-sm text-muted-foreground">
                               Kilomètres de début: {trip.startKm.toLocaleString()} km
                             </p>
                           )}
                           <div>
-                            <Label htmlFor="endKm">Kilomètres de fin</Label>
+                            <Label htmlFor="endKm" className={isMobile ? 'text-sm' : ''}>Kilomètres de fin</Label>
                             <Input
                               id="endKm"
                               type="number"
@@ -320,18 +328,20 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                               value={endKmValue}
                               onChange={(e) => setEndKmValue(e.target.value)}
                               min={trip.startKm || 0}
+                              className={isMobile ? 'text-sm' : ''}
                             />
                           </div>
-                          <div className="flex justify-end space-x-2">
+                          <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'justify-end space-x-2'}`}>
                             <Button
                               variant="outline"
                               onClick={() => setEndKmDialogOpen(false)}
+                              className={isMobile ? 'w-full text-sm' : ''}
                             >
                               Annuler
                             </Button>
                             <Button
                               onClick={handleEndTripConfirm}
-                              className="bg-green-600 hover:bg-green-700"
+                              className={`bg-green-600 hover:bg-green-700 ${isMobile ? 'w-full text-sm' : ''}`}
                             >
                               Terminer le voyage
                             </Button>
@@ -352,25 +362,25 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                           e.stopPropagation();
                         }}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3 sm:h-4 sm:w-4" />
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className={isMobile ? 'w-[95vw] max-w-md' : ''}>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Supprimer le voyage</AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogTitle className={isMobile ? 'text-base' : ''}>Supprimer le voyage</AlertDialogTitle>
+                        <AlertDialogDescription className={isMobile ? 'text-sm' : ''}>
                           Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDate(trip.timestamp)} ? 
                           Cette action ne peut pas être annulée.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel>Annuler</AlertDialogCancel>
+                      <AlertDialogFooter className={isMobile ? 'flex-col gap-2' : ''}>
+                        <AlertDialogCancel className={isMobile ? 'w-full text-sm' : ''}>Annuler</AlertDialogCancel>
                         <AlertDialogAction
                           onClick={(e) => {
                             e.stopPropagation();
                             onDeleteTrip(trip.id);
                           }}
-                          className="bg-red-600 hover:bg-red-700"
+                          className={`bg-red-600 hover:bg-red-700 ${isMobile ? 'w-full text-sm' : ''}`}
                         >
                           Supprimer
                         </AlertDialogAction>

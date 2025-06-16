@@ -101,7 +101,7 @@ const Users = () => {
   const canManageGroups = hasPermission('groups:read');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <UsersHeader onAddUser={handleAddUser} onAddGroup={handleAddGroup} />
 
       <UsersNavigation canManageGroups={canManageGroups}>

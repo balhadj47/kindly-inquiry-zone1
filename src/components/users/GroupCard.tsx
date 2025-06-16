@@ -17,6 +17,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface GroupCardProps {
   group: Group;
@@ -38,31 +39,32 @@ const GroupCard: React.FC<GroupCardProps> = ({
   onDelete,
 }) => {
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
-      <CardHeader className="pb-3">
+      <CardHeader className={`${isMobile ? 'pb-2' : 'pb-3'}`}>
         <div className="flex items-start justify-between">
-          <div>
-            <CardTitle className="text-lg">{group.name}</CardTitle>
-            <p className="text-sm text-gray-600">{group.description}</p>
+          <div className="min-w-0 flex-1">
+            <CardTitle className={`${isMobile ? 'text-base' : 'text-lg'} truncate`}>{group.name}</CardTitle>
+            <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600 line-clamp-2`}>{group.description}</p>
           </div>
-          <Badge className={group.color}>
+          <Badge className={`${group.color} ml-2 flex-shrink-0 ${isMobile ? 'text-xs px-2 py-1' : ''}`}>
             {usersInGroup} utilisateurs
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="text-sm text-gray-600">
+        <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-600`}>
           <p><span className="font-medium">{t.permissions}:</span> {group.permissions.length}</p>
         </div>
         
-        <div className="flex space-x-2 pt-2">
+        <div className={`${isMobile ? 'space-y-2' : 'flex space-x-2'} pt-2`}>
           <Button
             variant="outline"
             size="sm"
             onClick={() => onEdit(group)}
-            className="flex-1"
+            className={`${isMobile ? 'w-full text-sm' : 'flex-1'}`}
           >
             {t.modify}
           </Button>
@@ -70,9 +72,9 @@ const GroupCard: React.FC<GroupCardProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onManagePermissions(group)}
-            className="flex-1"
+            className={`${isMobile ? 'w-full text-sm' : 'flex-1'}`}
           >
-            <Settings className="h-4 w-4 mr-1" />
+            <Settings className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-1`} />
             {t.permissions}
           </Button>
           {canDelete && (
@@ -81,23 +83,26 @@ const GroupCard: React.FC<GroupCardProps> = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className={`text-red-600 hover:text-red-700 hover:bg-red-50 ${
+                    isMobile ? 'w-full text-sm' : ''
+                  }`}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} ${!isMobile ? 'mr-0' : 'mr-1'}`} />
+                  {isMobile && 'Supprimer'}
                 </Button>
               </AlertDialogTrigger>
-              <AlertDialogContent>
+              <AlertDialogContent className={isMobile ? 'w-[95vw] max-w-md' : ''}>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>{t.deleteGroup}</AlertDialogTitle>
-                  <AlertDialogDescription>
+                  <AlertDialogTitle className={isMobile ? 'text-base' : ''}>{t.deleteGroup}</AlertDialogTitle>
+                  <AlertDialogDescription className={isMobile ? 'text-sm' : ''}>
                     {t.deleteGroupConfirm.replace('{name}', group.name)}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>{t.cancel}</AlertDialogCancel>
+                <AlertDialogFooter className={isMobile ? 'flex-col gap-2' : ''}>
+                  <AlertDialogCancel className={isMobile ? 'w-full text-sm' : ''}>{t.cancel}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(group)}
-                    className="bg-red-600 hover:bg-red-700"
+                    className={`bg-red-600 hover:bg-red-700 ${isMobile ? 'w-full text-sm' : ''}`}
                   >
                     {t.delete}
                   </AlertDialogAction>
@@ -108,7 +113,7 @@ const GroupCard: React.FC<GroupCardProps> = ({
         </div>
         
         {!canDelete && (
-          <p className="text-xs text-gray-500 mt-2">
+          <p className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-500 mt-2`}>
             {isDefaultGroup 
               ? t.defaultGroupCannotDelete
               : t.cannotDeleteGroupHasUsers.replace('{count}', usersInGroup.toString())

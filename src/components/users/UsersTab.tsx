@@ -7,6 +7,7 @@ import UserGrid from './UserGrid';
 import UserTable from './UserTable';
 import UserViewToggle from './UserViewToggle';
 import UserPagination from './UserPagination';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UsersTabProps {
   users: User[];
@@ -43,9 +44,10 @@ const UsersTab: React.FC<UsersTabProps> = ({
   onDeleteUser,
   onChangePassword,
 }) => {
-  const [view, setView] = useState<'grid' | 'table'>('table');
+  const isMobile = useIsMobile();
+  const [view, setView] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = view === 'grid' ? 12 : 25;
+  const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
 
   // Add comprehensive safety checks for arrays
   const safeUsers = useMemo(() => {
@@ -161,39 +163,42 @@ const UsersTab: React.FC<UsersTabProps> = ({
     currentPage: safeCurrentPage,
     filteredUsersCount: filteredUsers.length,
     totalPages,
-    paginatedUsersCount: paginatedUsers.length
+    paginatedUsersCount: paginatedUsers.length,
+    isMobile
   });
 
   return (
     <TabsContent value="users" className="space-y-4">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex-1">
-          <UserFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            roleFilter={roleFilter}
-            setRoleFilter={setRoleFilter}
-            groupFilter={groupFilter}
-            setGroupFilter={setGroupFilter}
-            uniqueStatuses={uniqueStatuses}
-            uniqueRoles={uniqueRoles}
-            groups={safeGroups}
-            filteredCount={filteredUsers.length}
-            totalCount={safeUsers.length}
-            hasActiveFilters={hasActiveFilters}
-            clearFilters={clearFilters}
-          />
-        </div>
-        
-        <UserViewToggle
-          view={view}
-          onViewChange={handleViewChange}
+      <div className="space-y-4">
+        <UserFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          roleFilter={roleFilter}
+          setRoleFilter={setRoleFilter}
+          groupFilter={groupFilter}
+          setGroupFilter={setGroupFilter}
+          uniqueStatuses={uniqueStatuses}
+          uniqueRoles={uniqueRoles}
+          groups={safeGroups}
+          filteredCount={filteredUsers.length}
+          totalCount={safeUsers.length}
+          hasActiveFilters={hasActiveFilters}
+          clearFilters={clearFilters}
         />
+        
+        {!isMobile && (
+          <div className="flex justify-end">
+            <UserViewToggle
+              view={view}
+              onViewChange={handleViewChange}
+            />
+          </div>
+        )}
       </div>
 
-      {view === 'table' ? (
+      {view === 'table' && !isMobile ? (
         <div className="space-y-4">
           {filteredUsers.length === 0 ? (
             <div className="text-center py-8">
@@ -214,12 +219,14 @@ const UsersTab: React.FC<UsersTabProps> = ({
             </div>
           ) : (
             <>
-              <UserTable
-                users={paginatedUsers}
-                onEditUser={onEditUser}
-                onDeleteUser={onDeleteUser}
-                onChangePassword={onChangePassword}
-              />
+              <div className="overflow-x-auto">
+                <UserTable
+                  users={paginatedUsers}
+                  onEditUser={onEditUser}
+                  onDeleteUser={onDeleteUser}
+                  onChangePassword={onChangePassword}
+                />
+              </div>
               
               <UserPagination
                 currentPage={safeCurrentPage}

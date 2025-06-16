@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import Dashboard from '@/components/Dashboard';
@@ -15,15 +16,15 @@ import UserSettings from '@/pages/UserSettings';
 
 const AppContent = () => {
   const { hasPermission } = useRBAC();
+  const isMobile = useIsMobile();
 
-  // Removed loading check - render immediately
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col min-w-0">
           <TopBar />
-          <main className="flex-1 p-6 bg-gray-50">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-x-hidden">
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />

@@ -3,6 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Company } from '@/hooks/useCompanies';
 import CompanyCard from './CompanyCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CompaniesGridProps {
   companies: Company[];
@@ -12,13 +13,18 @@ interface CompaniesGridProps {
 
 const CompaniesGrid = ({ companies, onEditCompany, onDeleteCompany }: CompaniesGridProps) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const handleCompanyClick = (company: Company) => {
     navigate(`/companies/${company.id}`);
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
+    <div className={`grid gap-4 sm:gap-6 ${
+      isMobile 
+        ? 'grid-cols-1' 
+        : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+    }`}>
       {companies.map((company) => (
         <div
           key={company.id}

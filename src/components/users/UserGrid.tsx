@@ -5,6 +5,7 @@ import { User as UserIcon } from 'lucide-react';
 import { User } from '@/types/rbac';
 import UserCard from './UserCard';
 import UserPagination from './UserPagination';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserGridProps {
   users: User[];
@@ -29,6 +30,7 @@ const UserGrid: React.FC<UserGridProps> = ({
   itemsPerPage,
   onPageChange,
 }) => {
+  const isMobile = useIsMobile();
   const totalPages = Math.ceil(users.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -37,12 +39,12 @@ const UserGrid: React.FC<UserGridProps> = ({
   if (users.length === 0) {
     return (
       <Card>
-        <CardContent className="text-center py-8">
+        <CardContent className="text-center py-8 px-4">
           <UserIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
             {hasActiveFilters ? 'Aucun utilisateur trouvé' : 'Aucun utilisateur'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-gray-500 mb-4 text-sm sm:text-base">
             {hasActiveFilters 
               ? 'Aucun utilisateur ne correspond aux filtres actuels.' 
               : 'Créez votre premier utilisateur pour commencer.'
@@ -51,7 +53,7 @@ const UserGrid: React.FC<UserGridProps> = ({
           {hasActiveFilters && (
             <button
               onClick={clearFilters}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-blue-600 hover:text-blue-700 font-medium text-sm"
             >
               Effacer les filtres
             </button>
@@ -62,8 +64,12 @@ const UserGrid: React.FC<UserGridProps> = ({
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="space-y-4">
+      <div className={`grid gap-4 ${
+        isMobile 
+          ? 'grid-cols-1 sm:grid-cols-2' 
+          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      }`}>
         {paginatedUsers.map((user) => (
           <UserCard
             key={user.id}
@@ -75,13 +81,15 @@ const UserGrid: React.FC<UserGridProps> = ({
         ))}
       </div>
 
-      <UserPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-        totalItems={users.length}
-        itemsPerPage={itemsPerPage}
-      />
+      {totalPages > 1 && (
+        <UserPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          totalItems={users.length}
+          itemsPerPage={itemsPerPage}
+        />
+      )}
     </div>
   );
 };

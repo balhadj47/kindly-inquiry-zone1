@@ -6,6 +6,7 @@ import { Form } from '@/components/ui/form';
 import { useRBAC } from '@/contexts/RBACContext';
 import { User, UserRole, UserStatus } from '@/types/rbac';
 import { isDriverRole } from '@/utils/userModalUtils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileImageUpload from './ProfileImageUpload';
 import UserFormFields from './UserFormFields';
 import DriverFields from './DriverFields';
@@ -29,6 +30,7 @@ interface UserModalFormProps {
 
 const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) => {
   const { addUser, updateUser } = useRBAC();
+  const isMobile = useIsMobile();
   const [profileImage, setProfileImage] = useState<string>('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -130,7 +132,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className={`space-y-4 ${isMobile ? 'space-y-3' : 'space-y-6'}`}>
         <ProfileImageUpload
           profileImage={profileImage}
           userName={watchedName}
@@ -151,16 +153,21 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           />
         )}
 
-        <div className="flex justify-end space-x-2 pt-4">
+        <div className={`flex gap-2 pt-4 ${isMobile ? 'flex-col' : 'justify-end space-x-2'}`}>
           <Button 
             type="button" 
             variant="outline" 
             onClick={onClose} 
             disabled={isSubmitting}
+            className={isMobile ? 'w-full text-sm' : ''}
           >
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+            className={isMobile ? 'w-full text-sm' : ''}
+          >
             {isSubmitting ? 'Sauvegarde...' : (user ? 'Mettre à Jour l\'Utilisateur' : 'Créer l\'Utilisateur')}
           </Button>
         </div>

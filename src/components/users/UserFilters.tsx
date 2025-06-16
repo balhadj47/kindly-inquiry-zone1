@@ -1,11 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Shield, Users as UsersIcon, X } from 'lucide-react';
+import { Search, Filter, Shield, Users as UsersIcon, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserFiltersProps {
   searchTerm: string;
@@ -42,6 +43,9 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   hasActiveFilters,
   clearFilters,
 }) => {
+  const isMobile = useIsMobile();
+  const [filtersExpanded, setFiltersExpanded] = useState(false);
+
   // Add comprehensive safety checks and default values
   const safeUniqueStatuses = Array.isArray(uniqueStatuses) ? uniqueStatuses.filter(Boolean) : [];
   const safeUniqueRoles = Array.isArray(uniqueRoles) ? uniqueRoles.filter(Boolean) : [];
@@ -86,6 +90,9 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   const handleClearFilters = () => {
     try {
       clearFilters();
+      if (isMobile) {
+        setFiltersExpanded(false);
+      }
     } catch (error) {
       console.error('Error clearing filters:', error);
     }
@@ -106,14 +113,15 @@ const UserFilters: React.FC<UserFiltersProps> = ({
     uniqueRoles: safeUniqueRoles.length,
     groups: safeGroups.length,
     filteredCount: safeFilteredCount,
-    totalCount: safeTotalCount
+    totalCount: safeTotalCount,
+    isMobile
   });
 
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="space-y-4">
-          {/* Search Bar */}
+          {/* Search Bar - Always visible */}
           <div className="relative">
             <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
             <Input
@@ -124,65 +132,137 @@ const UserFilters: React.FC<UserFiltersProps> = ({
             />
           </div>
 
-          {/* Filter Row */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
-              <SelectTrigger>
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="all">Tous les Statuts</SelectItem>
-                {safeUniqueStatuses.map(status => (
-                  <SelectItem key={status} value={status}>{status}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={roleFilter || 'all'} onValueChange={handleRoleChange}>
-              <SelectTrigger>
-                <Shield className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrer par rôle" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="all">Tous les Rôles</SelectItem>
-                {safeUniqueRoles.map(role => (
-                  <SelectItem key={role} value={role}>{role}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
-              <SelectTrigger>
-                <UsersIcon className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrer par groupe" />
-              </SelectTrigger>
-              <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="all">Tous les Groupes</SelectItem>
-                {safeGroups.map(group => (
-                  <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
-              <Button variant="outline" onClick={handleClearFilters} className="flex items-center space-x-2">
-                <X className="h-4 w-4" />
-                <span>Effacer les Filtres</span>
+          {/* Mobile: Collapsible filters */}
+          {isMobile ? (
+            <div className="space-y-4">
+              <Button
+                variant="outline"
+                onClick={() => setFiltersExpanded(!filtersExpanded)}
+                className="w-full flex items-center justify-between"
+              >
+                <div className="flex items-center space-x-2">
+                  <Filter className="h-4 w-4" />
+                  <span>Filtres</span>
+                  {hasActiveFilters && (
+                    <Badge variant="secondary" className="ml-2">
+                      {[statusFilter !== 'all', roleFilter !== 'all', groupFilter !== 'all'].filter(Boolean).length}
+                    </Badge>
+                  )}
+                </div>
+                {filtersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </Button>
-            )}
-          </div>
+
+              {filtersExpanded && (
+                <div className="space-y-3">
+                  <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
+                    <SelectTrigger>
+                      <Shield className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filtrer par statut" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">Tous les Statuts</SelectItem>
+                      {safeUniqueStatuses.map(status => (
+                        <SelectItem key={status} value={status}>{status}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={roleFilter || 'all'} onValueChange={handleRoleChange}>
+                    <SelectTrigger>
+                      <Shield className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filtrer par rôle" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">Tous les Rôles</SelectItem>
+                      {safeUniqueRoles.map(role => (
+                        <SelectItem key={role} value={role}>{role}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
+                    <SelectTrigger>
+                      <UsersIcon className="h-4 w-4 mr-2" />
+                      <SelectValue placeholder="Filtrer par groupe" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-background border shadow-lg z-50">
+                      <SelectItem value="all">Tous les Groupes</SelectItem>
+                      {safeGroups.map(group => (
+                        <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  {hasActiveFilters && (
+                    <Button variant="outline" onClick={handleClearFilters} className="w-full flex items-center justify-center space-x-2">
+                      <X className="h-4 w-4" />
+                      <span>Effacer les Filtres</span>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* Desktop: Horizontal filters */
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
+                <SelectTrigger>
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrer par statut" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all">Tous les Statuts</SelectItem>
+                  {safeUniqueStatuses.map(status => (
+                    <SelectItem key={status} value={status}>{status}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={roleFilter || 'all'} onValueChange={handleRoleChange}>
+                <SelectTrigger>
+                  <Shield className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrer par rôle" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all">Tous les Rôles</SelectItem>
+                  {safeUniqueRoles.map(role => (
+                    <SelectItem key={role} value={role}>{role}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
+                <SelectTrigger>
+                  <UsersIcon className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filtrer par groupe" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border shadow-lg z-50">
+                  <SelectItem value="all">Tous les Groupes</SelectItem>
+                  {safeGroups.map(group => (
+                    <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              {hasActiveFilters && (
+                <Button variant="outline" onClick={handleClearFilters} className="flex items-center space-x-2">
+                  <X className="h-4 w-4" />
+                  <span>Effacer les Filtres</span>
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Results Summary */}
-          <div className="flex items-center justify-between text-sm text-gray-600">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between text-sm text-gray-600 space-y-2 sm:space-y-0">
             <span>
               Affichage de {safeFilteredCount} sur {safeTotalCount} utilisateurs
               {hasActiveFilters && ` (filtré)`}
             </span>
-            {hasActiveFilters && (
-              <div className="flex items-center space-x-2">
+            {hasActiveFilters && !isMobile && (
+              <div className="flex items-center space-x-2 flex-wrap">
                 <span>Filtres actifs:</span>
-                {safeSearchTerm && <Badge variant="secondary">Recherche: "{safeSearchTerm}"</Badge>}
+                {safeSearchTerm && <Badge variant="secondary">Recherche: "{safeSearchTerm.substring(0, 20)}{safeSearchTerm.length > 20 ? '...' : ''}"</Badge>}
                 {statusFilter !== 'all' && <Badge variant="secondary">Statut: {statusFilter}</Badge>}
                 {roleFilter !== 'all' && <Badge variant="secondary">Rôle: {roleFilter}</Badge>}
                 {groupFilter !== 'all' && (

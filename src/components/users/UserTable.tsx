@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Table,
@@ -113,7 +112,7 @@ const UserTable: React.FC<UserTableProps> = ({
               <TableHead>Contact</TableHead>
               <TableHead>Voyages</TableHead>
               <TableHead>Créé le</TableHead>
-              <TableHead className="w-12"></TableHead>
+              <TableHead className="w-24">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -186,23 +185,23 @@ const UserTable: React.FC<UserTableProps> = ({
                 
                 <TableCell>
                   <div className="flex items-center space-x-1">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEditUser(user)}>
-                          <UserIcon className="h-4 w-4 mr-2" />
-                          Modifier
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onChangePassword(user)}>
-                          <Key className="h-4 w-4 mr-2" />
-                          Changer mot de passe
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onEditUser(user)}
+                    >
+                      <UserIcon className="h-4 w-4" />
+                    </Button>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => onChangePassword(user)}
+                    >
+                      <Key className="h-4 w-4" />
+                    </Button>
                     
                     <Button
                       variant="ghost"

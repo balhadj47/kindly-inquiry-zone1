@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, Mail, Key, User as UserIcon, MoreVertical, MapPin, Calendar, Truck, Clock } from 'lucide-react';
+import { Phone, Mail, Key, User as UserIcon, MapPin, Calendar, Truck, Clock, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
 import {
   AlertDialog,
@@ -17,13 +16,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 
 interface UserCardProps {
   user: User;
@@ -110,57 +102,55 @@ const UserCard: React.FC<UserCardProps> = ({
             </div>
           </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={() => onEdit(user)}>
-                <UserIcon className="h-4 w-4 mr-2" />
-                Modifier
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onChangePassword(user)}>
-                <Key className="h-4 w-4 mr-2" />
-                Changer mot de passe
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <DropdownMenuItem 
-                    onSelect={(e) => e.preventDefault()}
-                    className="text-destructive focus:text-destructive"
+          <div className="flex items-center space-x-1">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => onEdit(user)}
+            >
+              <UserIcon className="h-4 w-4" />
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => onChangePassword(user)}
+            >
+              <Key className="h-4 w-4" />
+            </Button>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                >
+                  <Trash className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
+                    Cette action ne peut pas être annulée.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Annuler</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete(user)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    <UserIcon className="h-4 w-4 mr-2" />
                     Supprimer
-                  </DropdownMenuItem>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
-                      Cette action ne peut pas être annulée.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Annuler</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => onDelete(user)}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Supprimer
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
         </div>
       </CardHeader>
 
@@ -235,28 +225,6 @@ const UserCard: React.FC<UserCardProps> = ({
               Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
             </span>
           </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 pt-4 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(user)}
-            className="flex-1 justify-center"
-          >
-            <UserIcon className="h-4 w-4 mr-2" />
-            Modifier
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onChangePassword(user)}
-            className="flex-1 justify-center"
-          >
-            <Key className="h-4 w-4 mr-2" />
-            Mot de passe
-          </Button>
         </div>
       </CardContent>
     </Card>

@@ -23,16 +23,25 @@ const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
       
       <div className="flex items-center gap-2">
         {hasPermission('users:create') && (
-          <Button onClick={onAddUser} className="flex items-center gap-2">
+          <Button 
+            onClick={onAddUser} 
+            size="icon"
+            className="w-10 h-10 rounded-full"
+            title="Nouvel Utilisateur"
+          >
             <Plus className="h-4 w-4" />
-            Nouvel Utilisateur
           </Button>
         )}
         
         {hasPermission('groups:create') && (
-          <Button onClick={onAddGroup} variant="outline" className="flex items-center gap-2">
+          <Button 
+            onClick={onAddGroup} 
+            variant="outline" 
+            size="icon"
+            className="w-10 h-10 rounded-full"
+            title="Nouveau Groupe"
+          >
             <UsersIcon className="h-4 w-4" />
-            Nouveau Groupe
           </Button>
         )}
       </div>

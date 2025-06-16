@@ -22,9 +22,13 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
           </div>
         </div>
       </div>
-      <Button onClick={onAddVan} className="mt-4 lg:mt-0">
-        <Plus className="h-4 w-4 mr-2" />
-        Ajouter Nouvelle Camionnette
+      <Button 
+        onClick={onAddVan} 
+        size="icon"
+        className="mt-4 lg:mt-0 w-10 h-10 rounded-full"
+        title="Ajouter Nouvelle Camionnette"
+      >
+        <Plus className="h-4 w-4" />
       </Button>
     </div>
   );

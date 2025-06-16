@@ -16,11 +16,11 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
       <Button 
         onClick={onAddCompany} 
-        className="w-full sm:w-auto flex items-center justify-center gap-2 touch-manipulation"
-        size="lg"
+        size="icon"
+        className="w-10 h-10 rounded-full"
+        title={t.addNewCompany}
       >
         <Plus className="h-4 w-4" />
-        <span className="sm:inline">{t.addNewCompany}</span>
       </Button>
     </div>
   );

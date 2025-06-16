@@ -198,9 +198,13 @@ const CompanyDetail = () => {
             <span className="text-sm text-gray-500">
               {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches.toLowerCase()}
             </span>
-            <Button onClick={handleAddBranch} className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              {t.addNewBranch}
+            <Button 
+              onClick={handleAddBranch} 
+              size="icon"
+              className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+              title={t.addNewBranch}
+            >
+              <Plus className="h-5 w-5" />
             </Button>
           </div>
         </div>
@@ -213,9 +217,13 @@ const CompanyDetail = () => {
               <p className="text-gray-500 text-center mb-4">
                 Cette entreprise n'a pas encore de succursales enregistrées.
               </p>
-              <Button onClick={handleAddBranch} className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                {t.addFirstBranch}
+              <Button 
+                onClick={handleAddBranch} 
+                size="icon"
+                className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                title={t.addFirstBranch}
+              >
+                <Plus className="h-5 w-5" />
               </Button>
             </CardContent>
           </Card>

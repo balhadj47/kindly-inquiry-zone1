@@ -25,7 +25,7 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
       <Button 
         onClick={onAddVan} 
         size="icon"
-        className="mt-4 lg:mt-0 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+        className="mt-4 lg:mt-0 w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
         title="Ajouter Nouvelle Camionnette"
       >
         <Plus className="h-5 w-5" />

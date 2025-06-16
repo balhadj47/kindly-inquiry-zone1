@@ -26,7 +26,7 @@ const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
           <Button 
             onClick={onAddUser} 
             size="icon"
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-md"
             title="Nouvel Utilisateur"
           >
             <Plus className="h-4 w-4" />
@@ -38,7 +38,7 @@ const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser, onAddGroup }) => {
             onClick={onAddGroup} 
             variant="outline" 
             size="icon"
-            className="w-10 h-10 rounded-full"
+            className="w-10 h-10 rounded-md"
             title="Nouveau Groupe"
           >
             <UsersIcon className="h-4 w-4" />

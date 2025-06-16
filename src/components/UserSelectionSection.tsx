@@ -19,7 +19,21 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
   selectedUserIds,
   onUserSelection,
 }) => {
-  const { sortedGroupEntries, totalFilteredUsers, groups, users } = useUserFiltering(userSearchQuery);
+  const { filteredUsers, totalFilteredUsers, users } = useUserFiltering(userSearchQuery);
+
+  // Group users by their role
+  const usersByRole = React.useMemo(() => {
+    const grouped = filteredUsers.reduce((acc, user) => {
+      const role = user.role;
+      if (!acc[role]) {
+        acc[role] = [];
+      }
+      acc[role].push(user);
+      return acc;
+    }, {} as Record<string, typeof filteredUsers>);
+    
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+  }, [filteredUsers]);
 
   return (
     <div className="space-y-4">
@@ -39,24 +53,23 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         />
       </div>
 
-      {/* Users grouped by their groups */}
+      {/* Users grouped by their roles */}
       <div className="max-h-96 overflow-y-auto border rounded-md">
-        {sortedGroupEntries.length === 0 ? (
+        {usersByRole.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-8">
             {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
           </p>
         ) : (
-          sortedGroupEntries.map(([groupId, groupUsers]) => {
-            const group = groups.find(g => g.id === groupId);
-            if (!group || groupUsers.length === 0) return null;
+          usersByRole.map(([role, roleUsers]) => {
+            if (!roleUsers || roleUsers.length === 0) return null;
 
             return (
-              <div key={groupId} className="border-b last:border-b-0">
-                <div className={`px-4 py-3 ${group.color} font-medium text-sm border-b`}>
-                  {group.name} ({groupUsers.length} users)
+              <div key={role} className="border-b last:border-b-0">
+                <div className="px-4 py-3 bg-gray-100 font-medium text-sm border-b">
+                  {role} ({roleUsers.length} users)
                 </div>
                 <div className="p-3 space-y-3">
-                  {groupUsers.map((user) => {
+                  {roleUsers.map((user) => {
                     const isActive = user.status === 'Active';
                     const isDisabled = !isActive;
                     

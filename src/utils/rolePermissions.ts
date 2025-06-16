@@ -4,11 +4,29 @@ import { UserRole } from '@/types/rbac';
 export const ROLE_PERMISSION_MAPPING: Record<UserRole, string[]> = {
   'Administrator': [
     'users:read', 'users:create', 'users:update', 'users:delete',
-    'groups:read', 'groups:create', 'groups:update', 'groups:delete',
     'vans:read', 'vans:create', 'vans:update', 'vans:delete',
     'trips:read', 'trips:create', 'trips:update', 'trips:delete',
     'companies:read', 'companies:create', 'companies:update', 'companies:delete',
     'dashboard:read', 'settings:read', 'settings:update'
+  ],
+  'Supervisor': [
+    'users:read', 'users:update',
+    'vans:read', 'vans:update',
+    'trips:read', 'trips:create', 'trips:update',
+    'companies:read',
+    'dashboard:read'
+  ],
+  'Driver': [
+    'trips:read', 'trips:create',
+    'vans:read',
+    'companies:read',
+    'dashboard:read'
+  ],
+  'Security': [
+    'trips:read',
+    'vans:read',
+    'companies:read',
+    'dashboard:read'
   ],
   'Employee': [
     'dashboard:read',
@@ -63,6 +81,9 @@ export const getDefaultPermissionsForRole = (role: UserRole): string[] => {
 export const suggestGroupForRole = (role: UserRole): string => {
   const roleToGroupMapping: Record<UserRole, string> = {
     'Administrator': 'administrator',
+    'Supervisor': 'supervisor',
+    'Driver': 'driver',
+    'Security': 'security',
     'Employee': 'employee',
     'Chef de Groupe Armé': 'supervisor',
     'Chef de Groupe Sans Armé': 'supervisor',

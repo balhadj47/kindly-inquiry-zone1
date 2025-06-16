@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -59,9 +58,9 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
                   {van.reference_code}
                 </span>
               )}
-              <CardTitle className="text-lg">{van.license_plate}</CardTitle>
+              <CardTitle className="text-lg">{van.model}</CardTitle>
             </div>
-            <p className="text-sm text-gray-600">{van.model}</p>
+            <p className="text-sm text-gray-600">{van.license_plate}</p>
           </div>
           {van.status && (
             <Badge className={getStatusColor(van.status)}>

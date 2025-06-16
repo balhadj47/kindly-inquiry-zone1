@@ -18,20 +18,36 @@ import RoleSelectionSection from './RoleSelectionSection';
 const TripLoggerForm = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { addTrip } = useTripContext();
+  const { addTrip, trips } = useTripContext();
   const { users } = useRBAC();
   const { companies } = useCompanies();
   const { vans } = useVans();
   const { formData, handleInputChange, handleUserRoleSelection, resetForm, getTripData } = useTripForm();
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
+  // Filter out vans that are currently in active trips
+  const activeTrips = trips.filter(trip => trip.status === 'active');
+  const activeVanIds = activeTrips.map(trip => trip.van);
+  const availableVans = vans.filter(van => !activeVanIds.includes(van.license_plate));
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.vanId || !formData.companyId || !formData.branchId) {
+    if (!formData.vanId || !formData.companyId || !formData.branchId || !formData.startKm) {
       toast({
         title: t.error,
-        description: t.fillRequiredFields,
+        description: "Please fill in all required fields including starting kilometers",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate start kilometers is a positive number
+    const startKmValue = parseInt(formData.startKm);
+    if (isNaN(startKmValue) || startKmValue < 0) {
+      toast({
+        title: t.error,
+        description: "Please enter a valid starting kilometer value",
         variant: "destructive",
       });
       return;
@@ -92,7 +108,8 @@ const TripLoggerForm = () => {
       branch: selectedBranch.name,
       notes: formData.notes,
       userIds: formData.selectedUsersWithRoles.map(u => u.userId),
-      userRoles: formData.selectedUsersWithRoles, // Pass the user roles data
+      userRoles: formData.selectedUsersWithRoles,
+      startKm: startKmValue, // Include start kilometers
     };
 
     console.log('Submitting trip data:', tripData);
@@ -122,13 +139,31 @@ const TripLoggerForm = () => {
                 <SelectValue placeholder={t.selectVan} />
               </SelectTrigger>
               <SelectContent>
-                {vans.map((van) => (
+                {availableVans.map((van) => (
                   <SelectItem key={van.id} value={van.id}>
                     {van.license_plate} - {van.model}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+            {availableVans.length < vans.length && (
+              <p className="text-sm text-muted-foreground mt-1">
+                {vans.length - availableVans.length} van(s) currently in mission
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="startKm">Starting Kilometers *</Label>
+            <Input
+              id="startKm"
+              type="number"
+              placeholder="Enter starting kilometer reading"
+              value={formData.startKm}
+              onChange={(e) => handleInputChange('startKm', e.target.value)}
+              min="0"
+              required
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

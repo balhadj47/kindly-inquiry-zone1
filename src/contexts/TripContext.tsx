@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { MissionRole } from '@/components/RoleSelectionSection';
@@ -17,13 +16,17 @@ export interface Trip {
   timestamp: string;
   notes: string;
   userIds: string[];
-  userRoles?: UserWithRoles[]; // New field for storing user roles
+  userRoles?: UserWithRoles[];
+  startKm?: number; // New field for starting kilometers
+  endKm?: number; // New field for ending kilometers
+  status?: string; // New field for trip status
 }
 
 interface TripContextType {
   trips: Trip[];
-  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[] }) => Promise<void>;
+  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[]; startKm?: number }) => Promise<void>;
   deleteTrip: (tripId: number) => Promise<void>;
+  endTrip: (tripId: number, endKm: number) => Promise<void>; // New method to end trips
   refreshTrips: () => Promise<void>;
   error: string | null;
 }
@@ -72,7 +75,10 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
         timestamp: trip.created_at,
         notes: trip.notes || '',
         userIds: trip.user_ids || [],
-        userRoles: trip.user_roles || [] // Parse user roles from database
+        userRoles: trip.user_roles || [],
+        startKm: trip.start_km, // Include start kilometers
+        endKm: trip.end_km, // Include end kilometers
+        status: trip.status || 'active', // Include status
       }));
 
       // Only update state if component is still mounted
@@ -96,7 +102,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[] }) => {
+  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[]; startKm?: number }) => {
     try {
       const { data, error } = await (supabase as any)
         .from('trips')
@@ -107,7 +113,9 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           branch: tripData.branch,
           notes: tripData.notes,
           user_ids: tripData.userIds,
-          user_roles: tripData.userRoles || [] // Save user roles to database
+          user_roles: tripData.userRoles || [],
+          start_km: tripData.startKm, // Save start kilometers
+          status: 'active', // New trips are active by default
         })
         .select()
         .single();
@@ -130,7 +138,10 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
           timestamp: data.created_at,
           notes: data.notes || '',
           userIds: data.user_ids || [],
-          userRoles: data.user_roles || []
+          userRoles: data.user_roles || [],
+          startKm: data.start_km,
+          endKm: data.end_km,
+          status: data.status || 'active',
         };
 
         setTrips(prevTrips => [newTrip, ...prevTrips]);
@@ -139,6 +150,42 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
       console.error('Error adding trip:', err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err.message : 'Failed to add trip');
+      }
+      throw err;
+    }
+  };
+
+  const endTrip = async (tripId: number, endKm: number) => {
+    try {
+      const { error } = await (supabase as any)
+        .from('trips')
+        .update({
+          end_km: endKm,
+          status: 'completed'
+        })
+        .eq('id', tripId);
+
+      if (error) {
+        console.error('End trip error:', error);
+        throw error;
+      }
+
+      console.log('Trip ended successfully:', tripId);
+
+      // Update the trip in local state
+      if (isMountedRef.current) {
+        setTrips(prevTrips => 
+          prevTrips.map(trip => 
+            trip.id === tripId 
+              ? { ...trip, endKm, status: 'completed' }
+              : trip
+          )
+        );
+      }
+    } catch (err) {
+      console.error('Error ending trip:', err);
+      if (isMountedRef.current) {
+        setError(err instanceof Error ? err.message : 'Failed to end trip');
       }
       throw err;
     }
@@ -176,7 +223,7 @@ export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
   };
 
   return (
-    <TripContext.Provider value={{ trips, addTrip, deleteTrip, refreshTrips, error }}>
+    <TripContext.Provider value={{ trips, addTrip, deleteTrip, endTrip, refreshTrips, error }}>
       {children}
     </TripContext.Provider>
   );

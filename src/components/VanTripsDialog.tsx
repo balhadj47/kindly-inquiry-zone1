@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, MapPin, Users, Building2, FileText, User, Trash2 } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, Building2, FileText, User, Trash2, CheckCircle } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -29,6 +28,9 @@ interface Trip {
   branch: string;
   notes?: string;
   user_ids?: string[];
+  start_km?: number;
+  end_km?: number;
+  status?: string;
 }
 
 interface VanTripsDialogProps {
@@ -125,6 +127,13 @@ const VanTripsDialog: React.FC<VanTripsDialogProps> = ({ van, isOpen, onClose })
     });
   };
 
+  const calculateDistance = (trip: Trip) => {
+    if (trip.start_km && trip.end_km) {
+      return trip.end_km - trip.start_km;
+    }
+    return null;
+  };
+
   if (!van) return null;
 
   return (
@@ -156,6 +165,12 @@ const VanTripsDialog: React.FC<VanTripsDialogProps> = ({ van, isOpen, onClose })
                       <div className="flex items-center space-x-3 mb-2">
                         <Badge variant="outline" className="font-mono">
                           #{trip.id}
+                        </Badge>
+                        <Badge 
+                          variant={trip.status === 'active' ? 'default' : 'secondary'}
+                          className={trip.status === 'active' ? 'bg-green-500' : 'bg-gray-500'}
+                        >
+                          {trip.status === 'active' ? 'En Mission' : 'Terminé'}
                         </Badge>
                         <div className="flex items-center space-x-1 text-gray-500">
                           <Calendar className="h-4 w-4" />
@@ -229,6 +244,35 @@ const VanTripsDialog: React.FC<VanTripsDialogProps> = ({ van, isOpen, onClose })
                       </div>
                     )}
                   </div>
+
+                  {/* Kilometer information */}
+                  {(trip.start_km || trip.end_km) && (
+                    <>
+                      <Separator className="my-3" />
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
+                        {trip.start_km && (
+                          <div>
+                            <p className="text-sm font-medium">Kilomètres de début</p>
+                            <p className="text-sm text-muted-foreground">{trip.start_km.toLocaleString()} km</p>
+                          </div>
+                        )}
+                        {trip.end_km && (
+                          <div>
+                            <p className="text-sm font-medium">Kilomètres de fin</p>
+                            <p className="text-sm text-muted-foreground">{trip.end_km.toLocaleString()} km</p>
+                          </div>
+                        )}
+                        {calculateDistance(trip) && (
+                          <div>
+                            <p className="text-sm font-medium">Distance parcourue</p>
+                            <p className="text-sm text-muted-foreground font-semibold text-blue-600">
+                              {calculateDistance(trip)} km
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
 
                   {trip.notes && (
                     <>

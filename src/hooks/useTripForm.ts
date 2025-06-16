@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { MissionRole } from '@/components/RoleSelectionSection';
 
@@ -13,6 +12,7 @@ export interface TripFormData {
   companyId: string;
   branchId: string;
   notes: string;
+  startKm: string; // New field for starting kilometers
 }
 
 export const useTripForm = () => {
@@ -22,6 +22,7 @@ export const useTripForm = () => {
     companyId: '',
     branchId: '',
     notes: '',
+    startKm: '', // Initialize new field
   });
 
   const handleInputChange = (field: keyof Omit<TripFormData, 'selectedUsersWithRoles'>, value: string) => {
@@ -70,6 +71,7 @@ export const useTripForm = () => {
       companyId: '',
       branchId: '',
       notes: '',
+      startKm: '', // Reset new field
     });
   };
 
@@ -80,8 +82,9 @@ export const useTripForm = () => {
     company: formData.companyId,
     branch: formData.branchId,
     notes: formData.notes,
-    userIds: formData.selectedUsersWithRoles.map(u => u.userId), // Keep backward compatibility
-    userRoles: formData.selectedUsersWithRoles, // New field for role information
+    userIds: formData.selectedUsersWithRoles.map(u => u.userId),
+    userRoles: formData.selectedUsersWithRoles,
+    startKm: parseInt(formData.startKm) || 0, // Include start kilometers
   });
 
   return {

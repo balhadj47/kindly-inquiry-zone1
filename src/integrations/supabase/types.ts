@@ -80,8 +80,11 @@ export type Database = {
           company: string
           created_at: string
           driver: string
+          end_km: number | null
           id: number
           notes: string | null
+          start_km: number | null
+          status: string | null
           user_ids: string[] | null
           user_roles: Json | null
           van: string
@@ -91,8 +94,11 @@ export type Database = {
           company: string
           created_at?: string
           driver: string
+          end_km?: number | null
           id?: number
           notes?: string | null
+          start_km?: number | null
+          status?: string | null
           user_ids?: string[] | null
           user_roles?: Json | null
           van: string
@@ -102,8 +108,11 @@ export type Database = {
           company?: string
           created_at?: string
           driver?: string
+          end_km?: number | null
           id?: number
           notes?: string | null
+          start_km?: number | null
+          status?: string | null
           user_ids?: string[] | null
           user_roles?: Json | null
           van?: string

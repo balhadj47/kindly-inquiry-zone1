@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableBody,
@@ -27,9 +27,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { MoreVertical, User as UserIcon, Key, Phone, Mail } from 'lucide-react';
+import { MoreVertical, User as UserIcon, Key, Phone, Mail, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
 
 interface UserTableProps {
@@ -45,6 +44,9 @@ const UserTable: React.FC<UserTableProps> = ({
   onDeleteUser,
   onChangePassword,
 }) => {
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -80,143 +82,165 @@ const UserTable: React.FC<UserTableProps> = ({
       .slice(0, 2);
   };
 
+  const handleDeleteClick = (user: User) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (userToDelete) {
+      onDeleteUser(userToDelete);
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
   return (
-    <div className="border rounded-lg overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12"></TableHead>
-            <TableHead>Utilisateur</TableHead>
-            <TableHead>Rôle</TableHead>
-            <TableHead>Statut</TableHead>
-            <TableHead>Contact</TableHead>
-            <TableHead>Voyages</TableHead>
-            <TableHead>Créé le</TableHead>
-            <TableHead className="w-12"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user.id} className="hover:bg-muted/50">
-              <TableCell>
-                <Avatar className="h-8 w-8">
-                  <AvatarImage 
-                    src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
-                    alt={user.name}
-                  />
-                  <AvatarFallback className="text-xs">
-                    {getUserInitials(user.name)}
-                  </AvatarFallback>
-                </Avatar>
-              </TableCell>
-              
-              <TableCell>
-                <div>
-                  <div className="font-medium">{user.name}</div>
-                  <div className="text-sm text-muted-foreground">{user.email}</div>
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${getRoleColor(user.role)}`}
-                >
-                  {user.role}
-                </Badge>
-              </TableCell>
-              
-              <TableCell>
-                <Badge 
-                  variant="outline"
-                  className={`text-xs ${getStatusColor(user.status)}`}
-                >
-                  {user.status}
-                </Badge>
-              </TableCell>
-              
-              <TableCell>
-                <div className="space-y-1">
-                  <div className="flex items-center text-sm">
-                    <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
-                    {user.phone}
-                  </div>
-                  <div className="flex items-center text-sm">
-                    <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
-                    <span className="truncate max-w-32">{user.email}</span>
-                  </div>
-                </div>
-              </TableCell>
-              
-              <TableCell>
-                <div className="text-sm">
-                  <div className="font-medium">{user.totalTrips || 0}</div>
-                  {user.lastTrip && (
-                    <div className="text-muted-foreground text-xs">
-                      Dernier: {new Date(user.lastTrip).toLocaleDateString('fr-FR')}
-                    </div>
-                  )}
-                </div>
-              </TableCell>
-              
-              <TableCell className="text-sm text-muted-foreground">
-                {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-              </TableCell>
-              
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onEditUser(user)}>
-                      <UserIcon className="h-4 w-4 mr-2" />
-                      Modifier
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onChangePassword(user)}>
-                      <Key className="h-4 w-4 mr-2" />
-                      Changer mot de passe
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <DropdownMenuItem 
-                          onSelect={(e) => e.preventDefault()}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <UserIcon className="h-4 w-4 mr-2" />
-                          Supprimer
-                        </DropdownMenuItem>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
-                          <AlertDialogDescription>
-                            Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
-                            Cette action ne peut pas être annulée.
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Annuler</AlertDialogCancel>
-                          <AlertDialogAction
-                            onClick={() => onDeleteUser(user)}
-                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                          >
-                            Supprimer
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
+    <>
+      <div className="border rounded-lg overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-12"></TableHead>
+              <TableHead>Utilisateur</TableHead>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Statut</TableHead>
+              <TableHead>Contact</TableHead>
+              <TableHead>Voyages</TableHead>
+              <TableHead>Créé le</TableHead>
+              <TableHead className="w-12"></TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+          </TableHeader>
+          <TableBody>
+            {users.map((user) => (
+              <TableRow key={user.id} className="hover:bg-muted/50">
+                <TableCell>
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage 
+                      src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+                      alt={user.name}
+                    />
+                    <AvatarFallback className="text-xs">
+                      {getUserInitials(user.name)}
+                    </AvatarFallback>
+                  </Avatar>
+                </TableCell>
+                
+                <TableCell>
+                  <div>
+                    <div className="font-medium">{user.name}</div>
+                    <div className="text-sm text-muted-foreground">{user.email}</div>
+                  </div>
+                </TableCell>
+                
+                <TableCell>
+                  <Badge 
+                    variant="outline" 
+                    className={`text-xs ${getRoleColor(user.role)}`}
+                  >
+                    {user.role}
+                  </Badge>
+                </TableCell>
+                
+                <TableCell>
+                  <Badge 
+                    variant="outline"
+                    className={`text-xs ${getStatusColor(user.status)}`}
+                  >
+                    {user.status}
+                  </Badge>
+                </TableCell>
+                
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="flex items-center text-sm">
+                      <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
+                      {user.phone}
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Mail className="h-3 w-3 mr-1 text-muted-foreground" />
+                      <span className="truncate max-w-32">{user.email}</span>
+                    </div>
+                  </div>
+                </TableCell>
+                
+                <TableCell>
+                  <div className="text-sm">
+                    <div className="font-medium">{user.totalTrips || 0}</div>
+                    {user.lastTrip && (
+                      <div className="text-muted-foreground text-xs">
+                        Dernier: {new Date(user.lastTrip).toLocaleDateString('fr-FR')}
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                
+                <TableCell className="text-sm text-muted-foreground">
+                  {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+                </TableCell>
+                
+                <TableCell>
+                  <div className="flex items-center space-x-1">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onEditUser(user)}>
+                          <UserIcon className="h-4 w-4 mr-2" />
+                          Modifier
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onChangePassword(user)}>
+                          <Key className="h-4 w-4 mr-2" />
+                          Changer mot de passe
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                      onClick={() => handleDeleteClick(user)}
+                    >
+                      <Trash className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'utilisateur "{userToDelete?.name}" ? 
+              Cette action ne peut pas être annulée.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={handleDeleteCancel}>Annuler</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 

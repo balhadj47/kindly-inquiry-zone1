@@ -1,16 +1,16 @@
 
-import type { User, Group, Permission } from '@/types/rbac';
+import type { User, Role, Permission } from '@/types/rbac';
 
 // Re-export the main types for consistency
 export type RBACUser = User;
-export type RBACGroup = Group;
+export type RBACRole = Role;
 export type RBACPermission = Permission;
 
 export interface RBACContextType {
   // State
   currentUser: User | null;
   users: User[];
-  groups: Group[];
+  roles: Role[];
   permissions: Permission[];
   loading: boolean;
   
@@ -20,10 +20,10 @@ export interface RBACContextType {
   deleteUser: (id: string) => Promise<void>;
   changeUserPassword: (userEmail: string, newPassword: string) => Promise<void>;
   
-  // Group operations
-  addGroup: (groupData: Partial<Group>) => Promise<void>;
-  updateGroup: (id: string, groupData: Partial<Group>) => Promise<void>;
-  deleteGroup: (id: string) => Promise<void>;
+  // Role operations
+  addRole: (roleData: Partial<Role>) => Promise<void>;
+  updateRole: (id: string, roleData: Partial<Role>) => Promise<void>;
+  deleteRole: (id: string) => Promise<void>;
   
   // Permission utilities
   hasPermission: (permission: string) => boolean;

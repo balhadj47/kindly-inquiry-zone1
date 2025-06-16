@@ -1,6 +1,9 @@
 
 export type UserRole = 
   | 'Administrator'
+  | 'Supervisor' 
+  | 'Driver'
+  | 'Security'
   | 'Employee'
   | 'Chef de Groupe Armé'
   | 'Chef de Groupe Sans Armé'
@@ -18,7 +21,6 @@ export interface User {
   phone: string;
   role: UserRole;
   status: UserStatus;
-  groupId: string;
   createdAt: string;
   licenseNumber?: string;
   totalTrips?: number;
@@ -26,20 +28,13 @@ export interface User {
   profileImage?: string;
 }
 
-export interface UserGroup {
+export interface Role {
   id: string;
   name: string;
   description: string;
   permissions: string[];
   color: string;
-}
-
-export interface Group {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  color: string;
+  isSystemRole: boolean;
 }
 
 export interface Permission {
@@ -56,11 +51,11 @@ export const AVAILABLE_PERMISSIONS: Permission[] = [
   { id: 'users:update', name: 'Modifier les utilisateurs', description: 'Peut modifier les informations des utilisateurs', category: 'Gestion des Utilisateurs' },
   { id: 'users:delete', name: 'Supprimer les utilisateurs', description: 'Peut supprimer des utilisateurs', category: 'Gestion des Utilisateurs' },
   
-  // Group Management
-  { id: 'groups:read', name: 'Voir les groupes', description: 'Peut voir la liste des groupes', category: 'Gestion des Groupes' },
-  { id: 'groups:create', name: 'Créer des groupes', description: 'Peut créer de nouveaux groupes', category: 'Gestion des Groupes' },
-  { id: 'groups:update', name: 'Modifier les groupes', description: 'Peut modifier les groupes existants', category: 'Gestion des Groupes' },
-  { id: 'groups:delete', name: 'Supprimer les groupes', description: 'Peut supprimer des groupes', category: 'Gestion des Groupes' },
+  // Role Management
+  { id: 'roles:read', name: 'Voir les rôles', description: 'Peut voir la liste des rôles', category: 'Gestion des Rôles' },
+  { id: 'roles:create', name: 'Créer des rôles', description: 'Peut créer de nouveaux rôles', category: 'Gestion des Rôles' },
+  { id: 'roles:update', name: 'Modifier les rôles', description: 'Peut modifier les rôles existants', category: 'Gestion des Rôles' },
+  { id: 'roles:delete', name: 'Supprimer les rôles', description: 'Peut supprimer des rôles', category: 'Gestion des Rôles' },
   
   // Van Management
   { id: 'vans:read', name: 'Voir les camionnettes', description: 'Peut voir la liste des camionnettes', category: 'Gestion des Camionnettes' },
@@ -89,3 +84,54 @@ export const AVAILABLE_PERMISSIONS: Permission[] = [
 ];
 
 export const DEFAULT_PERMISSIONS = AVAILABLE_PERMISSIONS;
+
+// Default system roles
+export const DEFAULT_ROLES: Role[] = [
+  {
+    id: 'administrator',
+    name: 'Administrateur',
+    description: 'Accès complet au système',
+    permissions: [
+      'users:read', 'users:create', 'users:update', 'users:delete',
+      'roles:read', 'roles:create', 'roles:update', 'roles:delete',
+      'vans:read', 'vans:create', 'vans:update', 'vans:delete',
+      'trips:read', 'trips:create', 'trips:update', 'trips:delete',
+      'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+      'dashboard:read', 'settings:read', 'settings:update'
+    ],
+    color: 'bg-red-100 text-red-800',
+    isSystemRole: true
+  },
+  {
+    id: 'supervisor',
+    name: 'Superviseur',
+    description: 'Supervision des opérations',
+    permissions: ['dashboard:read', 'trips:read', 'trips:create', 'trips:update', 'vans:read', 'users:read'],
+    color: 'bg-yellow-100 text-yellow-800',
+    isSystemRole: true
+  },
+  {
+    id: 'driver',
+    name: 'Chauffeur',
+    description: 'Conducteur de véhicules',
+    permissions: ['dashboard:read', 'trips:read', 'trips:create', 'vans:read'],
+    color: 'bg-green-100 text-green-800',
+    isSystemRole: true
+  },
+  {
+    id: 'security',
+    name: 'Sécurité',
+    description: 'Personnel de sécurité',
+    permissions: ['dashboard:read', 'trips:read', 'trips:create'],
+    color: 'bg-purple-100 text-purple-800',
+    isSystemRole: true
+  },
+  {
+    id: 'employee',
+    name: 'Employé',
+    description: 'Employé standard',
+    permissions: ['dashboard:read', 'trips:read'],
+    color: 'bg-blue-100 text-blue-800',
+    isSystemRole: true
+  }
+];

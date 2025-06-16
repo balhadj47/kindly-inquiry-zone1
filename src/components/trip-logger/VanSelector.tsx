@@ -8,6 +8,7 @@ interface Van {
   id: string;
   license_plate: string;
   model: string;
+  reference_code?: string;
 }
 
 interface VanSelectorProps {
@@ -35,7 +36,7 @@ const VanSelector: React.FC<VanSelectorProps> = ({
         <SelectContent>
           {availableVans.map((van) => (
             <SelectItem key={van.id} value={van.id}>
-              {van.license_plate} - {van.model}
+              {van.reference_code || van.license_plate} - {van.model}
             </SelectItem>
           ))}
         </SelectContent>

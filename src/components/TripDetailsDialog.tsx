@@ -37,7 +37,7 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
     if (van) {
-      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
+      return van.reference_code ? `${van.reference_code} - ${van.model}` : van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
     }
     return vanId;
   };

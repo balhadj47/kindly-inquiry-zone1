@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +56,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
     if (van) {
-      return van.license_plate ? `${van.license_plate}` : van.model;
+      return van.reference_code || van.license_plate || van.model;
     }
     return vanId;
   };
@@ -65,6 +64,11 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   const getVanModel = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
     return van?.model || '';
+  };
+
+  const getVanReference = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    return van?.reference_code || van?.license_plate || '';
   };
 
   const formatDate = (dateString: string) => {
@@ -220,6 +224,9 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                     <div>
                       <p className="text-xs sm:text-sm font-medium text-purple-600">{getVanDisplayName(trip.van)}</p>
                       <p className="text-xs text-gray-500">{getVanModel(trip.van)}</p>
+                      {getVanReference(trip.van) && (
+                        <p className="text-xs text-gray-400">Réf: {getVanReference(trip.van)}</p>
+                      )}
                     </div>
                   </div>
                   

@@ -1,3 +1,4 @@
+
 import { TripFormData } from '@/hooks/useTripForm';
 import { useTrip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -11,8 +12,14 @@ export const useTripSubmission = () => {
   const { vans } = useVans();
 
   const submitTrip = async (formData: TripFormData) => {
+    console.log('Form data received:', formData);
+    console.log('Available vans:', vans);
+    
     const selectedVan = vans.find(van => van.id === formData.vanId);
+    console.log('Selected van:', selectedVan);
+    
     if (!selectedVan) {
+      console.error('Van not found for ID:', formData.vanId);
       throw new Error('Van not found');
     }
 
@@ -36,7 +43,7 @@ export const useTripSubmission = () => {
     }
 
     const tripData = {
-      van: selectedVan.license_plate,
+      van: selectedVan.license_plate, // Make sure this is set correctly
       driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
@@ -46,8 +53,12 @@ export const useTripSubmission = () => {
       startKm: parseInt(formData.startKm),
     };
 
-    console.log('Submitting trip data:', tripData);
-    console.log('User roles for this mission:', tripData.userRoles);
+    console.log('Final trip data before submission:', tripData);
+    console.log('Van license plate being sent:', tripData.van);
+
+    if (!tripData.van) {
+      throw new Error('Van license plate is missing');
+    }
 
     await addTrip(tripData);
   };

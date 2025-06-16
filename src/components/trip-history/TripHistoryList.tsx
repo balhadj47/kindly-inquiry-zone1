@@ -56,7 +56,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
     if (van) {
-      return van.reference_code || van.license_plate || van.model;
+      return (van as any).reference_code || van.license_plate || van.model;
     }
     return vanId;
   };
@@ -68,7 +68,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
 
   const getVanReference = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
-    return van?.reference_code || van?.license_plate || '';
+    return (van as any)?.reference_code || van?.license_plate || '';
   };
 
   const formatDate = (dateString: string) => {

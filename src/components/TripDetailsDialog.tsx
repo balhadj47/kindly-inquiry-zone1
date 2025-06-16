@@ -12,7 +12,8 @@ import {
   FileText, 
   Users,
   Shield,
-  Car
+  Car,
+  MapPin as KmIcon
 } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -40,6 +41,11 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
       return van.reference_code ? `${van.reference_code} - ${van.model}` : van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
     }
     return vanId;
+  };
+
+  const getVanLicensePlate = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    return van?.license_plate || '';
   };
 
   const formatDate = (dateString: string) => {
@@ -136,6 +142,9 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
                   <div>
                     <p className="text-sm text-gray-500">Camionnette</p>
                     <p className="font-medium">{getVanDisplayName(trip.van)}</p>
+                    {getVanLicensePlate(trip.van) && (
+                      <p className="text-xs text-gray-400">Plaque: {getVanLicensePlate(trip.van)}</p>
+                    )}
                   </div>
                 </div>
 
@@ -149,6 +158,56 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Kilometers Information */}
+          {(trip.startKm || trip.endKm) && (
+            <Card>
+              <CardContent className="p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center">
+                  <KmIcon className="h-5 w-5 mr-2 text-orange-600" />
+                  Informations Kilométriques
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {trip.startKm && (
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-green-100 rounded-lg">
+                        <KmIcon className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Km Début</p>
+                        <p className="font-medium">{trip.startKm.toLocaleString()} km</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {trip.endKm && (
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-red-100 rounded-lg">
+                        <KmIcon className="h-4 w-4 text-red-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Km Fin</p>
+                        <p className="font-medium">{trip.endKm.toLocaleString()} km</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {trip.startKm && trip.endKm && (
+                    <div className="flex items-center space-x-3">
+                      <div className="p-2 bg-blue-100 rounded-lg">
+                        <MapPin className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-500">Distance</p>
+                        <p className="font-medium">{(trip.endKm - trip.startKm)} km</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Company and Branch */}
           <Card>

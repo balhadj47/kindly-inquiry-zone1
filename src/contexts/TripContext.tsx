@@ -1,123 +1,111 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
-import { 
-  fetchTripsFromDatabase, 
-  insertTripToDatabase, 
-  updateTripInDatabase, 
-  deleteTripFromDatabase 
-} from './trip/TripDatabaseOperations';
-import { transformDatabaseTrips, transformDatabaseTrip } from './trip/tripTransformers';
-
-// Re-export types for backward compatibility
-export type { UserWithRoles, Trip };
+import { insertTrip, fetchTrips, updateTripStatus, deleteTripById } from './trip/TripDatabaseOperations';
+import { transformDatabaseTrips } from './trip/tripTransformers';
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
-export const useTripContext = () => {
-  const context = useContext(TripContext);
-  if (!context) {
-    throw new Error('useTripContext must be used within a TripProvider');
-  }
-  return context;
-};
-
-interface TripProviderProps {
-  children: ReactNode;
-}
-
-export const TripProvider: React.FC<TripProviderProps> = ({ children }) => {
+export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const isMountedRef = useRef(true);
 
-  const fetchTrips = async () => {
+  const loadTrips = async () => {
     try {
-      const data = await fetchTripsFromDatabase();
+      const data = await fetchTrips();
       const transformedTrips = transformDatabaseTrips(data);
-
-      if (isMountedRef.current) {
-        setTrips(transformedTrips);
-      }
-    } catch (err) {
-      console.error('Error fetching trips:', err);
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
+      setTrips(transformedTrips);
+      setError(null);
+    } catch (error) {
+      console.error('Error loading trips:', error);
+      setError('Failed to load trips');
     }
   };
 
   useEffect(() => {
-    isMountedRef.current = true;
-    fetchTrips();
-    
-    return () => {
-      isMountedRef.current = false;
-    };
+    loadTrips();
   }, []);
 
-  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[]; startKm?: number }) => {
+  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
     try {
-      const data = await insertTripToDatabase(tripData);
+      console.log('TripProvider: Adding trip with data:', tripData);
+      
+      if (!tripData.userRoles || tripData.userRoles.length === 0) {
+        throw new Error('At least one user with roles must be selected');
+      }
 
-      if (data && isMountedRef.current) {
-        const newTrip = transformDatabaseTrip(data);
-        setTrips(prevTrips => [newTrip, ...prevTrips]);
+      if (!tripData.startKm || tripData.startKm < 0) {
+        throw new Error('Starting kilometers must be provided and valid');
       }
-    } catch (err) {
-      console.error('Error adding trip:', err);
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Failed to add trip');
-      }
-      throw err;
-    }
-  };
 
-  const endTrip = async (tripId: number, endKm: number) => {
-    try {
-      await updateTripInDatabase(tripId, endKm);
+      const tripToInsert = {
+        van: tripData.van,
+        driver: tripData.driver,
+        company: tripData.company,
+        branch: tripData.branch,
+        notes: tripData.notes,
+        userIds: tripData.userIds,
+        userRoles: tripData.userRoles,
+        startKm: tripData.startKm
+      };
 
-      if (isMountedRef.current) {
-        setTrips(prevTrips => 
-          prevTrips.map(trip => 
-            trip.id === tripId 
-              ? { ...trip, endKm, status: 'completed' }
-              : trip
-          )
-        );
-      }
-    } catch (err) {
-      console.error('Error ending trip:', err);
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Failed to end trip');
-      }
-      throw err;
+      const newTrip = await insertTrip(tripToInsert);
+      console.log('TripProvider: Trip inserted successfully:', newTrip);
+      
+      await loadTrips();
+      setError(null);
+    } catch (error) {
+      console.error('TripProvider: Error adding trip:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to add trip';
+      setError(errorMessage);
+      throw error;
     }
   };
 
   const deleteTrip = async (tripId: number) => {
     try {
-      await deleteTripFromDatabase(tripId);
+      await deleteTripById(tripId);
+      await loadTrips();
+      setError(null);
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+      setError('Failed to delete trip');
+      throw error;
+    }
+  };
 
-      if (isMountedRef.current) {
-        setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
-      }
-    } catch (err) {
-      console.error('Error deleting trip:', err);
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'Failed to delete trip');
-      }
-      throw err;
+  const endTrip = async (tripId: number, endKm: number) => {
+    try {
+      await updateTripStatus(tripId, endKm);
+      await loadTrips();
+      setError(null);
+    } catch (error) {
+      console.error('Error ending trip:', error);
+      setError('Failed to end trip');
+      throw error;
     }
   };
 
   const refreshTrips = async () => {
-    await fetchTrips();
+    await loadTrips();
   };
 
-  return (
-    <TripContext.Provider value={{ trips, addTrip, deleteTrip, endTrip, refreshTrips, error }}>
-      {children}
-    </TripContext.Provider>
-  );
+  const value: TripContextType = {
+    trips,
+    addTrip,
+    deleteTrip,
+    endTrip,
+    refreshTrips,
+    error,
+  };
+
+  return <TripContext.Provider value={value}>{children}</TripContext.Provider>;
+};
+
+export const useTrip = () => {
+  const context = useContext(TripContext);
+  if (context === undefined) {
+    throw new Error('useTrip must be used within a TripProvider');
+  }
+  return context;
 };

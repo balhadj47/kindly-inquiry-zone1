@@ -23,7 +23,7 @@ export interface Trip {
 
 export interface TripContextType {
   trips: Trip[];
-  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'> & { userRoles?: UserWithRoles[]; startKm?: number }) => Promise<void>;
+  addTrip: (trip: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => Promise<void>;
   deleteTrip: (tripId: number) => Promise<void>;
   endTrip: (tripId: number, endKm: number) => Promise<void>;
   refreshTrips: () => Promise<void>;

@@ -44,14 +44,21 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-        <Avatar className="h-8 w-8">
-          <AvatarFallback>
-            <User className="h-4 w-4" />
-          </AvatarFallback>
-        </Avatar>
-        <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-          <p className="text-sm text-muted-foreground">Not logged in</p>
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>
+              <User className="h-4 w-4" />
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+            <p className="text-sm text-muted-foreground">Not logged in</p>
+          </div>
+        </div>
+        <div className="px-3 group-data-[collapsible=icon]:hidden">
+          <p className="text-xs text-muted-foreground text-center">
+            © 2024 asdar it
+          </p>
         </div>
       </div>
     );
@@ -65,42 +72,50 @@ const UserProfile = () => {
     .toUpperCase() || 'U';
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} />
-            <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
-              {userInitials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
-            <p className="text-sm font-medium text-sidebar-foreground truncate">
-              {user.email}
-            </p>
-            <p className="text-xs text-muted-foreground truncate">
-              Authenticated User
-            </p>
+    <div className="space-y-3">
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} />
+              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+                {userInitials}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
+              <p className="text-sm font-medium text-sidebar-foreground truncate">
+                {user.email}
+              </p>
+              <p className="text-xs text-muted-foreground truncate">
+                Authenticated User
+              </p>
+            </div>
           </div>
-        </div>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem asChild>
-          <Link to="/settings">
-            <Settings className="mr-2 h-4 w-4" />
-            {t.settings}
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem 
-          className="text-destructive focus:text-destructive cursor-pointer"
-          onClick={handleSignOut}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          {t.signOut}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuItem asChild>
+            <Link to="/settings">
+              <Settings className="mr-2 h-4 w-4" />
+              {t.settings}
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem 
+            className="text-destructive focus:text-destructive cursor-pointer"
+            onClick={handleSignOut}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            {t.signOut}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      
+      <div className="px-3 group-data-[collapsible=icon]:hidden">
+        <p className="text-xs text-muted-foreground text-center">
+          © 2024 asdar it
+        </p>
+      </div>
+    </div>
   );
 };
 

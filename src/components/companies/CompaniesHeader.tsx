@@ -17,10 +17,10 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
       <Button 
         onClick={onAddCompany} 
         size="icon"
-        className="w-10 h-10 rounded-md"
+        className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
         title={t.addNewCompany}
       >
-        <Plus className="h-4 w-4" />
+        <Plus className="h-5 w-5" />
       </Button>
     </div>
   );

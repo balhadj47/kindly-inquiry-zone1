@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Calendar, Clock, Truck, Building2, Users, MapPin, FileText, Trash2, MapPin as KmIcon, CheckCircle } from 'lucide-react';
-import { Trip } from '@/contexts/TripContext';
+import { type Trip } from '@/contexts/TripContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,7 +25,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import TripHistoryEmptyState from './TripHistoryEmptyState';
-import { useTripContext } from '@/contexts/TripContext';
+import { useTrip } from '@/contexts/TripContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface TripHistoryListProps {
@@ -44,7 +43,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   onDeleteTrip,
   deletingTripId
 }) => {
-  const { endTrip } = useTripContext();
+  const { endTrip } = useTrip();
   const { toast } = useToast();
   const [endKmDialogOpen, setEndKmDialogOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
@@ -15,7 +14,7 @@ import {
   Shield,
   Car
 } from 'lucide-react';
-import { Trip } from '@/contexts/TripContext';
+import { type Trip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
 
 interface TripDetailsDialogProps {

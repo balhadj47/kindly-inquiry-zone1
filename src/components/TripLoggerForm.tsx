@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
-import { useTripContext } from '@/contexts/TripContext';
+import { useTrip } from '@/contexts/TripContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
@@ -20,7 +19,7 @@ import { useTripSubmission } from './trip-logger/TripFormSubmission';
 const TripLoggerForm = () => {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { trips } = useTripContext();
+  const { trips } = useTrip();
   const { companies } = useCompanies();
   const { vans } = useVans();
   const { formData, handleInputChange, handleUserRoleSelection, resetForm } = useTripForm();

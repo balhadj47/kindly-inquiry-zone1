@@ -1,6 +1,5 @@
-
 import React, { useState, useMemo } from 'react';
-import { useTripContext } from '@/contexts/TripContext';
+import { useTrip } from '@/contexts/TripContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import TripDetailsDialog from './TripDetailsDialog';
@@ -11,7 +10,7 @@ import TripHistoryStats from './trip-history/TripHistoryStats';
 import TripHistoryList from './trip-history/TripHistoryList';
 
 const TripHistory = () => {
-  const { trips, deleteTrip } = useTripContext();
+  const { trips, deleteTrip } = useTrip();
   const { companies } = useCompanies();
   const { vans } = useVans();
   const { toast } = useToast();

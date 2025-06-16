@@ -2,11 +2,11 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useTripContext } from '@/contexts/TripContext';
+import { useTrip } from '@/contexts/TripContext';
 
 const QuickStatsSection = () => {
   const { t } = useLanguage();
-  const { trips } = useTripContext();
+  const { trips } = useTrip();
 
   // Calculate today's trips
   const today = new Date().toISOString().split('T')[0];

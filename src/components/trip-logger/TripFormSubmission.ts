@@ -1,12 +1,11 @@
-
 import { TripFormData } from '@/hooks/useTripForm';
-import { useTripContext } from '@/contexts/TripContext';
+import { useTrip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 
 export const useTripSubmission = () => {
-  const { addTrip } = useTripContext();
+  const { addTrip } = useTrip();
   const { users } = useRBAC();
   const { companies } = useCompanies();
   const { vans } = useVans();

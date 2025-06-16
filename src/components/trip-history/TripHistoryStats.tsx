@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, Building2 } from 'lucide-react';
-import { Trip } from '@/contexts/TripContext';
+import { type Trip } from '@/contexts/TripContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TripHistoryStatsProps {

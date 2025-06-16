@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -14,14 +15,22 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
       <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
-      <Button 
-        onClick={onAddCompany} 
-        size="icon"
-        className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-        title={t.addNewCompany}
-      >
-        <Plus className="h-5 w-5" />
-      </Button>
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button 
+              onClick={onAddCompany} 
+              size="icon"
+              className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+            >
+              <Plus className="h-5 w-5" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{t.addNewCompany}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
     </div>
   );
 };

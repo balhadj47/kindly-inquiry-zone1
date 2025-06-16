@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useBranchActions } from '@/hooks/useBranchActions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ChevronLeft, Building2, MapPin, Phone, Mail, Calendar, Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Branch } from '@/hooks/useCompanies';
@@ -198,14 +198,22 @@ const CompanyDetail = () => {
             <span className="text-sm text-gray-500">
               {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches.toLowerCase()}
             </span>
-            <Button 
-              onClick={handleAddBranch} 
-              size="icon"
-              className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-              title={t.addNewBranch}
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button 
+                    onClick={handleAddBranch} 
+                    size="icon"
+                    className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t.addNewBranch}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
 
@@ -217,14 +225,22 @@ const CompanyDetail = () => {
               <p className="text-gray-500 text-center mb-4">
                 Cette entreprise n'a pas encore de succursales enregistrées.
               </p>
-              <Button 
-                onClick={handleAddBranch} 
-                size="icon"
-                className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                title={t.addFirstBranch}
-              >
-                <Plus className="h-5 w-5" />
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      onClick={handleAddBranch} 
+                      size="icon"
+                      className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                    >
+                      <Plus className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t.addFirstBranch}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             </CardContent>
           </Card>
         ) : (

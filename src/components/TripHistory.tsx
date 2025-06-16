@@ -20,12 +20,21 @@ const TripHistory = () => {
   const [vanFilter, setVanFilter] = useState('all');
   const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
 
+  const getVanDisplayName = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    if (van) {
+      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
+    }
+    return vanId;
+  };
+
   const filteredTrips = useMemo(() => {
     return trips.filter(trip => {
+      const vanDisplayName = getVanDisplayName(trip.van);
       const matchesSearch = 
         trip.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.van.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        vanDisplayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
         trip.driver.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesCompany = companyFilter === 'all' || trip.company === companyFilter;
@@ -33,7 +42,7 @@ const TripHistory = () => {
       
       return matchesSearch && matchesCompany && matchesVan;
     });
-  }, [trips, searchTerm, companyFilter, vanFilter]);
+  }, [trips, searchTerm, companyFilter, vanFilter, vans]);
 
   const handleDeleteTrip = async (tripId: number) => {
     console.log('Delete button clicked for trip:', tripId);

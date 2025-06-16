@@ -43,14 +43,8 @@ export const useTripSubmission = () => {
       }
     }
 
-    // Use license_plate if available, otherwise use reference_code or model as fallback
-    const vanIdentifier = selectedVan.license_plate || 
-                         (selectedVan as any).reference_code || 
-                         selectedVan.model || 
-                         `Van-${selectedVan.id.slice(0, 8)}`;
-
     const tripData = {
-      van: vanIdentifier,
+      van: selectedVan.id,
       driver: driverName,
       company: selectedCompany.name,
       branch: selectedBranch.name,
@@ -61,10 +55,10 @@ export const useTripSubmission = () => {
     };
 
     console.log('Final trip data before submission:', tripData);
-    console.log('Van identifier being sent:', tripData.van);
+    console.log('Van ID being sent:', tripData.van);
 
     if (!tripData.van) {
-      throw new Error('Van identifier is missing');
+      throw new Error('Van ID is missing');
     }
 
     await addTrip(tripData);

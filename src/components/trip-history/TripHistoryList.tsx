@@ -27,6 +27,7 @@ import {
 import TripHistoryEmptyState from './TripHistoryEmptyState';
 import { useTrip } from '@/contexts/TripContext';
 import { useToast } from '@/hooks/use-toast';
+import { useVans } from '@/hooks/useVans';
 
 interface TripHistoryListProps {
   filteredTrips: Trip[];
@@ -44,10 +45,19 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   deletingTripId
 }) => {
   const { endTrip } = useTrip();
+  const { vans } = useVans();
   const { toast } = useToast();
   const [endKmDialogOpen, setEndKmDialogOpen] = useState(false);
   const [selectedTrip, setSelectedTrip] = useState<Trip | null>(null);
   const [endKmValue, setEndKmValue] = useState('');
+
+  const getVanDisplayName = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId);
+    if (van) {
+      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
+    }
+    return vanId;
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -176,7 +186,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                       <div className="flex items-center space-x-2">
                         <Badge variant="outline" className="text-purple-600">
                           <Truck className="h-3 w-3 mr-1" />
-                          {trip.van}
+                          {getVanDisplayName(trip.van)}
                         </Badge>
                         <Badge 
                           variant={trip.status === 'active' ? 'default' : 'secondary'}

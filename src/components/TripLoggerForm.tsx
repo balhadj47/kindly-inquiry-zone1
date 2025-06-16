@@ -26,10 +26,10 @@ const TripLoggerForm = () => {
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
 
-  // Filter out vans that are currently in active trips
+  // Filter out vans that are currently in active trips using van ID
   const activeTrips = trips.filter(trip => trip.status === 'active');
   const activeVanIds = activeTrips.map(trip => trip.van);
-  const availableVans = vans.filter(van => !activeVanIds.includes(van.license_plate));
+  const availableVans = vans.filter(van => !activeVanIds.includes(van.id));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

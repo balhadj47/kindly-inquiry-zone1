@@ -1,12 +1,12 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { clearPermissionCache } from './permissionUtils';
-import type { User, Group, Permission } from '@/types/rbac';
+import type { User, Role, Permission } from '@/types/rbac';
 
 export const useRBACState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [groups, setGroups] = useState<Group[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,19 +27,19 @@ export const useRBACState = () => {
     }
   }, []);
 
-  const safeSetGroups = useCallback((newGroups: Group[] | ((prev: Group[]) => Group[])) => {
+  const safeSetRoles = useCallback((newRoles: Role[] | ((prev: Role[]) => Role[])) => {
     try {
-      if (typeof newGroups === 'function') {
-        setGroups(prev => {
-          const result = newGroups(prev);
+      if (typeof newRoles === 'function') {
+        setRoles(prev => {
+          const result = newRoles(prev);
           return Array.isArray(result) ? result : [];
         });
       } else {
-        setGroups(Array.isArray(newGroups) ? newGroups : []);
+        setRoles(Array.isArray(newRoles) ? newRoles : []);
       }
     } catch (error) {
-      console.error('Error setting groups:', error);
-      setGroups([]);
+      console.error('Error setting roles:', error);
+      setRoles([]);
     }
   }, []);
 
@@ -86,25 +86,25 @@ export const useRBACState = () => {
     safeSetCurrentUser(user);
   }, [safeSetCurrentUser]);
 
-  // Clear cache when groups change
+  // Clear cache when roles change
   useEffect(() => {
     try {
-      console.log('Groups changed, clearing permission cache. New groups count:', groups.length);
+      console.log('Roles changed, clearing permission cache. New roles count:', roles.length);
       clearPermissionCache();
     } catch (error) {
-      console.error('Error clearing permission cache on groups change:', error);
+      console.error('Error clearing permission cache on roles change:', error);
     }
-  }, [groups]);
+  }, [roles]);
 
   return {
     currentUser,
     users,
-    groups,
+    roles,
     permissions,
     loading,
     setCurrentUser: safeSetCurrentUser,
     setUsers: safeSetUsers,
-    setGroups: safeSetGroups,
+    setRoles: safeSetRoles,
     setPermissions: safeSetPermissions,
     setLoading: safeSetLoading,
     setUser,

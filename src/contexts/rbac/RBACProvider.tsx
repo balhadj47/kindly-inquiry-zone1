@@ -9,12 +9,12 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const {
     currentUser,
     users,
-    groups,
+    roles,
     permissions,
     loading,
     setCurrentUser,
     setUsers,
-    setGroups,
+    setRoles,
     setPermissions,
     setLoading,
     setUser,
@@ -22,7 +22,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useRBACDataInit({
     setUsers,
-    setGroups,
+    setRoles,
     setPermissions,
     setCurrentUser,
     setLoading,
@@ -30,16 +30,16 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const operations = useRBACOperations({
     currentUser,
-    groups,
+    roles,
     setUsers,
-    setGroups,
+    setRoles,
   });
 
   return (
     <RBACContext.Provider value={{
       currentUser,
       users,
-      groups,
+      roles,
       permissions,
       loading,
       setUser,

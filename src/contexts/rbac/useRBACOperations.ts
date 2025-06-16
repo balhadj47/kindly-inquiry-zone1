@@ -1,28 +1,28 @@
 
 import { useMemo } from 'react';
-import type { User, Group } from '@/types/rbac';
+import type { User, Role } from '@/types/rbac';
 import { createPermissionUtils } from './permissionUtils';
 import { createUserOperations } from './userOperations';
-import { createGroupOperations } from './groupOperations';
+import { createRoleOperations } from './roleOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
-  groups: Group[];
+  roles: Role[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
+  setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
 }
 
 export const useRBACOperations = ({
   currentUser,
-  groups,
+  roles,
   setUsers,
-  setGroups,
+  setRoles,
 }: UseRBACOperationsProps) => {
   // Memoize permission utils to prevent recreation on every render
   const permissionUtils = useMemo(() => {
-    console.log('Creating permission utils - User:', currentUser?.id, 'Groups:', groups.length);
+    console.log('Creating permission utils - User:', currentUser?.id, 'Roles:', roles.length);
     
-    if (!currentUser || groups.length === 0) {
+    if (!currentUser || roles.length === 0) {
       console.log('Skipping permission utils creation - missing data');
       return {
         hasPermission: () => false,
@@ -37,15 +37,15 @@ export const useRBACOperations = ({
       };
     }
     
-    return createPermissionUtils(currentUser, groups);
-  }, [currentUser?.id, currentUser?.groupId, groups.length, groups]);
+    return createPermissionUtils(currentUser, roles);
+  }, [currentUser?.id, currentUser?.role, roles.length, roles]);
 
   const userOperations = useMemo(() => createUserOperations(setUsers), [setUsers]);
-  const groupOperations = useMemo(() => createGroupOperations(setGroups), [setGroups]);
+  const roleOperations = useMemo(() => createRoleOperations(setRoles), [setRoles]);
 
   return useMemo(() => ({
     ...userOperations,
-    ...groupOperations,
+    ...roleOperations,
     ...permissionUtils,
-  }), [userOperations, groupOperations, permissionUtils]);
+  }), [userOperations, roleOperations, permissionUtils]);
 };

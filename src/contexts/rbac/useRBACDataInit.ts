@@ -2,11 +2,11 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadInitialData } from './dataLoaders';
-import type { User, Group, Permission } from '@/types/rbac';
+import type { User, Role, Permission } from '@/types/rbac';
 
 interface UseRBACDataInitProps {
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setGroups: React.Dispatch<React.SetStateAction<Group[]>>;
+  setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
   setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
   setCurrentUser: React.Dispatch<React.SetStateAction<User | null>>;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
@@ -14,7 +14,7 @@ interface UseRBACDataInitProps {
 
 export const useRBACDataInit = ({
   setUsers,
-  setGroups,
+  setRoles,
   setPermissions,
   setCurrentUser,
   setLoading,
@@ -35,20 +35,20 @@ export const useRBACDataInit = ({
         
         console.log('RBAC data loaded:', {
           usersCount: data.users.length,
-          groupsCount: data.groups.length,
+          rolesCount: data.roles.length,
           permissionsCount: data.permissions.length,
           currentUser: data.currentUser?.id
         });
         
         setUsers(data.users);
-        setGroups(data.groups);
+        setRoles(data.roles);
         setPermissions(data.permissions);
         setCurrentUser(data.currentUser);
       } catch (error) {
         console.error('Error initializing RBAC data:', error);
         if (isMounted) {
           setUsers([]);
-          setGroups([]);
+          setRoles([]);
           setPermissions([]);
           setCurrentUser(null);
         }
@@ -64,5 +64,5 @@ export const useRBACDataInit = ({
     return () => {
       isMounted = false;
     };
-  }, [authUser?.id, setUsers, setGroups, setPermissions, setCurrentUser, setLoading]);
+  }, [authUser?.id, setUsers, setRoles, setPermissions, setCurrentUser, setLoading]);
 };

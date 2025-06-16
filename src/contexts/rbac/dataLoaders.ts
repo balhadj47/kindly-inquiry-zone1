@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import type { User, Role, Permission, UserRole, UserStatus } from '@/types/rbac';
-import { DEFAULT_PERMISSIONS, DEFAULT_ROLES } from '@/types/rbac';
 
 export const loadInitialData = async (authUser: any) => {
   console.log('Loading initial RBAC data from database for user:', authUser?.id);
@@ -15,16 +14,6 @@ export const loadInitialData = async (authUser: any) => {
     if (usersError) {
       console.error('Error loading users from database:', usersError);
       throw usersError;
-    }
-
-    // Load roles from database
-    const { data: rolesData, error: rolesError } = await supabase
-      .from('roles')
-      .select('*');
-
-    if (rolesError) {
-      console.error('Error loading roles from database:', rolesError);
-      throw rolesError;
     }
 
     // Transform database users to RBAC User format
@@ -41,27 +30,11 @@ export const loadInitialData = async (authUser: any) => {
       profileImage: user.profile_image,
     }));
 
-    // Transform database roles to RBAC Role format, merge with defaults
-    let roles: Role[] = DEFAULT_ROLES.slice(); // Start with default roles
+    // Start with empty roles - no demo data
+    const roles: Role[] = [];
 
-    // Add any custom roles from database
-    if (rolesData && rolesData.length > 0) {
-      const customRoles: Role[] = rolesData
-        .filter(role => !DEFAULT_ROLES.some(defaultRole => defaultRole.id === role.id))
-        .map(role => ({
-          id: role.id,
-          name: role.name,
-          description: role.description,
-          permissions: Array.isArray(role.permissions) ? role.permissions : [],
-          color: role.color,
-          isSystemRole: false,
-        }));
-      
-      roles = [...roles, ...customRoles];
-    }
-
-    // Use default permissions
-    const permissions = DEFAULT_PERMISSIONS;
+    // Start with empty permissions - no demo data
+    const permissions: Permission[] = [];
     
     // Find current user from database users
     let currentUser: User | null = null;
@@ -83,11 +56,6 @@ export const loadInitialData = async (authUser: any) => {
         };
       }
     }
-
-    // Only use admin fallback if no current user found and there are users in the database
-    if (!currentUser && users.length > 0) {
-      currentUser = users.find(user => user.role === 'Administrator') || null;
-    }
     
     console.log('Database data loaded successfully:', {
       usersCount: users.length,
@@ -96,7 +64,6 @@ export const loadInitialData = async (authUser: any) => {
       currentUser: currentUser?.id,
       currentUserRole: currentUser?.role,
       authUserId: authUser?.id,
-      administratorRole: roles.find(r => r.id === 'administrator'),
     });
     
     return {
@@ -109,8 +76,8 @@ export const loadInitialData = async (authUser: any) => {
     console.error('Error loading RBAC data from database:', error);
     return {
       users: [],
-      roles: DEFAULT_ROLES,
-      permissions: DEFAULT_PERMISSIONS,
+      roles: [],
+      permissions: [],
       currentUser: null,
     };
   }

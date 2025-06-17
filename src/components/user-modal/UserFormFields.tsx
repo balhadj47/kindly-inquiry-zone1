@@ -4,7 +4,7 @@ import { Control } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { SystemGroupName } from '@/types/rbac';
+import { SystemGroupName } from '@/types/systemGroups';
 
 interface UserFormFieldsProps {
   control: Control<any>;

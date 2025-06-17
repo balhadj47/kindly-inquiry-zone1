@@ -1,175 +1,87 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { useRBAC } from '@/contexts/RBACContext';
-import { User, SystemGroupName, UserStatus } from '@/types/rbac';
-import { isDriverRole } from '@/utils/userModalUtils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import ProfileImageUpload from './ProfileImageUpload';
+import { Button } from '@/components/ui/button';
+import { DialogFooter } from '@/components/ui/dialog';
+import { User, UserStatus } from '@/types/rbac';
+import { SystemGroupName } from '@/types/systemGroups';
 import UserFormFields from './UserFormFields';
-import DriverFields from './DriverFields';
+import ProfileImageUpload from './ProfileImageUpload';
 
-interface UserFormData {
+interface UserModalFormProps {
+  user?: User;
+  onSubmit: (userData: Partial<User>) => Promise<void>;
+  isSubmitting: boolean;
+  onCancel: () => void;
+}
+
+interface FormData {
   name: string;
   email: string;
   phone: string;
   systemGroup: SystemGroupName;
   status: UserStatus;
-  totalTrips: number;
-  lastTrip: string;
   profileImage?: string;
 }
 
-interface UserModalFormProps {
-  user: User | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) => {
-  const { addUser, updateUser } = useRBAC();
-  const isMobile = useIsMobile();
-  const [profileImage, setProfileImage] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const form = useForm<UserFormData>({
+const UserModalForm: React.FC<UserModalFormProps> = ({
+  user,
+  onSubmit,
+  isSubmitting,
+  onCancel,
+}) => {
+  const form = useForm<FormData>({
     defaultValues: {
-      name: '',
-      email: '',
-      phone: '',
-      systemGroup: 'Employee',
-      status: 'Active',
-      totalTrips: 0,
-      lastTrip: '',
-      profileImage: '',
-    }
+      name: user?.name || '',
+      email: user?.email || '',
+      phone: user?.phone || '',
+      systemGroup: user?.systemGroup || 'Employee',
+      status: user?.status || 'Active',
+      profileImage: user?.profileImage || '',
+    },
   });
 
-  // Reset form when modal opens
-  useEffect(() => {
-    if (isOpen) {
-      console.log('Modal opened, resetting form for user:', user?.id || 'new user');
-      
-      if (user) {
-        const formData = {
-          name: user.name || '',
-          email: user.email || '',
-          phone: user.phone || '',
-          systemGroup: user.systemGroup || 'Employee',
-          status: user.status || 'Active',
-          totalTrips: user.totalTrips || 0,
-          lastTrip: user.lastTrip || '',
-          profileImage: user.profileImage || '',
-        };
-        console.log('Setting form data:', formData);
-        form.reset(formData);
-        setProfileImage(user.profileImage || '');
-      } else {
-        form.reset({
-          name: '',
-          email: '',
-          phone: '',
-          systemGroup: 'Employee',
-          status: 'Active',
-          totalTrips: 0,
-          lastTrip: '',
-          profileImage: '',
-        });
-        setProfileImage('');
-      }
-    }
-  }, [isOpen, user?.id, form]);
+  const watchedRole = form.watch('systemGroup');
 
-  const handleImageChange = (image: string) => {
-    setProfileImage(image);
-    form.setValue('profileImage', image);
-  };
-
-  const handleSubmit = async (data: UserFormData) => {
-    if (isSubmitting) {
-      console.log('Already submitting, ignoring duplicate submission');
-      return;
-    }
-    
-    console.log('Starting form submission:', { isUpdate: !!user, data });
-    setIsSubmitting(true);
-    
+  const handleSubmit = async (data: FormData) => {
     try {
-      const userData = {
-        ...data,
-        createdAt: user?.createdAt || new Date().toISOString(),
-        totalTrips: data.totalTrips || 0,
-        lastTrip: data.lastTrip || undefined,
-        profileImage: profileImage || undefined,
-      };
-
-      console.log('Submitting user data:', userData);
-
-      if (user) {
-        console.log('Updating existing user:', user.id);
-        await updateUser(user.id, userData);
-      } else {
-        console.log('Creating new user');
-        await addUser(userData);
-      }
-      
-      console.log('User operation completed successfully');
-      
-      // Immediately close the modal on success
-      onClose();
+      await onSubmit(data);
+      form.reset();
     } catch (error) {
-      console.error('Error saving user:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error submitting user form:', error);
     }
   };
-
-  const watchedSystemGroup = form.watch('systemGroup');
-  const watchedName = form.watch('name');
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className={`space-y-4 ${isMobile ? 'space-y-3' : 'space-y-6'}`}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <ProfileImageUpload
-          profileImage={profileImage}
-          userName={watchedName}
-          onImageChange={handleImageChange}
+          value={form.watch('profileImage')}
+          onChange={(url) => form.setValue('profileImage', url)}
+          userName={form.watch('name')}
           isSubmitting={isSubmitting}
         />
 
         <UserFormFields
           control={form.control}
           isSubmitting={isSubmitting}
-          watchedRole={watchedSystemGroup}
+          watchedRole={watchedRole}
         />
 
-        {isDriverRole(watchedSystemGroup) && (
-          <DriverFields
-            control={form.control}
-            isSubmitting={isSubmitting}
-          />
-        )}
-
-        <div className={`flex gap-2 pt-4 ${isMobile ? 'flex-col' : 'justify-end space-x-2'}`}>
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={onClose} 
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
             disabled={isSubmitting}
-            className={isMobile ? 'w-full text-sm' : ''}
           >
             Annuler
           </Button>
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className={isMobile ? 'w-full text-sm' : ''}
-          >
-            {isSubmitting ? 'Sauvegarde...' : (user ? 'Mettre à Jour l\'Utilisateur' : 'Créer l\'Utilisateur')}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Enregistrement...' : user ? 'Modifier' : 'Créer'}
           </Button>
-        </div>
+        </DialogFooter>
       </form>
     </Form>
   );

@@ -1,4 +1,5 @@
-import { SystemGroupName } from './systemGroups';
+
+import { SystemGroupName, SystemGroup, Permission } from './systemGroups';
 import { MissionRole } from './missionRoles';
 
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended' | 'Récupération' | 'Congé' | 'Congé maladie';
@@ -21,7 +22,7 @@ export interface User {
 }
 
 // Re-export system group types for backward compatibility
-export type { SystemGroup, SystemGroupName as UserRole, Permission } from './systemGroups';
+export type { SystemGroup, SystemGroupName, Permission } from './systemGroups';
 export type { MissionRole } from './missionRoles';
 
 // For backward compatibility, keep these empty

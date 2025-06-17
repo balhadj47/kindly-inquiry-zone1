@@ -40,6 +40,10 @@ export const loadUsers = async (): Promise<User[]> => {
 export const loadRoles = async (): Promise<Role[]> => {
   try {
     console.log('🔄 Loading roles from database...');
+    
+    // First, ensure all default roles exist in the database
+    await ensureDefaultRolesExist();
+    
     const { data, error } = await supabase
       .from('user_groups')
       .select('*')
@@ -70,11 +74,92 @@ export const loadRoles = async (): Promise<Role[]> => {
 
     const roles = transformDatabaseRolesToRoles(data);
     console.log('✅ Roles loaded from database:', roles.length);
+    
+    // Verify all default roles exist, if not create missing ones
+    const defaultRoles = getDefaultRoles();
+    const missingRoles = defaultRoles.filter(defaultRole => 
+      !roles.find(role => role.name === defaultRole.name)
+    );
+    
+    if (missingRoles.length > 0) {
+      console.log('🔄 Creating missing default roles:', missingRoles.map(r => r.name));
+      await createMissingRoles(missingRoles);
+      
+      // Reload roles after creating missing ones
+      const { data: finalData, error: finalError } = await supabase
+        .from('user_groups')
+        .select('*')
+        .order('name', { ascending: true });
+        
+      if (!finalError && finalData) {
+        return transformDatabaseRolesToRoles(finalData);
+      }
+    }
+    
     return roles;
   } catch (error) {
     console.error('❌ Exception loading roles:', error);
     console.log('🔄 Falling back to default roles...');
     return getDefaultRoles();
+  }
+};
+
+const ensureDefaultRolesExist = async (): Promise<void> => {
+  try {
+    const defaultRoles = getDefaultRoles();
+    
+    for (const role of defaultRoles) {
+      const { data: existing } = await supabase
+        .from('user_groups')
+        .select('id')
+        .eq('name', role.name)
+        .single();
+        
+      if (!existing) {
+        console.log(`🔄 Creating missing role: ${role.name}`);
+        const { error } = await supabase
+          .from('user_groups')
+          .insert({
+            id: role.id,
+            name: role.name,
+            description: role.description,
+            permissions: role.permissions,
+            color: role.color,
+          });
+        
+        if (error) {
+          console.error(`❌ Error creating role ${role.name}:`, error);
+        } else {
+          console.log(`✅ Created role: ${role.name}`);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('❌ Exception ensuring default roles exist:', error);
+  }
+};
+
+const createMissingRoles = async (missingRoles: Role[]): Promise<void> => {
+  try {
+    for (const role of missingRoles) {
+      const { error } = await supabase
+        .from('user_groups')
+        .insert({
+          id: role.id,
+          name: role.name,
+          description: role.description,
+          permissions: role.permissions,
+          color: role.color,
+        });
+      
+      if (error) {
+        console.error(`❌ Error creating missing role ${role.name}:`, error);
+      } else {
+        console.log(`✅ Created missing role: ${role.name}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Exception creating missing roles:', error);
   }
 };
 

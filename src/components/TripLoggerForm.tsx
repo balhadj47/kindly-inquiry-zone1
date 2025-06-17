@@ -49,10 +49,16 @@ const TripLoggerForm = () => {
 
   const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
 
+  // Create a stable callback for startKm changes that won't change on every render
+  const handleStartKmChange = useCallback((value: string) => {
+    console.log('🔄 TripLoggerForm: handleStartKmChange called with:', value);
+    handleInputChange('startKm', value);
+  }, [handleInputChange]);
+
   const { lastKm, loadingLastKm } = useVanKilometerLogic({
     vanId: formData.vanId,
     startKm: formData.startKm,
-    onStartKmChange: (value) => handleInputChange('startKm', value)
+    onStartKmChange: handleStartKmChange
   });
 
   useEffect(() => {
@@ -130,7 +136,7 @@ const TripLoggerForm = () => {
             selectedVanId={formData.vanId}
             onVanChange={handleVanChange}
             startKm={formData.startKm}
-            onStartKmChange={(value) => handleInputChange('startKm', value)}
+            onStartKmChange={handleStartKmChange}
             lastKm={lastKm}
             loadingLastKm={loadingLastKm}
           />

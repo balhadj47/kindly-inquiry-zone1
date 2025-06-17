@@ -17,6 +17,7 @@ interface RoleSelectionSectionProps {
   setUserSearchQuery: (query: string) => void;
   selectedUsersWithRoles: UserWithRoles[];
   onUserRoleSelection: (userId: string, roles: MissionRole[]) => void;
+  filterByRole?: string;
 }
 
 const MISSION_ROLES: { value: MissionRole; label: string; icon: React.ComponentType<any>; color: string }[] = [
@@ -31,15 +32,20 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   setUserSearchQuery,
   selectedUsersWithRoles,
   onUserRoleSelection,
+  filterByRole,
 }) => {
   const { users } = useRBAC();
 
-  // Filter users based on search query
-  const filteredUsers = users.filter(user =>
-    user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    user.systemGroup.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
-  );
+  // Filter users based on search query and system group
+  const filteredUsers = users.filter(user => {
+    const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      user.systemGroup.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+      user.email.toLowerCase().includes(userSearchQuery.toLowerCase());
+    
+    const matchesRole = !filterByRole || user.systemGroup === filterByRole;
+    
+    return matchesSearch && matchesRole;
+  });
 
   // Only show active users
   const activeUsers = filteredUsers.filter(user => user.status === 'Active');

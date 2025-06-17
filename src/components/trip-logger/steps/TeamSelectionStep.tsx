@@ -26,6 +26,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
           setUserSearchQuery={setUserSearchQuery}
           selectedUsersWithRoles={selectedUsersWithRoles}
           onUserRoleSelection={onUserRoleSelection}
+          filterByRole="Employee"
         />
       </div>
     </div>

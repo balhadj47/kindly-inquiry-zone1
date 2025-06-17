@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { SystemGroup, DEFAULT_SYSTEM_GROUPS } from '@/types/systemGroups';
 import { DatabaseCleanupService } from './databaseCleanupService';
@@ -64,7 +65,6 @@ export class SystemGroupsService {
           description: newGroup.description,
           permissions: newGroup.permissions,
           color: newGroup.color,
-          // Don't include role_id as it's unused
         })
         .select()
         .single();
@@ -84,6 +84,35 @@ export class SystemGroupsService {
 
   static async updateSystemGroup(id: string, groupData: Partial<SystemGroup>): Promise<SystemGroup> {
     try {
+      // Check if this is a system role before allowing updates
+      const isSystemRole = await this.isSystemRole(id);
+      if (isSystemRole) {
+        // Allow limited updates to system roles (description, color) but not name or core permissions
+        const allowedUpdates: any = {};
+        if (groupData.description) allowedUpdates.description = groupData.description;
+        if (groupData.color) allowedUpdates.color = this.standardizeColor(groupData.color);
+        
+        if (Object.keys(allowedUpdates).length === 0) {
+          throw new Error('System roles cannot be modified in this way');
+        }
+
+        const { data, error } = await supabase
+          .from('user_groups')
+          .update(allowedUpdates)
+          .eq('id', id)
+          .select()
+          .single();
+
+        if (error) {
+          console.error('❌ Error updating system group:', error);
+          throw new Error(`Failed to update system group: ${error.message}`);
+        }
+
+        console.log('✅ System group updated (limited):', data);
+        return this.transformDatabaseToSystemGroup(data);
+      }
+
+      // Full updates for custom groups
       const updateData: any = {};
       
       if (groupData.name) updateData.name = groupData.name;
@@ -113,6 +142,27 @@ export class SystemGroupsService {
 
   static async deleteSystemGroup(id: string): Promise<void> {
     try {
+      // Database-level protection: Check if this is a system role
+      const isSystemRole = await this.isSystemRole(id);
+      if (isSystemRole) {
+        throw new Error('System roles cannot be deleted. This action is not permitted.');
+      }
+
+      // Check if any users are assigned to this group
+      const { data: usersWithGroup, error: usersError } = await supabase
+        .from('users')
+        .select('id, name')
+        .eq('role', await this.getGroupNameById(id));
+
+      if (usersError) {
+        console.error('❌ Error checking user assignments:', usersError);
+        throw new Error('Failed to verify user assignments before deletion');
+      }
+
+      if (usersWithGroup && usersWithGroup.length > 0) {
+        throw new Error(`Cannot delete group: ${usersWithGroup.length} users are still assigned to this group. Please reassign them first.`);
+      }
+
       const { error } = await supabase
         .from('user_groups')
         .delete()
@@ -127,6 +177,47 @@ export class SystemGroupsService {
     } catch (error) {
       console.error('❌ Exception deleting system group:', error);
       throw error;
+    }
+  }
+
+  // Helper method to check if a group is a system role
+  private static async isSystemRole(id: string): Promise<boolean> {
+    try {
+      const { data, error } = await supabase
+        .from('user_groups')
+        .select('name')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        return false;
+      }
+
+      // Check if the group name matches any of the default system groups
+      return DEFAULT_SYSTEM_GROUPS.some(systemGroup => systemGroup.name === data.name);
+    } catch (error) {
+      console.error('❌ Error checking if group is system role:', error);
+      return false;
+    }
+  }
+
+  // Helper method to get group name by id
+  private static async getGroupNameById(id: string): Promise<string | null> {
+    try {
+      const { data, error } = await supabase
+        .from('user_groups')
+        .select('name')
+        .eq('id', id)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return data.name;
+    } catch (error) {
+      console.error('❌ Error getting group name:', error);
+      return null;
     }
   }
 

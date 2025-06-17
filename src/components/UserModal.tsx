@@ -1,7 +1,8 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { User } from '@/types/rbac';
+import { useRBAC } from '@/contexts/RBACContext';
 import UserModalForm from './user-modal/UserModalForm';
 
 interface UserModalProps {
@@ -11,6 +12,27 @@ interface UserModalProps {
 }
 
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { addUser, updateUser } = useRBAC();
+
+  const handleSubmit = async (userData: Partial<User>) => {
+    setIsSubmitting(true);
+    try {
+      if (user) {
+        await updateUser(user.id, userData);
+        console.log('User updated successfully');
+      } else {
+        await addUser(userData);
+        console.log('User created successfully');
+      }
+      onClose();
+    } catch (error) {
+      console.error('Error submitting user:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
@@ -28,8 +50,9 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
         
         <UserModalForm
           user={user}
-          isOpen={isOpen}
-          onClose={onClose}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          onCancel={onClose}
         />
       </DialogContent>
     </Dialog>

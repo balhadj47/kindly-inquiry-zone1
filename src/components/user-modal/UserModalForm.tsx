@@ -10,7 +10,7 @@ import UserFormFields from './UserFormFields';
 import ProfileImageUpload from './ProfileImageUpload';
 
 interface UserModalFormProps {
-  user?: User;
+  user?: User | null;
   onSubmit: (userData: Partial<User>) => Promise<void>;
   isSubmitting: boolean;
   onCancel: () => void;
@@ -57,9 +57,9 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <ProfileImageUpload
-          value={form.watch('profileImage')}
-          onChange={(url) => form.setValue('profileImage', url)}
+          profileImage={form.watch('profileImage') || ''}
           userName={form.watch('name')}
+          onImageChange={(url) => form.setValue('profileImage', url)}
           isSubmitting={isSubmitting}
         />
 

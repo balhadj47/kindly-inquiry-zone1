@@ -6,27 +6,27 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Shield, Edit, Trash } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
-import { Role } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 import RoleModal from './RoleModal';
 import RoleDeleteDialog from './RoleDeleteDialog';
 
 const RolesTab: React.FC = () => {
   const { roles, hasPermission } = useRBAC();
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<SystemGroup | null>(null);
   const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
+  const [roleToDelete, setRoleToDelete] = useState<SystemGroup | null>(null);
 
-  const canManageRoles = hasPermission('groups:manage');
-  const canReadRoles = hasPermission('groups:read');
+  const canManageGroups = hasPermission('groups:manage');
+  const canReadGroups = hasPermission('groups:read');
 
-  if (!canReadRoles) {
+  if (!canReadGroups) {
     return (
       <TabsContent value="roles" className="space-y-4">
         <div className="text-center py-8">
           <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Vous n'avez pas les permissions nécessaires pour voir les groupes d'utilisateurs.
+            Vous n'avez pas les permissions nécessaires pour voir les groupes système.
           </p>
         </div>
       </TabsContent>
@@ -38,12 +38,12 @@ const RolesTab: React.FC = () => {
     setIsRoleModalOpen(true);
   };
 
-  const handleEditRole = (role: Role) => {
+  const handleEditRole = (role: SystemGroup) => {
     setSelectedRole(role);
     setIsRoleModalOpen(true);
   };
 
-  const handleDeleteRole = (role: Role) => {
+  const handleDeleteRole = (role: SystemGroup) => {
     setRoleToDelete(role);
     setIsDeleteDialogOpen(true);
   };
@@ -62,12 +62,12 @@ const RolesTab: React.FC = () => {
     <TabsContent value="roles" className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Groupes d'Utilisateurs</h2>
+          <h2 className="text-2xl font-bold">Groupes Système</h2>
           <p className="text-muted-foreground">
-            Gérez les groupes d'utilisateurs et leurs permissions système
+            Gérez les groupes système et leurs permissions d'accès
           </p>
         </div>
-        {canManageRoles && (
+        {canManageGroups && (
           <Button onClick={handleAddRole}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Groupe
@@ -87,7 +87,7 @@ const RolesTab: React.FC = () => {
                   />
                   <span className="text-lg">{role.name}</span>
                 </CardTitle>
-                {canManageRoles && (
+                {canManageGroups && (
                   <div className="flex space-x-1">
                     <Button 
                       variant="ghost" 
@@ -151,9 +151,9 @@ const RolesTab: React.FC = () => {
         <div className="text-center py-8">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
-            Aucun groupe d'utilisateur trouvé.
+            Aucun groupe système trouvé.
           </p>
-          {canManageRoles && (
+          {canManageGroups && (
             <Button onClick={handleAddRole}>
               <Plus className="h-4 w-4 mr-2" />
               Créer le premier groupe

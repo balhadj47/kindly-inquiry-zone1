@@ -11,12 +11,12 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { useRBAC } from '@/contexts/RBACContext';
-import { Role } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 
 interface RoleDeleteDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  role: Role | null;
+  role: SystemGroup | null;
 }
 
 const RoleDeleteDialog: React.FC<RoleDeleteDialogProps> = ({ isOpen, onClose, role }) => {
@@ -31,7 +31,7 @@ const RoleDeleteDialog: React.FC<RoleDeleteDialogProps> = ({ isOpen, onClose, ro
       await deleteRole(role.id);
       onClose();
     } catch (error) {
-      console.error('Error deleting role:', error);
+      console.error('Error deleting system group:', error);
     } finally {
       setLoading(false);
     }
@@ -41,9 +41,9 @@ const RoleDeleteDialog: React.FC<RoleDeleteDialogProps> = ({ isOpen, onClose, ro
     <AlertDialog open={isOpen} onOpenChange={onClose}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Supprimer le Groupe</AlertDialogTitle>
+          <AlertDialogTitle>Supprimer le Groupe Système</AlertDialogTitle>
           <AlertDialogDescription>
-            Êtes-vous sûr de vouloir supprimer le groupe "{role?.name}" ?
+            Êtes-vous sûr de vouloir supprimer le groupe système "{role?.name}" ?
             Cette action est irréversible et peut affecter les utilisateurs assignés à ce groupe.
           </AlertDialogDescription>
         </AlertDialogHeader>

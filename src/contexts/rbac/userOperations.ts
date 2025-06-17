@@ -1,6 +1,6 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import type { User, UserRole, UserStatus } from '@/types/rbac';
+import { User, UserStatus } from '@/types/rbac';
+import { SystemGroupName } from '@/types/systemGroups';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   const addUser = async (userData: Partial<User>) => {
@@ -13,7 +13,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: userData.name,
           email: userData.email,
           phone: userData.phone,
-          role: userData.role,
+          role: userData.systemGroup, // Map systemGroup to role field
           status: userData.status || 'Active',
           profile_image: userData.profileImage,
           total_trips: userData.totalTrips || 0,
@@ -32,7 +32,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: data[0].name,
           email: data[0].email,
           phone: data[0].phone,
-          role: data[0].role as UserRole,
+          systemGroup: data[0].role as SystemGroupName,
           status: data[0].status as UserStatus,
           createdAt: data[0].created_at,
           totalTrips: data[0].total_trips || 0,
@@ -57,7 +57,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        role: userData.role,
+        role: userData.systemGroup, // Map systemGroup to role field
         status: userData.status,
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips,
@@ -81,7 +81,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: data[0].name,
           email: data[0].email,
           phone: data[0].phone,
-          role: data[0].role as UserRole,
+          systemGroup: data[0].role as SystemGroupName,
           status: data[0].status as UserStatus,
           createdAt: data[0].created_at,
           totalTrips: data[0].total_trips || 0,

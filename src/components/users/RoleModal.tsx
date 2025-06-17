@@ -13,12 +13,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRBAC } from '@/contexts/RBACContext';
-import { Role } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 
 interface RoleModalProps {
   isOpen: boolean;
   onClose: () => void;
-  role?: Role | null;
+  role?: SystemGroup | null;
 }
 
 const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
@@ -58,7 +58,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
       }
       onClose();
     } catch (error) {
-      console.error('Error saving role:', error);
+      console.error('Error saving system group:', error);
     } finally {
       setLoading(false);
     }
@@ -69,12 +69,12 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>
-            {role ? 'Modifier le Groupe' : 'Nouveau Groupe'}
+            {role ? 'Modifier le Groupe Système' : 'Nouveau Groupe Système'}
           </DialogTitle>
           <DialogDescription>
             {role 
-              ? 'Modifiez les informations du groupe d\'utilisateurs.'
-              : 'Créez un nouveau groupe d\'utilisateurs.'
+              ? 'Modifiez les informations du groupe système.'
+              : 'Créez un nouveau groupe système avec des permissions spécifiques.'
             }
           </DialogDescription>
         </DialogHeader>

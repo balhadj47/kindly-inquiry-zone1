@@ -1,51 +1,45 @@
 
-import type { Role } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
+import { SystemGroupsService } from '@/services/systemGroupsService';
 
-export const createRoleOperations = (setRoles: React.Dispatch<React.SetStateAction<Role[]>>) => {
-  const addRole = async (roleData: Partial<Role>) => {
-    console.log('Adding role (client-side only):', roleData);
+export const createRoleOperations = (setRoles: React.Dispatch<React.SetStateAction<SystemGroup[]>>) => {
+  const addRole = async (roleData: Partial<SystemGroup>) => {
+    console.log('Adding system group:', roleData);
     
     try {
-      // Since we don't have a roles table, we'll just add to local state
-      const newRole: Role = {
-        id: roleData.id || Math.random().toString(36).substr(2, 9),
-        name: roleData.name || '',
-        description: roleData.description || '',
-        permissions: roleData.permissions || [],
-        color: roleData.color || '#3b82f6',
-        isSystemRole: false,
-      };
-      
-      console.log('Role created successfully (client-side):', newRole);
-      setRoles(prev => [...prev, newRole]);
+      const newGroup = await SystemGroupsService.createSystemGroup(roleData);
+      setRoles(prev => [...prev, newGroup]);
+      console.log('✅ System group added successfully');
     } catch (error) {
-      console.error('Error in addRole operation:', error);
+      console.error('❌ Error in addRole operation:', error);
       throw error;
     }
   };
 
-  const updateRole = async (id: string, roleData: Partial<Role>) => {
-    console.log('Updating role (client-side only):', id, roleData);
+  const updateRole = async (id: string, roleData: Partial<SystemGroup>) => {
+    console.log('Updating system group:', id, roleData);
     
     try {
+      const updatedGroup = await SystemGroupsService.updateSystemGroup(id, roleData);
       setRoles(prev => prev.map(role => 
-        role.id === id ? { ...role, ...roleData } : role
+        role.id === id ? updatedGroup : role
       ));
-      console.log('Role updated successfully (client-side)');
+      console.log('✅ System group updated successfully');
     } catch (error) {
-      console.error('Error in updateRole operation:', error);
+      console.error('❌ Error in updateRole operation:', error);
       throw error;
     }
   };
 
   const deleteRole = async (id: string) => {
-    console.log('Deleting role (client-side only):', id);
+    console.log('Deleting system group:', id);
     
     try {
+      await SystemGroupsService.deleteSystemGroup(id);
       setRoles(prev => prev.filter(role => role.id !== id));
-      console.log('Role deleted successfully (client-side)');
+      console.log('✅ System group deleted successfully');
     } catch (error) {
-      console.error('Error in deleteRole operation:', error);
+      console.error('❌ Error in deleteRole operation:', error);
       throw error;
     }
   };

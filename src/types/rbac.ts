@@ -1,16 +1,5 @@
-
-export type UserRole = 
-  | 'Administrator'
-  | 'Supervisor' 
-  | 'Driver'
-  | 'Security'
-  | 'Employee'
-  | 'Chef de Groupe Armé'
-  | 'Chef de Groupe Sans Armé'
-  | 'Chauffeur Armé'
-  | 'Chauffeur Sans Armé'
-  | 'APS Armé'
-  | 'APS Sans Armé';
+import { SystemGroupName } from './systemGroups';
+import { MissionRole } from './missionRoles';
 
 export type UserStatus = 'Active' | 'Inactive' | 'Suspended' | 'Récupération' | 'Congé' | 'Congé maladie';
 
@@ -19,7 +8,8 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  role: UserRole;
+  systemGroup: SystemGroupName; // Changed from 'role' to be clearer
+  missionRole?: MissionRole; // Optional mission role for trips
   status: UserStatus;
   createdAt: string;
   licenseNumber?: string;
@@ -28,23 +18,11 @@ export interface User {
   profileImage?: string;
 }
 
-export interface Role {
-  id: string;
-  name: string;
-  description: string;
-  permissions: string[];
-  color: string;
-  isSystemRole: boolean;
-}
+// Re-export system group types for backward compatibility
+export { SystemGroup as Role, SystemGroupName as UserRole, Permission } from './systemGroups';
+export { MissionRole } from './missionRoles';
 
-export interface Permission {
-  id: string;
-  name: string;
-  description: string;
-  category: string;
-}
-
-// Empty arrays - no demo data
+// For backward compatibility, keep these empty
 export const AVAILABLE_PERMISSIONS: Permission[] = [];
 export const DEFAULT_PERMISSIONS = AVAILABLE_PERMISSIONS;
-export const DEFAULT_ROLES: Role[] = [];
+export const DEFAULT_ROLES: SystemGroup[] = [];

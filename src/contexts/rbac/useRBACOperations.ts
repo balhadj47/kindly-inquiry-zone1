@@ -1,15 +1,16 @@
 
 import { useMemo } from 'react';
-import type { User, Role } from '@/types/rbac';
+import { User } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 import { createPermissionUtils } from './permissionUtils';
 import { createUserOperations } from './userOperations';
 import { createRoleOperations } from './roleOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
-  roles: Role[];
+  roles: SystemGroup[];
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setRoles: React.Dispatch<React.SetStateAction<Role[]>>;
+  setRoles: React.Dispatch<React.SetStateAction<SystemGroup[]>>;
 }
 
 export const useRBACOperations = ({
@@ -20,7 +21,7 @@ export const useRBACOperations = ({
 }: UseRBACOperationsProps) => {
   // Memoize permission utils to prevent recreation on every render
   const permissionUtils = useMemo(() => {
-    console.log('Creating permission utils - User:', currentUser?.id, 'Roles:', roles.length);
+    console.log('Creating permission utils - User:', currentUser?.id, 'System Groups:', roles.length);
     
     if (!currentUser || roles.length === 0) {
       console.log('Skipping permission utils creation - missing data');
@@ -37,18 +38,18 @@ export const useRBACOperations = ({
       };
     }
     
-    // Create permission utils with all users and roles
+    // Create permission utils with all users and system groups
     const allUsers = currentUser ? [currentUser] : [];
     createPermissionUtils(allUsers, roles);
     
     return {
       hasPermission: (permission: string) => {
-        const userRole = roles.find(r => r.name === currentUser.role);
-        return userRole?.permissions.includes(permission) || false;
+        const userSystemGroup = roles.find(r => r.name === currentUser.systemGroup);
+        return userSystemGroup?.permissions.includes(permission) || false;
       },
       getMenuItemPermissions: () => {
-        const userRole = roles.find(r => r.name === currentUser.role);
-        const permissions = userRole?.permissions || [];
+        const userSystemGroup = roles.find(r => r.name === currentUser.systemGroup);
+        const permissions = userSystemGroup?.permissions || [];
         
         return {
           dashboard: permissions.includes('dashboard:read'),
@@ -60,7 +61,7 @@ export const useRBACOperations = ({
         };
       },
     };
-  }, [currentUser?.id, currentUser?.role, roles.length, roles]);
+  }, [currentUser?.id, currentUser?.systemGroup, roles.length, roles]);
 
   const userOperations = useMemo(() => createUserOperations(setUsers), [setUsers]);
   const roleOperations = useMemo(() => createRoleOperations(setRoles), [setRoles]);

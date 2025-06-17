@@ -1,12 +1,12 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { clearPermissionCache } from './permissionUtils';
-import type { User, Role, Permission } from '@/types/rbac';
+import { User, Permission } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 
 export const useRBACState = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
-  const [roles, setRoles] = useState<Role[]>([]);
+  const [roles, setRoles] = useState<SystemGroup[]>([]);
   const [permissions, setPermissions] = useState<Permission[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +27,7 @@ export const useRBACState = () => {
     }
   }, []);
 
-  const safeSetRoles = useCallback((newRoles: Role[] | ((prev: Role[]) => Role[])) => {
+  const safeSetRoles = useCallback((newRoles: SystemGroup[] | ((prev: SystemGroup[]) => SystemGroup[])) => {
     try {
       if (typeof newRoles === 'function') {
         setRoles(prev => {
@@ -89,7 +89,7 @@ export const useRBACState = () => {
   // Clear cache when roles change
   useEffect(() => {
     try {
-      console.log('Roles changed, clearing permission cache. New roles count:', roles.length);
+      console.log('System groups changed, clearing permission cache. New groups count:', roles.length);
       clearPermissionCache();
     } catch (error) {
       console.error('Error clearing permission cache on roles change:', error);

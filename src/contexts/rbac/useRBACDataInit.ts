@@ -3,7 +3,22 @@ import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadUsers, loadRoles } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
-import { RBACState, RBACActions } from './types';
+import { User } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
+
+interface RBACState {
+  currentUser: User | null;
+  users: User[];
+  roles: SystemGroup[];
+  loading: boolean;
+}
+
+interface RBACActions {
+  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
+  setRoles: React.Dispatch<React.SetStateAction<SystemGroup[]>>;
+  setLoading: (loading: boolean) => void;
+  setCurrentUser: (user: User | null) => void;
+}
 
 export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
   const { loading, users, roles } = state;
@@ -16,11 +31,11 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
       setLoading(true);
 
       try {
-        // Load roles first as they're needed for permission utils
-        console.log('📊 Loading roles...');
-        const rolesData = await loadRoles();
-        setRoles(rolesData);
-        console.log('✅ Roles set:', rolesData.length);
+        // Load system groups first as they're needed for permission utils
+        console.log('📊 Loading system groups...');
+        const systemGroupsData = await loadRoles();
+        setRoles(systemGroupsData);
+        console.log('✅ System groups set:', systemGroupsData.length);
 
         // Load users
         console.log('👥 Loading users...');
@@ -40,12 +55,12 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
         }
 
         // Create permission utilities after both are loaded
-        if (rolesData.length > 0) {
+        if (systemGroupsData.length > 0) {
           console.log('🔧 Creating permission utilities...');
-          createPermissionUtils(usersData, rolesData);
+          createPermissionUtils(usersData, systemGroupsData);
           console.log('✅ Permission utilities created');
         } else {
-          console.warn('⚠️ No roles available for permission utils');
+          console.warn('⚠️ No system groups available for permission utils');
         }
 
       } catch (error) {
@@ -57,12 +72,12 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
     };
 
     initializeData();
-  }, [authUser?.email]); // Include authUser.email in dependencies
+  }, [authUser?.email]);
 
-  // Re-create permission utils when roles change
+  // Re-create permission utils when system groups change
   useEffect(() => {
     if (!loading && roles.length > 0) {
-      console.log('🔄 Roles changed, updating permission utilities...');
+      console.log('🔄 System groups changed, updating permission utilities...');
       createPermissionUtils(users, roles);
     }
   }, [roles, users, loading]);

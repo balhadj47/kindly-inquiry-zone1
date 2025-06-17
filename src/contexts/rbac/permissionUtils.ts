@@ -1,23 +1,24 @@
 
-import { User, Role } from '@/types/rbac';
+import { User } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 
 let permissionCache = new Map<string, boolean>();
 let usersData: User[] = [];
-let rolesData: Role[] = [];
+let systemGroupsData: SystemGroup[] = [];
 
-export const createPermissionUtils = (users: User[], roles: Role[]) => {
+export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
   console.log('🔧 Creating permission utils with:', { 
     usersCount: users.length, 
-    rolesCount: roles.length 
+    systemGroupsCount: systemGroups.length 
   });
   
-  if (users.length === 0 || roles.length === 0) {
+  if (users.length === 0 || systemGroups.length === 0) {
     console.warn('⚠️ Skipping permission utils creation - missing data');
     return;
   }
 
   usersData = users;
-  rolesData = roles;
+  systemGroupsData = systemGroups;
   permissionCache.clear();
   console.log('✅ Permission utilities created successfully');
 };
@@ -39,16 +40,16 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return false;
     }
 
-    // Find role
-    const role = rolesData.find(r => r.name === user.role);
-    if (!role) {
-      console.warn(`⚠️ Role not found: ${user.role}`);
+    // Find system group
+    const systemGroup = systemGroupsData.find(g => g.name === user.systemGroup);
+    if (!systemGroup) {
+      console.warn(`⚠️ System group not found: ${user.systemGroup}`);
       permissionCache.set(cacheKey, false);
       return false;
     }
 
     // Check permission
-    const hasAccess = role.permissions.includes(permission);
+    const hasAccess = systemGroup.permissions.includes(permission);
     permissionCache.set(cacheKey, hasAccess);
     
     return hasAccess;
@@ -69,8 +70,8 @@ export const getUserPermissions = (userId: string): string[] => {
     const user = usersData.find(u => u.id.toString() === userId.toString());
     if (!user) return [];
 
-    const role = rolesData.find(r => r.name === user.role);
-    return role?.permissions || [];
+    const systemGroup = systemGroupsData.find(g => g.name === user.systemGroup);
+    return systemGroup?.permissions || [];
   } catch (error) {
     console.error('❌ Error getting user permissions:', error);
     return [];

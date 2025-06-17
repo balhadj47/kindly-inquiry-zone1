@@ -1,7 +1,9 @@
 
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
+import { Search } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Van {
@@ -25,25 +27,63 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   onVanChange
 }) => {
   const { t } = useLanguage();
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const filteredVans = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return availableVans;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return availableVans.filter(van => 
+      (van.reference_code?.toLowerCase().includes(query)) ||
+      van.license_plate.toLowerCase().includes(query) ||
+      van.model.toLowerCase().includes(query)
+    );
+  }, [availableVans, searchQuery]);
 
   return (
-    <div>
+    <div className="space-y-3">
       <Label htmlFor="van">{t.selectVan}</Label>
+      
+      <div className="relative">
+        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+        <Input
+          placeholder="Rechercher par référence, plaque ou modèle..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="pl-10"
+        />
+      </div>
+
       <Select value={selectedVanId} onValueChange={onVanChange}>
         <SelectTrigger>
           <SelectValue placeholder={t.selectVan} />
         </SelectTrigger>
         <SelectContent>
-          {availableVans.map((van) => (
-            <SelectItem key={van.id} value={van.id}>
-              {van.reference_code || van.license_plate} - {van.model}
-            </SelectItem>
-          ))}
+          {filteredVans.length === 0 ? (
+            <div className="p-2 text-sm text-muted-foreground text-center">
+              Aucune camionnette trouvée
+            </div>
+          ) : (
+            filteredVans.map((van) => (
+              <SelectItem key={van.id} value={van.id}>
+                {van.reference_code || van.license_plate} - {van.model}
+              </SelectItem>
+            ))
+          )}
         </SelectContent>
       </Select>
+      
       {availableVans.length < totalVans.length && (
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-sm text-muted-foreground">
           {totalVans.length - availableVans.length} van(s) currently in mission
+        </p>
+      )}
+      
+      {searchQuery && filteredVans.length !== availableVans.length && (
+        <p className="text-sm text-muted-foreground">
+          {filteredVans.length} van(s) trouvée(s) sur {availableVans.length} disponible(s)
         </p>
       )}
     </div>

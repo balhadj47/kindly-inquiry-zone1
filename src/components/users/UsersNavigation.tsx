@@ -1,8 +1,9 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Users } from 'lucide-react';
+import { User, Users, Target } from 'lucide-react';
 import RolesTab from './RolesTab';
+import MissionRolesTab from './MissionRolesTab';
 
 interface UsersNavigationProps {
   canManageGroups: boolean;
@@ -20,12 +21,17 @@ const UsersNavigation: React.FC<UsersNavigationProps> = ({ canManageGroups, chil
         {canManageGroups && (
           <TabsTrigger value="roles" className="flex items-center space-x-2">
             <Users className="h-4 w-4" />
-            <span>Groupes</span>
+            <span>Groupes Système</span>
           </TabsTrigger>
         )}
+        <TabsTrigger value="mission-roles" className="flex items-center space-x-2">
+          <Target className="h-4 w-4" />
+          <span>Rôles de Mission</span>
+        </TabsTrigger>
       </TabsList>
       {children}
       {canManageGroups && <RolesTab />}
+      <MissionRolesTab />
     </Tabs>
   );
 };

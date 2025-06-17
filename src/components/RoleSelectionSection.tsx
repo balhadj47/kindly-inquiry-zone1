@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -6,8 +5,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
 import { Users, Search, Shield, Car, UserCheck, Target } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
-
-export type MissionRole = 'Chef de Groupe' | 'Chauffeur' | 'APS' | 'Armé';
+import { MissionRole } from '@/types/missionRoles';
 
 interface UserWithRoles {
   userId: string;
@@ -147,7 +145,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
                                 id={`${user.id}-${role.value}`}
                                 checked={isRoleSelected}
                                 onCheckedChange={(checked) => 
-                                  handleRoleToggle(user.id, role.value, checked as boolean) // Now using string ID
+                                  handleRoleToggle(user.id, role.value, checked as boolean)
                                 }
                               />
                               <label 

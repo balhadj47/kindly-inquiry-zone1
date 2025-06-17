@@ -1,28 +1,16 @@
 
-export type MissionRole = 
-  | 'Driver'
-  | 'Security'
-  | 'Chef de Groupe Armé'
-  | 'Chef de Groupe Sans Armé'
-  | 'Chauffeur Armé'
-  | 'Chauffeur Sans Armé'
-  | 'APS Armé'
-  | 'APS Sans Armé';
+export type MissionRole = 'Chef de Groupe' | 'Chauffeur' | 'APS' | 'Armé';
 
 export interface MissionRoleInfo {
   id: string;
   name: MissionRole;
   description: string;
-  category: 'driver' | 'security' | 'leadership';
+  category: 'leadership' | 'driver' | 'security' | 'armed';
 }
 
 export const MISSION_ROLES: MissionRoleInfo[] = [
-  { id: 'driver', name: 'Driver', description: 'Chauffeur standard', category: 'driver' },
-  { id: 'security', name: 'Security', description: 'Agent de sécurité', category: 'security' },
-  { id: 'chef-arme', name: 'Chef de Groupe Armé', description: 'Chef de groupe avec arme', category: 'leadership' },
-  { id: 'chef-sans-arme', name: 'Chef de Groupe Sans Armé', description: 'Chef de groupe sans arme', category: 'leadership' },
-  { id: 'chauffeur-arme', name: 'Chauffeur Armé', description: 'Chauffeur avec arme', category: 'driver' },
-  { id: 'chauffeur-sans-arme', name: 'Chauffeur Sans Armé', description: 'Chauffeur sans arme', category: 'driver' },
-  { id: 'aps-arme', name: 'APS Armé', description: 'Agent de protection avec arme', category: 'security' },
-  { id: 'aps-sans-arme', name: 'APS Sans Armé', description: 'Agent de protection sans arme', category: 'security' },
+  { id: 'chef-groupe', name: 'Chef de Groupe', description: 'Chef de groupe', category: 'leadership' },
+  { id: 'chauffeur', name: 'Chauffeur', description: 'Chauffeur', category: 'driver' },
+  { id: 'aps', name: 'APS', description: 'Agent de protection et de sécurité', category: 'security' },
+  { id: 'arme', name: 'Armé', description: 'Personnel armé', category: 'armed' },
 ];

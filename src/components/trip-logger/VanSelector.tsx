@@ -53,7 +53,7 @@ const VanSelector: React.FC<VanSelectorProps> = ({
     
     console.log('VanSelector: Filtered result count:', filtered.length);
     return filtered;
-  }, [searchQuery, availableVans.length]); // Only depend on searchQuery and length, not the entire array
+  }, [searchQuery, availableVans]);
 
   return (
     <div className="space-y-3">

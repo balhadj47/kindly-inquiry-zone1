@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { MissionRole } from '@/components/RoleSelectionSection';
+import { MissionRole } from '@/types/missionRoles';
 
 export interface UserWithRoles {
   userId: string;

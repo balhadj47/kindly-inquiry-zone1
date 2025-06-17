@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
+import { useTrip } from '@/contexts/TripContext';
 import StatsGrid from './dashboard/StatsGrid';
 import ChartsSection from './dashboard/ChartsSection';
-import SystemStatus from './dashboard/SystemStatus';
 import { calculateDashboardStats, createChartData } from './dashboard/DashboardStats';
 
 const DashboardLoadingSkeleton = () => {
@@ -47,27 +47,6 @@ const DashboardLoadingSkeleton = () => {
           </Card>
         ))}
       </div>
-
-      {/* System Status skeleton */}
-      <Card className="animate-pulse">
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3 sm:space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 sm:p-4 bg-gray-50 rounded-lg gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                  <Skeleton className="h-4 w-24" />
-                  <Skeleton className="h-4 w-16" />
-                </div>
-                <Skeleton className="h-3 w-40 mt-1" />
-              </div>
-              <Skeleton className="h-3 w-24" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };
@@ -76,13 +55,10 @@ const Dashboard = () => {
   const { users } = useRBAC();
   const { vans } = useVans();
   const { companies } = useCompanies();
+  const { trips } = useTrip();
 
-  const stats = calculateDashboardStats(users, vans, companies);
-  const chartData = createChartData(companies);
-
-  const activeVans = vans.filter(van => van.status === 'Actif' || !van.status).length;
-  const totalUsers = users.length;
-  const totalCompanies = companies.length;
+  const stats = calculateDashboardStats(users, vans, companies, trips);
+  const chartData = createChartData(companies, trips);
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -94,11 +70,6 @@ const Dashboard = () => {
 
       <StatsGrid stats={stats} />
       <ChartsSection chartData={chartData} />
-      <SystemStatus 
-        totalUsers={totalUsers} 
-        activeVans={activeVans} 
-        totalCompanies={totalCompanies} 
-      />
     </div>
   );
 };

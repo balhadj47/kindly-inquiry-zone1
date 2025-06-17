@@ -83,17 +83,17 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
     <div className="space-y-3">
       <Label className="flex items-center space-x-2">
         <Users className="h-4 w-4" />
-        <span>Sélectionner les utilisateurs et leurs rôles ({totalSelectedUsers} sélectionné{totalSelectedUsers !== 1 ? 's' : ''})</span>
+        <span className="text-sm sm:text-base">Sélectionner les utilisateurs et leurs rôles ({totalSelectedUsers} sélectionné{totalSelectedUsers !== 1 ? 's' : ''})</span>
       </Label>
       
       {/* User Search Input */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
-          placeholder="Rechercher des utilisateurs par nom, email ou rôle..."
+          placeholder="Rechercher des utilisateurs..."
           value={userSearchQuery}
           onChange={(e) => setUserSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-10 text-sm"
         />
       </div>
 
@@ -105,7 +105,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
           return (
             <Badge key={role.value} variant="outline" className={`${role.color} flex items-center space-x-1 text-xs py-0.5 px-1.5`}>
               <IconComponent className="h-2.5 w-2.5" />
-              <span>{role.label}</span>
+              <span className="hidden sm:inline">{role.label}</span>
             </Badge>
           );
         })}
@@ -124,55 +124,56 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
               const isSelected = isUserSelected(user.id);
               
               return (
-                <div key={user.id} className={`border-b last:border-b-0 p-2 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center">
-                          <Users className="h-2.5 w-2.5 text-gray-600" />
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-gray-900 text-sm">{user.name}</span>
-                          {/* Show role icons next to name */}
+                <div key={user.id} className={`border-b last:border-b-0 p-2 sm:p-3 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
+                  <div className="flex flex-col space-y-3">
+                    {/* User Header */}
+                    <div className="flex items-center space-x-2">
+                      <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Users className="h-2.5 w-2.5 text-gray-600" />
+                      </div>
+                      <div className="flex items-center space-x-2 flex-1 min-w-0">
+                        <span className="font-medium text-gray-900 text-sm truncate">{user.name}</span>
+                        {/* Show role icons next to name */}
+                        <div className="flex space-x-1">
                           {userRoles.map((roleName) => {
                             const role = MISSION_ROLES.find(r => r.value === roleName);
                             if (!role) return null;
                             const IconComponent = role.icon;
                             
                             return (
-                              <IconComponent key={roleName} className="h-3 w-3 text-gray-600" />
+                              <IconComponent key={roleName} className="h-3 w-3 text-gray-600 flex-shrink-0" />
                             );
                           })}
                         </div>
                       </div>
-                      
-                      {/* Role Selection Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1 ml-7">
-                        {MISSION_ROLES.map((role) => {
-                          const IconComponent = role.icon;
-                          const isRoleSelected = userRoles.includes(role.value);
-                          
-                          return (
-                            <div key={role.value} className="flex items-center space-x-1">
-                              <Checkbox
-                                id={`${user.id}-${role.value}`}
-                                checked={isRoleSelected}
-                                onCheckedChange={(checked) => 
-                                  handleRoleToggle(user.id, role.value, checked as boolean)
-                                }
-                                className="h-3 w-3"
-                              />
-                              <label 
-                                htmlFor={`${user.id}-${role.value}`}
-                                className="flex items-center space-x-1 cursor-pointer text-xs"
-                              >
-                                <IconComponent className="h-2.5 w-2.5" />
-                                <span>{role.label}</span>
-                              </label>
-                            </div>
-                          );
-                        })}
-                      </div>
+                    </div>
+                    
+                    {/* Role Selection Grid */}
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 ml-7">
+                      {MISSION_ROLES.map((role) => {
+                        const IconComponent = role.icon;
+                        const isRoleSelected = userRoles.includes(role.value);
+                        
+                        return (
+                          <div key={role.value} className="flex items-center space-x-1.5">
+                            <Checkbox
+                              id={`${user.id}-${role.value}`}
+                              checked={isRoleSelected}
+                              onCheckedChange={(checked) => 
+                                handleRoleToggle(user.id, role.value, checked as boolean)
+                              }
+                              className="h-3 w-3 flex-shrink-0"
+                            />
+                            <label 
+                              htmlFor={`${user.id}-${role.value}`}
+                              className="flex items-center space-x-1 cursor-pointer text-xs min-w-0"
+                            >
+                              <IconComponent className="h-2.5 w-2.5 flex-shrink-0" />
+                              <span className="truncate">{role.label}</span>
+                            </label>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                 </div>

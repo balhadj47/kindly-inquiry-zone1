@@ -8,20 +8,20 @@ import { Plus, Users, Shield, Edit, Trash } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { Role } from '@/types/rbac';
 
-const GroupsTab: React.FC = () => {
+const RolesTab: React.FC = () => {
   const { roles, hasPermission } = useRBAC();
-  const [selectedGroup, setSelectedGroup] = useState<Role | null>(null);
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
 
-  const canManageGroups = hasPermission('groups:manage');
-  const canReadGroups = hasPermission('groups:read');
+  const canManageRoles = hasPermission('groups:manage');
+  const canReadRoles = hasPermission('groups:read');
 
-  if (!canReadGroups) {
+  if (!canReadRoles) {
     return (
-      <TabsContent value="groups" className="space-y-4">
+      <TabsContent value="roles" className="space-y-4">
         <div className="text-center py-8">
           <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Vous n'avez pas les permissions nécessaires pour voir les groupes.
+            Vous n'avez pas les permissions nécessaires pour voir les rôles.
           </p>
         </div>
       </TabsContent>
@@ -29,18 +29,18 @@ const GroupsTab: React.FC = () => {
   }
 
   return (
-    <TabsContent value="groups" className="space-y-4">
+    <TabsContent value="roles" className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Groupes et Rôles</h2>
+          <h2 className="text-2xl font-bold">Rôles et Permissions</h2>
           <p className="text-muted-foreground">
-            Gérez les groupes d'utilisateurs et leurs permissions
+            Gérez les rôles d'utilisateurs et leurs permissions
           </p>
         </div>
-        {canManageGroups && (
+        {canManageRoles && (
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau Groupe
+            Nouveau Rôle
           </Button>
         )}
       </div>
@@ -57,12 +57,12 @@ const GroupsTab: React.FC = () => {
                   />
                   <span className="text-lg">{role.name}</span>
                 </CardTitle>
-                {canManageGroups && (
+                {canManageRoles && (
                   <div className="flex space-x-1">
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setSelectedGroup(role)}
+                      onClick={() => setSelectedRole(role)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -120,12 +120,12 @@ const GroupsTab: React.FC = () => {
         <div className="text-center py-8">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
-            Aucun groupe trouvé.
+            Aucun rôle trouvé.
           </p>
-          {canManageGroups && (
+          {canManageRoles && (
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Créer le premier groupe
+              Créer le premier rôle
             </Button>
           )}
         </div>
@@ -134,4 +134,4 @@ const GroupsTab: React.FC = () => {
   );
 };
 
-export default GroupsTab;
+export default RolesTab;

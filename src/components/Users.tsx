@@ -40,7 +40,12 @@ const Users = () => {
   console.log('Users component - Permission checks:', {
     'users:read': hasPermission('users:read'),
     'users:create': hasPermission('users:create'),
+    'groups:read': hasPermission('groups:read'),
+    'groups:manage': hasPermission('groups:manage'),
   });
+
+  // Check if user can manage groups
+  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.role === 'Administrator';
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -88,7 +93,7 @@ const Users = () => {
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <UsersHeader onAddUser={handleAddUser} />
 
-      <UsersNavigation canManageGroups={false}>
+      <UsersNavigation canManageGroups={canManageGroups}>
         <UsersTab
           users={users || []}
           searchTerm={searchTerm}

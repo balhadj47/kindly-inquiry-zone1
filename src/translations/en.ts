@@ -278,8 +278,5 @@ export const en: TranslationKeys = {
   selectVehicleAndKm: 'Please select a vehicle and enter the starting mileage',
   selectCompanyAndBranch: 'Please select a company and branch',
   selectAtLeastOneUser: 'Please select at least one user with roles',
-  startDateMustBeBeforeEnd: 'Start date must be before end date',
-  
-  // Missing translations from TripHistoryStats
-  tripsToday: 'Trips Today'
+  startDateMustBeBeforeEnd: 'Start date must be before end date'
 };

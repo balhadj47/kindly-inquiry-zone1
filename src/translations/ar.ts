@@ -278,8 +278,5 @@ export const ar: TranslationKeys = {
   selectVehicleAndKm: 'يرجى اختيار مركبة وإدخال الكيلومترات البدائية',
   selectCompanyAndBranch: 'يرجى اختيار شركة وفرع',
   selectAtLeastOneUser: 'يرجى اختيار مستخدم واحد على الأقل مع الأدوار',
-  startDateMustBeBeforeEnd: 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية',
-  
-  // Missing translations from TripHistoryStats
-  tripsToday: 'رحلات اليوم'
+  startDateMustBeBeforeEnd: 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية'
 };

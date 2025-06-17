@@ -55,7 +55,7 @@ const UserProfile = () => {
         </div>
         <div className="px-3 group-data-[collapsible=icon]:hidden">
           <p className="text-xs text-muted-foreground text-center">
-            © 2024 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
+            © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
           </p>
         </div>
       </div>
@@ -110,7 +110,7 @@ const UserProfile = () => {
       
       <div className="px-3 group-data-[collapsible=icon]:hidden">
         <p className="text-xs text-muted-foreground text-center">
-          © 2024 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
+          © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
         </p>
       </div>
     </div>

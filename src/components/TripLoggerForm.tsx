@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
@@ -50,10 +49,13 @@ const TripLoggerForm = () => {
     onStartKmChange: (value) => handleInputChange('startKm', value)
   });
 
-  // Filter out vans that are currently in active trips using van ID
-  const activeTrips = trips.filter(trip => trip.status === 'active');
-  const activeVanIds = activeTrips.map(trip => trip.van);
-  const availableVans = vans.filter(van => !activeVanIds.includes(van.id));
+  // Memoize the availableVans calculation to prevent unnecessary re-renders
+  const availableVans = useMemo(() => {
+    const activeVanIds = trips
+      .filter(trip => trip.status === 'active')
+      .map(trip => trip.van);
+    return vans.filter(van => !activeVanIds.includes(van.id));
+  }, [vans, trips]);
 
   const handleNext = () => {
     if (validateStep(currentStep, formData)) {

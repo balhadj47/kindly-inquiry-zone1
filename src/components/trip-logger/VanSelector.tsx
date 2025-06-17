@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -29,18 +29,16 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const filteredVans = useMemo(() => {
-    console.log('VanSelector: Filtering vans...', { searchQuery, availableVansCount: availableVans.length });
-    
+  // Filter vans directly in render without useMemo to avoid dependency issues
+  const getFilteredVans = () => {
     if (!searchQuery.trim()) {
       return availableVans;
     }
 
     const query = searchQuery.toLowerCase().trim();
     
-    const filtered = availableVans.filter(van => {
+    return availableVans.filter(van => {
       if (!van) {
-        console.warn('VanSelector: Found null/undefined van');
         return false;
       }
       
@@ -50,10 +48,9 @@ const VanSelector: React.FC<VanSelectorProps> = ({
       
       return refCodeMatch || plateMatch || modelMatch;
     });
-    
-    console.log('VanSelector: Filtered result count:', filtered.length);
-    return filtered;
-  }, [searchQuery, availableVans]);
+  };
+
+  const filteredVans = getFilteredVans();
 
   return (
     <div className="space-y-3">

@@ -30,7 +30,7 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredVans = useMemo(() => {
-    console.log('VanSelector: Filtering vans...', { searchQuery, availableVans });
+    console.log('VanSelector: Filtering vans...', { searchQuery, availableVansCount: availableVans.length });
     
     if (!searchQuery.trim()) {
       return availableVans;
@@ -39,8 +39,6 @@ const VanSelector: React.FC<VanSelectorProps> = ({
     const query = searchQuery.toLowerCase().trim();
     
     const filtered = availableVans.filter(van => {
-      console.log('VanSelector: Checking van:', van);
-      
       if (!van) {
         console.warn('VanSelector: Found null/undefined van');
         return false;
@@ -50,14 +48,12 @@ const VanSelector: React.FC<VanSelectorProps> = ({
       const plateMatch = van.license_plate?.toLowerCase()?.includes(query);
       const modelMatch = van.model?.toLowerCase()?.includes(query);
       
-      console.log('VanSelector: Match results:', { refCodeMatch, plateMatch, modelMatch });
-      
       return refCodeMatch || plateMatch || modelMatch;
     });
     
-    console.log('VanSelector: Filtered result:', filtered);
+    console.log('VanSelector: Filtered result count:', filtered.length);
     return filtered;
-  }, [availableVans, searchQuery]);
+  }, [searchQuery, availableVans.length]); // Only depend on searchQuery and length, not the entire array
 
   return (
     <div className="space-y-3">

@@ -1,13 +1,13 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { TabsContent } from '@/components/ui/tabs';
 import { User } from '@/types/rbac';
 import UserFilters from './UserFilters';
-import UserGrid from './UserGrid';
-import UserTable from './UserTable';
 import UserViewToggle from './UserViewToggle';
-import UserPagination from './UserPagination';
+import UserListContent from './UserListContent';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUsersFiltering } from '@/hooks/useUsersFiltering';
+import { useUsersPagination } from '@/hooks/useUsersPagination';
 
 interface UsersTabProps {
   users: User[];
@@ -40,102 +40,35 @@ const UsersTab: React.FC<UsersTabProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const [view, setView] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
-  const [currentPage, setCurrentPage] = useState(1);
+  
   const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
 
-  // Add comprehensive safety checks for arrays
-  const safeUsers = useMemo(() => {
-    if (!Array.isArray(users)) {
-      console.warn('UsersTab - users prop is not an array:', typeof users);
-      return [];
-    }
-    return users.filter(user => user && typeof user === 'object' && user.id);
-  }, [users]);
+  // Use our custom filtering hook
+  const { safeUsers, filteredUsers, uniqueStatuses, uniqueRoles } = useUsersFiltering({
+    users,
+    searchTerm,
+    statusFilter,
+    roleFilter,
+  });
 
-  // Memoize filtered users to prevent unnecessary recalculations
-  const filteredUsers = useMemo(() => {
-    try {
-      return safeUsers.filter(user => {
-        if (!user || typeof user !== 'object') {
-          console.warn('UsersTab - Invalid user object:', user);
-          return false;
-        }
-
-        const safeSearchTerm = typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
-        
-        const matchesSearch = !safeSearchTerm || 
-          (user.name && user.name.toLowerCase().includes(safeSearchTerm)) ||
-          (user.email && user.email.toLowerCase().includes(safeSearchTerm)) ||
-          (user.licenseNumber && user.licenseNumber.toLowerCase().includes(safeSearchTerm));
-
-        const matchesStatus = !statusFilter || statusFilter === 'all' || user.status === statusFilter;
-        const matchesRole = !roleFilter || roleFilter === 'all' || user.systemGroup === roleFilter;
-
-        return matchesSearch && matchesStatus && matchesRole;
-      });
-    } catch (error) {
-      console.error('Error filtering users:', error);
-      return [];
-    }
-  }, [safeUsers, searchTerm, statusFilter, roleFilter]);
-
-  // Memoize unique values
-  const uniqueStatuses = useMemo(() => {
-    try {
-      const statuses = safeUsers
-        .map(user => user?.status)
-        .filter(status => status && typeof status === 'string');
-      return [...new Set(statuses)];
-    } catch (error) {
-      console.error('Error calculating unique statuses:', error);
-      return [];
-    }
-  }, [safeUsers]);
-
-  const uniqueRoles = useMemo(() => {
-    try {
-      const roles = safeUsers
-        .map(user => user?.systemGroup)
-        .filter(role => role && typeof role === 'string');
-      return [...new Set(roles)];
-    } catch (error) {
-      console.error('Error calculating unique roles:', error);
-      return [];
-    }
-  }, [safeUsers]);
+  // Use our custom pagination hook
+  const { currentPage, totalPages, paginatedUsers, handlePageChange } = useUsersPagination({
+    filteredUsers,
+    itemsPerPage,
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    view,
+  });
 
   // Safe view change handler
   const handleViewChange = useCallback((newView: 'grid' | 'table') => {
     try {
       setView(newView);
-      setCurrentPage(1); // Reset to first page when changing view
     } catch (error) {
       console.error('Error changing view:', error);
     }
   }, []);
-
-  // Safe page change handler
-  const handlePageChange = useCallback((page: number) => {
-    try {
-      const safePage = Math.max(1, Math.floor(page));
-      setCurrentPage(safePage);
-    } catch (error) {
-      console.error('Error changing page:', error);
-    }
-  }, []);
-
-  // Reset to first page when filters change
-  React.useEffect(() => {
-    console.log('UsersTab - Resetting to page 1 due to filter change');
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter, roleFilter, view]);
-
-  // Calculate pagination safely
-  const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
-  const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-  const startIndex = (safeCurrentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   console.log('UsersTab - Rendering with safe data:', {
     usersCount: safeUsers.length,
@@ -143,7 +76,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
     statusFilter,
     roleFilter,
     view,
-    currentPage: safeCurrentPage,
+    currentPage,
     filteredUsersCount: filteredUsers.length,
     totalPages,
     paginatedUsersCount: paginatedUsers.length,
@@ -181,59 +114,20 @@ const UsersTab: React.FC<UsersTabProps> = ({
         )}
       </div>
 
-      {view === 'table' && !isMobile ? (
-        <div className="space-y-4">
-          {filteredUsers.length === 0 ? (
-            <div className="text-center py-8">
-              <p className="text-muted-foreground">
-                {hasActiveFilters 
-                  ? 'Aucun utilisateur ne correspond aux filtres actuels.' 
-                  : 'Aucun utilisateur trouvé.'
-                }
-              </p>
-              {hasActiveFilters && (
-                <button
-                  onClick={clearFilters}
-                  className="text-primary hover:underline mt-2"
-                >
-                  Effacer les filtres
-                </button>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="overflow-x-auto">
-                <UserTable
-                  users={paginatedUsers}
-                  onEditUser={onEditUser}
-                  onDeleteUser={onDeleteUser}
-                  onChangePassword={onChangePassword}
-                />
-              </div>
-              
-              <UserPagination
-                currentPage={safeCurrentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-                totalItems={filteredUsers.length}
-                itemsPerPage={itemsPerPage}
-              />
-            </>
-          )}
-        </div>
-      ) : (
-        <UserGrid
-          users={filteredUsers}
-          hasActiveFilters={hasActiveFilters}
-          clearFilters={clearFilters}
-          onEditUser={onEditUser}
-          onDeleteUser={onDeleteUser}
-          onChangePassword={onChangePassword}
-          currentPage={safeCurrentPage}
-          itemsPerPage={itemsPerPage}
-          onPageChange={handlePageChange}
-        />
-      )}
+      <UserListContent
+        view={view}
+        filteredUsers={filteredUsers}
+        paginatedUsers={paginatedUsers}
+        hasActiveFilters={hasActiveFilters}
+        clearFilters={clearFilters}
+        onEditUser={onEditUser}
+        onDeleteUser={onDeleteUser}
+        onChangePassword={onChangePassword}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
+        itemsPerPage={itemsPerPage}
+      />
     </TabsContent>
   );
 };

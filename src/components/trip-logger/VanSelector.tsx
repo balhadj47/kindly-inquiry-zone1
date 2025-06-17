@@ -45,33 +45,38 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   return (
     <div className="space-y-3">
       <Label htmlFor="van">{t.selectVan}</Label>
-      
-      <div className="relative">
-        <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-        <Input
-          placeholder="Rechercher par référence, plaque ou modèle..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
-        />
-      </div>
 
       <Select value={selectedVanId} onValueChange={onVanChange}>
         <SelectTrigger>
           <SelectValue placeholder={t.selectVan} />
         </SelectTrigger>
-        <SelectContent>
-          {filteredVans.length === 0 ? (
-            <div className="p-2 text-sm text-muted-foreground text-center">
-              Aucune camionnette trouvée
+        <SelectContent className="bg-white">
+          <div className="sticky top-0 bg-white p-2 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Rechercher par référence, plaque ou modèle..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+                onClick={(e) => e.stopPropagation()}
+              />
             </div>
-          ) : (
-            filteredVans.map((van) => (
-              <SelectItem key={van.id} value={van.id}>
-                {van.reference_code || van.license_plate} - {van.model}
-              </SelectItem>
-            ))
-          )}
+          </div>
+          
+          <div className="max-h-60 overflow-y-auto">
+            {filteredVans.length === 0 ? (
+              <div className="p-4 text-sm text-muted-foreground text-center">
+                {searchQuery ? 'Aucune camionnette trouvée' : 'Aucune camionnette disponible'}
+              </div>
+            ) : (
+              filteredVans.map((van) => (
+                <SelectItem key={van.id} value={van.id}>
+                  {van.reference_code || van.license_plate} - {van.model}
+                </SelectItem>
+              ))
+            )}
+          </div>
         </SelectContent>
       </Select>
       

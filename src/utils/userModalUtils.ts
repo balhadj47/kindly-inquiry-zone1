@@ -1,5 +1,5 @@
 
-import { UserRole } from '@/types/rbac';
+import { SystemGroupName } from '@/types/systemGroups';
 
 export const getUserInitials = (name: string): string => {
   return name
@@ -10,6 +10,8 @@ export const getUserInitials = (name: string): string => {
     .slice(0, 2);
 };
 
-export const isDriverRole = (role: UserRole): boolean => {
-  return role === 'Chauffeur Armé' || role === 'Chauffeur Sans Armé';
+export const isDriverRole = (systemGroup: SystemGroupName): boolean => {
+  // Check if the system group name includes driver-related terms
+  const groupStr = systemGroup.toString().toLowerCase();
+  return groupStr.includes('chauffeur') || groupStr.includes('driver');
 };

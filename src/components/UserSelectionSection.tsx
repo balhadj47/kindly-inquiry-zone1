@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -21,14 +20,14 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
 }) => {
   const { filteredUsers, totalFilteredUsers, users } = useUserFiltering(userSearchQuery);
 
-  // Group users by their role
+  // Group users by their system group
   const usersByRole = React.useMemo(() => {
     const grouped = filteredUsers.reduce((acc, user) => {
-      const role = user.role;
-      if (!acc[role]) {
-        acc[role] = [];
+      const systemGroup = user.systemGroup;
+      if (!acc[systemGroup]) {
+        acc[systemGroup] = [];
       }
-      acc[role].push(user);
+      acc[systemGroup].push(user);
       return acc;
     }, {} as Record<string, typeof filteredUsers>);
     
@@ -53,20 +52,20 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         />
       </div>
 
-      {/* Users grouped by their roles */}
+      {/* Users grouped by their system groups */}
       <div className="max-h-96 overflow-y-auto border rounded-md">
         {usersByRole.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-8">
             {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
           </p>
         ) : (
-          usersByRole.map(([role, roleUsers]) => {
+          usersByRole.map(([systemGroup, roleUsers]) => {
             if (!roleUsers || roleUsers.length === 0) return null;
 
             return (
-              <div key={role} className="border-b last:border-b-0">
+              <div key={systemGroup} className="border-b last:border-b-0">
                 <div className="px-4 py-3 bg-gray-100 font-medium text-sm border-b">
-                  {role} ({roleUsers.length} users)
+                  {systemGroup} ({roleUsers.length} users)
                 </div>
                 <div className="p-3 space-y-3">
                   {roleUsers.map((user) => {
@@ -88,7 +87,7 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
                           <div className="flex justify-between items-center">
                             <div>
                               <span className="font-medium">{user.name}</span>
-                              <span className="text-sm text-gray-500 ml-2">({user.role})</span>
+                              <span className="text-sm text-gray-500 ml-2">({user.systemGroup})</span>
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 user.status === 'Active' ? 'bg-green-100 text-green-800' :
                                 user.status === 'Récupération' ? 'bg-yellow-100 text-yellow-800' :

@@ -69,7 +69,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
           (user.licenseNumber && user.licenseNumber.toLowerCase().includes(safeSearchTerm));
 
         const matchesStatus = !statusFilter || statusFilter === 'all' || user.status === statusFilter;
-        const matchesRole = !roleFilter || roleFilter === 'all' || user.role === roleFilter;
+        const matchesRole = !roleFilter || roleFilter === 'all' || user.systemGroup === roleFilter;
 
         return matchesSearch && matchesStatus && matchesRole;
       });
@@ -95,7 +95,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const uniqueRoles = useMemo(() => {
     try {
       const roles = safeUsers
-        .map(user => user?.role)
+        .map(user => user?.systemGroup)
         .filter(role => role && typeof role === 'string');
       return [...new Set(roles)];
     } catch (error) {

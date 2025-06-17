@@ -64,11 +64,11 @@ const UserTable: React.FC<UserTableProps> = ({
     }
   };
 
-  const getRoleColor = (role: string) => {
-    if (role.includes('Administrator')) return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (role.includes('Chef')) return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (role.includes('Chauffeur')) return 'bg-green-50 text-green-700 border-green-200';
-    if (role.includes('APS')) return 'bg-orange-50 text-orange-700 border-orange-200';
+  const getRoleColor = (systemGroup: string) => {
+    if (systemGroup.includes('Administrator')) return 'bg-purple-50 text-purple-700 border-purple-200';
+    if (systemGroup.includes('Chef')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (systemGroup.includes('Chauffeur')) return 'bg-green-50 text-green-700 border-green-200';
+    if (systemGroup.includes('APS')) return 'bg-orange-50 text-orange-700 border-orange-200';
     return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
@@ -140,9 +140,9 @@ const UserTable: React.FC<UserTableProps> = ({
                 <TableCell>
                   <Badge 
                     variant="outline" 
-                    className={`text-xs ${getRoleColor(user.role)}`}
+                    className={`text-xs ${getRoleColor(user.systemGroup)}`}
                   >
-                    {user.role}
+                    {user.systemGroup}
                   </Badge>
                 </TableCell>
                 

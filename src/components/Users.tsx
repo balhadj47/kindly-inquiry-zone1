@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -45,7 +44,7 @@ const Users = () => {
   });
 
   // Check if user can manage groups
-  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.role === 'Administrator';
+  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.systemGroup === 'Administrator';
 
   const clearFilters = () => {
     setSearchTerm('');

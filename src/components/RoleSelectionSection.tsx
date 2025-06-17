@@ -39,7 +39,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   // Filter users based on search query
   const filteredUsers = users.filter(user =>
     user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-    user.role.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
+    user.systemGroup.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
     user.email.toLowerCase().includes(userSearchQuery.toLowerCase())
   );
 
@@ -115,8 +115,8 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
         ) : (
           <div className="space-y-0">
             {activeUsers.map((user) => {
-              const userRoles = getUserRoles(user.id); // Now using string ID
-              const isSelected = isUserSelected(user.id); // Now using string ID
+              const userRoles = getUserRoles(user.id);
+              const isSelected = isUserSelected(user.id);
               
               return (
                 <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
@@ -128,7 +128,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
                         </div>
                         <div>
                           <span className="font-medium text-gray-900">{user.name}</span>
-                          <span className="text-sm text-gray-500 ml-2">({user.role})</span>
+                          <span className="text-sm text-gray-500 ml-2">({user.systemGroup})</span>
                           <Badge variant="outline" className="ml-2 text-xs bg-green-100 text-green-800">
                             {user.status}
                           </Badge>

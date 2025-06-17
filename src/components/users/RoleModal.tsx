@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRBAC } from '@/contexts/RBACContext';
-import { SystemGroup } from '@/types/systemGroups';
+import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -24,7 +24,7 @@ interface RoleModalProps {
 const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
   const { addRole, updateRole } = useRBAC();
   const [formData, setFormData] = useState({
-    name: '',
+    name: '' as SystemGroupName | '',
     description: '',
     color: '#3b82f6',
   });
@@ -52,9 +52,17 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
 
     try {
       if (role) {
-        await updateRole(role.id, formData);
+        await updateRole(role.id, {
+          name: formData.name as SystemGroupName,
+          description: formData.description,
+          color: formData.color,
+        });
       } else {
-        await addRole(formData);
+        await addRole({
+          name: formData.name as SystemGroupName,
+          description: formData.description,
+          color: formData.color,
+        });
       }
       onClose();
     } catch (error) {
@@ -87,7 +95,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
               <Input
                 id="name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value as SystemGroupName })}
                 className="col-span-3"
                 required
               />

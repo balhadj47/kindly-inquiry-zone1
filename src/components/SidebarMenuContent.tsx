@@ -43,9 +43,9 @@ const SidebarMenuContent = () => {
           <div className="font-medium mb-2">No menu items visible</div>
           <div className="space-y-1 text-xs opacity-75">
             <div>User: {currentUser?.name || 'None'}</div>
-            <div>Role: {currentUser?.role || 'None'}</div>
+            <div>Role: {currentUser?.systemGroup || 'None'}</div>
             <div>Roles loaded: {roles.length}</div>
-            <div>User Role Found: {roles.find(r => r.name === currentUser?.role)?.name || 'Not found'}</div>
+            <div>User Role Found: {roles.find(r => r.name === currentUser?.systemGroup)?.name || 'Not found'}</div>
           </div>
         </div>
       )}

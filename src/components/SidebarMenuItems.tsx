@@ -66,7 +66,7 @@ export const useSidebarMenuItems = () => {
   const filteredMenuItems = useMemo(() => {
     console.log('=== Menu Items Filtering Debug ===');
     console.log('Loading state:', loading);
-    console.log('Current user:', currentUser?.id, currentUser?.role);
+    console.log('Current user:', currentUser?.id, currentUser?.systemGroup);
     console.log('Roles loaded:', roles.length);
     
     // If still loading, show all items for now to avoid empty menu

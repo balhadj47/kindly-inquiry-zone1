@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { useRBAC } from '@/contexts/RBACContext';
-import { User, UserRole, UserStatus } from '@/types/rbac';
+import { User, SystemGroupName, UserStatus } from '@/types/rbac';
 import { isDriverRole } from '@/utils/userModalUtils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import ProfileImageUpload from './ProfileImageUpload';
@@ -15,7 +15,7 @@ interface UserFormData {
   name: string;
   email: string;
   phone: string;
-  role: UserRole;
+  systemGroup: SystemGroupName;
   status: UserStatus;
   totalTrips: number;
   lastTrip: string;
@@ -39,7 +39,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
       name: '',
       email: '',
       phone: '',
-      role: 'Employee',
+      systemGroup: 'Employee',
       status: 'Active',
       totalTrips: 0,
       lastTrip: '',
@@ -57,7 +57,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           name: user.name || '',
           email: user.email || '',
           phone: user.phone || '',
-          role: user.role || 'Employee',
+          systemGroup: user.systemGroup || 'Employee',
           status: user.status || 'Active',
           totalTrips: user.totalTrips || 0,
           lastTrip: user.lastTrip || '',
@@ -71,7 +71,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
           name: '',
           email: '',
           phone: '',
-          role: 'Employee',
+          systemGroup: 'Employee',
           status: 'Active',
           totalTrips: 0,
           lastTrip: '',
@@ -99,7 +99,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
     try {
       const userData = {
         ...data,
-        groupId: data.role, // Use role as groupId
         createdAt: user?.createdAt || new Date().toISOString(),
         totalTrips: data.totalTrips || 0,
         lastTrip: data.lastTrip || undefined,
@@ -127,7 +126,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
     }
   };
 
-  const watchedRole = form.watch('role');
+  const watchedSystemGroup = form.watch('systemGroup');
   const watchedName = form.watch('name');
 
   return (
@@ -143,10 +142,10 @@ const UserModalForm: React.FC<UserModalFormProps> = ({ user, isOpen, onClose }) 
         <UserFormFields
           control={form.control}
           isSubmitting={isSubmitting}
-          watchedRole={watchedRole}
+          watchedRole={watchedSystemGroup}
         />
 
-        {isDriverRole(watchedRole) && (
+        {isDriverRole(watchedSystemGroup) && (
           <DriverFields
             control={form.control}
             isSubmitting={isSubmitting}

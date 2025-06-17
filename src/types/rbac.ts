@@ -16,11 +16,13 @@ export interface User {
   totalTrips?: number;
   lastTrip?: string;
   profileImage?: string;
+  // Backward compatibility - add a getter for role
+  get role(): SystemGroupName;
 }
 
 // Re-export system group types for backward compatibility
-export { SystemGroup as Role, SystemGroupName as UserRole, Permission } from './systemGroups';
-export { MissionRole } from './missionRoles';
+export type { SystemGroup as Role, SystemGroupName as UserRole, Permission } from './systemGroups';
+export type { MissionRole } from './missionRoles';
 
 // For backward compatibility, keep these empty
 export const AVAILABLE_PERMISSIONS: Permission[] = [];

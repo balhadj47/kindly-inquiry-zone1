@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -84,7 +83,7 @@ const Drivers = () => {
   const drivers = useMemo(() => {
     return users.filter(user => 
       user.licenseNumber && 
-      (user.role.includes('Chauffeur') || user.role.includes('Driver'))
+      (user.systemGroup.includes('Chauffeur') || user.systemGroup.includes('Driver'))
     );
   }, [users]);
 
@@ -191,7 +190,7 @@ const Drivers = () => {
                 </div>
                 
                 <div className="text-sm text-gray-600">
-                  <p><span className="font-medium">Role:</span> {driver.role}</p>
+                  <p><span className="font-medium">Role:</span> {driver.systemGroup}</p>
                   <p><span className="font-medium">Voyages Totaux:</span> {driver.totalTrips || 0}</p>
                   <p><span className="font-medium">Dernier Voyage:</span> {driver.lastTrip || 'Jamais'}</p>
                 </div>

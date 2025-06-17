@@ -27,10 +27,10 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
 
   useEffect(() => {
     const initializeData = async () => {
-      console.log('🚀 Initializing RBAC data...');
-      setLoading(true);
-
       try {
+        console.log('🚀 Initializing RBAC data...');
+        setLoading(true);
+
         // Load system groups first as they're needed for permission utils
         console.log('📊 Loading system groups...');
         const systemGroupsData = await loadRoles();
@@ -65,20 +65,28 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
 
       } catch (error) {
         console.error('❌ Error initializing RBAC data:', error);
+        // Don't throw the error, just log it to prevent app crashes
       } finally {
         setLoading(false);
         console.log('✅ RBAC data initialization complete');
       }
     };
 
-    initializeData();
-  }, [authUser?.email]);
+    // Only initialize once when auth user is available
+    if (authUser && !loading) {
+      initializeData();
+    }
+  }, [authUser?.email]); // Removed other dependencies to prevent multiple initializations
 
-  // Re-create permission utils when system groups change
+  // Re-create permission utils when system groups change (but not on initial load)
   useEffect(() => {
-    if (!loading && roles.length > 0) {
+    if (!loading && roles.length > 0 && users.length > 0) {
       console.log('🔄 System groups changed, updating permission utilities...');
-      createPermissionUtils(users, roles);
+      try {
+        createPermissionUtils(users, roles);
+      } catch (error) {
+        console.error('❌ Error updating permission utilities:', error);
+      }
     }
   }, [roles, users, loading]);
 
@@ -89,6 +97,8 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
       if (currentUserData) {
         console.log('🔄 Updating current user from users data:', currentUserData.email);
         setCurrentUser(currentUserData);
+      } else {
+        console.error('❌ Current user not found in users data:', authUser.email);
       }
     }
   }, [authUser?.email, users, loading, setCurrentUser]);

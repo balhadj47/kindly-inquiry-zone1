@@ -10,7 +10,7 @@ const SidebarBranding = () => {
       </div>
       <div className="group-data-[collapsible=icon]:hidden min-w-0 transition-all duration-200">
         <h1 className="text-lg font-bold text-foreground truncate">SSB</h1>
-        <p className="text-xs text-muted-foreground truncate">transport de fonds</p>
+        <p className="text-xs text-muted-foreground truncate">Transport de Fonds et Escorte</p>
       </div>
     </div>
   );

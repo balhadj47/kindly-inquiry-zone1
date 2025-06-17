@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Shield } from 'lucide-react';
+import { User, Users } from 'lucide-react';
 import RolesTab from './RolesTab';
 
 interface UsersNavigationProps {
@@ -19,8 +19,8 @@ const UsersNavigation: React.FC<UsersNavigationProps> = ({ canManageGroups, chil
         </TabsTrigger>
         {canManageGroups && (
           <TabsTrigger value="roles" className="flex items-center space-x-2">
-            <Shield className="h-4 w-4" />
-            <span>Rôles</span>
+            <Users className="h-4 w-4" />
+            <span>Groupes</span>
           </TabsTrigger>
         )}
       </TabsList>

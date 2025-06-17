@@ -21,32 +21,37 @@ const RolesTab: React.FC = () => {
         <div className="text-center py-8">
           <Shield className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground">
-            Vous n'avez pas les permissions nécessaires pour voir les rôles.
+            Vous n'avez pas les permissions nécessaires pour voir les groupes d'utilisateurs.
           </p>
         </div>
       </TabsContent>
     );
   }
 
+  // Filter to show only system user groups (Administrator, Employee, etc.)
+  const systemRoles = roles.filter(role => 
+    ['Administrator', 'Supervisor', 'Employee'].includes(role.name)
+  );
+
   return (
     <TabsContent value="roles" className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Rôles et Permissions</h2>
+          <h2 className="text-2xl font-bold">Groupes d'Utilisateurs</h2>
           <p className="text-muted-foreground">
-            Gérez les rôles d'utilisateurs et leurs permissions
+            Gérez les groupes d'utilisateurs et leurs permissions système
           </p>
         </div>
         {canManageRoles && (
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Nouveau Rôle
+            Nouveau Groupe
           </Button>
         )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {roles.map((role) => (
+        {systemRoles.map((role) => (
           <Card key={role.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -107,7 +112,7 @@ const RolesTab: React.FC = () => {
                 
                 {role.isSystemRole && (
                   <Badge variant="outline" className="text-xs">
-                    Rôle Système
+                    Groupe Système
                   </Badge>
                 )}
               </div>
@@ -116,16 +121,16 @@ const RolesTab: React.FC = () => {
         ))}
       </div>
 
-      {roles.length === 0 && (
+      {systemRoles.length === 0 && (
         <div className="text-center py-8">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
-            Aucun rôle trouvé.
+            Aucun groupe d'utilisateur trouvé.
           </p>
           {canManageRoles && (
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Créer le premier rôle
+              Créer le premier groupe
             </Button>
           )}
         </div>

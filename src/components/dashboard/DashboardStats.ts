@@ -59,7 +59,7 @@ export const calculateDashboardStats = (
       title: 'Voyages Aujourd\'hui', 
       value: todaysTrips.toString(), 
       change: tripsChange > 0 ? `+${tripsChange}%` : `${tripsChange}%`,
-      trend: tripsChange >= 0 ? 'up' : 'down',
+      trend: (tripsChange >= 0 ? 'up' : 'down') as 'up' | 'down' | 'neutral',
       color: tripsChange >= 0 ? 'text-green-600' : 'text-red-600',
       icon: 'calendar'
     },
@@ -67,7 +67,7 @@ export const calculateDashboardStats = (
       title: 'Voyages Actifs', 
       value: activeTrips.toString(), 
       change: `En cours`,
-      trend: 'neutral',
+      trend: 'neutral' as 'up' | 'down' | 'neutral',
       color: 'text-blue-600',
       icon: 'truck'
     },
@@ -75,7 +75,7 @@ export const calculateDashboardStats = (
       title: 'Taux d\'Utilisation', 
       value: `${utilizationRate}%`, 
       change: `${activeVans}/${vans.length} camionnettes`,
-      trend: utilizationRate >= 70 ? 'up' : utilizationRate >= 50 ? 'neutral' : 'down',
+      trend: (utilizationRate >= 70 ? 'up' : utilizationRate >= 50 ? 'neutral' : 'down') as 'up' | 'down' | 'neutral',
       color: utilizationRate >= 70 ? 'text-green-600' : utilizationRate >= 50 ? 'text-yellow-600' : 'text-red-600',
       icon: 'gauge'
     },
@@ -83,7 +83,7 @@ export const calculateDashboardStats = (
       title: 'Kilomètres Aujourd\'hui', 
       value: `${totalKmToday} km`, 
       change: `${todaysCompletedTrips.length} voyages terminés`,
-      trend: 'neutral',
+      trend: 'neutral' as 'up' | 'down' | 'neutral',
       color: 'text-purple-600',
       icon: 'map'
     },

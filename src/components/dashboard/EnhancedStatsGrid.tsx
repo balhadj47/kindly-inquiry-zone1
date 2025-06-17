@@ -18,7 +18,7 @@ interface EnhancedStatsGridProps {
 }
 
 const getIcon = (iconName: string, size = 20) => {
-  const iconProps = { size, className: 'text-gray-600' };
+  const iconProps = { size, className: 'text-white' };
   
   switch (iconName) {
     case 'calendar':
@@ -35,7 +35,7 @@ const getIcon = (iconName: string, size = 20) => {
 };
 
 const getTrendIcon = (trend: string, color: string) => {
-  const iconProps = { size: 16, className: color };
+  const iconProps = { size: 14, className: color };
   
   switch (trend) {
     case 'up':
@@ -47,38 +47,57 @@ const getTrendIcon = (trend: string, color: string) => {
   }
 };
 
+const getGradientClasses = (index: number) => {
+  const gradients = [
+    'bg-gradient-to-br from-blue-500 to-blue-600',
+    'bg-gradient-to-br from-emerald-500 to-emerald-600', 
+    'bg-gradient-to-br from-amber-500 to-amber-600',
+    'bg-gradient-to-br from-purple-500 to-purple-600',
+  ];
+  return gradients[index] || gradients[0];
+};
+
 const EnhancedStatsGrid: React.FC<EnhancedStatsGridProps> = ({ stats }) => {
   const isMobile = useIsMobile();
 
   return (
-    <div className={`grid gap-3 sm:gap-4 lg:gap-6 ${
+    <div className={`grid gap-4 sm:gap-6 ${
       isMobile 
-        ? 'grid-cols-2' 
-        : 'grid-cols-2 lg:grid-cols-4'
+        ? 'grid-cols-1 sm:grid-cols-2' 
+        : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-4'
     }`}>
       {stats.map((stat, index) => (
-        <Card key={index} className="hover:shadow-lg transition-all duration-200 hover:scale-105">
-          <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-            <CardTitle className={`${
-              isMobile ? 'text-xs' : 'text-xs sm:text-sm'
-            } font-medium text-gray-600 leading-tight line-clamp-2`}>
-              {stat.title}
-            </CardTitle>
-            {getIcon(stat.icon, isMobile ? 16 : 20)}
-          </CardHeader>
-          <CardContent className={`${isMobile ? 'p-2' : 'p-3 sm:p-6'} pt-0`}>
-            <div className={`${
-              isMobile ? 'text-lg' : 'text-xl sm:text-2xl'
-            } font-bold text-gray-900 truncate mb-1`}>
-              {stat.value}
+        <Card key={index} className="group hover:shadow-2xl transition-all duration-300 hover:scale-105 border-0 shadow-lg overflow-hidden bg-white">
+          <div className={`${getGradientClasses(index)} p-4 relative overflow-hidden`}>
+            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10"></div>
+            <div className="absolute bottom-0 left-0 w-16 h-16 bg-white/5 rounded-full -ml-8 -mb-8"></div>
+            <div className="relative flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-white/20 rounded-lg backdrop-blur-sm">
+                  {getIcon(stat.icon, isMobile ? 18 : 22)}
+                </div>
+              </div>
+              <div className="text-right">
+                <div className={`text-2xl sm:text-3xl font-bold text-white mb-1`}>
+                  {stat.value}
+                </div>
+              </div>
             </div>
-            <div className="flex items-center gap-1">
-              {getTrendIcon(stat.trend, stat.color)}
-              <p className={`${stat.color} font-medium ${
-                isMobile ? 'text-xs' : 'text-xs'
-              } truncate`}>
-                {stat.change}
-              </p>
+          </div>
+          
+          <CardContent className="p-4">
+            <div className="mb-2">
+              <h3 className="text-sm font-semibold text-gray-700 leading-tight">
+                {stat.title}
+              </h3>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1">
+                {getTrendIcon(stat.trend, stat.color)}
+                <span className={`${stat.color} font-medium text-xs`}>
+                  {stat.change}
+                </span>
+              </div>
             </div>
           </CardContent>
         </Card>

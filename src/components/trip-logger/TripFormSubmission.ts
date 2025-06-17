@@ -1,5 +1,4 @@
 
-
 import { TripFormData } from '@/hooks/useTripForm';
 import { useTrip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -52,10 +51,16 @@ export const useTripSubmission = () => {
       userIds: formData.selectedUsersWithRoles.map(u => u.userId),
       userRoles: formData.selectedUsersWithRoles,
       startKm: parseInt(formData.startKm),
+      startDate: formData.startDate,
+      endDate: formData.endDate
     };
 
     console.log('Final trip data before submission:', tripData);
     console.log('Van ID being sent:', tripData.van);
+    console.log('Planned dates being sent:', {
+      startDate: tripData.startDate,
+      endDate: tripData.endDate
+    });
 
     if (!tripData.van) {
       throw new Error('Van ID is missing');
@@ -66,4 +71,3 @@ export const useTripSubmission = () => {
 
   return { submitTrip };
 };
-

@@ -49,19 +49,12 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
 
         <div className={`space-y-4 ${isMobile ? 'space-y-3' : 'space-y-6'}`}>
           <TripBasicInfo trip={trip} />
-          
           <TripVanDetails trip={trip} vans={vans} />
-          
           <TripDuration trip={trip} />
-          
           <TripDates trip={trip} />
-          
           <TripKilometers trip={trip} />
-          
           <TripDestination trip={trip} />
-          
           <TripTeam trip={trip} users={users} />
-          
           <TripNotes trip={trip} />
         </div>
       </DialogContent>

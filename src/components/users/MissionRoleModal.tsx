@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MissionRoleInfo } from '@/types/missionRoles';
+import { MissionRoleInfo, MissionRole } from '@/types/missionRoles';
 import { MissionRolesService } from '@/services/missionRolesService';
 
 interface MissionRoleModalProps {
@@ -29,9 +29,16 @@ const ROLE_CATEGORIES = [
   { value: 'armed', label: 'Armé' },
 ];
 
+const MISSION_ROLE_OPTIONS: { value: MissionRole; label: string }[] = [
+  { value: 'Chef de Groupe', label: 'Chef de Groupe' },
+  { value: 'Chauffeur', label: 'Chauffeur' },
+  { value: 'APS', label: 'APS' },
+  { value: 'Armé', label: 'Armé' },
+];
+
 const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, role }) => {
   const [formData, setFormData] = useState({
-    name: '',
+    name: 'APS' as MissionRole,
     description: '',
     category: 'security' as 'leadership' | 'driver' | 'security' | 'armed',
   });
@@ -46,7 +53,7 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
       });
     } else {
       setFormData({
-        name: '',
+        name: 'APS',
         description: '',
         category: 'security',
       });
@@ -91,14 +98,21 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
               <Label htmlFor="name" className="text-right">
                 Nom
               </Label>
-              <Input
-                id="name"
+              <Select
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="col-span-3"
-                required
-                placeholder="ex: Chef de Groupe"
-              />
+                onValueChange={(value) => setFormData({ ...formData, name: value as MissionRole })}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {MISSION_ROLE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="description" className="text-right">

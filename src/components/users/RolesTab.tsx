@@ -7,10 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Users, Shield, Edit, Trash } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { Role } from '@/types/rbac';
+import RoleModal from './RoleModal';
+import RoleDeleteDialog from './RoleDeleteDialog';
 
 const RolesTab: React.FC = () => {
   const { roles, hasPermission } = useRBAC();
   const [selectedRole, setSelectedRole] = useState<Role | null>(null);
+  const [isRoleModalOpen, setIsRoleModalOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [roleToDelete, setRoleToDelete] = useState<Role | null>(null);
 
   const canManageRoles = hasPermission('groups:manage');
   const canReadRoles = hasPermission('groups:read');
@@ -28,10 +33,30 @@ const RolesTab: React.FC = () => {
     );
   }
 
-  // Filter to show only system user groups (Administrator, Employee, etc.)
-  const systemRoles = roles.filter(role => 
-    ['Administrator', 'Supervisor', 'Employee'].includes(role.name)
-  );
+  const handleAddRole = () => {
+    setSelectedRole(null);
+    setIsRoleModalOpen(true);
+  };
+
+  const handleEditRole = (role: Role) => {
+    setSelectedRole(role);
+    setIsRoleModalOpen(true);
+  };
+
+  const handleDeleteRole = (role: Role) => {
+    setRoleToDelete(role);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsRoleModalOpen(false);
+    setSelectedRole(null);
+  };
+
+  const handleCloseDeleteDialog = () => {
+    setIsDeleteDialogOpen(false);
+    setRoleToDelete(null);
+  };
 
   return (
     <TabsContent value="roles" className="space-y-4">
@@ -43,7 +68,7 @@ const RolesTab: React.FC = () => {
           </p>
         </div>
         {canManageRoles && (
-          <Button>
+          <Button onClick={handleAddRole}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Groupe
           </Button>
@@ -51,7 +76,7 @@ const RolesTab: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {systemRoles.map((role) => (
+        {roles.map((role) => (
           <Card key={role.id} className="hover:shadow-md transition-shadow">
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -67,13 +92,14 @@ const RolesTab: React.FC = () => {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setSelectedRole(role)}
+                      onClick={() => handleEditRole(role)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button 
                       variant="ghost" 
                       size="sm"
+                      onClick={() => handleDeleteRole(role)}
                       disabled={role.isSystemRole}
                     >
                       <Trash className="h-4 w-4" />
@@ -121,20 +147,32 @@ const RolesTab: React.FC = () => {
         ))}
       </div>
 
-      {systemRoles.length === 0 && (
+      {roles.length === 0 && (
         <div className="text-center py-8">
           <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
             Aucun groupe d'utilisateur trouvé.
           </p>
           {canManageRoles && (
-            <Button>
+            <Button onClick={handleAddRole}>
               <Plus className="h-4 w-4 mr-2" />
               Créer le premier groupe
             </Button>
           )}
         </div>
       )}
+
+      <RoleModal 
+        isOpen={isRoleModalOpen}
+        onClose={handleCloseModal}
+        role={selectedRole}
+      />
+
+      <RoleDeleteDialog 
+        isOpen={isDeleteDialogOpen}
+        onClose={handleCloseDeleteDialog}
+        role={roleToDelete}
+      />
     </TabsContent>
   );
 };

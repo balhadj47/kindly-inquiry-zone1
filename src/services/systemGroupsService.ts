@@ -1,14 +1,11 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { SystemGroup, DEFAULT_SYSTEM_GROUPS } from '@/types/systemGroups';
+import { DatabaseCleanupService } from './databaseCleanupService';
 
 export class SystemGroupsService {
   static async loadSystemGroups(): Promise<SystemGroup[]> {
     try {
       console.log('🔄 Loading system groups from database...');
-      
-      // First, ensure all default groups exist
-      await this.ensureDefaultGroupsExist();
       
       const { data, error } = await supabase
         .from('user_groups')
@@ -21,8 +18,21 @@ export class SystemGroupsService {
       }
 
       if (!data || data.length === 0) {
-        console.log('🔄 No groups found, creating defaults...');
-        await this.createDefaultGroups();
+        console.log('🔄 No groups found, running cleanup and creating defaults...');
+        await DatabaseCleanupService.runFullCleanup();
+        return DEFAULT_SYSTEM_GROUPS;
+      }
+
+      // Check if we have duplicates or old formats and clean if needed
+      const names = data.map(g => g.name);
+      const hasDuplicates = names.some((name, index) => names.indexOf(name) !== index);
+      const hasOldPermissions = data.some(g => 
+        g.permissions?.some((p: string) => p.includes('.'))
+      );
+
+      if (hasDuplicates || hasOldPermissions) {
+        console.log('🧹 Detected inconsistencies, running cleanup...');
+        await DatabaseCleanupService.runFullCleanup();
         return DEFAULT_SYSTEM_GROUPS;
       }
 
@@ -42,7 +52,7 @@ export class SystemGroupsService {
         name: groupData.name || 'Employee',
         description: groupData.description || '',
         permissions: groupData.permissions || [],
-        color: groupData.color || '#3b82f6',
+        color: this.standardizeColor(groupData.color || '#3b82f6'),
         isSystemRole: false,
       };
 
@@ -54,6 +64,7 @@ export class SystemGroupsService {
           description: newGroup.description,
           permissions: newGroup.permissions,
           color: newGroup.color,
+          // Don't include role_id as it's unused
         })
         .select()
         .single();
@@ -73,14 +84,16 @@ export class SystemGroupsService {
 
   static async updateSystemGroup(id: string, groupData: Partial<SystemGroup>): Promise<SystemGroup> {
     try {
+      const updateData: any = {};
+      
+      if (groupData.name) updateData.name = groupData.name;
+      if (groupData.description) updateData.description = groupData.description;
+      if (groupData.permissions) updateData.permissions = groupData.permissions;
+      if (groupData.color) updateData.color = this.standardizeColor(groupData.color);
+
       const { data, error } = await supabase
         .from('user_groups')
-        .update({
-          name: groupData.name,
-          description: groupData.description,
-          permissions: groupData.permissions,
-          color: groupData.color,
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -115,6 +128,24 @@ export class SystemGroupsService {
       console.error('❌ Exception deleting system group:', error);
       throw error;
     }
+  }
+
+  private static standardizeColor(color: string): string {
+    // Convert any color format to hex
+    if (color.startsWith('#')) {
+      return color;
+    }
+    
+    // Convert common CSS classes to hex colors
+    const colorMap: Record<string, string> = {
+      'bg-red-100 text-red-800': '#dc2626',
+      'bg-blue-100 text-blue-800': '#3b82f6',
+      'bg-green-100 text-green-800': '#059669',
+      'bg-orange-100 text-orange-800': '#ea580c',
+      'bg-gray-100 text-gray-800': '#6b7280',
+    };
+
+    return colorMap[color] || '#3b82f6'; // Default to blue
   }
 
   private static async ensureDefaultGroupsExist(): Promise<void> {

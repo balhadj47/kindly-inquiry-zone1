@@ -4,11 +4,14 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Shield, Car, UserCheck } from 'lucide-react';
+import { Plus, Target, Shield, Car, UserCheck, Edit, Trash2 } from 'lucide-react';
 import { MISSION_ROLES, MissionRole } from '@/types/missionRoles';
+import MissionRoleModal from './MissionRoleModal';
 
 const MissionRolesTab: React.FC = () => {
   const [selectedRole, setSelectedRole] = useState<MissionRole | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingRole, setEditingRole] = useState<any>(null);
 
   const getRoleIcon = (role: MissionRole) => {
     switch (role) {
@@ -30,6 +33,21 @@ const MissionRolesTab: React.FC = () => {
     }
   };
 
+  const handleAddRole = () => {
+    setEditingRole(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditRole = (role: any) => {
+    setEditingRole(role);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteRole = (roleId: string) => {
+    // Implementation for deleting role
+    console.log('Delete role:', roleId);
+  };
+
   return (
     <TabsContent value="mission-roles" className="space-y-4">
       <div className="flex justify-between items-center">
@@ -39,7 +57,7 @@ const MissionRolesTab: React.FC = () => {
             Gérez les rôles disponibles pour les missions
           </p>
         </div>
-        <Button>
+        <Button onClick={handleAddRole}>
           <Plus className="h-4 w-4 mr-2" />
           Nouveau Rôle
         </Button>
@@ -53,10 +71,28 @@ const MissionRolesTab: React.FC = () => {
           return (
             <Card key={role.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <IconComponent className="h-5 w-5" />
-                  <span className="text-lg">{role.name}</span>
-                </CardTitle>
+                <div className="flex justify-between items-start">
+                  <div className="flex items-center space-x-2">
+                    <IconComponent className="h-5 w-5" />
+                    <CardTitle className="text-lg">{role.name}</CardTitle>
+                  </div>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditRole(role)}
+                    >
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDeleteRole(role.id)}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
                 <CardDescription>{role.description}</CardDescription>
               </CardHeader>
               <CardContent>
@@ -77,8 +113,15 @@ const MissionRolesTab: React.FC = () => {
           <li>• Les rôles de mission sont assignés aux utilisateurs pour des missions spécifiques</li>
           <li>• Un utilisateur peut avoir plusieurs rôles de mission</li>
           <li>• Ces rôles sont différents des groupes système qui contrôlent les permissions d'application</li>
+          <li>• Les rôles de mission sont purement opérationnels (Chef de Groupe, Chauffeur, APS, Armé)</li>
         </ul>
       </div>
+
+      <MissionRoleModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        role={editingRole}
+      />
     </TabsContent>
   );
 };

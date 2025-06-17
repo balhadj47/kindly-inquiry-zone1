@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 import { SystemGroupsService } from '@/services/systemGroupsService';
+import { DatabaseCleanupService } from '@/services/databaseCleanupService';
 
 export const loadUsers = async (): Promise<User[]> => {
   try {
@@ -42,5 +43,15 @@ export const loadUsers = async (): Promise<User[]> => {
 };
 
 export const loadRoles = async (): Promise<SystemGroup[]> => {
-  return await SystemGroupsService.loadSystemGroups();
+  try {
+    console.log('🔄 Loading system groups with cleanup...');
+    
+    // Run cleanup first to ensure clean state
+    await DatabaseCleanupService.runFullCleanup();
+    
+    return await SystemGroupsService.loadSystemGroups();
+  } catch (error) {
+    console.error('❌ Error loading roles with cleanup:', error);
+    return await SystemGroupsService.loadSystemGroups();
+  }
 };

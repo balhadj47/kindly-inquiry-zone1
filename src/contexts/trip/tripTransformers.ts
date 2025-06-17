@@ -14,6 +14,8 @@ export const transformDatabaseTrip = (trip: any): Trip => ({
   startKm: trip.start_km,
   endKm: trip.end_km,
   status: trip.status || 'active',
+  startDate: trip.planned_start_date ? new Date(trip.planned_start_date) : undefined,
+  endDate: trip.planned_end_date ? new Date(trip.planned_end_date) : undefined,
 });
 
 export const transformDatabaseTrips = (data: any[]): Trip[] => {

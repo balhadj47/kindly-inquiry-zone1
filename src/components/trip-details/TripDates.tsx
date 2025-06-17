@@ -13,6 +13,13 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
   const isMobile = useIsMobile();
   const { t } = useLanguage();
 
+  console.log('TripDates: Trip data:', {
+    startDate: trip.startDate,
+    endDate: trip.endDate,
+    startDateType: typeof trip.startDate,
+    endDateType: typeof trip.endDate
+  });
+
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return null;
     const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -34,8 +41,11 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
 
   // Show the component if either start or end date exists
   if (!trip.startDate && !trip.endDate) {
+    console.log('TripDates: No planned dates found, hiding component');
     return null;
   }
+
+  console.log('TripDates: Showing planned dates component');
 
   return (
     <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
@@ -44,14 +54,14 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
           <Calendar className="h-4 w-4 text-blue-600" />
         </div>
         <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-blue-900`}>
-          {t.plannedDates}
+          Dates Planifiées
         </h4>
       </div>
 
       <div className={`space-y-2 ${isMobile ? 'text-sm' : ''}`}>
         {trip.startDate && (
           <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">{t.startDate}</span>
+            <span className="text-blue-700 font-medium">Date de début</span>
             <div className="text-right">
               <div className="text-blue-900 font-medium">{formatDate(trip.startDate)}</div>
               {formatTime(trip.startDate) && (
@@ -63,7 +73,7 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
 
         {trip.endDate && (
           <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">{t.endDate}</span>
+            <span className="text-blue-700 font-medium">Date de fin</span>
             <div className="text-right">
               <div className="text-blue-900 font-medium">{formatDate(trip.endDate)}</div>
               {formatTime(trip.endDate) && (

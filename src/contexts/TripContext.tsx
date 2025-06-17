@@ -14,6 +14,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const data = await fetchTripsFromDatabase();
       const transformedTrips = transformDatabaseTrips(data);
+      console.log('Transformed trips with dates:', transformedTrips);
       setTrips(transformedTrips);
       setError(null);
     } catch (error) {
@@ -29,6 +30,10 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
     try {
       console.log('TripProvider: Adding trip with data:', tripData);
+      console.log('Planned dates being sent:', {
+        startDate: tripData.startDate,
+        endDate: tripData.endDate
+      });
       
       if (!tripData.userRoles || tripData.userRoles.length === 0) {
         throw new Error('At least one user with roles must be selected');
@@ -46,7 +51,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         notes: tripData.notes,
         userIds: tripData.userIds,
         userRoles: tripData.userRoles,
-        startKm: tripData.startKm
+        startKm: tripData.startKm,
+        startDate: tripData.startDate,
+        endDate: tripData.endDate
       };
 
       const newTrip = await insertTripToDatabase(tripToInsert);

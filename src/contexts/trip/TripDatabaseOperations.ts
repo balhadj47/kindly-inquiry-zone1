@@ -29,6 +29,11 @@ export const insertTripToDatabase = async (tripData: {
   startDate?: Date;
   endDate?: Date;
 }) => {
+  console.log('Inserting trip with planned dates:', {
+    startDate: tripData.startDate,
+    endDate: tripData.endDate
+  });
+
   const { data, error } = await (supabase as any)
     .from('trips')
     .insert({
@@ -40,8 +45,8 @@ export const insertTripToDatabase = async (tripData: {
       user_ids: tripData.userIds,
       user_roles: tripData.userRoles || [],
       start_km: tripData.startKm,
-      start_date: tripData.startDate?.toISOString(),
-      end_date: tripData.endDate?.toISOString(),
+      planned_start_date: tripData.startDate?.toISOString(),
+      planned_end_date: tripData.endDate?.toISOString(),
       status: 'active',
     })
     .select()

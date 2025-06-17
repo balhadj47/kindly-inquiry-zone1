@@ -22,7 +22,7 @@ const AppContent = () => {
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0">
+        <div className="flex-1 flex flex-col min-w-0 ml-0 md:ml-16 group-data-[state=expanded]:md:ml-64 transition-all duration-200">
           <TopBar />
           <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-x-hidden" style={{
             transform: 'translateZ(0)',

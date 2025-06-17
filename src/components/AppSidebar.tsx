@@ -20,7 +20,7 @@ const AppSidebar = () => {
 
   if (loading) {
     return (
-      <Sidebar collapsible="icon">
+      <Sidebar collapsible="icon" className="fixed left-0 top-0 h-screen z-50">
         <SidebarContent>
           <div className="flex items-center justify-center p-6">
             <div className="animate-pulse space-y-2">
@@ -34,11 +34,11 @@ const AppSidebar = () => {
   }
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-sidebar-border">
+    <Sidebar collapsible="icon" className="fixed left-0 top-0 h-screen z-50 border-r border-sidebar-border">
       <SidebarHeader />
       
-      <SidebarContent className="flex flex-col flex-1">
-        <div className="flex-1 py-4">
+      <SidebarContent className="flex flex-col h-full">
+        <div className="flex-1 py-4 overflow-y-auto">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenuContent />
@@ -46,7 +46,7 @@ const AppSidebar = () => {
           </SidebarGroup>
         </div>
         
-        <SidebarFooter className="border-t border-sidebar-border p-4 mt-auto">
+        <SidebarFooter className="border-t border-sidebar-border p-4 flex-shrink-0">
           <UserProfile />
         </SidebarFooter>
       </SidebarContent>

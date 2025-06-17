@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,15 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import { useLastTripKm } from '@/hooks/useLastTripKm';
-import RoleSelectionSection from './RoleSelectionSection';
-import VanSelector from './trip-logger/VanSelector';
-import CompanyBranchSelector from './trip-logger/CompanyBranchSelector';
 import { validateTripForm } from './trip-logger/TripFormValidation';
 import { useTripSubmission } from './trip-logger/TripFormSubmission';
+import { useTripWizard, TripWizardStep } from '@/hooks/useTripWizard';
+import WizardProgress from './trip-logger/WizardProgress';
+import VanSelectionStep from './trip-logger/steps/VanSelectionStep';
+import CompanySelectionStep from './trip-logger/steps/CompanySelectionStep';
+import TeamSelectionStep from './trip-logger/steps/TeamSelectionStep';
+import TripDetailsStep from './trip-logger/steps/TripDetailsStep';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TripLoggerForm = () => {
   const { t } = useLanguage();
@@ -28,6 +31,20 @@ const TripLoggerForm = () => {
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const { lastKm, loading: loadingLastKm } = useLastTripKm(formData.vanId);
+  
+  const {
+    currentStep,
+    isFirstStep,
+    isLastStep,
+    goToNextStep,
+    goToPreviousStep,
+    goToStep,
+    resetWizard,
+    getStepLabel,
+    allSteps
+  } = useTripWizard();
+
+  const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
 
   // Auto-populate starting kilometers when a van is selected and lastKm is available
   useEffect(() => {
@@ -42,9 +59,48 @@ const TripLoggerForm = () => {
   const activeVanIds = activeTrips.map(trip => trip.van);
   const availableVans = vans.filter(van => !activeVanIds.includes(van.id));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  // Validation for each step
+  const validateCurrentStep = (): boolean => {
+    switch (currentStep) {
+      case 'van':
+        return !!(formData.vanId && formData.startKm && parseInt(formData.startKm) >= 0);
+      case 'company':
+        return !!(formData.companyId && formData.branchId);
+      case 'team':
+        return formData.selectedUsersWithRoles.length > 0;
+      case 'details':
+        return true; // Notes are optional
+      default:
+        return false;
+    }
+  };
+
+  const handleNext = () => {
+    if (validateCurrentStep()) {
+      setCompletedSteps(prev => new Set([...prev, currentStep]));
+      goToNextStep();
+    } else {
+      let errorMessage = '';
+      switch (currentStep) {
+        case 'van':
+          errorMessage = 'Veuillez sélectionner un véhicule et entrer le kilométrage de départ';
+          break;
+        case 'company':
+          errorMessage = 'Veuillez sélectionner une entreprise et une succursale';
+          break;
+        case 'team':
+          errorMessage = 'Veuillez sélectionner au moins un utilisateur avec des rôles';
+          break;
+      }
+      toast({
+        title: 'Étape incomplète',
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSubmit = async () => {
     const validation = validateTripForm(formData);
     if (!validation.isValid) {
       toast({
@@ -59,6 +115,8 @@ const TripLoggerForm = () => {
       await submitTrip(formData);
       resetForm();
       setUserSearchQuery('');
+      resetWizard();
+      setCompletedSteps(new Set());
       
       toast({
         title: t.success,
@@ -73,78 +131,101 @@ const TripLoggerForm = () => {
     }
   };
 
-  return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle>{t.logNewTrip}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <VanSelector
+  const renderCurrentStep = () => {
+    switch (currentStep) {
+      case 'van':
+        return (
+          <VanSelectionStep
             availableVans={availableVans}
             totalVans={vans}
             selectedVanId={formData.vanId}
             onVanChange={(value) => handleInputChange('vanId', value)}
+            startKm={formData.startKm}
+            onStartKmChange={(value) => handleInputChange('startKm', value)}
+            lastKm={lastKm}
+            loadingLastKm={loadingLastKm}
           />
-
-          <div>
-            <Label htmlFor="startKm">
-              Starting Kilometers *
-              {loadingLastKm && (
-                <span className="text-sm text-muted-foreground ml-2">(Loading last trip data...)</span>
-              )}
-            </Label>
-            <Input
-              id="startKm"
-              type="number"
-              placeholder={
-                formData.vanId 
-                  ? (lastKm !== null ? `Auto-filled from last trip: ${lastKm} km` : "Enter starting kilometer reading")
-                  : "Select a van first"
-              }
-              value={formData.startKm}
-              onChange={(e) => handleInputChange('startKm', e.target.value)}
-              min="0"
-              required
-              disabled={loadingLastKm}
-            />
-            {lastKm !== null && formData.vanId && (
-              <p className="text-sm text-muted-foreground mt-1">
-                Last trip ended at: {lastKm} km
-              </p>
-            )}
-          </div>
-
-          <CompanyBranchSelector
+        );
+      case 'company':
+        return (
+          <CompanySelectionStep
             companies={companies}
             selectedCompanyId={formData.companyId}
             selectedBranchId={formData.branchId}
             onCompanyChange={(value) => handleInputChange('companyId', value)}
             onBranchChange={(value) => handleInputChange('branchId', value)}
           />
-
-          <RoleSelectionSection
+        );
+      case 'team':
+        return (
+          <TeamSelectionStep
             userSearchQuery={userSearchQuery}
             setUserSearchQuery={setUserSearchQuery}
             selectedUsersWithRoles={formData.selectedUsersWithRoles}
             onUserRoleSelection={handleUserRoleSelection}
           />
+        );
+      case 'details':
+        return (
+          <TripDetailsStep
+            notes={formData.notes}
+            onNotesChange={(value) => handleInputChange('notes', value)}
+          />
+        );
+      default:
+        return null;
+    }
+  };
 
-          <div>
-            <Label htmlFor="notes">{t.notes}</Label>
-            <Textarea
-              id="notes"
-              placeholder={t.addNotesPlaceholder}
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              rows={3}
-            />
-          </div>
+  return (
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>{t.logNewTrip}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <WizardProgress
+          currentStep={currentStep}
+          allSteps={allSteps}
+          getStepLabel={getStepLabel}
+          goToStep={goToStep}
+          completedSteps={completedSteps}
+        />
 
-          <Button type="submit" className="w-full">
-            {t.logTrip}
+        <div className="min-h-[400px]">
+          {renderCurrentStep()}
+        </div>
+
+        <div className="flex justify-between mt-8">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={goToPreviousStep}
+            disabled={isFirstStep}
+            className="flex items-center space-x-2"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            <span>Précédent</span>
           </Button>
-        </form>
+
+          {isLastStep ? (
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              className="flex items-center space-x-2"
+            >
+              <span>{t.logTrip}</span>
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              onClick={handleNext}
+              className="flex items-center space-x-2"
+            >
+              <span>Suivant</span>
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

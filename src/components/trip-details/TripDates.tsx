@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatDateOnly } from '@/utils/dateUtils';
 
 interface TripDatesProps {
   trip: Trip;
@@ -11,19 +12,6 @@ interface TripDatesProps {
 
 const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
   const isMobile = useIsMobile();
-
-  const formatPlannedDate = (date: Date) => {
-    const months = [
-      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-    ];
-    
-    const day = date.getDate();
-    const month = months[date.getMonth()];
-    const year = date.getFullYear();
-    
-    return `${day} ${month} ${year}`;
-  };
 
   // Only show this section if there are planned dates
   if (!trip.startDate && !trip.endDate) {
@@ -44,7 +32,7 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
               <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-600`} />
               <div>
                 <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Date de début</p>
-                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatPlannedDate(trip.startDate)}</p>
+                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatDateOnly(trip.startDate)}</p>
               </div>
             </div>
           )}
@@ -54,7 +42,7 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
               <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-600`} />
               <div>
                 <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Date de fin</p>
-                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatPlannedDate(trip.endDate)}</p>
+                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatDateOnly(trip.endDate)}</p>
               </div>
             </div>
           )}

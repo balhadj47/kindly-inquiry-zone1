@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,6 +30,7 @@ import { useTrip } from '@/contexts/TripContext';
 import { useToast } from '@/hooks/use-toast';
 import { useVans } from '@/hooks/useVans';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatDateOnly } from '@/utils/dateUtils';
 
 interface TripHistoryListProps {
   filteredTrips: Trip[];
@@ -244,7 +246,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                 <div className={`flex items-center gap-4 sm:gap-6 mb-3 ${isMobile ? 'flex-col items-start space-y-2' : ''}`}>
                   <div className="flex items-center gap-2">
                     <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-gray-500" />
-                    <span className="text-xs sm:text-sm text-gray-600">{formatDate(trip.timestamp)}</span>
+                    <span className="text-xs sm:text-sm text-gray-600">{formatDateOnly(trip.timestamp)}</span>
                   </div>
                   
                   <div className="flex items-center gap-2">
@@ -376,7 +378,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                       <AlertDialogHeader>
                         <AlertDialogTitle className={isMobile ? 'text-base' : ''}>Supprimer le voyage</AlertDialogTitle>
                         <AlertDialogDescription className={isMobile ? 'text-sm' : ''}>
-                          Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDate(trip.timestamp)} ? 
+                          Êtes-vous sûr de vouloir supprimer le voyage "{getTripTitle(trip)}" du {formatDateOnly(trip.timestamp)} ? 
                           Cette action ne peut pas être annulée.
                         </AlertDialogDescription>
                       </AlertDialogHeader>

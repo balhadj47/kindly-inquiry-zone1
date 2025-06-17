@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, FileText, Car } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatDateOnly } from '@/utils/dateUtils';
 
 interface TripBasicInfoProps {
   trip: Trip;
@@ -11,16 +12,6 @@ interface TripBasicInfoProps {
 
 const TripBasicInfo: React.FC<TripBasicInfoProps> = ({ trip }) => {
   const isMobile = useIsMobile();
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('fr-FR', {
-      weekday: isMobile ? 'short' : 'long',
-      day: '2-digit',
-      month: isMobile ? 'short' : 'long',
-      year: 'numeric'
-    });
-  };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
@@ -54,7 +45,7 @@ const TripBasicInfo: React.FC<TripBasicInfoProps> = ({ trip }) => {
             <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-blue-600`} />
             <div>
               <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Date</p>
-              <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatDate(trip.timestamp)}</p>
+              <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatDateOnly(trip.timestamp)}</p>
             </div>
           </div>
 

@@ -29,6 +29,23 @@ export const formatDateTimeParts = (timestamp: string) => {
   return { date, time };
 };
 
+// Format date to "dd month yyyy" format only (no time)
+// Example: "12 Juin 2025"
+export const formatDateOnly = (timestamp: string | Date): string => {
+  const date = typeof timestamp === 'string' ? new Date(timestamp) : timestamp;
+  
+  const months = [
+    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+  ];
+  
+  const day = date.getDate();
+  const month = months[date.getMonth()];
+  const year = date.getFullYear();
+  
+  return `${day} ${month} ${year}`;
+};
+
 // Calculate time ago in a readable format
 export const getTimeAgo = (timestamp: string): string => {
   const now = new Date();

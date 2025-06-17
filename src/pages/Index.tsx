@@ -20,11 +20,11 @@ const AppContent = () => {
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
-      <div className="min-h-screen flex w-full">
+      <div className="min-h-screen flex w-full overflow-hidden">
         <AppSidebar />
-        <div className="flex-1 flex flex-col min-w-0 ml-0 md:ml-16 group-data-[state=expanded]:md:ml-64 transition-all duration-200">
+        <div className="flex-1 flex flex-col min-w-0 ml-0 md:ml-16 group-data-[state=expanded]:md:ml-64 transition-all duration-200 h-screen">
           <TopBar />
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-x-hidden">
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-y-auto overflow-x-hidden">
             <div>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
@@ -59,3 +59,4 @@ const Index = () => {
 };
 
 export default Index;
+

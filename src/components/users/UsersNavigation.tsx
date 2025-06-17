@@ -2,6 +2,7 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, Users as UsersIcon } from 'lucide-react';
+import GroupsTab from './GroupsTab';
 
 interface UsersNavigationProps {
   canManageGroups: boolean;
@@ -24,6 +25,7 @@ const UsersNavigation: React.FC<UsersNavigationProps> = ({ canManageGroups, chil
         )}
       </TabsList>
       {children}
+      {canManageGroups && <GroupsTab />}
     </Tabs>
   );
 };

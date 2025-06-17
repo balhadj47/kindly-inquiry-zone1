@@ -39,14 +39,80 @@ export const loadUsers = async (): Promise<User[]> => {
 
 export const loadRoles = async (): Promise<Role[]> => {
   try {
-    console.log('🔄 Loading roles...');
-    // Since roles table doesn't exist in the database, return default roles
-    console.log('🔄 No roles table found, using default roles...');
-    return getDefaultRoles();
+    console.log('🔄 Loading roles from database...');
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('*')
+      .order('name', { ascending: true });
+
+    if (error) {
+      console.error('❌ Error loading roles from database:', error);
+      console.log('🔄 Falling back to default roles...');
+      return getDefaultRoles();
+    }
+
+    if (!data || data.length === 0) {
+      console.log('🔄 No roles found in database, creating default roles...');
+      await createDefaultRoles();
+      // Retry loading after creating defaults
+      const { data: retryData, error: retryError } = await supabase
+        .from('user_groups')
+        .select('*')
+        .order('name', { ascending: true });
+      
+      if (retryError || !retryData) {
+        console.log('🔄 Fallback to hardcoded default roles...');
+        return getDefaultRoles();
+      }
+      
+      return transformDatabaseRolesToRoles(retryData);
+    }
+
+    const roles = transformDatabaseRolesToRoles(data);
+    console.log('✅ Roles loaded from database:', roles.length);
+    return roles;
   } catch (error) {
     console.error('❌ Exception loading roles:', error);
     console.log('🔄 Falling back to default roles...');
     return getDefaultRoles();
+  }
+};
+
+const transformDatabaseRolesToRoles = (data: any[]): Role[] => {
+  return data.map(group => ({
+    id: group.id,
+    name: group.name,
+    description: group.description,
+    permissions: Array.isArray(group.permissions) ? group.permissions : [],
+    color: group.color,
+    isSystemRole: true, // All roles from database are considered system roles
+  }));
+};
+
+const createDefaultRoles = async (): Promise<void> => {
+  try {
+    console.log('🔄 Creating default roles in database...');
+    const defaultRoles = getDefaultRoles();
+    
+    for (const role of defaultRoles) {
+      const { error } = await supabase
+        .from('user_groups')
+        .insert({
+          id: role.id,
+          name: role.name,
+          description: role.description,
+          permissions: role.permissions,
+          color: role.color,
+        });
+      
+      if (error) {
+        console.error(`❌ Error creating role ${role.name}:`, error);
+      } else {
+        console.log(`✅ Created role: ${role.name}`);
+      }
+    }
+  } catch (error) {
+    console.error('❌ Exception creating default roles:', error);
   }
 };
 
@@ -60,6 +126,7 @@ const getDefaultRoles = (): Role[] => {
         'vans:read', 'vans:create', 'vans:update', 'vans:delete',
         'trips:read', 'trips:create', 'trips:update', 'trips:delete',
         'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+        'groups:read', 'groups:manage',
         'dashboard:read', 'settings:read', 'settings:update'
       ],
       description: 'Full system access',
@@ -74,6 +141,7 @@ const getDefaultRoles = (): Role[] => {
         'vans:read', 'vans:update',
         'trips:read', 'trips:create', 'trips:update',
         'companies:read',
+        'groups:read',
         'dashboard:read'
       ],
       description: 'Supervisory access',

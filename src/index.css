@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,33 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Fix text blurring during scroll */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    will-change: auto;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+  }
+
+  /* Improve text rendering for all text elements */
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    transform: translateZ(0);
+  }
+
+  /* Specific fix for scrollable containers */
+  .overflow-auto, .overflow-y-auto, .overflow-x-auto {
+    will-change: scroll-position;
+    transform: translateZ(0);
+  }
+
+  /* Fix for cards and containers that might blur during scroll */
+  .card, [class*="card"], .bg-white, .bg-gray-50 {
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 }

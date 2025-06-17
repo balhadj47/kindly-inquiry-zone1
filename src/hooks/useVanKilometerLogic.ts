@@ -75,7 +75,7 @@ export const useVanKilometerLogic = ({ vanId, startKm, onStartKmChange }: UseVan
     };
 
     fetchLastKm();
-  }, [vanId, onStartKmChange, startKm]);
+  }, [vanId]); // Removed startKm and onStartKmChange from dependencies
 
   return { lastKm, loadingLastKm };
 };

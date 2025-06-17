@@ -24,20 +24,8 @@ const AppContent = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 ml-0 md:ml-16 group-data-[state=expanded]:md:ml-64 transition-all duration-200">
           <TopBar />
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-x-hidden" style={{
-            transform: 'translateZ(0)',
-            backfaceVisibility: 'hidden',
-            perspective: '1000px',
-            WebkitFontSmoothing: 'antialiased',
-            MozOsxFontSmoothing: 'grayscale',
-            textRendering: 'optimizeLegibility'
-          }}>
-            <div style={{
-              transform: 'translateZ(0)',
-              backfaceVisibility: 'hidden',
-              WebkitFontSmoothing: 'antialiased',
-              MozOsxFontSmoothing: 'grayscale'
-            }}>
+          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-x-hidden">
+            <div>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/dashboard" element={<Dashboard />} />

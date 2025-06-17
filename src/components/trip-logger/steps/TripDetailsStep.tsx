@@ -27,22 +27,22 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
   onEndDateChange
 }) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-amber-100 rounded-full mb-4">
-          <FileText className="w-8 h-8 text-amber-600" />
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-amber-100 rounded-full mb-3">
+          <FileText className="w-6 h-6 text-amber-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Détails du voyage</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Détails du voyage</h3>
         <p className="text-gray-600">Ajoutez les dates et des notes complémentaires (optionnel)</p>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200 space-y-6">
+      <div className="space-y-6">
         <div>
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-              <CalendarIconLucide className="w-4 h-4 text-blue-600" />
+            <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
+              <CalendarIconLucide className="w-3 h-3 text-blue-600" />
             </div>
-            <h4 className="text-lg font-semibold text-gray-900">Dates du voyage</h4>
+            <h4 className="font-semibold text-gray-900">Dates du voyage</h4>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -53,7 +53,7 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal h-12 border-2 border-gray-200 hover:border-blue-500",
+                      "w-full justify-start text-left font-normal border-gray-200 hover:border-blue-500",
                       !startDate && "text-muted-foreground"
                     )}
                   >
@@ -80,7 +80,7 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal h-12 border-2 border-gray-200 hover:border-blue-500",
+                      "w-full justify-start text-left font-normal border-gray-200 hover:border-blue-500",
                       !endDate && "text-muted-foreground"
                     )}
                   >
@@ -104,11 +104,11 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
         </div>
 
         <div>
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
-              <FileText className="w-4 h-4 text-green-600" />
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-6 h-6 bg-green-100 rounded-lg flex items-center justify-center">
+              <FileText className="w-3 h-3 text-green-600" />
             </div>
-            <Label htmlFor="notes" className="text-lg font-semibold text-gray-900">Notes</Label>
+            <Label htmlFor="notes" className="font-semibold text-gray-900">Notes</Label>
           </div>
           <Textarea
             id="notes"
@@ -116,7 +116,7 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
             value={notes}
             onChange={(e) => onNotesChange(e.target.value)}
             rows={4}
-            className="border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors resize-none"
+            className="border-gray-200 focus:border-blue-500 focus:ring-blue-500 resize-none"
           />
         </div>
       </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
@@ -181,27 +182,29 @@ const TripLoggerForm = () => {
   console.log('🔄 TripLoggerForm: Component render completed');
 
   return (
-    <div className="w-full max-w-4xl mx-auto bg-white shadow-xl rounded-xl border-0 p-8">
-      <WizardProgress
-        currentStep={currentStep}
-        allSteps={allSteps}
-        getStepLabel={getStepLabel}
-        goToStep={goToStep}
-        completedSteps={completedSteps}
-      />
+    <div className="w-full max-w-4xl mx-auto space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <WizardProgress
+          currentStep={currentStep}
+          allSteps={allSteps}
+          getStepLabel={getStepLabel}
+          goToStep={goToStep}
+          completedSteps={completedSteps}
+        />
 
-      <div className="min-h-[500px] bg-gray-50 rounded-xl p-6 border border-gray-100">
-        {renderCurrentStep()}
+        <div className="mt-6">
+          {renderCurrentStep()}
+        </div>
+
+        <WizardNavigation
+          isFirstStep={isFirstStep}
+          isLastStep={isLastStep}
+          onPrevious={goToPreviousStep}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+        />
       </div>
-
-      <WizardNavigation
-        isFirstStep={isFirstStep}
-        isLastStep={isLastStep}
-        onPrevious={goToPreviousStep}
-        onNext={handleNext}
-        onSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-      />
     </div>
   );
 };

@@ -19,24 +19,22 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
   onUserRoleSelection
 }) => {
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="text-center">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mb-4">
-          <Users className="w-8 h-8 text-green-600" />
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-green-100 rounded-full mb-3">
+          <Users className="w-6 h-6 text-green-600" />
         </div>
-        <h3 className="text-2xl font-bold text-gray-900 mb-2">Sélection de l'équipe</h3>
+        <h3 className="text-xl font-bold text-gray-900 mb-2">Sélection de l'équipe</h3>
         <p className="text-gray-600">Ajoutez les membres de l'équipe et assignez leurs rôles</p>
       </div>
 
-      <div className="bg-white rounded-lg p-6 shadow-sm border border-gray-200">
-        <RoleSelectionSection
-          userSearchQuery={userSearchQuery}
-          setUserSearchQuery={setUserSearchQuery}
-          selectedUsersWithRoles={selectedUsersWithRoles}
-          onUserRoleSelection={onUserRoleSelection}
-          filterByRole="Employee"
-        />
-      </div>
+      <RoleSelectionSection
+        userSearchQuery={userSearchQuery}
+        setUserSearchQuery={setUserSearchQuery}
+        selectedUsersWithRoles={selectedUsersWithRoles}
+        onUserRoleSelection={onUserRoleSelection}
+        filterByRole="Employee"
+      />
     </div>
   );
 };

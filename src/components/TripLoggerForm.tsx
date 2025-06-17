@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
@@ -20,6 +20,11 @@ import TeamSelectionStep from './trip-logger/steps/TeamSelectionStep';
 import TripDetailsStep from './trip-logger/steps/TripDetailsStep';
 
 const TripLoggerForm = () => {
+  console.log('🔄 TripLoggerForm: Component render started');
+  const renderCount = useRef(0);
+  renderCount.current += 1;
+  console.log('🔄 TripLoggerForm: Render count:', renderCount.current);
+
   const { t } = useLanguage();
   const { toast } = useToast();
   const { trips } = useTrip();
@@ -50,28 +55,28 @@ const TripLoggerForm = () => {
     onStartKmChange: (value) => handleInputChange('startKm', value)
   });
 
-  // Create a stable string of active van IDs to use as dependency
-  const activeVanIdsString = useMemo(() => {
-    return trips
-      .filter(trip => trip.status === 'active')
-      .map(trip => trip.van)
-      .sort()
-      .join(',');
-  }, [trips]);
+  useEffect(() => {
+    console.log('🔄 TripLoggerForm: useEffect triggered, checking dependencies');
+    console.log('🔄 TripLoggerForm: trips.length:', trips.length);
+    console.log('🔄 TripLoggerForm: vans.length:', vans.length);
+    console.log('🔄 TripLoggerForm: companies.length:', companies.length);
+  }, [trips, vans, companies]);
 
-  // Create a stable string of all van IDs to use as dependency
-  const allVanIdsString = useMemo(() => {
-    return vans.map(van => van.id).sort().join(',');
-  }, [vans]);
-
-  // Memoize availableVans with stable dependencies
+  // Stable calculation of available vans
   const availableVans = useMemo(() => {
-    const activeVanIds = activeVanIdsString.split(',').filter(Boolean);
-    return vans.filter(van => !activeVanIds.includes(van.id));
-  }, [vans, activeVanIdsString, allVanIdsString]);
+    console.log('🔄 TripLoggerForm: Recalculating availableVans');
+    const activeVanIds = trips
+      .filter(trip => trip.status === 'active')
+      .map(trip => trip.van);
+    
+    const result = vans.filter(van => !activeVanIds.includes(van.id));
+    console.log('🔄 TripLoggerForm: Available vans count:', result.length);
+    return result;
+  }, [trips, vans]);
 
-  // Memoize the van change handler to prevent unnecessary re-renders
+  // Stable van change handler
   const handleVanChange = useCallback((vanId: string) => {
+    console.log('🔄 TripLoggerForm: Van changed to:', vanId);
     handleInputChange('vanId', vanId);
   }, [handleInputChange]);
 
@@ -164,6 +169,8 @@ const TripLoggerForm = () => {
         return null;
     }
   };
+
+  console.log('🔄 TripLoggerForm: Component render completed');
 
   return (
     <Card className="w-full max-w-4xl mx-auto">

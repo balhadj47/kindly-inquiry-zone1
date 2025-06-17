@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
@@ -49,13 +50,30 @@ const TripLoggerForm = () => {
     onStartKmChange: (value) => handleInputChange('startKm', value)
   });
 
-  // Memoize the availableVans calculation to prevent unnecessary re-renders
-  const availableVans = useMemo(() => {
-    const activeVanIds = trips
+  // Create a stable string of active van IDs to use as dependency
+  const activeVanIdsString = useMemo(() => {
+    return trips
       .filter(trip => trip.status === 'active')
-      .map(trip => trip.van);
+      .map(trip => trip.van)
+      .sort()
+      .join(',');
+  }, [trips]);
+
+  // Create a stable string of all van IDs to use as dependency
+  const allVanIdsString = useMemo(() => {
+    return vans.map(van => van.id).sort().join(',');
+  }, [vans]);
+
+  // Memoize availableVans with stable dependencies
+  const availableVans = useMemo(() => {
+    const activeVanIds = activeVanIdsString.split(',').filter(Boolean);
     return vans.filter(van => !activeVanIds.includes(van.id));
-  }, [vans, trips]);
+  }, [vans, activeVanIdsString, allVanIdsString]);
+
+  // Memoize the van change handler to prevent unnecessary re-renders
+  const handleVanChange = useCallback((vanId: string) => {
+    handleInputChange('vanId', vanId);
+  }, [handleInputChange]);
 
   const handleNext = () => {
     if (validateStep(currentStep, formData)) {
@@ -105,7 +123,7 @@ const TripLoggerForm = () => {
             availableVans={availableVans}
             totalVans={vans}
             selectedVanId={formData.vanId}
-            onVanChange={(value) => handleInputChange('vanId', value)}
+            onVanChange={handleVanChange}
             startKm={formData.startKm}
             onStartKmChange={(value) => handleInputChange('startKm', value)}
             lastKm={lastKm}

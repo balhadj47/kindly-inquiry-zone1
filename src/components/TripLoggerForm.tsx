@@ -1,25 +1,23 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
 import { useTrip } from '@/contexts/TripContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
-import { useLastTripKm } from '@/hooks/useLastTripKm';
 import { validateTripForm } from './trip-logger/TripFormValidation';
 import { useTripSubmission } from './trip-logger/TripFormSubmission';
 import { useTripWizard, TripWizardStep } from '@/hooks/useTripWizard';
+import { useVanKilometerLogic } from '@/hooks/useVanKilometerLogic';
+import { useFormValidation } from '@/hooks/useFormValidation';
 import WizardProgress from './trip-logger/WizardProgress';
+import WizardNavigation from './trip-logger/WizardNavigation';
 import VanSelectionStep from './trip-logger/steps/VanSelectionStep';
 import CompanySelectionStep from './trip-logger/steps/CompanySelectionStep';
 import TeamSelectionStep from './trip-logger/steps/TeamSelectionStep';
 import TripDetailsStep from './trip-logger/steps/TripDetailsStep';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TripLoggerForm = () => {
   const { t } = useLanguage();
@@ -30,8 +28,7 @@ const TripLoggerForm = () => {
   const { formData, handleInputChange, handleUserRoleSelection, resetForm } = useTripForm();
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
-  const [previousVanId, setPreviousVanId] = useState('');
-  const { lastKm, loading: loadingLastKm } = useLastTripKm(formData.vanId);
+  const { validateStep, showValidationError } = useFormValidation();
   
   const {
     currentStep,
@@ -47,71 +44,23 @@ const TripLoggerForm = () => {
 
   const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
 
-  // Handle van change - clear startKm immediately when van changes
-  useEffect(() => {
-    if (formData.vanId !== previousVanId) {
-      console.log('Van changed from', previousVanId, 'to', formData.vanId);
-      setPreviousVanId(formData.vanId);
-      
-      // Always clear the startKm when van changes
-      if (formData.vanId) {
-        console.log('Clearing startKm due to van change');
-        handleInputChange('startKm', '');
-      }
-    }
-  }, [formData.vanId, previousVanId, handleInputChange]);
-
-  // Auto-populate starting kilometers when lastKm data is available
-  useEffect(() => {
-    if (formData.vanId && lastKm !== null && !loadingLastKm) {
-      console.log('Auto-populating start km with lastKm:', lastKm);
-      handleInputChange('startKm', lastKm.toString());
-    }
-  }, [lastKm, formData.vanId, loadingLastKm, handleInputChange]);
+  const { lastKm, loadingLastKm } = useVanKilometerLogic({
+    vanId: formData.vanId,
+    startKm: formData.startKm,
+    onStartKmChange: (value) => handleInputChange('startKm', value)
+  });
 
   // Filter out vans that are currently in active trips using van ID
   const activeTrips = trips.filter(trip => trip.status === 'active');
   const activeVanIds = activeTrips.map(trip => trip.van);
   const availableVans = vans.filter(van => !activeVanIds.includes(van.id));
 
-  // Validation for each step
-  const validateCurrentStep = (): boolean => {
-    switch (currentStep) {
-      case 'van':
-        return !!(formData.vanId && formData.startKm && parseInt(formData.startKm) >= 0);
-      case 'company':
-        return !!(formData.companyId && formData.branchId);
-      case 'team':
-        return formData.selectedUsersWithRoles.length > 0;
-      case 'details':
-        return true; // Notes are optional
-      default:
-        return false;
-    }
-  };
-
   const handleNext = () => {
-    if (validateCurrentStep()) {
+    if (validateStep(currentStep, formData)) {
       setCompletedSteps(prev => new Set([...prev, currentStep]));
       goToNextStep();
     } else {
-      let errorMessage = '';
-      switch (currentStep) {
-        case 'van':
-          errorMessage = 'Veuillez sélectionner un véhicule et entrer le kilométrage de départ';
-          break;
-        case 'company':
-          errorMessage = 'Veuillez sélectionner une entreprise et une succursale';
-          break;
-        case 'team':
-          errorMessage = 'Veuillez sélectionner au moins un utilisateur avec des rôles';
-          break;
-      }
-      toast({
-        title: 'Étape incomplète',
-        description: errorMessage,
-        variant: "destructive",
-      });
+      showValidationError(currentStep);
     }
   };
 
@@ -210,37 +159,13 @@ const TripLoggerForm = () => {
           {renderCurrentStep()}
         </div>
 
-        <div className="flex justify-between mt-8">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={goToPreviousStep}
-            disabled={isFirstStep}
-            className="flex items-center space-x-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            <span>Précédent</span>
-          </Button>
-
-          {isLastStep ? (
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              className="flex items-center space-x-2"
-            >
-              <span>{t.logTrip}</span>
-            </Button>
-          ) : (
-            <Button
-              type="button"
-              onClick={handleNext}
-              className="flex items-center space-x-2"
-            >
-              <span>Suivant</span>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          )}
-        </div>
+        <WizardNavigation
+          isFirstStep={isFirstStep}
+          isLastStep={isLastStep}
+          onPrevious={goToPreviousStep}
+          onNext={handleNext}
+          onSubmit={handleSubmit}
+        />
       </CardContent>
     </Card>
   );

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -79,7 +80,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <Label className="flex items-center space-x-2">
         <Users className="h-4 w-4" />
         <span>Sélectionner les utilisateurs et leurs rôles ({totalSelectedUsers} sélectionné{totalSelectedUsers !== 1 ? 's' : ''})</span>
@@ -97,13 +98,13 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
       </div>
 
       {/* Role Legend */}
-      <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
-        <span className="text-sm font-medium text-gray-600">Rôles disponibles:</span>
+      <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-md">
+        <span className="text-xs font-medium text-gray-600">Rôles:</span>
         {MISSION_ROLES.map((role) => {
           const IconComponent = role.icon;
           return (
-            <Badge key={role.value} variant="outline" className={`${role.color} flex items-center space-x-1`}>
-              <IconComponent className="h-3 w-3" />
+            <Badge key={role.value} variant="outline" className={`${role.color} flex items-center space-x-1 text-xs py-0.5 px-1.5`}>
+              <IconComponent className="h-2.5 w-2.5" />
               <span>{role.label}</span>
             </Badge>
           );
@@ -111,9 +112,9 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
       </div>
 
       {/* Users list with role selection */}
-      <div className="max-h-96 overflow-y-auto border rounded-md">
+      <div className="max-h-80 overflow-y-auto border rounded-md">
         {activeUsers.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-8">
+          <p className="text-sm text-gray-500 text-center py-6">
             {userSearchQuery ? 'Aucun utilisateur trouvé correspondant à votre recherche.' : 'Aucun utilisateur actif disponible.'}
           </p>
         ) : (
@@ -123,42 +124,43 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
               const isSelected = isUserSelected(user.id);
               
               return (
-                <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
+                <div key={user.id} className={`border-b last:border-b-0 p-3 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                          <Users className="h-4 w-4 text-gray-600" />
+                      <div className="flex items-center space-x-2 mb-2">
+                        <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center">
+                          <Users className="h-3 w-3 text-gray-600" />
                         </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{user.name}</span>
-                          <span className="text-sm text-gray-500 ml-2">({user.systemGroup})</span>
-                          <Badge variant="outline" className="ml-2 text-xs bg-green-100 text-green-800">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900 text-sm">{user.name}</span>
+                          <span className="text-xs text-gray-500">({user.systemGroup})</span>
+                          <Badge variant="outline" className="text-xs bg-green-100 text-green-800 py-0.5 px-1.5">
                             {user.status}
                           </Badge>
                         </div>
                       </div>
                       
                       {/* Role Selection Grid */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 ml-11">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 ml-8">
                         {MISSION_ROLES.map((role) => {
                           const IconComponent = role.icon;
                           const isRoleSelected = userRoles.includes(role.value);
                           
                           return (
-                            <div key={role.value} className="flex items-center space-x-2">
+                            <div key={role.value} className="flex items-center space-x-1.5">
                               <Checkbox
                                 id={`${user.id}-${role.value}`}
                                 checked={isRoleSelected}
                                 onCheckedChange={(checked) => 
                                   handleRoleToggle(user.id, role.value, checked as boolean)
                                 }
+                                className="h-3.5 w-3.5"
                               />
                               <label 
                                 htmlFor={`${user.id}-${role.value}`}
-                                className="flex items-center space-x-1 cursor-pointer text-sm"
+                                className="flex items-center space-x-1 cursor-pointer text-xs"
                               >
-                                <IconComponent className="h-3 w-3" />
+                                <IconComponent className="h-2.5 w-2.5" />
                                 <span>{role.label}</span>
                               </label>
                             </div>
@@ -168,15 +170,15 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
 
                       {/* Selected Roles Display */}
                       {userRoles.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2 ml-11">
+                        <div className="flex flex-wrap gap-1 mt-1.5 ml-8">
                           {userRoles.map((roleName) => {
                             const role = MISSION_ROLES.find(r => r.value === roleName);
                             if (!role) return null;
                             const IconComponent = role.icon;
                             
                             return (
-                              <Badge key={roleName} className={`${role.color} text-xs flex items-center space-x-1`}>
-                                <IconComponent className="h-3 w-3" />
+                              <Badge key={roleName} className={`${role.color} text-xs flex items-center space-x-1 py-0.5 px-1.5`}>
+                                <IconComponent className="h-2.5 w-2.5" />
                                 <span>{role.label}</span>
                               </Badge>
                             );

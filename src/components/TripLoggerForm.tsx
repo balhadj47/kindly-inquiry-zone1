@@ -25,7 +25,7 @@ const TripLoggerForm = () => {
   const { trips } = useTrip();
   const { companies } = useCompanies();
   const { vans } = useVans();
-  const { formData, handleInputChange, handleUserRoleSelection, resetForm } = useTripForm();
+  const { formData, handleInputChange, handleDateChange, handleUserRoleSelection, resetForm } = useTripForm();
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const { validateStep, showValidationError } = useFormValidation();

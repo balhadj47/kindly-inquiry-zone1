@@ -8,19 +8,24 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
 import UserProfile from './UserProfile';
 
 const AppSidebar = () => {
   const { currentUser, loading } = useRBAC();
+  const isMobile = useIsMobile();
 
   console.log('AppSidebar render - currentUser:', currentUser);
   console.log('AppSidebar render - loading:', loading);
 
   if (loading) {
     return (
-      <Sidebar collapsible="icon" className="fixed left-0 top-0 h-screen z-50">
+      <Sidebar 
+        collapsible="icon" 
+        className={`fixed left-0 top-0 h-screen z-50 ${isMobile ? 'w-80' : ''}`}
+      >
         <SidebarContent>
           <div className="flex items-center justify-center p-6">
             <div className="animate-pulse space-y-2">
@@ -34,13 +39,18 @@ const AppSidebar = () => {
   }
 
   return (
-    <Sidebar collapsible="icon" className="fixed left-0 top-0 h-screen z-50 border-r border-sidebar-border">
+    <Sidebar 
+      collapsible="icon" 
+      className={`fixed left-0 top-0 h-screen z-50 border-r border-sidebar-border ${
+        isMobile ? 'w-80' : ''
+      }`}
+    >
       <SidebarHeader />
       
       <SidebarContent className="flex flex-col h-full">
         <div className="flex-1 py-4 overflow-y-auto">
           <SidebarGroup>
-            <SidebarGroupContent>
+            <SidebarGroupContent className={isMobile ? 'px-2' : ''}>
               <SidebarMenuContent />
             </SidebarGroupContent>
           </SidebarGroup>

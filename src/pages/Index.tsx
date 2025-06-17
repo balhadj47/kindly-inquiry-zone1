@@ -24,7 +24,9 @@ const AppContent = () => {
         <AppSidebar />
         <div className="flex-1 flex flex-col min-w-0 transition-all duration-200 h-screen">
           <TopBar />
-          <main className="flex-1 p-3 sm:p-4 lg:p-6 bg-gray-50 overflow-y-auto overflow-x-hidden">
+          <main className={`flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden ${
+            isMobile ? 'p-3' : 'p-3 sm:p-4 lg:p-6'
+          }`}>
             <div>
               <Routes>
                 <Route path="/" element={<Dashboard />} />

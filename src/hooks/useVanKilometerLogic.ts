@@ -63,19 +63,12 @@ export const useVanKilometerLogic = ({ vanId, startKm, onStartKmChange }: UseVan
             onStartKmChange(lastStartKm.toString());
           }
         } else {
-          // No previous trip data found, set to 0
+          // No previous trip data found
           setLastKm(null);
-          if (!startKm) {
-            onStartKmChange('0');
-          }
         }
       } catch (error) {
         console.error('Error in fetchLastKm:', error);
         setLastKm(null);
-        // Set to 0 on error as well
-        if (!startKm) {
-          onStartKmChange('0');
-        }
       } finally {
         setLoadingLastKm(false);
       }

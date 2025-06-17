@@ -33,6 +33,7 @@ const TripLoggerForm = () => {
   const { formData, handleInputChange, handleDateChange, handleUserRoleSelection, resetForm } = useTripForm();
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { validateStep, showValidationError } = useFormValidation();
   
   const {
@@ -106,6 +107,7 @@ const TripLoggerForm = () => {
       return;
     }
 
+    setIsSubmitting(true);
     try {
       await submitTrip(formData);
       resetForm();
@@ -123,6 +125,8 @@ const TripLoggerForm = () => {
         description: error instanceof Error ? error.message : 'An error occurred',
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -179,11 +183,16 @@ const TripLoggerForm = () => {
   console.log('🔄 TripLoggerForm: Component render completed');
 
   return (
-    <Card className="w-full max-w-4xl mx-auto">
-      <CardHeader>
-        <CardTitle>{t.logNewTrip}</CardTitle>
+    <Card className="w-full max-w-4xl mx-auto bg-white shadow-xl border-0">
+      <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
+        <CardTitle className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm font-bold">📋</span>
+          </div>
+          {t.logNewTrip}
+        </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-8">
         <WizardProgress
           currentStep={currentStep}
           allSteps={allSteps}
@@ -192,7 +201,7 @@ const TripLoggerForm = () => {
           completedSteps={completedSteps}
         />
 
-        <div className="min-h-[400px]">
+        <div className="min-h-[500px] bg-gray-50 rounded-xl p-6 border border-gray-100">
           {renderCurrentStep()}
         </div>
 
@@ -202,6 +211,7 @@ const TripLoggerForm = () => {
           onPrevious={goToPreviousStep}
           onNext={handleNext}
           onSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
         />
       </CardContent>
     </Card>

@@ -21,11 +21,11 @@ interface RoleSelectionSectionProps {
   filterByRole?: string;
 }
 
-const MISSION_ROLES: { value: MissionRole; label: string; icon: React.ComponentType<any>; color: string }[] = [
-  { value: 'Chef de Groupe', label: 'Chef de Groupe', icon: Shield, color: 'bg-red-100 text-red-800' },
-  { value: 'Chauffeur', label: 'Chauffeur', icon: Car, color: 'bg-blue-100 text-blue-800' },
-  { value: 'APS', label: 'APS', icon: UserCheck, color: 'bg-green-100 text-green-800' },
-  { value: 'Armé', label: 'Armé', icon: Target, color: 'bg-orange-100 text-orange-800' },
+const MISSION_ROLES: { value: MissionRole; label: string; icon: React.ComponentType<any>; color: string; selectedColor: string }[] = [
+  { value: 'Chef de Groupe', label: 'Chef de Groupe', icon: Shield, color: 'bg-red-100 text-red-800', selectedColor: 'text-red-600' },
+  { value: 'Chauffeur', label: 'Chauffeur', icon: Car, color: 'bg-blue-100 text-blue-800', selectedColor: 'text-blue-600' },
+  { value: 'APS', label: 'APS', icon: UserCheck, color: 'bg-green-100 text-green-800', selectedColor: 'text-green-600' },
+  { value: 'Armé', label: 'Armé', icon: Target, color: 'bg-orange-100 text-orange-800', selectedColor: 'text-orange-600' },
 ];
 
 const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
@@ -40,7 +40,6 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   // Filter users based on search query and system group
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      user.systemGroup.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
       user.email.toLowerCase().includes(userSearchQuery.toLowerCase());
     
     const matchesRole = !filterByRole || user.systemGroup === filterByRole;
@@ -80,10 +79,10 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       <Label className="flex items-center space-x-2">
-        <Users className="h-4 w-4" />
-        <span className="text-sm sm:text-base">Sélectionner les utilisateurs et leurs rôles ({totalSelectedUsers} sélectionné{totalSelectedUsers !== 1 ? 's' : ''})</span>
+        <Users className="h-5 w-5" />
+        <span className="text-base font-medium">Sélectionner les utilisateurs et leurs rôles ({totalSelectedUsers} sélectionné{totalSelectedUsers !== 1 ? 's' : ''})</span>
       </Label>
       
       {/* User Search Input */}
@@ -93,19 +92,19 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
           placeholder="Rechercher des utilisateurs..."
           value={userSearchQuery}
           onChange={(e) => setUserSearchQuery(e.target.value)}
-          className="pl-10 text-sm"
+          className="pl-10 text-base"
         />
       </div>
 
       {/* Role Legend */}
-      <div className="flex flex-wrap gap-1.5 p-2 bg-gray-50 rounded-md">
-        <span className="text-xs font-medium text-gray-600">Rôles:</span>
+      <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
+        <span className="text-sm font-medium text-gray-600">Rôles:</span>
         {MISSION_ROLES.map((role) => {
           const IconComponent = role.icon;
           return (
-            <Badge key={role.value} variant="outline" className={`${role.color} flex items-center space-x-1 text-xs py-0.5 px-1.5`}>
-              <IconComponent className="h-2.5 w-2.5" />
-              <span className="hidden sm:inline">{role.label}</span>
+            <Badge key={role.value} variant="outline" className={`${role.color} flex items-center space-x-1.5 text-sm py-1 px-2`}>
+              <IconComponent className="h-3.5 w-3.5" />
+              <span>{role.label}</span>
             </Badge>
           );
         })}
@@ -114,7 +113,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
       {/* Users list with role selection */}
       <div className="max-h-80 overflow-y-auto border rounded-md">
         {activeUsers.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-6">
+          <p className="text-base text-gray-500 text-center py-8">
             {userSearchQuery ? 'Aucun utilisateur trouvé correspondant à votre recherche.' : 'Aucun utilisateur actif disponible.'}
           </p>
         ) : (
@@ -124,24 +123,24 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
               const isSelected = isUserSelected(user.id);
               
               return (
-                <div key={user.id} className={`border-b last:border-b-0 p-2 sm:p-3 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
-                  <div className="flex flex-col space-y-3">
+                <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'}`}>
+                  <div className="flex flex-col space-y-4">
                     {/* User Header */}
-                    <div className="flex items-center space-x-2">
-                      <div className="w-5 h-5 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Users className="h-2.5 w-2.5 text-gray-600" />
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">
+                        <Users className="h-3.5 w-3.5 text-gray-600" />
                       </div>
                       <div className="flex items-center space-x-2 flex-1 min-w-0">
-                        <span className="font-medium text-gray-900 text-sm truncate">{user.name}</span>
+                        <span className="font-medium text-gray-900 text-base truncate">{user.name}</span>
                         {/* Show role icons next to name */}
-                        <div className="flex space-x-1">
+                        <div className="flex space-x-1.5">
                           {userRoles.map((roleName) => {
                             const role = MISSION_ROLES.find(r => r.value === roleName);
                             if (!role) return null;
                             const IconComponent = role.icon;
                             
                             return (
-                              <IconComponent key={roleName} className="h-3 w-3 text-gray-600 flex-shrink-0" />
+                              <IconComponent key={roleName} className={`h-4 w-4 ${role.selectedColor} flex-shrink-0`} />
                             );
                           })}
                         </div>
@@ -149,26 +148,26 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
                     </div>
                     
                     {/* Role Selection Grid */}
-                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 ml-7">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 ml-9">
                       {MISSION_ROLES.map((role) => {
                         const IconComponent = role.icon;
                         const isRoleSelected = userRoles.includes(role.value);
                         
                         return (
-                          <div key={role.value} className="flex items-center space-x-1.5">
+                          <div key={role.value} className="flex items-center space-x-2">
                             <Checkbox
                               id={`${user.id}-${role.value}`}
                               checked={isRoleSelected}
                               onCheckedChange={(checked) => 
                                 handleRoleToggle(user.id, role.value, checked as boolean)
                               }
-                              className="h-3 w-3 flex-shrink-0"
+                              className="h-4 w-4 flex-shrink-0"
                             />
                             <label 
                               htmlFor={`${user.id}-${role.value}`}
-                              className="flex items-center space-x-1 cursor-pointer text-xs min-w-0"
+                              className="flex items-center space-x-2 cursor-pointer text-sm min-w-0"
                             >
-                              <IconComponent className="h-2.5 w-2.5 flex-shrink-0" />
+                              <IconComponent className={`h-4 w-4 flex-shrink-0 ${isRoleSelected ? role.selectedColor : 'text-gray-400'}`} />
                               <span className="truncate">{role.label}</span>
                             </label>
                           </div>
@@ -184,13 +183,13 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
       </div>
       
       {userSearchQuery && (
-        <p className="text-xs text-gray-500">
+        <p className="text-sm text-gray-500">
           Affichage de {activeUsers.length} utilisateur{activeUsers.length !== 1 ? 's' : ''} actif{activeUsers.length !== 1 ? 's' : ''}
         </p>
       )}
       
       {totalSelectedUsers === 0 && (
-        <p className="text-sm text-gray-500">Veuillez sélectionner au moins un utilisateur avec un rôle pour la mission.</p>
+        <p className="text-base text-gray-500">Veuillez sélectionner au moins un utilisateur avec un rôle pour la mission.</p>
       )}
     </div>
   );

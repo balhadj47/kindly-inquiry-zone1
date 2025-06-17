@@ -36,9 +36,9 @@ const VanSelector: React.FC<VanSelectorProps> = ({
 
     const query = searchQuery.toLowerCase().trim();
     return availableVans.filter(van => 
-      (van.reference_code?.toLowerCase().includes(query)) ||
-      van.license_plate.toLowerCase().includes(query) ||
-      van.model.toLowerCase().includes(query)
+      (van.reference_code?.toLowerCase()?.includes(query)) ||
+      (van.license_plate?.toLowerCase()?.includes(query)) ||
+      (van.model?.toLowerCase()?.includes(query))
     );
   }, [availableVans, searchQuery]);
 

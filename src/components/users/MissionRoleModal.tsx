@@ -9,7 +9,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -72,7 +71,7 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
       }
       onClose();
     } catch (error) {
-      console.error('Error saving mission role:', error);
+      console.error('Error saving mission role template:', error);
     } finally {
       setLoading(false);
     }
@@ -83,12 +82,12 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>
-            {role ? 'Modifier le Rôle de Mission' : 'Nouveau Rôle de Mission'}
+            {role ? 'Modifier le Modèle de Rôle' : 'Nouveau Modèle de Rôle'}
           </DialogTitle>
           <DialogDescription>
             {role 
-              ? 'Modifiez les informations du rôle de mission.'
-              : 'Créez un nouveau rôle de mission pour les opérations.'
+              ? 'Modifiez ce modèle de rôle de mission.'
+              : 'Créez un nouveau modèle de rôle pour les missions. Ce modèle pourra être assigné aux utilisateurs lors de la création de missions.'
             }
           </DialogDescription>
         </DialogHeader>
@@ -96,7 +95,7 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="name" className="text-right">
-                Nom
+                Type de Rôle
               </Label>
               <Select
                 value={formData.name}
@@ -124,7 +123,7 @@ const MissionRoleModal: React.FC<MissionRoleModalProps> = ({ isOpen, onClose, ro
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 className="col-span-3"
                 required
-                placeholder="Description du rôle..."
+                placeholder="Description du modèle de rôle..."
               />
             </div>
             <div className="grid grid-cols-4 items-center gap-4">

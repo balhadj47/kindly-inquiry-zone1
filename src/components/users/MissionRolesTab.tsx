@@ -4,7 +4,7 @@ import { TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Target, Shield, Car, UserCheck, Edit, Trash2 } from 'lucide-react';
+import { Plus, Target, Shield, Car, UserCheck, Edit, Trash2, Info } from 'lucide-react';
 import { MISSION_ROLES, MissionRole } from '@/types/missionRoles';
 import MissionRoleModal from './MissionRoleModal';
 
@@ -44,23 +44,37 @@ const MissionRolesTab: React.FC = () => {
   };
 
   const handleDeleteRole = (roleId: string) => {
-    // Implementation for deleting role
-    console.log('Delete role:', roleId);
+    // Implementation for deleting role template
+    console.log('Delete role template:', roleId);
   };
 
   return (
     <TabsContent value="mission-roles" className="space-y-4">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Rôles de Mission</h2>
+          <h2 className="text-2xl font-bold">Modèles de Rôles de Mission</h2>
           <p className="text-muted-foreground">
-            Gérez les rôles disponibles pour les missions
+            Gérez les modèles de rôles disponibles pour l'assignation aux missions
           </p>
         </div>
         <Button onClick={handleAddRole}>
           <Plus className="h-4 w-4 mr-2" />
-          Nouveau Rôle
+          Nouveau Modèle
         </Button>
+      </div>
+
+      {/* Important Notice */}
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-md">
+        <div className="flex items-start">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5 mr-3 flex-shrink-0" />
+          <div>
+            <h3 className="font-medium text-blue-900 mb-1">À propos des rôles de mission</h3>
+            <p className="text-sm text-blue-800">
+              Ces modèles définissent les types de rôles disponibles. Les rôles sont assignés aux utilisateurs 
+              <strong> lors de la création de missions spécifiques</strong>, pas de manière permanente.
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -107,14 +121,26 @@ const MissionRolesTab: React.FC = () => {
         })}
       </div>
 
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">Comment utiliser les rôles de mission</h3>
-        <ul className="text-sm text-blue-800 space-y-1">
-          <li>• Les rôles de mission sont assignés aux utilisateurs pour des missions spécifiques</li>
-          <li>• Un utilisateur peut avoir plusieurs rôles de mission</li>
-          <li>• Ces rôles sont différents des groupes système qui contrôlent les permissions d'application</li>
-          <li>• Les rôles de mission sont purement opérationnels (Chef de Groupe, Chauffeur, APS, Armé)</li>
-        </ul>
+      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+        <h3 className="font-medium text-gray-900 mb-3">Comment fonctionnent les rôles de mission</h3>
+        <div className="space-y-3 text-sm text-gray-700">
+          <div className="flex items-start space-x-2">
+            <Target className="h-4 w-4 mt-0.5 text-gray-500 flex-shrink-0" />
+            <span>Ces modèles définissent les types de rôles opérationnels disponibles</span>
+          </div>
+          <div className="flex items-start space-x-2">
+            <UserCheck className="h-4 w-4 mt-0.5 text-gray-500 flex-shrink-0" />
+            <span>Les rôles sont assignés aux utilisateurs lors de la création de missions dans "Logger un trajet"</span>
+          </div>
+          <div className="flex items-start space-x-2">
+            <Shield className="h-4 w-4 mt-0.5 text-gray-500 flex-shrink-0" />
+            <span>Un utilisateur peut avoir différents rôles selon les missions (ex: Chauffeur sur une mission, APS sur une autre)</span>
+          </div>
+          <div className="flex items-start space-x-2">
+            <Car className="h-4 w-4 mt-0.5 text-gray-500 flex-shrink-0" />
+            <span>Ces rôles sont différents des groupes système qui contrôlent les permissions d'application</span>
+          </div>
+        </div>
       </div>
 
       <MissionRoleModal

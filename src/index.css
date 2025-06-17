@@ -96,34 +96,58 @@
     @apply border-border;
   }
 
-  body {
-    @apply bg-background text-foreground;
-    /* Fix text blurring during scroll */
+  html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    will-change: auto;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     transform: translateZ(0);
     backface-visibility: hidden;
     perspective: 1000px;
+    overflow-x: hidden;
   }
 
-  /* Improve text rendering for all text elements */
-  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label {
+  /* Force hardware acceleration and improve text rendering for all elements */
+  * {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
-    transform: translateZ(0);
   }
 
-  /* Specific fix for scrollable containers */
-  .overflow-auto, .overflow-y-auto, .overflow-x-auto {
-    will-change: scroll-position;
+  /* Specific fixes for containers and scrollable areas */
+  main, [role="main"], .main-content {
     transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   /* Fix for cards and containers that might blur during scroll */
-  .card, [class*="card"], .bg-white, .bg-gray-50 {
+  .card, [class*="card"], .bg-white, .bg-gray-50, [class*="bg-gray"] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Force GPU acceleration on scroll containers */
+  .overflow-auto, .overflow-y-auto, .overflow-x-auto, [class*="overflow-"] {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Ensure all text elements maintain sharp rendering */
+  h1, h2, h3, h4, h5, h6, p, span, div, a, button, input, textarea, label, td, th {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
     transform: translateZ(0);
     backface-visibility: hidden;
   }

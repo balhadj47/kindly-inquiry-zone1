@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Company } from '@/hooks/useCompanies';
 import { useCompaniesActions } from '@/hooks/useCompaniesActions';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { toast } from 'sonner';
 
 export const useCompaniesState = (setCompanies: (updater: (prev: Company[]) => Company[]) => void) => {
@@ -9,6 +10,7 @@ export const useCompaniesState = (setCompanies: (updater: (prev: Company[]) => C
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const { deleteCompany, isLoading: isDeleting } = useCompaniesActions();
+  const { t } = useLanguage();
 
   const handleAddCompany = () => {
     setSelectedCompany(null);
@@ -36,7 +38,7 @@ export const useCompaniesState = (setCompanies: (updater: (prev: Company[]) => C
         prevCompanies.filter(company => company.id !== selectedCompany.id)
       );
       
-      toast.success('Entreprise supprimée avec succès');
+      toast.success(t.companyDeletedSuccessfully);
       setIsDeleteDialogOpen(false);
       setSelectedCompany(null);
     } catch (error) {

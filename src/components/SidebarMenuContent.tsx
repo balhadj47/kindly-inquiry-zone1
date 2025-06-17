@@ -7,6 +7,7 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Home,
   Building2,
@@ -19,47 +20,48 @@ import {
 
 const SidebarMenuContent = () => {
   const { hasPermission } = useRBAC();
+  const { t } = useLanguage();
   const location = useLocation();
 
   const menuItems = [
     {
-      title: 'Tableau de Bord',
+      title: t.dashboardFull,
       url: '/dashboard',
       icon: Home,
       permission: null,
     },
     {
-      title: 'Entreprises',
+      title: t.companies,
       url: '/companies',
       icon: Building2,
       permission: 'companies:read',
     },
     {
-      title: 'Camionnettes',
+      title: t.vans,
       url: '/vans',
       icon: Truck,
       permission: 'vans:read',
     },
     {
-      title: 'Utilisateurs',
+      title: t.users,
       url: '/users',
       icon: Users,
       permission: 'users:read',
     },
     {
-      title: 'Logger Voyage',
+      title: t.logTripFull,
       url: '/trip-logger',
       icon: MapPin,
       permission: 'trips:read',
     },
     {
-      title: 'Historique',
+      title: t.history,
       url: '/trip-history',
       icon: History,
       permission: 'trips:read',
     },
     {
-      title: 'Paramètres',
+      title: t.settings,
       url: '/settings',
       icon: Settings,
       permission: null,

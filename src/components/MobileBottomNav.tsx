@@ -2,6 +2,7 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import {
   Home,
   Building2,
@@ -14,35 +15,36 @@ import {
 
 const MobileBottomNav = () => {
   const { hasPermission } = useRBAC();
+  const { t } = useLanguage();
   const location = useLocation();
 
   const menuItems = [
     {
-      title: 'Accueil',
+      title: t.home,
       url: '/dashboard',
       icon: Home,
       permission: null,
     },
     {
-      title: 'Entreprises',
+      title: t.companies,
       url: '/companies',
       icon: Building2,
       permission: 'companies:read',
     },
     {
-      title: 'Camionnettes',
+      title: t.vans,
       url: '/vans',
       icon: Truck,
       permission: 'vans:read',
     },
     {
-      title: 'Logger',
+      title: t.logger,
       url: '/trip-logger',
       icon: MapPin,
       permission: 'trips:read',
     },
     {
-      title: 'Historique',
+      title: t.history,
       url: '/trip-history',
       icon: History,
       permission: 'trips:read',

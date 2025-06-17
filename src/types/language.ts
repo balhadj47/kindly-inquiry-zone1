@@ -1,4 +1,3 @@
-
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 
 export interface TranslationKeys {
@@ -10,6 +9,19 @@ export interface TranslationKeys {
   logTrip: string;
   tripHistory: string;
   settings: string;
+  
+  // Navigation - Mobile specific
+  home: string;
+  vans: string;
+  logger: string;
+  history: string;
+  
+  // Navigation - Sidebar specific
+  dashboardFull: string;
+  logTripFull: string;
+  
+  // Success messages
+  companyDeletedSuccessfully: string;
   
   // Common
   search: string;

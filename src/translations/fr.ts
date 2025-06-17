@@ -1,4 +1,3 @@
-
 import { TranslationKeys } from '@/types/language';
 
 export const fr: TranslationKeys = {
@@ -10,6 +9,19 @@ export const fr: TranslationKeys = {
   logTrip: 'Enregistrer un Programme',
   tripHistory: 'Historique des Programmes',
   settings: 'Paramètres',
+  
+  // Navigation - Mobile specific
+  home: 'Accueil',
+  vans: 'Camionnettes',
+  logger: 'Logger',
+  history: 'Historique',
+  
+  // Navigation - Sidebar specific
+  dashboardFull: 'Tableau de Bord',
+  logTripFull: 'Logger Voyage',
+  
+  // Success messages
+  companyDeletedSuccessfully: 'Entreprise supprimée avec succès',
   
   // Common
   search: 'Rechercher',

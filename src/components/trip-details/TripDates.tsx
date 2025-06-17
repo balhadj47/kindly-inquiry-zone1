@@ -32,6 +32,7 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
     });
   };
 
+  // Show the component if either start or end date exists
   if (!trip.startDate && !trip.endDate) {
     return null;
   }

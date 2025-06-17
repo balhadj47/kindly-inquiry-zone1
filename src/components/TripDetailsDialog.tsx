@@ -11,6 +11,7 @@ import TripTeam from './trip-details/TripTeam';
 import TripNotes from './trip-details/TripNotes';
 import TripVanDetails from './trip-details/TripVanDetails';
 import TripDuration from './trip-details/TripDuration';
+import TripDates from './trip-details/TripDates';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TripDetailsDialogProps {
@@ -52,6 +53,8 @@ const TripDetailsDialog: React.FC<TripDetailsDialogProps> = ({
           <TripVanDetails trip={trip} vans={vans} />
           
           <TripDuration trip={trip} />
+          
+          <TripDates trip={trip} />
           
           <TripKilometers trip={trip} />
           

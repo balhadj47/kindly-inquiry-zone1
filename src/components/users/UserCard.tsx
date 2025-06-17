@@ -1,22 +1,13 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, Mail, Key, User as UserIcon, MapPin, Calendar, Truck, Clock, Trash } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { User } from '@/types/rbac';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import UserCardHeader from './card/UserCardHeader';
+import UserCardActions from './card/UserCardActions';
+import UserCardContact from './card/UserCardContact';
+import UserCardLicense from './card/UserCardLicense';
+import UserCardStats from './card/UserCardStats';
+import UserCardAccount from './card/UserCardAccount';
 
 interface UserCardProps {
   user: User;
@@ -31,202 +22,24 @@ const UserCard: React.FC<UserCardProps> = ({
   onDelete,
   onChangePassword,
 }) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'inactive':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'suspended':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'récupération':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      case 'congé':
-      case 'congé maladie':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
-  const getRoleColor = (systemGroup: string) => {
-    if (systemGroup.includes('Administrator')) return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (systemGroup.includes('Supervisor')) return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (systemGroup.includes('Employee')) return 'bg-green-50 text-green-700 border-green-200';
-    return 'bg-gray-50 text-gray-700 border-gray-200';
-  };
-
-  const getUserInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  // Check if user has driver-related license (indicating they might be a driver)
-  const isDriver = user.licenseNumber && user.licenseNumber.length > 0;
-
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border hover:border-primary/20 bg-card">
-      <CardHeader className="pb-4 space-y-0">
-        <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-14 w-14 ring-2 ring-muted">
-              <AvatarImage 
-                src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
-                alt={user.name}
-              />
-              <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">
-                {getUserInitials(user.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <CardTitle className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors">
-                {user.name}
-              </CardTitle>
-              <div className="flex flex-wrap items-center gap-2 mt-2">
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs font-medium ${getRoleColor(user.systemGroup)}`}
-                >
-                  {user.systemGroup}
-                </Badge>
-                <Badge 
-                  variant="outline"
-                  className={`text-xs font-medium ${getStatusColor(user.status)}`}
-                >
-                  {user.status}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 w-8 p-0"
-              onClick={() => onEdit(user)}
-            >
-              <UserIcon className="h-4 w-4" />
-            </Button>
-            
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 w-8 p-0"
-              onClick={() => onChangePassword(user)}
-            >
-              <Key className="h-4 w-4" />
-            </Button>
-            
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                >
-                  <Trash className="h-4 w-4" />
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
-                    Cette action ne peut pas être annulée.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Annuler</AlertDialogCancel>
-                  <AlertDialogAction
-                    onClick={() => onDelete(user)}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Supprimer
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          </div>
-        </div>
-      </CardHeader>
+      <UserCardHeader user={user} />
+      
+      <div className="absolute top-4 right-4">
+        <UserCardActions
+          user={user}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onChangePassword={onChangePassword}
+        />
+      </div>
 
       <CardContent className="space-y-6">
-        {/* Contact Information */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Contact
-          </h4>
-          <div className="space-y-2">
-            <div className="flex items-center space-x-3 text-sm">
-              <Mail className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="truncate">{user.email}</span>
-            </div>
-            <div className="flex items-center space-x-3 text-sm">
-              <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span>{user.phone}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* License Information */}
-        {user.licenseNumber && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Licence
-            </h4>
-            <div className="flex items-center space-x-3 text-sm">
-              <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span className="font-mono text-xs bg-muted px-2 py-1 rounded">
-                {user.licenseNumber}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* Driver Statistics */}
-        {isDriver && user.totalTrips && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-              Statistiques
-            </h4>
-            <div className="grid grid-cols-1 gap-3">
-              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <div className="flex items-center space-x-2">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm font-medium">Total Voyages</span>
-                </div>
-                <span className="text-lg font-bold text-primary">{user.totalTrips}</span>
-              </div>
-              {user.lastTrip && (
-                <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center space-x-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-medium">Dernier Voyage</span>
-                  </div>
-                  <span className="text-sm text-muted-foreground">{user.lastTrip}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Account Information */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
-            Compte
-          </h4>
-          <div className="flex items-center space-x-3 text-sm">
-            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span className="text-muted-foreground">
-              Créé le {new Date(user.createdAt).toLocaleDateString('fr-FR')}
-            </span>
-          </div>
-        </div>
+        <UserCardContact user={user} />
+        <UserCardLicense user={user} />
+        <UserCardStats user={user} />
+        <UserCardAccount user={user} />
       </CardContent>
     </Card>
   );

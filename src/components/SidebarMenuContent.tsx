@@ -7,7 +7,6 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { useRBAC } from '@/contexts/RBACContext';
-import { useMobileSidebarAutoClose } from '@/hooks/use-mobile-sidebar';
 import {
   Home,
   Building2,
@@ -21,9 +20,6 @@ import {
 const SidebarMenuContent = () => {
   const { hasPermission } = useRBAC();
   const location = useLocation();
-  
-  // Auto-close sidebar on mobile when navigating
-  useMobileSidebarAutoClose();
 
   const menuItems = [
     {

@@ -47,23 +47,27 @@ const TripLoggerForm = () => {
 
   const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
 
-  // Auto-populate starting kilometers when a van is selected and lastKm is available
+  // Handle van change - clear startKm immediately when van changes
   useEffect(() => {
     if (formData.vanId !== previousVanId) {
-      // Van has changed, update the previous van ID
+      console.log('Van changed from', previousVanId, 'to', formData.vanId);
       setPreviousVanId(formData.vanId);
       
-      // If we have lastKm data for the new van, update the startKm
-      if (lastKm !== null && formData.vanId) {
-        console.log('Van changed, auto-populating start km with:', lastKm);
-        handleInputChange('startKm', lastKm.toString());
-      } else if (formData.vanId) {
-        // Clear the startKm if no lastKm data available for new van
-        console.log('Van changed, no lastKm data, clearing startKm');
+      // Always clear the startKm when van changes
+      if (formData.vanId) {
+        console.log('Clearing startKm due to van change');
         handleInputChange('startKm', '');
       }
     }
-  }, [lastKm, formData.vanId, handleInputChange, previousVanId]);
+  }, [formData.vanId, previousVanId, handleInputChange]);
+
+  // Auto-populate starting kilometers when lastKm data is available
+  useEffect(() => {
+    if (formData.vanId && lastKm !== null && !loadingLastKm) {
+      console.log('Auto-populating start km with lastKm:', lastKm);
+      handleInputChange('startKm', lastKm.toString());
+    }
+  }, [lastKm, formData.vanId, loadingLastKm, handleInputChange]);
 
   // Filter out vans that are currently in active trips using van ID
   const activeTrips = trips.filter(trip => trip.status === 'active');

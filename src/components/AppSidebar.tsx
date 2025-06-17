@@ -37,17 +37,19 @@ const AppSidebar = () => {
     <Sidebar collapsible="icon" className="border-r border-sidebar-border">
       <SidebarHeader />
       
-      <SidebarContent className="py-4">
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenuContent />
-          </SidebarGroupContent>
-        </SidebarGroup>
+      <SidebarContent className="flex flex-col flex-1">
+        <div className="flex-1 py-4">
+          <SidebarGroup>
+            <SidebarGroupContent>
+              <SidebarMenuContent />
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </div>
+        
+        <SidebarFooter className="border-t border-sidebar-border p-4 mt-auto">
+          <UserProfile />
+        </SidebarFooter>
       </SidebarContent>
-
-      <SidebarFooter className="border-t border-sidebar-border p-4">
-        <UserProfile />
-      </SidebarFooter>
     </Sidebar>
   );
 };

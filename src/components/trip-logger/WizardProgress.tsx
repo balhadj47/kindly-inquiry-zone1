@@ -29,7 +29,7 @@ const WizardProgress: React.FC<WizardProgressProps> = ({
           const isAccessible = index <= currentStepIndex || isCompleted;
 
           return (
-            <React.Fragment key={step}>
+            <div key={step} className="flex items-center">
               <div className="flex flex-col items-center">
                 <button
                   onClick={() => isAccessible && goToStep(step)}
@@ -59,7 +59,7 @@ const WizardProgress: React.FC<WizardProgressProps> = ({
               {index < allSteps.length - 1 && (
                 <div className={`flex-1 h-0.5 mx-4 ${index < currentStepIndex || completedSteps.has(allSteps[index + 1]) ? 'bg-green-600' : 'bg-gray-200'}`} />
               )}
-            </React.Fragment>
+            </div>
           );
         })}
       </div>

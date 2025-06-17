@@ -116,6 +116,9 @@ const AuthPage = () => {
 
           <div className="mt-6 text-center text-sm text-gray-600">
             <p>Contactez votre administrateur pour créer un compte</p>
+            <p className="mt-2 text-xs">
+              © 2024 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline text-blue-600">asdar.net</a>
+            </p>
           </div>
         </CardContent>
       </Card>

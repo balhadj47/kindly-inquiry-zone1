@@ -6,6 +6,7 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
+import MobileBottomNav from '@/components/MobileBottomNav';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
@@ -21,11 +22,13 @@ const AppContent = () => {
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full overflow-hidden">
-        <AppSidebar />
+        {/* Hide sidebar on mobile since we're using bottom nav */}
+        {!isMobile && <AppSidebar />}
+        
         <div className="flex-1 flex flex-col min-w-0 transition-all duration-200 h-screen">
           <TopBar />
           <main className={`flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden ${
-            isMobile ? 'p-3' : 'p-3 sm:p-4 lg:p-6'
+            isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
           }`}>
             <div>
               <Routes>
@@ -51,6 +54,9 @@ const AppContent = () => {
             </div>
           </main>
         </div>
+        
+        {/* Mobile bottom navigation */}
+        {isMobile && <MobileBottomNav />}
       </div>
     </SidebarProvider>
   );

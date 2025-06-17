@@ -30,16 +30,33 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredVans = useMemo(() => {
+    console.log('VanSelector: Filtering vans...', { searchQuery, availableVans });
+    
     if (!searchQuery.trim()) {
       return availableVans;
     }
 
     const query = searchQuery.toLowerCase().trim();
-    return availableVans.filter(van => 
-      (van.reference_code?.toLowerCase()?.includes(query)) ||
-      (van.license_plate?.toLowerCase()?.includes(query)) ||
-      (van.model?.toLowerCase()?.includes(query))
-    );
+    
+    const filtered = availableVans.filter(van => {
+      console.log('VanSelector: Checking van:', van);
+      
+      if (!van) {
+        console.warn('VanSelector: Found null/undefined van');
+        return false;
+      }
+      
+      const refCodeMatch = van.reference_code?.toLowerCase()?.includes(query);
+      const plateMatch = van.license_plate?.toLowerCase()?.includes(query);
+      const modelMatch = van.model?.toLowerCase()?.includes(query);
+      
+      console.log('VanSelector: Match results:', { refCodeMatch, plateMatch, modelMatch });
+      
+      return refCodeMatch || plateMatch || modelMatch;
+    });
+    
+    console.log('VanSelector: Filtered result:', filtered);
+    return filtered;
   }, [availableVans, searchQuery]);
 
   return (

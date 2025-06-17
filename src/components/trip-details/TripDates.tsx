@@ -1,9 +1,9 @@
 
 import React from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Calendar } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TripDatesProps {
   trip: Trip;
@@ -11,79 +11,56 @@ interface TripDatesProps {
 
 const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
   const isMobile = useIsMobile();
-  const { t } = useLanguage();
 
-  console.log('TripDates: Trip data:', {
-    startDate: trip.startDate,
-    endDate: trip.endDate,
-    startDateType: typeof trip.startDate,
-    endDateType: typeof trip.endDate
-  });
-
-  const formatDate = (date: Date | string | undefined) => {
-    if (!date) return null;
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric'
-    });
+  const formatPlannedDate = (date: Date) => {
+    const months = [
+      'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+      'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ];
+    
+    const day = date.getDate();
+    const month = months[date.getMonth()];
+    const year = date.getFullYear();
+    
+    return `${day} ${month} ${year}`;
   };
 
-  const formatTime = (date: Date | string | undefined) => {
-    if (!date) return null;
-    const dateObj = typeof date === 'string' ? new Date(date) : date;
-    return dateObj.toLocaleTimeString('fr-FR', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  // Show the component if either start or end date exists
+  // Only show this section if there are planned dates
   if (!trip.startDate && !trip.endDate) {
-    console.log('TripDates: No planned dates found, hiding component');
     return null;
   }
 
-  console.log('TripDates: Showing planned dates component');
-
   return (
-    <div className="bg-blue-50 p-3 sm:p-4 rounded-lg border border-blue-200">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-1.5 bg-blue-100 rounded-lg">
-          <Calendar className="h-4 w-4 text-blue-600" />
-        </div>
-        <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-blue-900`}>
+    <Card>
+      <CardContent className={isMobile ? 'p-3' : 'p-4'}>
+        <h3 className={`${isMobile ? 'text-base' : 'text-lg'} font-semibold mb-3 flex items-center`}>
+          <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} mr-2 text-indigo-600`} />
           Dates Planifiées
-        </h4>
-      </div>
-
-      <div className={`space-y-2 ${isMobile ? 'text-sm' : ''}`}>
-        {trip.startDate && (
-          <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">Date de début</span>
-            <div className="text-right">
-              <div className="text-blue-900 font-medium">{formatDate(trip.startDate)}</div>
-              {formatTime(trip.startDate) && (
-                <div className="text-blue-600 text-xs">{formatTime(trip.startDate)}</div>
-              )}
+        </h3>
+        
+        <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 gap-4'}`}>
+          {trip.startDate && (
+            <div className="flex items-center space-x-3">
+              <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-green-600`} />
+              <div>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Date de début</p>
+                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatPlannedDate(trip.startDate)}</p>
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {trip.endDate && (
-          <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">Date de fin</span>
-            <div className="text-right">
-              <div className="text-blue-900 font-medium">{formatDate(trip.endDate)}</div>
-              {formatTime(trip.endDate) && (
-                <div className="text-blue-600 text-xs">{formatTime(trip.endDate)}</div>
-              )}
+          {trip.endDate && (
+            <div className="flex items-center space-x-3">
+              <Calendar className={`${isMobile ? 'h-4 w-4' : 'h-5 w-5'} text-red-600`} />
+              <div>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Date de fin</p>
+                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{formatPlannedDate(trip.endDate)}</p>
+              </div>
             </div>
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 

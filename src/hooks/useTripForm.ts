@@ -1,5 +1,5 @@
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { MissionRole } from '@/types/missionRoles';
 
 export interface UserWithRoles {
@@ -30,20 +30,20 @@ export const useTripForm = () => {
     endDate: undefined,
   });
 
-  const handleInputChange = (field: keyof Omit<TripFormData, 'selectedUsersWithRoles' | 'startDate' | 'endDate'>, value: string) => {
+  const handleInputChange = useCallback((field: keyof Omit<TripFormData, 'selectedUsersWithRoles' | 'startDate' | 'endDate'>, value: string) => {
     if (field === 'companyId') {
       // Reset branch when company changes
       setFormData(prev => ({ ...prev, [field]: value, branchId: '' }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
-  };
+  }, []);
 
-  const handleDateChange = (field: 'startDate' | 'endDate', value: Date | undefined) => {
+  const handleDateChange = useCallback((field: 'startDate' | 'endDate', value: Date | undefined) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const handleUserRoleSelection = (userId: string, roles: MissionRole[]) => {
+  const handleUserRoleSelection = useCallback((userId: string, roles: MissionRole[]) => {
     setFormData(prev => {
       const existingUserIndex = prev.selectedUsersWithRoles.findIndex(u => u.userId === userId);
       
@@ -71,9 +71,9 @@ export const useTripForm = () => {
         };
       }
     });
-  };
+  }, []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       vanId: '',
       selectedUsersWithRoles: [],
@@ -84,10 +84,10 @@ export const useTripForm = () => {
       startDate: undefined,
       endDate: undefined,
     });
-  };
+  }, []);
 
   // Helper function to get trip data in the format expected by TripContext
-  const getTripData = (driver: string) => ({
+  const getTripData = useCallback((driver: string) => ({
     van: formData.vanId,
     driver,
     company: formData.companyId,
@@ -98,7 +98,7 @@ export const useTripForm = () => {
     startKm: parseInt(formData.startKm) || 0,
     startDate: formData.startDate,
     endDate: formData.endDate,
-  });
+  }), [formData]);
 
   return {
     formData,

@@ -30,6 +30,7 @@ const TripLoggerForm = () => {
   const { formData, handleInputChange, handleUserRoleSelection, resetForm } = useTripForm();
   const { submitTrip } = useTripSubmission();
   const [userSearchQuery, setUserSearchQuery] = useState('');
+  const [previousVanId, setPreviousVanId] = useState('');
   const { lastKm, loading: loadingLastKm } = useLastTripKm(formData.vanId);
   
   const {
@@ -48,11 +49,15 @@ const TripLoggerForm = () => {
 
   // Auto-populate starting kilometers when a van is selected and lastKm is available
   useEffect(() => {
-    if (lastKm !== null && formData.vanId && !formData.startKm) {
-      console.log('Auto-populating start km with:', lastKm);
-      handleInputChange('startKm', lastKm.toString());
+    if (lastKm !== null && formData.vanId) {
+      // Update if this is a new van selection or if the field is empty
+      if (formData.vanId !== previousVanId || !formData.startKm) {
+        console.log('Auto-populating start km with:', lastKm);
+        handleInputChange('startKm', lastKm.toString());
+        setPreviousVanId(formData.vanId);
+      }
     }
-  }, [lastKm, formData.vanId, formData.startKm, handleInputChange]);
+  }, [lastKm, formData.vanId, formData.startKm, handleInputChange, previousVanId]);
 
   // Filter out vans that are currently in active trips using van ID
   const activeTrips = trips.filter(trip => trip.status === 'active');

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Calendar, Clock, Building2 } from 'lucide-react';
@@ -34,7 +35,7 @@ const TripHistoryStats: React.FC<TripHistoryStatsProps> = ({ trips }) => {
             <Calendar className="h-8 w-8 text-blue-600 mr-3" />
             <div>
               <p className="text-2xl font-bold text-gray-900">{todayTrips}</p>
-              <p className="text-sm text-gray-600">Voyages {t.today}</p>
+              <p className="text-sm text-gray-600">{t.tripsToday}</p>
             </div>
           </div>
         </CardContent>

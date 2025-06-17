@@ -2,9 +2,11 @@
 import { useToast } from '@/hooks/use-toast';
 import { TripFormData } from '@/hooks/useTripForm';
 import { TripWizardStep } from '@/hooks/useTripWizard';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useFormValidation = () => {
   const { toast } = useToast();
+  const { t } = useLanguage();
 
   const validateStep = (step: TripWizardStep, formData: TripFormData): boolean => {
     switch (step) {
@@ -29,20 +31,20 @@ export const useFormValidation = () => {
     let errorMessage = '';
     switch (step) {
       case 'van':
-        errorMessage = 'Veuillez sélectionner un véhicule et entrer le kilométrage de départ';
+        errorMessage = t.selectVehicleAndKm;
         break;
       case 'company':
-        errorMessage = 'Veuillez sélectionner une entreprise et une succursale';
+        errorMessage = t.selectCompanyAndBranch;
         break;
       case 'team':
-        errorMessage = 'Veuillez sélectionner au moins un utilisateur avec des rôles';
+        errorMessage = t.selectAtLeastOneUser;
         break;
       case 'details':
-        errorMessage = 'La date de début doit être antérieure à la date de fin';
+        errorMessage = t.startDateMustBeBeforeEnd;
         break;
     }
     toast({
-      title: 'Étape incomplète',
+      title: t.incompleteStep,
       description: errorMessage,
       variant: "destructive",
     });

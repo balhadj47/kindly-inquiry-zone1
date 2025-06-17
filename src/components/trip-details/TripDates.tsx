@@ -3,6 +3,7 @@ import React from 'react';
 import { Calendar } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface TripDatesProps {
   trip: Trip;
@@ -10,6 +11,7 @@ interface TripDatesProps {
 
 const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
   const isMobile = useIsMobile();
+  const { t } = useLanguage();
 
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return null;
@@ -41,14 +43,14 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
           <Calendar className="h-4 w-4 text-blue-600" />
         </div>
         <h4 className={`${isMobile ? 'text-sm' : 'text-base'} font-semibold text-blue-900`}>
-          Dates planifiées
+          {t.plannedDates}
         </h4>
       </div>
 
       <div className={`space-y-2 ${isMobile ? 'text-sm' : ''}`}>
         {trip.startDate && (
           <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">Début:</span>
+            <span className="text-blue-700 font-medium">{t.startDate}</span>
             <div className="text-right">
               <div className="text-blue-900 font-medium">{formatDate(trip.startDate)}</div>
               {formatTime(trip.startDate) && (
@@ -60,7 +62,7 @@ const TripDates: React.FC<TripDatesProps> = ({ trip }) => {
 
         {trip.endDate && (
           <div className="flex items-center justify-between">
-            <span className="text-blue-700 font-medium">Fin:</span>
+            <span className="text-blue-700 font-medium">{t.endDate}</span>
             <div className="text-right">
               <div className="text-blue-900 font-medium">{formatDate(trip.endDate)}</div>
               {formatTime(trip.endDate) && (

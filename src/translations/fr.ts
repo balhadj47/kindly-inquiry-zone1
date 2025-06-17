@@ -259,5 +259,27 @@ export const fr: TranslationKeys = {
   thisActionIsIrreversible: 'Cette action est irréversible.',
   deleting: 'Suppression...',
   saving: 'Enregistrement...',
-  referenceCode: 'Code de Référence'
+  referenceCode: 'Code de Référence',
+  
+  // Missing translations from TripDates component
+  plannedDates: 'Dates planifiées',
+  startDate: 'Début:',
+  endDate: 'Fin:',
+  
+  // Missing translations from TripHistoryHeader
+  reviewAllTrips: 'Consultez tous les voyages effectués par votre flotte',
+  
+  // Missing translations from TripHistoryFilters
+  advancedFilters: 'Filtres avancés',
+  van: 'Camionnette',
+  
+  // Missing translations from form validation
+  incompleteStep: 'Étape incomplète',
+  selectVehicleAndKm: 'Veuillez sélectionner un véhicule et entrer le kilométrage de départ',
+  selectCompanyAndBranch: 'Veuillez sélectionner une entreprise et une succursale',
+  selectAtLeastOneUser: 'Veuillez sélectionner au moins un utilisateur avec des rôles',
+  startDateMustBeBeforeEnd: 'La date de début doit être antérieure à la date de fin',
+  
+  // Missing translations from TripHistoryStats
+  tripsToday: 'Voyages Aujourd\'hui'
 };

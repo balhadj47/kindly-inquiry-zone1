@@ -1,3 +1,4 @@
+
 import { TranslationKeys } from '@/types/language';
 
 export const en: TranslationKeys = {
@@ -258,5 +259,27 @@ export const en: TranslationKeys = {
   thisActionIsIrreversible: 'This action is irreversible.',
   deleting: 'Deleting...',
   saving: 'Saving...',
-  referenceCode: 'Reference Code'
+  referenceCode: 'Reference Code',
+  
+  // Missing translations from TripDates component
+  plannedDates: 'Planned Dates',
+  startDate: 'Start:',
+  endDate: 'End:',
+  
+  // Missing translations from TripHistoryHeader
+  reviewAllTrips: 'Review all trips made by your fleet',
+  
+  // Missing translations from TripHistoryFilters
+  advancedFilters: 'Advanced Filters',
+  van: 'Van',
+  
+  // Missing translations from form validation
+  incompleteStep: 'Incomplete Step',
+  selectVehicleAndKm: 'Please select a vehicle and enter the starting mileage',
+  selectCompanyAndBranch: 'Please select a company and branch',
+  selectAtLeastOneUser: 'Please select at least one user with roles',
+  startDateMustBeBeforeEnd: 'Start date must be before end date',
+  
+  // Missing translations from TripHistoryStats
+  tripsToday: 'Trips Today'
 };

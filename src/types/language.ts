@@ -1,3 +1,4 @@
+
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 
 export interface TranslationKeys {
@@ -259,4 +260,23 @@ export interface TranslationKeys {
   deleting: string;
   saving: string;
   referenceCode: string;
+  
+  // Missing translations from TripDates component
+  plannedDates: string;
+  startDate: string;
+  endDate: string;
+  
+  // Missing translations from TripHistoryHeader
+  reviewAllTrips: string;
+  
+  // Missing translations from TripHistoryFilters
+  advancedFilters: string;
+  van: string;
+  
+  // Missing translations from form validation
+  incompleteStep: string;
+  selectVehicleAndKm: string;
+  selectCompanyAndBranch: string;
+  selectAtLeastOneUser: string;
+  startDateMustBeBeforeEnd: string;
 }

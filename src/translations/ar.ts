@@ -1,3 +1,4 @@
+
 import { TranslationKeys } from '@/types/language';
 
 export const ar: TranslationKeys = {
@@ -258,5 +259,27 @@ export const ar: TranslationKeys = {
   thisActionIsIrreversible: 'هذا الإجراء لا يمكن التراجع عنه.',
   deleting: 'جارٍ الحذف...',
   saving: 'جارٍ الحفظ...',
-  referenceCode: 'رمز المرجع'
+  referenceCode: 'رمز المرجع',
+  
+  // Missing translations from TripDates component
+  plannedDates: 'التواريخ المخططة',
+  startDate: 'البداية:',
+  endDate: 'النهاية:',
+  
+  // Missing translations from TripHistoryHeader
+  reviewAllTrips: 'مراجعة جميع الرحلات التي قامت بها أسطولك',
+  
+  // Missing translations from TripHistoryFilters
+  advancedFilters: 'مرشحات متقدمة',
+  van: 'الشاحنة',
+  
+  // Missing translations from form validation
+  incompleteStep: 'خطوة غير مكتملة',
+  selectVehicleAndKm: 'يرجى اختيار مركبة وإدخال الكيلومترات البدائية',
+  selectCompanyAndBranch: 'يرجى اختيار شركة وفرع',
+  selectAtLeastOneUser: 'يرجى اختيار مستخدم واحد على الأقل مع الأدوار',
+  startDateMustBeBeforeEnd: 'تاريخ البداية يجب أن يكون قبل تاريخ النهاية',
+  
+  // Missing translations from TripHistoryStats
+  tripsToday: 'رحلات اليوم'
 };

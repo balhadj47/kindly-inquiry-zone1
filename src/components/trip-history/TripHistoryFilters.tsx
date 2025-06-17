@@ -66,7 +66,7 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
             >
               <div className="flex items-center space-x-2">
                 <Filter className="h-4 w-4" />
-                <span>Filtres avancés</span>
+                <span>{t.advancedFilters}</span>
               </div>
               {filtersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </Button>
@@ -91,7 +91,7 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Camionnette</label>
+                  <label className="text-sm font-medium">{t.van}</label>
                   <Select value={vanFilter} onValueChange={setVanFilter}>
                     <SelectTrigger className="text-sm">
                       <SelectValue placeholder={t.allVansFilter} />
@@ -129,7 +129,7 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium">Camionnette</label>
+              <label className="text-sm font-medium">{t.van}</label>
               <Select value={vanFilter} onValueChange={setVanFilter}>
                 <SelectTrigger>
                   <SelectValue placeholder={t.allVansFilter} />

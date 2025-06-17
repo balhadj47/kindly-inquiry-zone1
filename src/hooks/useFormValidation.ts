@@ -15,7 +15,11 @@ export const useFormValidation = () => {
       case 'team':
         return formData.selectedUsersWithRoles.length > 0;
       case 'details':
-        return true; // Notes are optional
+        // Validate that start date is before end date if both are provided
+        if (formData.startDate && formData.endDate) {
+          return formData.startDate <= formData.endDate;
+        }
+        return true; // Notes and dates are optional
       default:
         return false;
     }
@@ -32,6 +36,9 @@ export const useFormValidation = () => {
         break;
       case 'team':
         errorMessage = 'Veuillez sélectionner au moins un utilisateur avec des rôles';
+        break;
+      case 'details':
+        errorMessage = 'La date de début doit être antérieure à la date de fin';
         break;
     }
     toast({

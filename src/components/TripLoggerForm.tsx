@@ -134,6 +134,10 @@ const TripLoggerForm = () => {
           <TripDetailsStep
             notes={formData.notes}
             onNotesChange={(value) => handleInputChange('notes', value)}
+            startDate={formData.startDate}
+            onStartDateChange={(date) => handleDateChange('startDate', date)}
+            endDate={formData.endDate}
+            onEndDateChange={(date) => handleDateChange('endDate', date)}
           />
         );
       default:

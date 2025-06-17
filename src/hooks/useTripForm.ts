@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { MissionRole } from '@/types/missionRoles';
 
@@ -12,7 +13,9 @@ export interface TripFormData {
   companyId: string;
   branchId: string;
   notes: string;
-  startKm: string; // New field for starting kilometers
+  startKm: string;
+  startDate: Date | undefined;
+  endDate: Date | undefined;
 }
 
 export const useTripForm = () => {
@@ -22,16 +25,22 @@ export const useTripForm = () => {
     companyId: '',
     branchId: '',
     notes: '',
-    startKm: '', // Initialize new field
+    startKm: '',
+    startDate: undefined,
+    endDate: undefined,
   });
 
-  const handleInputChange = (field: keyof Omit<TripFormData, 'selectedUsersWithRoles'>, value: string) => {
+  const handleInputChange = (field: keyof Omit<TripFormData, 'selectedUsersWithRoles' | 'startDate' | 'endDate'>, value: string) => {
     if (field === 'companyId') {
       // Reset branch when company changes
       setFormData(prev => ({ ...prev, [field]: value, branchId: '' }));
     } else {
       setFormData(prev => ({ ...prev, [field]: value }));
     }
+  };
+
+  const handleDateChange = (field: 'startDate' | 'endDate', value: Date | undefined) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleUserRoleSelection = (userId: string, roles: MissionRole[]) => {
@@ -71,7 +80,9 @@ export const useTripForm = () => {
       companyId: '',
       branchId: '',
       notes: '',
-      startKm: '', // Reset new field
+      startKm: '',
+      startDate: undefined,
+      endDate: undefined,
     });
   };
 
@@ -84,12 +95,15 @@ export const useTripForm = () => {
     notes: formData.notes,
     userIds: formData.selectedUsersWithRoles.map(u => u.userId),
     userRoles: formData.selectedUsersWithRoles,
-    startKm: parseInt(formData.startKm) || 0, // Include start kilometers
+    startKm: parseInt(formData.startKm) || 0,
+    startDate: formData.startDate,
+    endDate: formData.endDate,
   });
 
   return {
     formData,
     handleInputChange,
+    handleDateChange,
     handleUserRoleSelection,
     resetForm,
     getTripData,

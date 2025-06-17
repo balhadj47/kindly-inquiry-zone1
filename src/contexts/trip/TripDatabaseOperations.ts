@@ -26,6 +26,8 @@ export const insertTripToDatabase = async (tripData: {
   userIds: string[];
   userRoles: UserWithRoles[];
   startKm?: number;
+  startDate?: Date;
+  endDate?: Date;
 }) => {
   const { data, error } = await (supabase as any)
     .from('trips')
@@ -38,6 +40,8 @@ export const insertTripToDatabase = async (tripData: {
       user_ids: tripData.userIds,
       user_roles: tripData.userRoles || [],
       start_km: tripData.startKm,
+      start_date: tripData.startDate?.toISOString(),
+      end_date: tripData.endDate?.toISOString(),
       status: 'active',
     })
     .select()

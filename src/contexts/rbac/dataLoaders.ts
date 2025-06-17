@@ -23,12 +23,14 @@ export const loadUsers = async (): Promise<User[]> => {
       name: user.name || '',
       email: user.email || '',
       phone: user.phone || '',
-      systemGroup: user.role as any, // Map role to systemGroup
+      systemGroup: user.role as any,
       status: user.status as any,
       createdAt: user.created_at,
       totalTrips: user.total_trips || 0,
       lastTrip: user.last_trip,
       profileImage: user.profile_image,
+      // Add backward compatibility getter
+      get role() { return this.systemGroup; }
     }));
 
     console.log('✅ Users loaded successfully:', users.length);

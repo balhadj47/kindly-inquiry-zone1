@@ -8,8 +8,8 @@ export interface User {
   name: string;
   email: string;
   phone: string;
-  systemGroup: SystemGroupName; // Changed from 'role' to be clearer
-  missionRole?: MissionRole; // Optional mission role for trips
+  systemGroup: SystemGroupName;
+  missionRole?: MissionRole;
   status: UserStatus;
   createdAt: string;
   licenseNumber?: string;
@@ -21,7 +21,7 @@ export interface User {
 }
 
 // Re-export system group types for backward compatibility
-export type { SystemGroup as Role, SystemGroupName as UserRole, Permission } from './systemGroups';
+export type { SystemGroup, SystemGroupName as UserRole, Permission } from './systemGroups';
 export type { MissionRole } from './missionRoles';
 
 // For backward compatibility, keep these empty

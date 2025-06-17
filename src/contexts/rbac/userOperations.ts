@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { SystemGroupName } from '@/types/systemGroups';
@@ -13,7 +14,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: userData.name,
           email: userData.email,
           phone: userData.phone,
-          role: userData.systemGroup, // Map systemGroup to role field
+          role: userData.systemGroup,
           status: userData.status || 'Active',
           profile_image: userData.profileImage,
           total_trips: userData.totalTrips || 0,
@@ -38,6 +39,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
+          get role() { return this.systemGroup; }
         };
         
         console.log('User created successfully:', newUser);
@@ -57,7 +59,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         email: userData.email,
         phone: userData.phone,
-        role: userData.systemGroup, // Map systemGroup to role field
+        role: userData.systemGroup,
         status: userData.status,
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips,
@@ -87,6 +89,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
+          get role() { return this.systemGroup; }
         };
         
         console.log('User updated successfully:', updatedUser);

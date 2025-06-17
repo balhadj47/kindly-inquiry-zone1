@@ -4,12 +4,12 @@ import { Control } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserRole } from '@/types/rbac';
+import { SystemGroupName } from '@/types/rbac';
 
 interface UserFormFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
-  watchedRole: UserRole;
+  watchedRole: SystemGroupName;
 }
 
 const UserFormFields: React.FC<UserFormFieldsProps> = ({
@@ -88,26 +88,21 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
 
         <FormField
           control={control}
-          name="role"
-          rules={{ required: 'Le rôle est requis' }}
+          name="systemGroup"
+          rules={{ required: 'Le groupe système est requis' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Rôle</FormLabel>
+              <FormLabel>Groupe Système</FormLabel>
               <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un rôle" />
+                    <SelectValue placeholder="Sélectionner un groupe" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
                   <SelectItem value="Administrator">Administrateur</SelectItem>
+                  <SelectItem value="Supervisor">Superviseur</SelectItem>
                   <SelectItem value="Employee">Employé</SelectItem>
-                  <SelectItem value="Chef de Groupe Armé">Chef de Groupe Armé</SelectItem>
-                  <SelectItem value="Chef de Groupe Sans Armé">Chef de Groupe Sans Armé</SelectItem>
-                  <SelectItem value="Chauffeur Armé">Chauffeur Armé</SelectItem>
-                  <SelectItem value="Chauffeur Sans Armé">Chauffeur Sans Armé</SelectItem>
-                  <SelectItem value="APS Armé">APS Armé</SelectItem>
-                  <SelectItem value="APS Sans Armé">APS Sans Armé</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

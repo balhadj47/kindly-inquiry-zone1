@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,9 +51,8 @@ const UserCard: React.FC<UserCardProps> = ({
 
   const getRoleColor = (systemGroup: string) => {
     if (systemGroup.includes('Administrator')) return 'bg-purple-50 text-purple-700 border-purple-200';
-    if (systemGroup.includes('Chef')) return 'bg-blue-50 text-blue-700 border-blue-200';
-    if (systemGroup.includes('Chauffeur')) return 'bg-green-50 text-green-700 border-green-200';
-    if (systemGroup.includes('APS')) return 'bg-orange-50 text-orange-700 border-orange-200';
+    if (systemGroup.includes('Supervisor')) return 'bg-blue-50 text-blue-700 border-blue-200';
+    if (systemGroup.includes('Employee')) return 'bg-green-50 text-green-700 border-green-200';
     return 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
@@ -65,7 +65,8 @@ const UserCard: React.FC<UserCardProps> = ({
       .slice(0, 2);
   };
 
-  const isDriver = user.systemGroup === 'Chauffeur Armé' || user.systemGroup === 'Chauffeur Sans Armé';
+  // Check if user has driver-related license (indicating they might be a driver)
+  const isDriver = user.licenseNumber && user.licenseNumber.length > 0;
 
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border hover:border-primary/20 bg-card">

@@ -1,12 +1,14 @@
 
-import { UserRole } from '@/types/rbac';
+import { SystemGroupName } from '@/types/systemGroups';
 
-export const ROLE_PERMISSION_MAPPING: Record<UserRole, string[]> = {
+// Permission mappings for system groups
+export const ROLE_PERMISSIONS: Record<SystemGroupName, string[]> = {
   'Administrator': [
     'users:read', 'users:create', 'users:update', 'users:delete',
     'vans:read', 'vans:create', 'vans:update', 'vans:delete',
     'trips:read', 'trips:create', 'trips:update', 'trips:delete',
     'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+    'groups:read', 'groups:manage',
     'dashboard:read', 'settings:read', 'settings:update'
   ],
   'Supervisor': [
@@ -14,100 +16,44 @@ export const ROLE_PERMISSION_MAPPING: Record<UserRole, string[]> = {
     'vans:read', 'vans:update',
     'trips:read', 'trips:create', 'trips:update',
     'companies:read',
-    'dashboard:read'
-  ],
-  'Driver': [
-    'trips:read', 'trips:create',
-    'vans:read',
-    'companies:read',
-    'dashboard:read'
-  ],
-  'Security': [
-    'trips:read',
-    'vans:read',
-    'companies:read',
+    'groups:read',
     'dashboard:read'
   ],
   'Employee': [
     'dashboard:read',
-    'trips:read',
-    'vans:read',
-    'companies:read'
-  ],
-  'Chef de Groupe Armé': [
-    'users:read', 'users:update',
-    'vans:read', 'vans:update',
-    'trips:read', 'trips:create', 'trips:update',
-    'companies:read',
-    'dashboard:read'
-  ],
-  'Chef de Groupe Sans Armé': [
-    'users:read', 'users:update',
-    'vans:read', 'vans:update',
-    'trips:read', 'trips:create', 'trips:update',
-    'companies:read',
-    'dashboard:read'
-  ],
-  'Chauffeur Armé': [
     'trips:read', 'trips:create',
-    'vans:read',
     'companies:read',
-    'dashboard:read'
-  ],
-  'Chauffeur Sans Armé': [
-    'trips:read', 'trips:create',
-    'vans:read',
-    'companies:read',
-    'dashboard:read'
-  ],
-  'APS Armé': [
-    'trips:read',
-    'vans:read',
-    'companies:read',
-    'dashboard:read'
-  ],
-  'APS Sans Armé': [
-    'trips:read',
-    'vans:read',
-    'companies:read',
-    'dashboard:read'
+    'vans:read'
   ]
 };
 
-export const getDefaultPermissionsForRole = (role: UserRole): string[] => {
-  return ROLE_PERMISSION_MAPPING[role] || [];
+// Default permissions for unknown roles
+export const DEFAULT_PERMISSIONS: string[] = ['dashboard:read'];
+
+// Helper function to get permissions for a role
+export const getPermissionsForRole = (systemGroup: SystemGroupName): string[] => {
+  return ROLE_PERMISSIONS[systemGroup] || DEFAULT_PERMISSIONS;
 };
 
-export const suggestGroupForRole = (role: UserRole): string => {
-  const roleToGroupMapping: Record<UserRole, string> = {
-    'Administrator': 'administrator',
-    'Supervisor': 'supervisor',
-    'Driver': 'driver',
-    'Security': 'security',
-    'Employee': 'employee',
-    'Chef de Groupe Armé': 'supervisor',
-    'Chef de Groupe Sans Armé': 'supervisor',
-    'Chauffeur Armé': 'driver',
-    'Chauffeur Sans Armé': 'driver',
-    'APS Armé': 'security',
-    'APS Sans Armé': 'security'
-  };
-  
-  return roleToGroupMapping[role] || 'employee';
+// Check if a role has a specific permission
+export const roleHasPermission = (systemGroup: SystemGroupName, permission: string): boolean => {
+  const rolePermissions = getPermissionsForRole(systemGroup);
+  return rolePermissions.includes(permission);
 };
 
-export const validateRolePermissions = (role: UserRole, permissions: string[]): {
-  isValid: boolean;
-  missingPermissions: string[];
-  extraPermissions: string[];
-} => {
-  const expectedPermissions = getDefaultPermissionsForRole(role);
-  const missingPermissions = expectedPermissions.filter(p => !permissions.includes(p));
-  const extraPermissions = permissions.filter(p => !expectedPermissions.includes(p));
-  
-  return {
-    isValid: missingPermissions.length === 0 && extraPermissions.length === 0,
-    missingPermissions,
-    extraPermissions
-  };
+// Role display names and colors
+export const ROLE_DISPLAY_INFO: Record<SystemGroupName, { name: string; color: string }> = {
+  'Administrator': { name: 'Administrateur', color: '#dc2626' },
+  'Supervisor': { name: 'Superviseur', color: '#ea580c' },
+  'Employee': { name: 'Employé', color: '#3b82f6' }
+};
+
+// Helper function to get role display name
+export const getRoleDisplayName = (systemGroup: SystemGroupName): string => {
+  return ROLE_DISPLAY_INFO[systemGroup]?.name || systemGroup;
+};
+
+// Helper function to get role color
+export const getRoleColor = (systemGroup: SystemGroupName): string => {
+  return ROLE_DISPLAY_INFO[systemGroup]?.color || '#6b7280';
 };

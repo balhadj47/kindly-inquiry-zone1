@@ -22,34 +22,70 @@ export const calculateDashboardStats = (
     return tripDate === today;
   }).length;
 
-  const totalUsers = users.length;
-  const totalCompanies = companies.length;
-  const totalBranches = companies.reduce((sum, company) => sum + (company.branches?.length || 0), 0);
+  // Calculate yesterday's trips for comparison
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayString = yesterday.toISOString().split('T')[0];
+  const yesterdaysTrips = trips.filter(trip => {
+    const tripDate = trip.timestamp ? trip.timestamp.split('T')[0] : '';
+    return tripDate === yesterdayString;
+  }).length;
+
+  // Calculate trend for today's trips
+  const tripsChange = yesterdaysTrips > 0 
+    ? Math.round(((todaysTrips - yesterdaysTrips) / yesterdaysTrips) * 100)
+    : todaysTrips > 0 ? 100 : 0;
+
+  // Calculate active trips (those without end kilometers)
+  const activeTrips = trips.filter(trip => 
+    trip.status === 'active' || !trip.endKm
+  ).length;
+
+  // Calculate total kilometers driven today
+  const todaysCompletedTrips = trips.filter(trip => {
+    const tripDate = trip.timestamp ? trip.timestamp.split('T')[0] : '';
+    return tripDate === today && trip.endKm && trip.startKm;
+  });
+  
+  const totalKmToday = todaysCompletedTrips.reduce((sum, trip) => {
+    return sum + ((trip.endKm || 0) - (trip.startKm || 0));
+  }, 0);
+
+  // Calculate utilization rate (active vans / total vans)
+  const utilizationRate = vans.length > 0 ? Math.round((activeVans / vans.length) * 100) : 0;
 
   return [
     { 
       title: 'Voyages Aujourd\'hui', 
       value: todaysTrips.toString(), 
-      change: `${todaysTrips}`, 
-      color: 'text-green-600' 
+      change: tripsChange > 0 ? `+${tripsChange}%` : `${tripsChange}%`,
+      trend: tripsChange >= 0 ? 'up' : 'down',
+      color: tripsChange >= 0 ? 'text-green-600' : 'text-red-600',
+      icon: 'calendar'
     },
     { 
-      title: 'Camionnettes Actives', 
-      value: activeVans.toString(), 
-      change: `${activeVans}`, 
-      color: 'text-blue-600' 
+      title: 'Voyages Actifs', 
+      value: activeTrips.toString(), 
+      change: `En cours`,
+      trend: 'neutral',
+      color: 'text-blue-600',
+      icon: 'truck'
     },
     { 
-      title: 'Entreprises Servies', 
-      value: totalCompanies.toString(), 
-      change: `${totalCompanies}`, 
-      color: 'text-gray-600' 
+      title: 'Taux d\'Utilisation', 
+      value: `${utilizationRate}%`, 
+      change: `${activeVans}/${vans.length} camionnettes`,
+      trend: utilizationRate >= 70 ? 'up' : utilizationRate >= 50 ? 'neutral' : 'down',
+      color: utilizationRate >= 70 ? 'text-green-600' : utilizationRate >= 50 ? 'text-yellow-600' : 'text-red-600',
+      icon: 'gauge'
     },
     { 
-      title: 'Total Succursales', 
-      value: totalBranches.toString(), 
-      change: `${totalBranches}`, 
-      color: 'text-purple-600' 
+      title: 'Kilomètres Aujourd\'hui', 
+      value: `${totalKmToday} km`, 
+      change: `${todaysCompletedTrips.length} voyages terminés`,
+      trend: 'neutral',
+      color: 'text-purple-600',
+      icon: 'map'
     },
   ];
 };
@@ -70,7 +106,17 @@ export const createChartData = (companies: any[], trips: Trip[]) => {
       return tripDate === dateString;
     }).length;
     
-    dailyTrips.push({ date: dayName, trips: tripsCount });
+    const completedTrips = trips.filter(trip => {
+      const tripDate = trip.timestamp ? trip.timestamp.split('T')[0] : '';
+      return tripDate === dateString && trip.endKm;
+    }).length;
+    
+    dailyTrips.push({ 
+      date: dayName, 
+      trips: tripsCount,
+      completed: completedTrips,
+      active: tripsCount - completedTrips
+    });
   }
 
   // Calculate top companies by trip count
@@ -83,16 +129,32 @@ export const createChartData = (companies: any[], trips: Trip[]) => {
 
   const topBranches = Array.from(companyTripCounts.entries())
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 4)
+    .slice(0, 5)
     .map(([company, visits], index) => ({
       name: company,
       visits,
-      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444'][index] || '#3B82F6'
+      color: ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'][index] || '#3B82F6'
     }));
 
   if (topBranches.length === 0) {
     topBranches.push({ name: 'Aucune donnée', visits: 0, color: '#9CA3AF' });
   }
 
-  return { dailyTrips, topBranches };
+  // Calculate van utilization data
+  const vanUsage = new Map();
+  trips.forEach(trip => {
+    if (trip.van) {
+      vanUsage.set(trip.van, (vanUsage.get(trip.van) || 0) + 1);
+    }
+  });
+
+  const vanUtilization = Array.from(vanUsage.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 6)
+    .map(([van, trips]) => ({
+      van: van.length > 15 ? van.substring(0, 15) + '...' : van,
+      trips
+    }));
+
+  return { dailyTrips, topBranches, vanUtilization };
 };

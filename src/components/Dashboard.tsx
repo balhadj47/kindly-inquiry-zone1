@@ -6,8 +6,9 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useTrip } from '@/contexts/TripContext';
-import StatsGrid from './dashboard/StatsGrid';
-import ChartsSection from './dashboard/ChartsSection';
+import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
+import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
+import QuickActions from './dashboard/QuickActions';
 import { calculateDashboardStats, createChartData } from './dashboard/DashboardStats';
 
 const DashboardLoadingSkeleton = () => {
@@ -36,7 +37,7 @@ const DashboardLoadingSkeleton = () => {
 
       {/* Charts Row skeleton */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-        {Array.from({ length: 2 }).map((_, index) => (
+        {Array.from({ length: 3 }).map((_, index) => (
           <Card key={index} className="animate-pulse">
             <CardHeader>
               <Skeleton className="h-6 w-32" />
@@ -68,8 +69,9 @@ const Dashboard = () => {
         <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
       </div>
 
-      <StatsGrid stats={stats} />
-      <ChartsSection chartData={chartData} />
+      <EnhancedStatsGrid stats={stats} />
+      <QuickActions />
+      <EnhancedChartsSection chartData={chartData} />
     </div>
   );
 };

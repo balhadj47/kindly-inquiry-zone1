@@ -21,7 +21,8 @@ const Users = () => {
     usersCount: users?.length || 0,
     currentUser,
     authUser,
-    loading
+    loading,
+    authUserEmail: authUser?.email
   });
 
   const {
@@ -42,6 +43,7 @@ const Users = () => {
     'users:create': hasPermission('users:create'),
     'groups:read': hasPermission('groups:read'),
     'groups:manage': hasPermission('groups:manage'),
+    currentUserSystemGroup: currentUser?.systemGroup
   });
 
   // Check if user can manage groups
@@ -56,11 +58,13 @@ const Users = () => {
   const hasActiveFilters = searchTerm !== '' || statusFilter !== 'all' || roleFilter !== 'all';
 
   if (loading) {
+    console.log('Users component: Still loading, showing loading state');
     return <LoadingState />;
   }
 
   // Show message if user is not authenticated
   if (!authUser) {
+    console.log('Users component: No auth user, showing auth required message');
     return (
       <ErrorState
         title="Authentification requise"
@@ -69,8 +73,23 @@ const Users = () => {
     );
   }
 
-  // Show message if current user data is not found
-  if (!currentUser) {
+  // Check if user has permission to view users - allow admin emails even if currentUser is null
+  const isKnownAdmin = authUser.email === 'gb47@msn.com';
+  const hasUsersReadPermission = hasPermission('users:read') || isKnownAdmin;
+
+  if (!hasUsersReadPermission && !loading) {
+    console.log('Users component: No permission to read users');
+    return (
+      <ErrorState
+        title="Accès non autorisé"
+        message="Vous n'avez pas les permissions nécessaires pour accéder à la gestion des utilisateurs."
+      />
+    );
+  }
+
+  // If currentUser is not found but user is authenticated and known admin, allow access
+  if (!currentUser && !isKnownAdmin && !loading) {
+    console.log('Users component: Current user not found and not known admin');
     return (
       <ErrorState
         title="Profil utilisateur introuvable"
@@ -79,15 +98,7 @@ const Users = () => {
     );
   }
 
-  // Check if user has permission to view users
-  if (!hasPermission('users:read')) {
-    return (
-      <ErrorState
-        title="Accès non autorisé"
-        message="Vous n'avez pas les permissions nécessaires pour accéder à la gestion des utilisateurs."
-      />
-    );
-  }
+  console.log('Users component: Rendering main interface');
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">

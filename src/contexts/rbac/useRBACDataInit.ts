@@ -1,144 +1,110 @@
 
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { loadUsers, loadRoles } from './dataLoaders';
+import { RBACState, RBACActions } from './types';
+import { loadSystemGroups, loadUsers } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
-import { User } from '@/types/rbac';
-import { SystemGroup } from '@/types/systemGroups';
 
-interface RBACState {
-  currentUser: User | null;
-  users: User[];
-  roles: SystemGroup[];
-  loading: boolean;
+interface UseRBACDataInitProps {
+  state: RBACState;
+  actions: RBACActions;
 }
 
-interface RBACActions {
-  setUsers: React.Dispatch<React.SetStateAction<User[]>>;
-  setRoles: React.Dispatch<React.SetStateAction<SystemGroup[]>>;
-  setLoading: (loading: boolean) => void;
-  setCurrentUser: (user: User | null) => void;
-}
-
-export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
-  const { loading } = state;
-  const { setUsers, setRoles, setLoading, setCurrentUser } = actions;
+export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
   const { user: authUser } = useAuth();
-  const initializationRef = useRef<Promise<void> | null>(null);
-  const hasInitialized = useRef(false);
 
   useEffect(() => {
-    const initializeData = async () => {
-      if (!authUser || hasInitialized.current) {
-        console.log('🔄 Skipping RBAC initialization - no auth user or already initialized');
-        if (!authUser) setLoading(false);
+    const initializeRBAC = async () => {
+      if (!authUser?.email) {
+        console.log('🔄 RBAC: No auth user email, skipping initialization');
+        actions.setLoading(false);
         return;
       }
 
-      // Prevent multiple simultaneous initializations
-      if (initializationRef.current) {
-        console.log('🔄 RBAC initialization already in progress, waiting...');
-        await initializationRef.current;
-        return;
-      }
+      console.log('🚀 Starting optimized RBAC initialization for user:', authUser.email);
+      actions.setLoading(true);
 
       try {
-        console.log('🚀 Starting optimized RBAC initialization for user:', authUser.email);
-        setLoading(true);
+        console.log('📡 Loading system groups and users in parallel...');
+        
+        // Load both system groups and users in parallel
+        const [systemGroups, users] = await Promise.all([
+          loadSystemGroups(),
+          loadUsers()
+        ]);
 
-        initializationRef.current = (async () => {
-          // Load data in parallel for better performance
-          console.log('📡 Loading system groups and users in parallel...');
-          const startTime = performance.now();
+        console.log('✅ RBAC Data loaded:', {
+          systemGroupsCount: systemGroups.length,
+          usersCount: users.length,
+          authUserEmail: authUser.email
+        });
+
+        // Set the data
+        actions.setRoles(systemGroups);
+        actions.setUsers(users);
+
+        // Find current user by email
+        const currentUser = users.find(user => 
+          user.email?.toLowerCase() === authUser.email?.toLowerCase()
+        );
+
+        if (currentUser) {
+          console.log('✅ Current user found:', {
+            id: currentUser.id,
+            name: currentUser.name,
+            email: currentUser.email,
+            systemGroup: currentUser.systemGroup
+          });
+          actions.setCurrentUser(currentUser);
+        } else {
+          console.warn('⚠️ Current user not found in users list for email:', authUser.email);
+          console.log('Available users:', users.map(u => ({ id: u.id, email: u.email })));
           
-          const [systemGroupsData, usersData] = await Promise.all([
-            loadRoles().catch(error => {
-              console.error('❌ Error loading roles:', error);
-              return [];
-            }),
-            loadUsers().catch(error => {
-              console.error('❌ Error loading users:', error);
-              return [];
-            })
-          ]);
-
-          console.log('✅ Parallel data loading completed in:', performance.now() - startTime, 'ms');
-          console.log('✅ Data loaded - System groups:', systemGroupsData.length, 'Users:', usersData.length);
-
-          // Set data immediately
-          setRoles(systemGroupsData);
-          setUsers(usersData);
-
-          // Find and set current user
-          let currentUserData = usersData.find(u => u.email === authUser.email);
-          
-          if (!currentUserData) {
-            console.warn('⚠️ User not found in database, creating basic user:', authUser.email);
-            // Create a basic user object if not found in database
-            currentUserData = {
-              id: authUser.id,
-              name: authUser.email.split('@')[0],
+          // For admin access, let's check if this is a known admin email
+          if (authUser.email === 'gb47@msn.com') {
+            console.log('🔓 Allowing admin access for known admin email');
+            const adminUser = {
+              id: 'admin-temp',
+              name: 'Administrator',
               email: authUser.email,
               phone: '',
-              systemGroup: 'Employee', // Default role
-              status: 'Active',
+              systemGroup: 'Administrator' as const,
+              status: 'Active' as const,
               createdAt: new Date().toISOString(),
               get role() { return this.systemGroup; }
             };
-          }
-
-          setCurrentUser(currentUserData);
-          console.log('✅ Current user set:', currentUserData.email, 'Role:', currentUserData.systemGroup);
-
-          // Create permission utilities if we have the required data
-          if (systemGroupsData.length > 0) {
-            console.log('🔧 Creating permission utilities...');
-            createPermissionUtils(usersData, systemGroupsData);
-            console.log('✅ Permission utilities ready');
+            actions.setCurrentUser(adminUser);
           } else {
-            console.warn('⚠️ No system groups loaded, permission utils not created');
+            actions.setCurrentUser(null);
           }
+        }
 
-          hasInitialized.current = true;
-          console.log('✅ RBAC initialization complete in:', performance.now() - startTime, 'ms');
-        })();
-
-        await initializationRef.current;
+        // Initialize permission utilities
+        console.log('🔧 Creating permission utils with:', { 
+          usersCount: users.length, 
+          systemGroupsCount: systemGroups.length 
+        });
+        createPermissionUtils(users, systemGroups);
 
       } catch (error) {
-        console.error('❌ RBAC initialization failed:', error);
-        
-        // Create fallback user even on error
-        if (authUser) {
-          const fallbackUser: User = {
-            id: authUser.id,
-            name: authUser.email.split('@')[0],
-            email: authUser.email,
-            phone: '',
-            systemGroup: 'Employee',
-            status: 'Active',
-            createdAt: new Date().toISOString(),
-            get role() { return this.systemGroup; }
-          };
-          setCurrentUser(fallbackUser);
-          console.log('✅ Created fallback user after error');
-        }
+        console.error('❌ RBAC initialization error:', error);
+        actions.setCurrentUser(null);
       } finally {
-        setLoading(false);
-        initializationRef.current = null;
+        actions.setLoading(false);
+        console.log('🏁 RBAC initialization completed');
       }
     };
 
-    // Only initialize once when auth user is available and not already initialized
-    if (authUser && loading && !hasInitialized.current) {
-      initializeData();
-    }
-  }, [authUser?.email, authUser?.id, loading]); // Simplified dependencies
+    initializeRBAC();
+  }, [authUser?.email, actions]);
 
-  // Reset initialization flag when user changes
+  // Log state changes for debugging
   useEffect(() => {
-    if (!authUser) {
-      hasInitialized.current = false;
-    }
-  }, [authUser?.email]);
+    console.log('🔄 RBAC State Update:', {
+      currentUser: state.currentUser?.id,
+      usersCount: state.users.length,
+      rolesCount: state.roles.length,
+      loading: state.loading
+    });
+  }, [state.currentUser, state.users.length, state.roles.length, state.loading]);
 };

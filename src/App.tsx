@@ -44,20 +44,30 @@ const App: React.FC = () => {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
+    console.log('🚀 App: Initializing...');
+    
     // Ensure React and DOM are fully ready
-    const timer = setTimeout(() => {
-      setIsReady(true);
-      if (import.meta.env.DEV) {
-        console.log('🚀 App: React fully initialized, rendering app...');
+    const initTimer = setTimeout(() => {
+      // Verify React hooks are available
+      if (typeof React.useState === 'function' && typeof React.useContext === 'function') {
+        setIsReady(true);
+        console.log('🚀 App: React fully initialized and ready');
+      } else {
+        console.warn('🚀 App: React hooks not ready, retrying...');
+        // Retry after a bit more time
+        setTimeout(() => setIsReady(true), 200);
       }
-    }, 100);
+    }, 150);
 
-    return () => clearTimeout(timer);
+    return () => clearTimeout(initTimer);
   }, []);
 
   if (!isReady) {
+    console.log('🚀 App: Still initializing, showing skeleton...');
     return <AppLoadingSkeleton />;
   }
+
+  console.log('🚀 App: Ready, rendering main application...');
 
   return (
     <ErrorBoundary>

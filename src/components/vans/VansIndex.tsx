@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VansEmptyState from './VansEmptyState';
-import VansGrid from './VansGrid';
+import VanList from '../VanList';
 import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
@@ -41,6 +41,11 @@ const VansIndex = () => {
     refetch();
   };
 
+  const handleQuickAction = (van: any) => {
+    // Handle quick action - could be navigate to detail or other action
+    console.log('Quick action for van:', van);
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <VansHeader onAddVan={handleAddVan} />
@@ -56,9 +61,14 @@ const VansIndex = () => {
           onAddVan={handleAddVan} 
         />
       ) : (
-        <VansGrid
+        <VanList
           vans={filteredVans}
+          totalVans={vans.length}
+          searchTerm={searchTerm}
+          statusFilter="all"
+          onAddVan={handleAddVan}
           onEditVan={handleEditVan}
+          onQuickAction={handleQuickAction}
           onDeleteVan={handleDeleteVan}
         />
       )}

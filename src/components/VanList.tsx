@@ -70,10 +70,6 @@ const VanList = React.memo(({
     onDelete: onDeleteVan
   };
 
-  const handleVanClick = (van: any) => {
-    onEditVan(van);
-  };
-
   if (useVirtualization) {
     return (
       <VirtualizedList
@@ -89,21 +85,22 @@ const VanList = React.memo(({
   }
 
   return (
-    <>
+    <div className="w-full">
       {showSummary && (
         <div className="text-sm text-gray-600 mb-4">
           Affichage de {vans.length} sur {totalVans} camionnettes
         </div>
       )}
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+      {/* Simple flexbox layout for better control */}
+      <div className="flex flex-wrap gap-4">
         {vans.map((van) => (
           <div
             key={van.id}
-            className="cursor-pointer"
+            className="flex-1 min-w-[300px] max-w-[400px]"
             onClick={(e) => {
               if ((e.target as HTMLElement).closest('button')) return;
-              handleVanClick(van);
+              onEditVan(van);
             }}
           >
             <VanCard
@@ -115,7 +112,7 @@ const VanList = React.memo(({
           </div>
         ))}
       </div>
-    </>
+    </div>
   );
 });
 

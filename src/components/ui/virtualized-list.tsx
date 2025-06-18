@@ -23,6 +23,7 @@ const VirtualizedList: React.FC<VirtualizedListProps> = ({
     <div className={className}>
       <List
         height={height}
+        width="100%"
         itemCount={itemCount}
         itemSize={itemSize}
         itemData={itemData}

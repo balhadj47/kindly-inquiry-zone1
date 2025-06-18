@@ -10,7 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load all page components
@@ -37,15 +37,6 @@ const Index = () => {
   console.log('📱 Index: Rendering main app...');
   
   const isMobile = useIsMobile();
-  const [isReady, setIsReady] = useState(false);
-  
-  // Wait for React to be fully ready before rendering components with hooks
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsReady(true);
-    }, 500); // Further increased delay to ensure React is fully ready
-    return () => clearTimeout(timer);
-  }, []);
   
   // Safely access RBAC context
   let hasPermission: (permission: string) => boolean = () => false;
@@ -60,19 +51,10 @@ const Index = () => {
 
   console.log('📱 Index: isMobile:', isMobile);
 
-  if (!isReady) {
-    return <PageLoadingSkeleton />;
-  }
-
   return (
     <>
-      {/* Only render toast components when React is ready */}
-      {isReady && (
-        <>
-          <Toaster />
-          <Sonner />
-        </>
-      )}
+      <Toaster />
+      <Sonner />
       
       <TooltipProvider>
         <SidebarProvider defaultOpen={!isMobile}>

@@ -41,26 +41,17 @@ const AppLoadingSkeleton = () => (
   </div>
 );
 
-const App: React.FC = () => {
-  const [isReactReady, setIsReactReady] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsReactReady(true);
-    }, 500); // Wait for React to be fully ready
-    return () => clearTimeout(timer);
-  }, []);
-
+// Main app component that only renders after React is ready
+const MainApp: React.FC = () => {
   if (import.meta.env.DEV) {
-    console.log('🚀 App: Starting application...');
+    console.log('🚀 MainApp: Rendering main application...');
   }
-  
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          {/* Only render NetworkStatus when React is ready */}
-          {isReactReady && <NetworkStatus />}
+          <NetworkStatus />
           <AuthProvider>
             <LanguageProvider>
               <RBACProvider>
@@ -81,6 +72,37 @@ const App: React.FC = () => {
       </QueryClientProvider>
     </ErrorBoundary>
   );
+};
+
+const App: React.FC = () => {
+  const [isReactInitialized, setIsReactInitialized] = useState(false);
+
+  useEffect(() => {
+    // Ensure React and all its internals are fully loaded before rendering
+    const initializeApp = () => {
+      // Double-check that React hooks are available
+      if (typeof React.useState !== 'undefined' && typeof React.useContext !== 'undefined') {
+        setIsReactInitialized(true);
+        if (import.meta.env.DEV) {
+          console.log('🚀 App: React fully initialized, rendering app...');
+        }
+      } else {
+        // Retry if React isn't ready yet
+        setTimeout(initializeApp, 100);
+      }
+    };
+
+    // Use requestAnimationFrame to ensure DOM is ready
+    requestAnimationFrame(() => {
+      setTimeout(initializeApp, 200);
+    });
+  }, []);
+
+  if (!isReactInitialized) {
+    return <AppLoadingSkeleton />;
+  }
+
+  return <MainApp />;
 };
 
 export default App;

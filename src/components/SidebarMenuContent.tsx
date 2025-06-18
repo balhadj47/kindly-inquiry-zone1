@@ -19,19 +19,18 @@ import {
 } from 'lucide-react';
 
 const SidebarMenuContent = () => {
-  const { hasPermission } = useRBAC();
+  const { hasPermission, loading, currentUser } = useRBAC();
   const { t } = useLanguage();
   const location = useLocation();
 
-  console.log('🔍 SidebarMenuContent: Translation object:', t);
-  console.log('🔍 SidebarMenuContent: Available keys:', Object.keys(t));
+  console.log('🔍 SidebarMenuContent render - Loading:', loading, 'User:', currentUser?.email);
 
   const menuItems = [
     {
       title: t.dashboard || 'Dashboard',
       url: '/dashboard',
       icon: Home,
-      permission: null,
+      permission: null, // Always visible
     },
     {
       title: t.companies || 'Companies',
@@ -67,42 +66,54 @@ const SidebarMenuContent = () => {
       title: t.settings || 'Settings',
       url: '/settings',
       icon: Settings,
-      permission: null,
+      permission: null, // Always visible
     },
   ];
 
-  console.log('🔍 SidebarMenuContent: All menu items:', menuItems);
-
-  const filteredItems = menuItems.filter(
-    (item) => {
-      const hasAccess = !item.permission || hasPermission(item.permission);
-      console.log(`🔍 SidebarMenuContent: ${item.title} - Permission: ${item.permission}, Has Access: ${hasAccess}`);
-      return hasAccess;
-    }
-  );
-
-  console.log('🔍 SidebarMenuContent: Filtered items count:', filteredItems.length);
-  console.log('🔍 SidebarMenuContent: Filtered items:', filteredItems.map(item => item.title));
-
-  if (filteredItems.length === 0) {
-    console.warn('⚠️ SidebarMenuContent: No menu items available after filtering!');
+  // Show loading skeleton while RBAC initializes
+  if (loading) {
+    console.log('🔄 SidebarMenuContent: Showing loading skeleton');
     return (
       <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton asChild>
-            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground">
-              <Home className="h-4 w-4 flex-shrink-0" />
-              <span>No menu items available</span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
+        {[1, 2, 3, 4].map((i) => (
+          <SidebarMenuItem key={i}>
+            <SidebarMenuButton asChild>
+              <div className="flex items-center gap-3 px-3 py-2">
+                <div className="h-4 w-4 bg-muted rounded animate-pulse"></div>
+                <div className="h-4 bg-muted rounded animate-pulse flex-1"></div>
+              </div>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        ))}
       </SidebarMenu>
     );
   }
 
+  // Filter items based on permissions
+  const filteredItems = menuItems.filter((item) => {
+    if (!item.permission) return true; // Always show items without permission requirements
+    
+    try {
+      const hasAccess = hasPermission(item.permission);
+      console.log(`🔍 Menu item "${item.title}": permission="${item.permission}", access=${hasAccess}`);
+      return hasAccess;
+    } catch (error) {
+      console.error(`❌ Error checking permission for ${item.title}:`, error);
+      return false;
+    }
+  });
+
+  console.log('🔍 SidebarMenuContent: Filtered items:', filteredItems.length, 'of', menuItems.length);
+
+  // Always show at least dashboard and settings if no other items are available
+  const finalItems = filteredItems.length > 0 ? filteredItems : [
+    menuItems[0], // Dashboard
+    menuItems[menuItems.length - 1] // Settings
+  ];
+
   return (
     <SidebarMenu>
-      {filteredItems.map((item) => {
+      {finalItems.map((item) => {
         const isActive = location.pathname === item.url || 
           (item.url === '/dashboard' && location.pathname === '/');
         

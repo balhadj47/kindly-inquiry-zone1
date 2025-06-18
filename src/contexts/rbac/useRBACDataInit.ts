@@ -27,79 +27,84 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
 
   useEffect(() => {
     const initializeData = async () => {
+      if (!authUser) {
+        console.log('🔄 No auth user, skipping RBAC initialization');
+        setLoading(false);
+        return;
+      }
+
       try {
-        console.log('🚀 Initializing RBAC data...');
+        console.log('🚀 Starting RBAC initialization for user:', authUser.email);
         setLoading(true);
 
-        // Load system groups first as they're needed for permission utils
-        console.log('📊 Loading system groups...');
-        const systemGroupsData = await loadRoles();
+        // Load data in parallel for better performance
+        const [systemGroupsData, usersData] = await Promise.all([
+          loadRoles(),
+          loadUsers()
+        ]);
+
+        console.log('✅ Data loaded - System groups:', systemGroupsData.length, 'Users:', usersData.length);
+
+        // Set data immediately
         setRoles(systemGroupsData);
-        console.log('✅ System groups set:', systemGroupsData.length);
-
-        // Load users
-        console.log('👥 Loading users...');
-        const usersData = await loadUsers();
         setUsers(usersData);
-        console.log('✅ Users set:', usersData.length);
 
-        // Set current user based on authenticated user
-        if (authUser && usersData.length > 0) {
+        // Find and set current user
+        if (usersData.length > 0) {
           const currentUserData = usersData.find(u => u.email === authUser.email);
           if (currentUserData) {
-            console.log('✅ Setting current user:', currentUserData.email);
+            console.log('✅ Current user found:', currentUserData.email, 'Role:', currentUserData.systemGroup);
             setCurrentUser(currentUserData);
           } else {
-            console.warn('⚠️ Authenticated user not found in users table:', authUser.email);
+            console.warn('⚠️ User not found in database:', authUser.email);
+            // Create a basic user object if not found in database
+            const basicUser: User = {
+              id: authUser.id,
+              name: authUser.email.split('@')[0],
+              email: authUser.email,
+              phone: '',
+              systemGroup: 'Employee', // Default role
+              status: 'Active',
+              createdAt: new Date().toISOString(),
+              get role() { return this.systemGroup; }
+            };
+            setCurrentUser(basicUser);
+            console.log('✅ Created basic user with Employee role');
           }
         }
 
-        // Create permission utilities after both are loaded
+        // Create permission utilities
         if (systemGroupsData.length > 0) {
           console.log('🔧 Creating permission utilities...');
           createPermissionUtils(usersData, systemGroupsData);
-          console.log('✅ Permission utilities created');
-        } else {
-          console.warn('⚠️ No system groups available for permission utils');
+          console.log('✅ Permission utilities ready');
         }
 
       } catch (error) {
-        console.error('❌ Error initializing RBAC data:', error);
-        // Don't throw the error, just log it to prevent app crashes
+        console.error('❌ RBAC initialization failed:', error);
+        // Don't leave the system in loading state on error
       } finally {
         setLoading(false);
-        console.log('✅ RBAC data initialization complete');
+        console.log('✅ RBAC initialization complete');
       }
     };
 
     // Only initialize once when auth user is available
-    if (authUser && !loading) {
+    if (authUser && loading) {
       initializeData();
     }
-  }, [authUser?.email]); // Removed other dependencies to prevent multiple initializations
+  }, [authUser?.email, authUser?.id]); // Simplified dependencies
 
-  // Re-create permission utils when system groups change (but not on initial load)
+  // Don't re-run permission utils creation on every change
   useEffect(() => {
     if (!loading && roles.length > 0 && users.length > 0) {
-      console.log('🔄 System groups changed, updating permission utilities...');
+      console.log('🔄 Updating permission utilities after data change...');
       try {
         createPermissionUtils(users, roles);
+        console.log('✅ Permission utilities updated');
       } catch (error) {
         console.error('❌ Error updating permission utilities:', error);
       }
     }
-  }, [roles, users, loading]);
-
-  // Set current user when auth user or users data changes
-  useEffect(() => {
-    if (authUser && users.length > 0 && !loading) {
-      const currentUserData = users.find(u => u.email === authUser.email);
-      if (currentUserData) {
-        console.log('🔄 Updating current user from users data:', currentUserData.email);
-        setCurrentUser(currentUserData);
-      } else {
-        console.error('❌ Current user not found in users data:', authUser.email);
-      }
-    }
-  }, [authUser?.email, users, loading, setCurrentUser]);
+  }, [roles.length, users.length, loading]); // Only trigger on length changes
 };

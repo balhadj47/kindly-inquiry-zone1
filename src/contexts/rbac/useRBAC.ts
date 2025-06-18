@@ -13,6 +13,11 @@ export const useRBAC = () => {
   const { currentUser, users, roles, permissions, loading } = context;
   
   const hasPermission = (permission: string): boolean => {
+    console.log('🔐 RBAC hasPermission called with:', permission);
+    console.log('🔐 Current user:', currentUser?.id, currentUser?.systemGroup);
+    console.log('🔐 Loading state:', loading);
+    console.log('🔐 Roles available:', roles.length);
+
     if (!currentUser) {
       console.log('🚫 No current user for permission check:', permission);
       return false;
@@ -30,7 +35,7 @@ export const useRBAC = () => {
 
     try {
       const result = checkPermission(currentUser.id.toString(), permission);
-      console.log(`🔐 Permission check: ${permission} = ${result} for user ${currentUser.id}`);
+      console.log(`🔐 Permission check result: ${permission} = ${result} for user ${currentUser.id}`);
       return result;
     } catch (error) {
       console.error('❌ Error in permission check:', error);

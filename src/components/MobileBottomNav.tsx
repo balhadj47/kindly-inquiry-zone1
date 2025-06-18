@@ -18,50 +18,100 @@ const MobileBottomNav = () => {
   const { t } = useLanguage();
   const location = useLocation();
 
+  console.log('📱 MobileBottomNav: Translation object:', t);
+  console.log('📱 MobileBottomNav: Available keys:', Object.keys(t));
+
   const menuItems = [
     {
-      title: t.home,
+      title: t.home || 'Home',
       url: '/dashboard',
       icon: Home,
       permission: null,
     },
     {
-      title: t.companies,
+      title: t.companies || 'Companies',
       url: '/companies',
       icon: Building2,
       permission: 'companies:read',
     },
     {
-      title: t.vans,
+      title: t.vans || 'Vans',
       url: '/vans',
       icon: Truck,
       permission: 'vans:read',
     },
     {
-      title: t.logger,
+      title: t.logger || 'Logger',
       url: '/trip-logger',
       icon: MapPin,
       permission: 'trips:read',
     },
     {
-      title: t.history,
+      title: t.history || 'History',
       url: '/trip-history',
       icon: History,
       permission: 'trips:read',
     },
   ];
 
+  console.log('📱 MobileBottomNav: All menu items:', menuItems);
+
   try {
     const filteredItems = menuItems.filter(
-      (item) => !item.permission || hasPermission(item.permission)
+      (item) => {
+        const hasAccess = !item.permission || hasPermission(item.permission);
+        console.log(`📱 MobileBottomNav: ${item.title} - Permission: ${item.permission}, Has Access: ${hasAccess}`);
+        return hasAccess;
+      }
     );
+
+    console.log('📱 MobileBottomNav: Filtered items count:', filteredItems.length);
+    console.log('📱 MobileBottomNav: Filtered items:', filteredItems.map(item => item.title));
 
     // Limit to 5 items for better mobile UX and ensure we have at least 1 item
     const displayItems = filteredItems.slice(0, 5);
     
     if (displayItems.length === 0) {
       console.warn('⚠️ MobileBottomNav: No menu items available for current user');
-      return null;
+      // Show at least the home item if no permissions
+      const fallbackItems = [{
+        title: t.home || 'Home',
+        url: '/dashboard',
+        icon: Home,
+        permission: null,
+      }];
+      
+      return (
+        <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
+          <div className="grid h-16 grid-cols-1">
+            {fallbackItems.map((item) => {
+              const isActive = location.pathname === item.url || 
+                (item.url === '/dashboard' && location.pathname === '/');
+              
+              return (
+                <NavLink
+                  key={item.title}
+                  to={item.url}
+                  className={`flex flex-col items-center justify-center px-1 py-2 text-xs transition-colors ${
+                    isActive
+                      ? 'text-blue-600 bg-blue-50'
+                      : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <item.icon 
+                    className={`h-5 w-5 mb-1 ${
+                      isActive ? 'text-blue-600' : 'text-gray-600'
+                    }`} 
+                  />
+                  <span className="truncate text-[10px] font-medium">
+                    {item.title}
+                  </span>
+                </NavLink>
+              );
+            })}
+          </div>
+        </nav>
+      );
     }
 
     console.log('📱 MobileBottomNav: Rendering', displayItems.length, 'items');

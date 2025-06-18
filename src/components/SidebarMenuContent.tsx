@@ -23,54 +23,82 @@ const SidebarMenuContent = () => {
   const { t } = useLanguage();
   const location = useLocation();
 
+  console.log('🔍 SidebarMenuContent: Translation object:', t);
+  console.log('🔍 SidebarMenuContent: Available keys:', Object.keys(t));
+
   const menuItems = [
     {
-      title: t.dashboardFull,
+      title: t.dashboard || 'Dashboard',
       url: '/dashboard',
       icon: Home,
       permission: null,
     },
     {
-      title: t.companies,
+      title: t.companies || 'Companies',
       url: '/companies',
       icon: Building2,
       permission: 'companies:read',
     },
     {
-      title: t.vans,
+      title: t.vans || 'Vans',
       url: '/vans',
       icon: Truck,
       permission: 'vans:read',
     },
     {
-      title: t.users,
+      title: t.users || 'Users',
       url: '/users',
       icon: Users,
       permission: 'users:read',
     },
     {
-      title: t.logTripFull,
+      title: t.logTrip || 'Log Trip',
       url: '/trip-logger',
       icon: MapPin,
       permission: 'trips:read',
     },
     {
-      title: t.history,
+      title: t.tripHistory || 'Trip History',
       url: '/trip-history',
       icon: History,
       permission: 'trips:read',
     },
     {
-      title: t.settings,
+      title: t.settings || 'Settings',
       url: '/settings',
       icon: Settings,
       permission: null,
     },
   ];
 
+  console.log('🔍 SidebarMenuContent: All menu items:', menuItems);
+
   const filteredItems = menuItems.filter(
-    (item) => !item.permission || hasPermission(item.permission)
+    (item) => {
+      const hasAccess = !item.permission || hasPermission(item.permission);
+      console.log(`🔍 SidebarMenuContent: ${item.title} - Permission: ${item.permission}, Has Access: ${hasAccess}`);
+      return hasAccess;
+    }
   );
+
+  console.log('🔍 SidebarMenuContent: Filtered items count:', filteredItems.length);
+  console.log('🔍 SidebarMenuContent: Filtered items:', filteredItems.map(item => item.title));
+
+  if (filteredItems.length === 0) {
+    console.warn('⚠️ SidebarMenuContent: No menu items available after filtering!');
+    return (
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton asChild>
+            <div className="flex items-center gap-3 px-3 py-2 text-sm font-medium text-muted-foreground">
+              <Home className="h-4 w-4 flex-shrink-0" />
+              <span>No menu items available</span>
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
 
   return (
     <SidebarMenu>

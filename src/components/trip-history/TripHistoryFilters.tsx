@@ -1,25 +1,22 @@
 
-import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { RotateCcw, Filter, ChevronDown, ChevronUp } from 'lucide-react';
-import { Company } from '@/hooks/useCompanies';
+import { Search, X } from 'lucide-react';
 import { Van } from '@/hooks/useVans';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useIsMobile } from '@/hooks/use-mobile';
 
-interface TripHistoryFiltersProps {
+export interface TripHistoryFiltersProps {
   searchTerm: string;
-  setSearchTerm: (value: string) => void;
+  setSearchTerm: (term: string) => void;
   companyFilter: string;
-  setCompanyFilter: (value: string) => void;
+  setCompanyFilter: (company: string) => void;
   vanFilter: string;
-  setVanFilter: (value: string) => void;
-  companies: Company[];
+  setVanFilter: (van: string) => void;
+  companies: any[];
   vans: Van[];
   onClearFilters: () => void;
+  disabled?: boolean;
 }
 
 const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
@@ -31,141 +28,70 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
   setVanFilter,
   companies,
   vans,
-  onClearFilters
+  onClearFilters,
+  disabled = false
 }) => {
-  const { t } = useLanguage();
-  const isMobile = useIsMobile();
-  const [filtersExpanded, setFiltersExpanded] = useState(false);
-
-  const hasActiveFilters = searchTerm !== '' || companyFilter !== 'all' || vanFilter !== 'all';
-
-  // Get van display name for filter options
-  const getVanDisplayName = (van: Van) => {
-    const referenceCode = (van as any).reference_code || van.license_plate;
-    return `${referenceCode} - ${van.model}`;
-  };
+  const hasActiveFilters = searchTerm || companyFilter !== 'all' || vanFilter !== 'all';
 
   return (
-    <Card>
-      <CardHeader className={isMobile ? 'pb-3' : ''}>
-        <CardTitle className={isMobile ? 'text-base' : 'text-lg'}>{t.filters}</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search - Always visible */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">{t.search}</label>
+    <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 space-y-4">
+      <div className="flex flex-col sm:flex-row gap-4">
+        {/* Search Input */}
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder={t.searchByCompanyBranchVan}
+            placeholder="Rechercher par entreprise, succursale, véhicule ou conducteur..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={isMobile ? 'text-sm' : ''}
+            className="pl-10"
+            disabled={disabled}
           />
         </div>
 
-        {isMobile ? (
-          /* Mobile: Collapsible filters */
-          <div className="space-y-3">
-            <Button
-              variant="outline"
-              onClick={() => setFiltersExpanded(!filtersExpanded)}
-              className="w-full flex items-center justify-between text-sm"
-            >
-              <div className="flex items-center space-x-2">
-                <Filter className="h-4 w-4" />
-                <span>{t.advancedFilters}</span>
-              </div>
-              {filtersExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
+        {/* Company Filter */}
+        <Select value={companyFilter} onValueChange={setCompanyFilter} disabled={disabled}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Toutes les entreprises" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Toutes les entreprises</SelectItem>
+            {companies.map((company) => (
+              <SelectItem key={company.id || company.name} value={company.name}>
+                {company.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-            {filtersExpanded && (
-              <div className="space-y-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t.companies}</label>
-                  <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                    <SelectTrigger className="text-sm">
-                      <SelectValue placeholder={t.allCompaniesFilter} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t.allCompaniesFilter}</SelectItem>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.name}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+        {/* Van Filter */}
+        <Select value={vanFilter} onValueChange={setVanFilter} disabled={disabled}>
+          <SelectTrigger className="w-full sm:w-48">
+            <SelectValue placeholder="Tous les véhicules" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tous les véhicules</SelectItem>
+            {vans.map((van) => (
+              <SelectItem key={van.id} value={van.id}>
+                {van.license_plate ? `${van.license_plate} - ${van.model}` : van.model}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">{t.van}</label>
-                  <Select value={vanFilter} onValueChange={setVanFilter}>
-                    <SelectTrigger className="text-sm">
-                      <SelectValue placeholder={t.allVansFilter} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{t.allVansFilter}</SelectItem>
-                      {vans.map((van) => (
-                        <SelectItem key={van.id} value={van.id}>
-                          {getVanDisplayName(van)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-          </div>
-        ) : (
-          /* Desktop: Horizontal filters */
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t.companies}</label>
-              <Select value={companyFilter} onValueChange={setCompanyFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.allCompaniesFilter} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.allCompaniesFilter}</SelectItem>
-                  {companies.map((company) => (
-                    <SelectItem key={company.id} value={company.name}>
-                      {company.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t.van}</label>
-              <Select value={vanFilter} onValueChange={setVanFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder={t.allVansFilter} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">{t.allVansFilter}</SelectItem>
-                  {vans.map((van) => (
-                    <SelectItem key={van.id} value={van.id}>
-                      {getVanDisplayName(van)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        )}
-
+        {/* Clear Filters Button */}
         {hasActiveFilters && (
-          <Button 
-            onClick={onClearFilters} 
-            variant="outline" 
-            size="sm"
-            className={`flex items-center gap-2 ${isMobile ? 'w-full text-sm' : ''}`}
+          <Button
+            variant="outline"
+            onClick={onClearFilters}
+            className="flex items-center gap-2 px-3"
+            disabled={disabled}
           >
-            <RotateCcw className="h-4 w-4" />
-            {t.clear}
+            <X className="h-4 w-4" />
+            <span className="hidden sm:inline">Effacer</span>
           </Button>
         )}
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 

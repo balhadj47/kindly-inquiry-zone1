@@ -15,12 +15,12 @@ const ProgressiveLoadingContext = createContext<ProgressiveLoadingContextType | 
 
 export const ProgressiveLoadingProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { state, loadCoreData, loadSecondaryData } = useProgressiveLoading();
-  const { users, error: rbacError } = useRBAC();
+  const { users, loading: rbacLoading } = useRBAC();
   const { trips, error: tripsError } = useTrip();
 
   // Monitor core data loading (RBAC and Trips)
   useEffect(() => {
-    if (users && trips && !rbacError && !tripsError) {
+    if (users && trips && !rbacLoading && !tripsError) {
       loadCoreData();
       
       // Start loading secondary data in background after core data is ready
@@ -28,13 +28,13 @@ export const ProgressiveLoadingProvider: React.FC<{ children: React.ReactNode }>
         loadSecondaryData();
       }, 100);
     }
-  }, [users, trips, rbacError, tripsError, loadCoreData, loadSecondaryData]);
+  }, [users, trips, rbacLoading, tripsError, loadCoreData, loadSecondaryData]);
 
   const value: ProgressiveLoadingContextType = {
     coreDataLoaded: state.coreDataLoaded,
     secondaryDataLoaded: state.secondaryDataLoaded,
     isInitializing: state.isInitializing,
-    error: state.error || rbacError || tripsError
+    error: state.error || tripsError
   };
 
   return (

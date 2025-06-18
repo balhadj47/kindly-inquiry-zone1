@@ -3,13 +3,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
 import { getTripCache, isTripCacheValid, setTripCache, getTripFetchPromise, setTripFetchPromise } from './TripCacheManager';
 
-export const fetchTripsFromDatabase = async (useCache = true) => {
+export const fetchTripsFromDatabase = async (useCache = true, limit?: number, offset?: number) => {
   try {
     console.log('🚗 Starting to fetch trips data...');
     const startTime = performance.now();
     
-    // Check cache first
-    if (useCache && isTripCacheValid()) {
+    // Check cache first (only for full data requests)
+    if (useCache && !limit && !offset && isTripCacheValid()) {
       const cache = getTripCache();
       if (cache) {
         console.log('🚗 Using cached trips data');
@@ -17,19 +17,46 @@ export const fetchTripsFromDatabase = async (useCache = true) => {
       }
     }
 
-    // If there's already a fetch in progress, wait for it
-    const existingPromise = getTripFetchPromise();
-    if (existingPromise) {
-      console.log('🚗 Waiting for existing trips fetch...');
-      return await existingPromise;
+    // If there's already a fetch in progress, wait for it (only for full data requests)
+    if (!limit && !offset) {
+      const existingPromise = getTripFetchPromise();
+      if (existingPromise) {
+        console.log('🚗 Waiting for existing trips fetch...');
+        return await existingPromise;
+      }
     }
 
-    // Start new fetch
+    // Start new fetch with optimized query
     const fetchPromise = (async () => {
-      const { data, error } = await (supabase as any)
+      let query = (supabase as any)
         .from('trips')
-        .select('*')
+        .select(`
+          id,
+          van,
+          driver,
+          company,
+          branch,
+          created_at,
+          notes,
+          user_ids,
+          user_roles,
+          start_km,
+          end_km,
+          status,
+          planned_start_date,
+          planned_end_date
+        `)
         .order('created_at', { ascending: false });
+
+      // Add pagination if specified
+      if (limit) {
+        query = query.limit(limit);
+        if (offset) {
+          query = query.range(offset, offset + limit - 1);
+        }
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Trips error:', error);
@@ -38,24 +65,51 @@ export const fetchTripsFromDatabase = async (useCache = true) => {
 
       const tripsData = data || [];
       
-      // Update cache
-      setTripCache(tripsData);
+      // Update cache only for full data requests
+      if (!limit && !offset) {
+        setTripCache(tripsData);
+      }
       
       console.log('🚗 Successfully fetched trips data in:', performance.now() - startTime, 'ms');
       return tripsData;
     })();
 
-    setTripFetchPromise(fetchPromise);
+    // Only track promise for full data requests
+    if (!limit && !offset) {
+      setTripFetchPromise(fetchPromise);
+    }
     
     try {
       const result = await fetchPromise;
       return result;
     } finally {
-      setTripFetchPromise(null);
+      if (!limit && !offset) {
+        setTripFetchPromise(null);
+      }
     }
   } catch (error) {
     console.error('🚗 Error fetching trips:', error);
-    setTripFetchPromise(null);
+    if (!limit && !offset) {
+      setTripFetchPromise(null);
+    }
+    throw error;
+  }
+};
+
+export const fetchTripsCount = async () => {
+  try {
+    const { count, error } = await (supabase as any)
+      .from('trips')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error fetching trips count:', error);
+      throw error;
+    }
+
+    return count || 0;
+  } catch (error) {
+    console.error('Error fetching trips count:', error);
     throw error;
   }
 };

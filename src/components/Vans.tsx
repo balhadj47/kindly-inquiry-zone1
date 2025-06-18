@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
@@ -97,36 +96,32 @@ const Vans = () => {
 
   return (
     <div className="space-y-6">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <VanStats 
-          vans={vans}
-          onAddVan={handleAddVan}
-        />
-        
-        <VanFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          sortField={sortField}
-          setSortField={setSortField}
-          sortDirection={sortDirection}
-          toggleSort={toggleSort}
-        />
-      </div>
+      <VanStats 
+        vans={vans}
+        onAddVan={handleAddVan}
+      />
+      
+      <VanFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDirection={sortDirection}
+        toggleSort={toggleSort}
+      />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <VanList
-          vans={filteredAndSortedVans}
-          totalVans={vans.length}
-          searchTerm={searchTerm}
-          statusFilter={statusFilter}
-          onAddVan={handleAddVan}
-          onEditVan={handleEditVan}
-          onQuickAction={handleQuickAction}
-          onDeleteVan={handleDeleteVan}
-        />
-      </div>
+      <VanList
+        vans={filteredAndSortedVans}
+        totalVans={vans.length}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onAddVan={handleAddVan}
+        onEditVan={handleEditVan}
+        onQuickAction={handleQuickAction}
+        onDeleteVan={handleDeleteVan}
+      />
 
       <VanModal
         isOpen={isModalOpen}

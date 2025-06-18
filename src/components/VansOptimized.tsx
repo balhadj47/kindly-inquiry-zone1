@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import VanStats from './VanStats';
@@ -52,27 +51,21 @@ const VansOptimized = () => {
   const [selectedVan, setSelectedVan] = useState(null);
 
   if (isLoading) {
-    return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <VansLoadingSkeleton />
-      </div>
-    );
+    return <VansLoadingSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="text-center">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
-            <p className="text-gray-600 mb-4">Impossible de charger les camionnettes</p>
-            <button 
-              onClick={() => refetch()} 
-              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-            >
-              Réessayer
-            </button>
-          </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+          <p className="text-gray-600 mb-4">Impossible de charger les camionnettes</p>
+          <button 
+            onClick={() => refetch()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Réessayer
+          </button>
         </div>
       </div>
     );
@@ -156,36 +149,32 @@ const VansOptimized = () => {
 
   return (
     <div className="space-y-6">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <VanStats 
-          vans={vans}
-          onAddVan={handleAddVan}
-        />
-        
-        <VanFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          sortField={sortField}
-          setSortField={setSortField}
-          sortDirection={sortDirection}
-          toggleSort={toggleSort}
-        />
-      </div>
+      <VanStats 
+        vans={vans}
+        onAddVan={handleAddVan}
+      />
+      
+      <VanFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDirection={sortDirection}
+        toggleSort={toggleSort}
+      />
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <VanList
-          vans={filteredAndSortedVans}
-          totalVans={vans.length}
-          searchTerm={searchTerm}
-          statusFilter={statusFilter}
-          onAddVan={handleAddVan}
-          onEditVan={handleEditVan}
-          onQuickAction={handleQuickAction}
-          onDeleteVan={handleDeleteVan}
-        />
-      </div>
+      <VanList
+        vans={filteredAndSortedVans}
+        totalVans={vans.length}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onAddVan={handleAddVan}
+        onEditVan={handleEditVan}
+        onQuickAction={handleQuickAction}
+        onDeleteVan={handleDeleteVan}
+      />
 
       <VanModal
         isOpen={isModalOpen}

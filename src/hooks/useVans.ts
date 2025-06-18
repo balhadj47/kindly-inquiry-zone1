@@ -25,7 +25,13 @@ const CACHE_DURATION = 60000; // 1 minute cache
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    // Only start with loading true if we don't have valid cached data
+    if (globalVansCache && Date.now() - globalVansCache.timestamp < CACHE_DURATION) {
+      return false;
+    }
+    return true;
+  });
   const isMountedRef = useRef(true);
 
   const fetchVans = useCallback(async (useCache = true): Promise<Van[]> => {
@@ -49,8 +55,8 @@ export const useVans = () => {
         }
       }
 
-      // Set loading state
-      if (isMountedRef.current) {
+      // Set loading state only if we don't have cached data
+      if (isMountedRef.current && !globalVansCache) {
         setIsLoading(true);
       }
 

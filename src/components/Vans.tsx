@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
@@ -96,7 +95,7 @@ const Vans = () => {
   };
 
   return (
-    <div className="w-full max-w-none space-y-6">
+    <div className="space-y-6">
       <VanStats 
         vans={vans}
         onAddVan={handleAddVan}

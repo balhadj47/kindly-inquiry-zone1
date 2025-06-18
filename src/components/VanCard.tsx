@@ -10,7 +10,6 @@ import {
   Shield,
   Calendar,
   FileText,
-  AlertTriangle,
   Car
 } from 'lucide-react';
 import {
@@ -57,15 +56,12 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
             <div className="bg-blue-100 p-2 rounded-lg">
               <Car className="h-5 w-5 text-blue-600" />
             </div>
-            <div className="min-w-0 flex-1">
+            <div>
               <CardTitle className="text-lg">{van.model}</CardTitle>
-              <p className="text-sm font-medium text-gray-600 mt-1">{van.license_plate}</p>
-              {van.reference_code && (
-                <div className="flex items-center text-sm text-gray-500 mt-1">
-                  <Calendar className="h-3 w-3 mr-1" />
-                  {van.reference_code}
-                </div>
-              )}
+              <div className="flex items-center text-sm text-gray-500 mt-1">
+                <Calendar className="h-3 w-3 mr-1" />
+                {van.license_plate}
+              </div>
             </div>
           </div>
           {van.status && (
@@ -77,8 +73,15 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Insurance and Control Information */}
+        {/* Van Information */}
         <div className="space-y-2">
+          {van.reference_code && (
+            <div className="flex items-center space-x-2">
+              <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">Code: {van.reference_code}</span>
+            </div>
+          )}
+          
           {van.insurer && (
             <div className="flex items-center space-x-2">
               <Shield className="h-4 w-4 text-gray-500 flex-shrink-0" />
@@ -114,14 +117,15 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
         {/* Notes */}
         {van.notes && (
           <div className="border-t pt-3">
-            <div className="flex items-start space-x-2">
-              <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-gray-700 line-clamp-2">{van.notes}</p>
+            <div className="flex items-center space-x-2">
+              <FileText className="h-4 w-4 text-gray-500" />
+              <span className="text-sm">
+                Notes: {van.notes.slice(0, 50)}{van.notes.length > 50 && '...'}
+              </span>
             </div>
           </div>
         )}
 
-        {/* Action Buttons */}
         <div className="flex space-x-2 pt-2">
           <Button
             variant="outline"
@@ -135,42 +139,11 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); handleQuickAction(); }}
-            className="flex-1"
+            onClick={(e) => { e.stopPropagation(); onDelete(van); }}
+            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3"
           >
-            <Eye className="h-3 w-3 mr-1" />
-            Voyages
+            <Trash2 className="h-3 w-3" />
           </Button>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => e.stopPropagation()}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3"
-              >
-                <Trash2 className="h-3 w-3" />
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Supprimer la camionnette</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Êtes-vous sûr de vouloir supprimer la camionnette "{van.license_plate}" ? 
-                  Cette action ne peut pas être annulée.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDelete}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Supprimer
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
         </div>
       </CardContent>
     </Card>

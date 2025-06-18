@@ -6,6 +6,7 @@ import { Car, Plus } from 'lucide-react';
 import VanCard from './VanCard';
 import VirtualizedList from '@/components/ui/virtualized-list';
 import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface VanListProps {
   vans: any[];
@@ -28,8 +29,9 @@ const VanList = React.memo(({
   onQuickAction,
   onDeleteVan
 }: VanListProps) => {
+  const isMobile = useIsMobile();
   const showSummary = vans.length !== totalVans;
-  const useVirtualization = vans.length > 20;
+  const useVirtualization = vans.length > 20 && !isMobile;
 
   if (vans.length === 0) {
     return (
@@ -68,6 +70,10 @@ const VanList = React.memo(({
     onDelete: onDeleteVan
   };
 
+  const handleVanClick = (van: any) => {
+    onEditVan(van);
+  };
+
   return (
     <>
       {showSummary && (
@@ -80,21 +86,25 @@ const VanList = React.memo(({
         <VirtualizedList
           height={600}
           itemCount={vans.length}
-          itemSize={320}
+          itemSize={280}
           itemData={virtualizedData}
           className="border rounded-lg"
         >
           {VirtualizedVanCard}
         </VirtualizedList>
       ) : (
-        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
+        <div className={`grid gap-4 sm:gap-6 ${
+          isMobile 
+            ? 'grid-cols-1' 
+            : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+        }`}>
           {vans.map((van) => (
             <div
               key={van.id}
               className="cursor-pointer"
               onClick={(e) => {
                 if ((e.target as HTMLElement).closest('button')) return;
-                onEditVan(van);
+                handleVanClick(van);
               }}
             >
               <VanCard

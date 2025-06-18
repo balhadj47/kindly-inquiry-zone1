@@ -92,25 +92,7 @@ const VanDetail = () => {
               <label className="text-sm font-medium text-gray-500">Statut</label>
               <p className="text-lg">{van.status}</p>
             </div>
-            {van.insurer && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">Assureur</label>
-                <p className="text-lg">{van.insurer}</p>
-              </div>
-            )}
-            {van.insurance_date && (
-              <div>
-                <label className="text-sm font-medium text-gray-500">Date d'assurance</label>
-                <p className="text-lg">{new Date(van.insurance_date).toLocaleDateString()}</p>
-              </div>
-            )}
           </div>
-          {van.notes && (
-            <div className="mt-6">
-              <label className="text-sm font-medium text-gray-500">Notes</label>
-              <p className="text-base mt-1 p-3 bg-gray-50 rounded-lg">{van.notes}</p>
-            </div>
-          )}
         </CardContent>
       </Card>
     </div>

@@ -4,11 +4,19 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, Plus } from 'lucide-react';
 import VanCard from './VanCard';
-import VirtualizedList from '@/components/ui/virtualized-list';
-import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { Van } from '@/types/van';
+import { useVansPagination } from '@/hooks/useVansPagination';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination';
 
 interface VanListProps {
   vans: any[];
@@ -31,12 +39,20 @@ const VanList = React.memo(({
   onQuickAction,
   onDeleteVan
 }: VanListProps) => {
-  const isMobile = useIsMobile();
-  const showSummary = vans.length !== totalVans;
-  const useVirtualization = vans.length > 20 && !isMobile;
   const navigate = useNavigate();
-
   const [filteredVans, setFilteredVans] = useState(vans);
+  
+  const {
+    currentPage,
+    totalPages,
+    paginatedVans,
+    handlePageChange,
+  } = useVansPagination({
+    filteredVans,
+    itemsPerPage: 10,
+    searchTerm,
+    statusFilter,
+  });
 
   useEffect(() => {
     const filtered = vans.filter((van) => {
@@ -60,11 +76,6 @@ const VanList = React.memo(({
   if (vans.length === 0) {
     return (
       <div className="h-full flex flex-col overflow-hidden">
-        {showSummary && (
-          <div className="text-sm text-gray-600 mb-4 flex-shrink-0">
-            Affichage de {vans.length} sur {totalVans} camionnettes
-          </div>
-        )}
         <div className="flex-1 flex items-center justify-center">
           <Card>
             <CardContent className="text-center py-12">
@@ -89,37 +100,100 @@ const VanList = React.memo(({
     );
   }
 
-  const virtualizedData = {
-    vans: filteredVans,
-    onEditVan,
-    onQuickAction,
-    onDeleteVan,
-    onNavigate: handleVanClick
+  const renderPaginationItems = () => {
+    const items = [];
+    const maxVisiblePages = 5;
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is small
+      for (let i = 1; i <= totalPages; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              isActive={currentPage === i}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    } else {
+      // Show ellipsis for large page counts
+      const start = Math.max(1, currentPage - 2);
+      const end = Math.min(totalPages, start + maxVisiblePages - 1);
+      
+      if (start > 1) {
+        items.push(
+          <PaginationItem key={1}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(1);
+              }}
+            >
+              1
+            </PaginationLink>
+          </PaginationItem>
+        );
+        if (start > 2) {
+          items.push(<PaginationEllipsis key="start-ellipsis" />);
+        }
+      }
+      
+      for (let i = start; i <= end; i++) {
+        items.push(
+          <PaginationItem key={i}>
+            <PaginationLink
+              href="#"
+              isActive={currentPage === i}
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(i);
+              }}
+            >
+              {i}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+      
+      if (end < totalPages) {
+        if (end < totalPages - 1) {
+          items.push(<PaginationEllipsis key="end-ellipsis" />);
+        }
+        items.push(
+          <PaginationItem key={totalPages}>
+            <PaginationLink
+              href="#"
+              onClick={(e) => {
+                e.preventDefault();
+                handlePageChange(totalPages);
+              }}
+            >
+              {totalPages}
+            </PaginationLink>
+          </PaginationItem>
+        );
+      }
+    }
+    
+    return items;
   };
-
-  if (useVirtualization) {
-    return (
-      <VirtualizedList
-        height={600}
-        itemCount={filteredVans.length}
-        itemSize={280}
-        itemData={virtualizedData}
-        className="border rounded-lg"
-      >
-        {VirtualizedVanCard}
-      </VirtualizedList>
-    );
-  }
 
   return (
     <div className="space-y-4">
-      {showSummary && (
-        <div className="text-sm text-gray-600">
-          Affichage de {filteredVans.length} sur {totalVans} camionnettes
-        </div>
-      )}
+      <div className="text-sm text-gray-600">
+        Affichage de {paginatedVans.length} sur {filteredVans.length} camionnettes (Page {currentPage} sur {totalPages})
+      </div>
+      
       <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
-        {filteredVans.map((van) => (
+        {paginatedVans.map((van) => (
           <VanCard
             key={van.id}
             van={van}
@@ -129,6 +203,40 @@ const VanList = React.memo(({
           />
         ))}
       </div>
+
+      {totalPages > 1 && (
+        <Pagination className="justify-center">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage > 1) {
+                    handlePageChange(currentPage - 1);
+                  }
+                }}
+                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+            
+            {renderPaginationItems()}
+            
+            <PaginationItem>
+              <PaginationNext
+                href="#"
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (currentPage < totalPages) {
+                    handlePageChange(currentPage + 1);
+                  }
+                }}
+                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      )}
     </div>
   );
 });

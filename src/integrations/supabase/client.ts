@@ -36,29 +36,3 @@ export const requireAuth = async () => {
   
   return session;
 };
-
-// Authenticated Supabase client that checks auth before operations
-export const authenticatedSupabase = {
-  from: (table: string) => ({
-    select: async (query?: string) => {
-      await requireAuth();
-      return supabase.from(table).select(query);
-    },
-    insert: async (data: any) => {
-      await requireAuth();
-      return supabase.from(table).insert(data);
-    },
-    update: async (data: any) => {
-      await requireAuth();
-      return supabase.from(table).update(data);
-    },
-    delete: async () => {
-      await requireAuth();
-      return supabase.from(table).delete();
-    },
-    upsert: async (data: any) => {
-      await requireAuth();
-      return supabase.from(table).upsert(data);
-    }
-  })
-};

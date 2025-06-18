@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
 import { getTripCache, isTripCacheValid, setTripCache, getTripFetchPromise, setTripFetchPromise } from './TripCacheManager';
@@ -131,6 +130,7 @@ export const insertTripToDatabase = async (tripData: {
     endDate: tripData.endDate
   });
 
+  // Start a transaction to update both trip and van status
   const { data, error } = await (supabase as any)
     .from('trips')
     .insert({
@@ -154,7 +154,18 @@ export const insertTripToDatabase = async (tripData: {
     throw error;
   }
 
-  console.log('Trip added successfully:', data);
+  // Update van status to "En Transit"
+  const { error: vanError } = await (supabase as any)
+    .from('vans')
+    .update({ status: 'En Transit' })
+    .eq('id', tripData.van);
+
+  if (vanError) {
+    console.error('Update van status error:', vanError);
+    // Don't throw here, trip was created successfully
+  }
+
+  console.log('Trip added successfully and van status updated:', data);
   
   // Clear cache to force refresh on next load
   const { clearTripCache } = await import('./TripCacheManager');
@@ -164,6 +175,19 @@ export const insertTripToDatabase = async (tripData: {
 };
 
 export const updateTripInDatabase = async (tripId: number, endKm: number) => {
+  // First get the trip to find the van ID
+  const { data: tripData, error: tripError } = await (supabase as any)
+    .from('trips')
+    .select('van')
+    .eq('id', tripId)
+    .single();
+
+  if (tripError) {
+    console.error('Get trip error:', tripError);
+    throw tripError;
+  }
+
+  // Update trip status
   const { error } = await (supabase as any)
     .from('trips')
     .update({
@@ -177,7 +201,20 @@ export const updateTripInDatabase = async (tripId: number, endKm: number) => {
     throw error;
   }
 
-  console.log('Trip ended successfully:', tripId);
+  // Update van status back to "Active"
+  if (tripData?.van) {
+    const { error: vanError } = await (supabase as any)
+      .from('vans')
+      .update({ status: 'Active' })
+      .eq('id', tripData.van);
+
+    if (vanError) {
+      console.error('Update van status error:', vanError);
+      // Don't throw here, trip was updated successfully
+    }
+  }
+
+  console.log('Trip ended successfully and van status updated:', tripId);
   
   // Clear cache to force refresh on next load
   const { clearTripCache } = await import('./TripCacheManager');
@@ -185,6 +222,19 @@ export const updateTripInDatabase = async (tripId: number, endKm: number) => {
 };
 
 export const deleteTripFromDatabase = async (tripId: number) => {
+  // First get the trip to find the van ID
+  const { data: tripData, error: tripError } = await (supabase as any)
+    .from('trips')
+    .select('van, status')
+    .eq('id', tripId)
+    .single();
+
+  if (tripError) {
+    console.error('Get trip error:', tripError);
+    throw tripError;
+  }
+
+  // Delete the trip
   const { error } = await (supabase as any)
     .from('trips')
     .delete()
@@ -195,7 +245,20 @@ export const deleteTripFromDatabase = async (tripId: number) => {
     throw error;
   }
 
-  console.log('Trip deleted successfully:', tripId);
+  // If the trip was active, update van status back to "Active"
+  if (tripData?.van && tripData?.status === 'active') {
+    const { error: vanError } = await (supabase as any)
+      .from('vans')
+      .update({ status: 'Active' })
+      .eq('id', tripData.van);
+
+    if (vanError) {
+      console.error('Update van status error:', vanError);
+      // Don't throw here, trip was deleted successfully
+    }
+  }
+
+  console.log('Trip deleted successfully and van status updated:', tripId);
   
   // Clear cache to force refresh on next load
   const { clearTripCache } = await import('./TripCacheManager');

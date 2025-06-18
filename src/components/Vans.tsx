@@ -95,33 +95,39 @@ const Vans = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <VanStats 
-        vans={vans}
-        onAddVan={handleAddVan}
-      />
+    <div className="h-screen flex flex-col overflow-hidden">
+      <div className="flex-shrink-0">
+        <VanStats 
+          vans={vans}
+          onAddVan={handleAddVan}
+        />
+      </div>
       
-      <VanFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sortField={sortField}
-        setSortField={setSortField}
-        sortDirection={sortDirection}
-        toggleSort={toggleSort}
-      />
+      <div className="flex-shrink-0 mt-6">
+        <VanFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          toggleSort={toggleSort}
+        />
+      </div>
 
-      <VanList
-        vans={filteredAndSortedVans}
-        totalVans={vans.length}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        onAddVan={handleAddVan}
-        onEditVan={handleEditVan}
-        onQuickAction={handleQuickAction}
-        onDeleteVan={handleDeleteVan}
-      />
+      <div className="flex-1 mt-6 min-h-0">
+        <VanList
+          vans={filteredAndSortedVans}
+          totalVans={vans.length}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          onAddVan={handleAddVan}
+          onEditVan={handleEditVan}
+          onQuickAction={handleQuickAction}
+          onDeleteVan={handleDeleteVan}
+        />
+      </div>
 
       <VanModal
         isOpen={isModalOpen}

@@ -39,7 +39,7 @@ const VanList = React.memo(({
     handlePageChange,
   } = useVansPagination({
     filteredVans,
-    itemsPerPage: 10,
+    itemsPerPage: 12,
     searchTerm,
     statusFilter,
   });

@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -40,94 +40,118 @@ const AppLoadingSkeleton = () => (
   </div>
 );
 
-const App: React.FC = () => {
-  const [isReactReady, setIsReactReady] = useState(false);
+// Pure JavaScript React readiness check without hooks
+let reactReady = false;
+let appRender: () => void;
 
-  useEffect(() => {
-    console.log('🚀 App: Checking React readiness...');
+const checkReactReadiness = () => {
+  try {
+    if (
+      React && 
+      typeof React === 'object' &&
+      typeof React.useState === 'function' &&
+      typeof React.useEffect === 'function' &&
+      typeof React.useContext === 'function' &&
+      typeof React.createElement === 'function'
+    ) {
+      console.log('🚀 App: React fully ready');
+      reactReady = true;
+      if (appRender) appRender();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('🚀 App: Error checking React readiness:', error);
+    return false;
+  }
+};
+
+class App extends React.Component {
+  constructor(props: {}) {
+    super(props);
+    this.state = { ready: false };
+    console.log('🚀 App: Component constructor');
+  }
+
+  componentDidMount() {
+    console.log('🚀 App: Component mounted, checking React readiness...');
     
-    // More comprehensive React readiness check
-    const checkReactReadiness = () => {
-      try {
-        // Check if React object exists and has required methods
-        if (
-          React && 
-          typeof React === 'object' &&
-          typeof React.useState === 'function' &&
-          typeof React.useEffect === 'function' &&
-          typeof React.useContext === 'function' &&
-          typeof React.createElement === 'function'
-        ) {
-          console.log('🚀 App: React fully ready, setting state...');
-          setIsReactReady(true);
-          return true;
-        }
-        return false;
-      } catch (error) {
-        console.error('🚀 App: Error checking React readiness:', error);
-        return false;
-      }
+    appRender = () => {
+      this.setState({ ready: true });
     };
 
-    // Try immediate check first
+    // Try immediate check
     if (checkReactReadiness()) {
       return;
     }
 
-    // If not ready, use multiple fallback timers
-    const timers: NodeJS.Timeout[] = [];
-    
-    // Try again after a short delay
-    timers.push(setTimeout(() => {
+    // Fallback timers
+    setTimeout(() => {
       if (!checkReactReadiness()) {
         console.log('🚀 App: React still not ready after 100ms, waiting longer...');
       }
-    }, 100));
+    }, 100);
     
-    // Fallback after more time
-    timers.push(setTimeout(() => {
+    setTimeout(() => {
       if (!checkReactReadiness()) {
         console.log('🚀 App: React still not ready after 300ms, forcing ready state...');
-        setIsReactReady(true);
+        reactReady = true;
+        this.setState({ ready: true });
       }
-    }, 300));
-
-    return () => {
-      timers.forEach(timer => clearTimeout(timer));
-    };
-  }, []);
-
-  if (!isReactReady) {
-    console.log('🚀 App: React not ready yet, showing skeleton...');
-    return <AppLoadingSkeleton />;
+    }, 300);
   }
 
-  console.log('🚀 App: React ready, rendering main application...');
+  render() {
+    if (!(this.state as any).ready || !reactReady) {
+      console.log('🚀 App: React not ready yet, showing skeleton...');
+      return React.createElement(AppLoadingSkeleton);
+    }
 
-  return (
-    <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <LanguageProvider>
-              <RBACProvider>
-                <TripProvider>
-                  <ProgressiveLoadingProvider>
-                    <Suspense fallback={<AppLoadingSkeleton />}>
-                      <Routes>
-                        <Route path="/*" element={<Index />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </ProgressiveLoadingProvider>
-                </TripProvider>
-              </RBACProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
-    </ErrorBoundary>
-  );
-};
+    console.log('🚀 App: React ready, rendering main application...');
+
+    return React.createElement(
+      ErrorBoundary,
+      null,
+      React.createElement(
+        QueryClientProvider,
+        { client: queryClient },
+        React.createElement(
+          BrowserRouter,
+          null,
+          React.createElement(
+            AuthProvider,
+            null,
+            React.createElement(
+              LanguageProvider,
+              null,
+              React.createElement(
+                RBACProvider,
+                null,
+                React.createElement(
+                  TripProvider,
+                  null,
+                  React.createElement(
+                    ProgressiveLoadingProvider,
+                    null,
+                    React.createElement(
+                      Suspense,
+                      { fallback: React.createElement(AppLoadingSkeleton) },
+                      React.createElement(
+                        Routes,
+                        null,
+                        React.createElement(Route, { path: "/*", element: React.createElement(Index) }),
+                        React.createElement(Route, { path: "*", element: React.createElement(NotFound) })
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    );
+  }
+}
 
 export default App;

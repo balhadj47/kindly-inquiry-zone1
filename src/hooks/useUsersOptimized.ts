@@ -65,11 +65,12 @@ export const useUsers = (page = 1, limit = 20) => {
           profile_image: user.profile_image || '',
           total_trips: user.total_trips || 0,
           last_trip: user.last_trip || null,
-          badge_number: user.badge_number,
-          date_of_birth: user.date_of_birth,
-          place_of_birth: user.place_of_birth,
-          address: user.address,
-          driver_license: user.driver_license,
+          // Note: Employee fields will be undefined until database columns are added
+          badge_number: undefined,
+          date_of_birth: undefined,
+          place_of_birth: undefined,
+          address: undefined,
+          driver_license: undefined,
         })),
         total: count || 0
       };
@@ -116,11 +117,12 @@ export const useUsersByRole = (role: string | null) => {
         profile_image: user.profile_image || '',
         total_trips: user.total_trips || 0,
         last_trip: user.last_trip || null,
-        badge_number: user.badge_number,
-        date_of_birth: user.date_of_birth,
-        place_of_birth: user.place_of_birth,
-        address: user.address,
-        driver_license: user.driver_license,
+        // Note: Employee fields will be undefined until database columns are added
+        badge_number: undefined,
+        date_of_birth: undefined,
+        place_of_birth: undefined,
+        address: undefined,
+        driver_license: undefined,
       }));
     },
     enabled: !!role,
@@ -166,11 +168,12 @@ export const useUser = (userId: string | null) => {
         profile_image: data.profile_image || '',
         total_trips: data.total_trips || 0,
         last_trip: data.last_trip || null,
-        badge_number: data.badge_number,
-        date_of_birth: data.date_of_birth,
-        place_of_birth: data.place_of_birth,
-        address: data.address,
-        driver_license: data.driver_license,
+        // Note: Employee fields will be undefined until database columns are added
+        badge_number: undefined,
+        date_of_birth: undefined,
+        place_of_birth: undefined,
+        address: undefined,
+        driver_license: undefined,
       };
     },
     enabled: !!userId,
@@ -203,12 +206,8 @@ export const useUserMutations = () => {
         updateData.email = userData.email;
       }
 
-      // Update employee-specific fields
-      if (userData.badge_number !== undefined) updateData.badge_number = userData.badge_number;
-      if (userData.date_of_birth !== undefined) updateData.date_of_birth = userData.date_of_birth;
-      if (userData.place_of_birth !== undefined) updateData.place_of_birth = userData.place_of_birth;
-      if (userData.address !== undefined) updateData.address = userData.address;
-      if (userData.driver_license !== undefined) updateData.driver_license = userData.driver_license;
+      // Note: Employee-specific fields are not updated until database columns are added
+      console.log('Note: Employee fields not updated in database - columns need to be added to Supabase users table');
       
       const { data, error } = await supabase
         .from('users')

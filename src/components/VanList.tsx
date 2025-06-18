@@ -35,7 +35,7 @@ const VanList = React.memo(({
 
   if (vans.length === 0) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+      <>
         {showSummary && (
           <div className="text-sm text-gray-600 mb-4">
             Affichage de {vans.length} sur {totalVans} camionnettes
@@ -59,7 +59,7 @@ const VanList = React.memo(({
             )}
           </CardContent>
         </Card>
-      </div>
+      </>
     );
   }
 
@@ -74,46 +74,52 @@ const VanList = React.memo(({
     onEditVan(van);
   };
 
+  if (useVirtualization) {
+    return (
+      <VirtualizedList
+        height={600}
+        itemCount={vans.length}
+        itemSize={280}
+        itemData={virtualizedData}
+        className="border rounded-lg"
+      >
+        {VirtualizedVanCard}
+      </VirtualizedList>
+    );
+  }
+
   return (
-    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+    <>
       {showSummary && (
         <div className="text-sm text-gray-600 mb-4">
           Affichage de {vans.length} sur {totalVans} camionnettes
         </div>
       )}
       
-      {useVirtualization ? (
-        <VirtualizedList
-          height={600}
-          itemCount={vans.length}
-          itemSize={280}
-          itemData={virtualizedData}
-          className="border rounded-lg"
-        >
-          {VirtualizedVanCard}
-        </VirtualizedList>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {vans.map((van) => (
-            <div
-              key={van.id}
-              className="cursor-pointer"
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest('button')) return;
-                handleVanClick(van);
-              }}
-            >
-              <VanCard
-                van={van}
-                onEdit={onEditVan}
-                onQuickAction={onQuickAction}
-                onDelete={onDeleteVan}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+      <div className={`grid gap-4 sm:gap-6 ${
+        isMobile 
+          ? 'grid-cols-1' 
+          : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+      }`}>
+        {vans.map((van) => (
+          <div
+            key={van.id}
+            className="cursor-pointer"
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest('button')) return;
+              handleVanClick(van);
+            }}
+          >
+            <VanCard
+              van={van}
+              onEdit={onEditVan}
+              onQuickAction={onQuickAction}
+              onDelete={onDeleteVan}
+            />
+          </div>
+        ))}
+      </div>
+    </>
   );
 });
 

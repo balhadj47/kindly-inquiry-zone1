@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
@@ -114,16 +115,18 @@ const Vans = () => {
         />
       </div>
 
-      <VanList
-        vans={filteredAndSortedVans}
-        totalVans={vans.length}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        onAddVan={handleAddVan}
-        onEditVan={handleEditVan}
-        onQuickAction={handleQuickAction}
-        onDeleteVan={handleDeleteVan}
-      />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <VanList
+          vans={filteredAndSortedVans}
+          totalVans={vans.length}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          onAddVan={handleAddVan}
+          onEditVan={handleEditVan}
+          onQuickAction={handleQuickAction}
+          onDeleteVan={handleDeleteVan}
+        />
+      </div>
 
       <VanModal
         isOpen={isModalOpen}

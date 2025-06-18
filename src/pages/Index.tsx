@@ -2,15 +2,12 @@
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { Toaster } from "@/components/ui/toaster";
-import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useRBAC } from '@/contexts/RBACContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load all page components
@@ -21,6 +18,17 @@ const Users = React.lazy(() => import('@/components/Users'));
 const TripLogger = React.lazy(() => import('@/components/TripLogger'));
 const TripHistory = React.lazy(() => import('@/components/TripHistory'));
 const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
+
+// Lazy load components that use React hooks
+const TooltipProvider = React.lazy(() => 
+  import('@/components/ui/tooltip').then(module => ({ default: module.TooltipProvider }))
+);
+const Toaster = React.lazy(() => 
+  import('@/components/ui/toaster').then(module => ({ default: module.Toaster }))
+);
+const Sonner = React.lazy(() => 
+  import('@/components/ui/sonner').then(module => ({ default: module.Toaster }))
+);
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">
@@ -37,6 +45,15 @@ const Index = () => {
   console.log('📱 Index: Rendering main app...');
   
   const isMobile = useIsMobile();
+  const [isReady, setIsReady] = useState(false);
+  
+  // Wait for React to be fully ready before rendering components with hooks
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
   
   // Safely access RBAC context
   let hasPermission: (permission: string) => boolean = () => false;
@@ -51,8 +68,12 @@ const Index = () => {
 
   console.log('📱 Index: isMobile:', isMobile);
 
+  if (!isReady) {
+    return <PageLoadingSkeleton />;
+  }
+
   return (
-    <>
+    <Suspense fallback={<PageLoadingSkeleton />}>
       <Toaster />
       <Sonner />
       <TooltipProvider>
@@ -95,7 +116,7 @@ const Index = () => {
           </div>
         </SidebarProvider>
       </TooltipProvider>
-    </>
+    </Suspense>
   );
 };
 

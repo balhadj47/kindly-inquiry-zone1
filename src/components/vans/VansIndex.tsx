@@ -1,7 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
+import VanFilters from './VanFilters';
 import VansEmptyState from './VansEmptyState';
 import VanList from '../VanList';
 import VanModal from '../VanModal';
@@ -12,6 +13,10 @@ import { useVansState } from '@/hooks/useVansState';
 
 const VansIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [sortField, setSortField] = useState('license_plate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  
   const { vans, refetch } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
   
@@ -32,18 +37,74 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
-  const filteredVans = vans.filter(van =>
-    van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    van.model?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredAndSortedVans = useMemo(() => {
+    let filtered = vans.filter(van => {
+      // Search filter
+      const searchLower = searchTerm.toLowerCase();
+      const matchesSearch = !searchTerm || 
+        van.license_plate?.toLowerCase().includes(searchLower) ||
+        van.model?.toLowerCase().includes(searchLower) ||
+        van.reference_code?.toLowerCase().includes(searchLower);
+
+      // Status filter
+      const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
+
+      return matchesSearch && matchesStatus;
+    });
+
+    // Sort the filtered results
+    filtered.sort((a, b) => {
+      let aValue = '';
+      let bValue = '';
+
+      switch (sortField) {
+        case 'license_plate':
+          aValue = a.license_plate || '';
+          bValue = b.license_plate || '';
+          break;
+        case 'model':
+          aValue = a.model || '';
+          bValue = b.model || '';
+          break;
+        case 'reference_code':
+          aValue = a.reference_code || '';
+          bValue = b.reference_code || '';
+          break;
+        case 'insurer':
+          aValue = a.insurer || '';
+          bValue = b.insurer || '';
+          break;
+        case 'created_at':
+          aValue = a.created_at || '';
+          bValue = b.created_at || '';
+          break;
+        default:
+          aValue = a.license_plate || '';
+          bValue = b.license_plate || '';
+      }
+
+      if (sortField === 'created_at') {
+        // For dates, convert to Date objects for proper comparison
+        const dateA = new Date(aValue);
+        const dateB = new Date(bValue);
+        return sortDirection === 'asc' 
+          ? dateA.getTime() - dateB.getTime()
+          : dateB.getTime() - dateA.getTime();
+      } else {
+        // For strings, use localeCompare
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+    });
+
+    return filtered;
+  }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
     refetch();
   };
 
-  // Remove the old navigation-based quick action
   const handleQuickAction = (van: any) => {
-    // This is now handled directly in VanList component
     console.log('Quick action for van:', van);
   };
 
@@ -56,17 +117,26 @@ const VansIndex = () => {
         onSearchChange={setSearchTerm} 
       />
 
-      {filteredVans.length === 0 ? (
+      <VanFilters
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        sortField={sortField}
+        setSortField={setSortField}
+        sortDirection={sortDirection}
+        setSortDirection={setSortDirection}
+      />
+
+      {filteredAndSortedVans.length === 0 ? (
         <VansEmptyState 
           searchTerm={searchTerm} 
           onAddVan={handleAddVan} 
         />
       ) : (
         <VanList
-          vans={filteredVans}
+          vans={filteredAndSortedVans}
           totalVans={vans.length}
           searchTerm={searchTerm}
-          statusFilter="all"
+          statusFilter={statusFilter}
           onAddVan={handleAddVan}
           onEditVan={handleEditVan}
           onQuickAction={handleQuickAction}

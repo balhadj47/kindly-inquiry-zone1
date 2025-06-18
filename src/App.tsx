@@ -8,7 +8,6 @@ import { RBACProvider } from "@/contexts/RBACContext";
 import { TripProvider } from "@/contexts/TripContext";
 import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import NetworkStatus from "@/components/NetworkStatus";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load main components
@@ -51,7 +50,6 @@ const MainApp: React.FC = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <NetworkStatus />
           <AuthProvider>
             <LanguageProvider>
               <RBACProvider>

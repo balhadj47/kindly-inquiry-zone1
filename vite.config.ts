@@ -32,8 +32,7 @@ export default defineConfig(({ mode }) => ({
             '@radix-ui/react-toast',
             '@radix-ui/react-popover',
             '@radix-ui/react-select',
-            '@radix-ui/react-avatar',
-            '@radix-ui/react-button'
+            '@radix-ui/react-avatar'
           ],
           'query-vendor': ['@tanstack/react-query'],
           'supabase-vendor': ['@supabase/supabase-js'],

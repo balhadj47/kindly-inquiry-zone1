@@ -11,6 +11,7 @@ import { TripProvider } from "@/contexts/TripContext";
 import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import NetworkStatus from "@/components/NetworkStatus";
 
 // Lazy load main components
 const Index = lazy(() => import("./pages/Index"));
@@ -52,6 +53,7 @@ const App = () => {
       <TooltipProvider>
         <Toaster />
         <Sonner />
+        <NetworkStatus />
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>

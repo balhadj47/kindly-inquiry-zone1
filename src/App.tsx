@@ -10,6 +10,7 @@ import { TripProvider } from "@/contexts/TripContext";
 import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import NetworkStatusSimple from "@/components/NetworkStatusSimple";
 
 // Lazy load main components
 const Index = lazy(() => import("./pages/Index"));
@@ -48,28 +49,30 @@ const App = () => {
   
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <BrowserRouter>
-          <AuthProvider>
-            <LanguageProvider>
-              <RBACDebugProvider>
-                <RBACProvider>
-                  <TripProvider>
-                    <ProgressiveLoadingProvider>
-                      <Suspense fallback={<AppLoadingSkeleton />}>
-                        <Routes>
-                          <Route path="/*" element={<Index />} />
-                          <Route path="*" element={<NotFound />} />
-                        </Routes>
-                      </Suspense>
-                    </ProgressiveLoadingProvider>
-                  </TripProvider>
-                </RBACProvider>
-              </RBACDebugProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </QueryClientProvider>
+      <NetworkStatusSimple>
+        <QueryClientProvider client={queryClient}>
+          <BrowserRouter>
+            <AuthProvider>
+              <LanguageProvider>
+                <RBACDebugProvider>
+                  <RBACProvider>
+                    <TripProvider>
+                      <ProgressiveLoadingProvider>
+                        <Suspense fallback={<AppLoadingSkeleton />}>
+                          <Routes>
+                            <Route path="/*" element={<Index />} />
+                            <Route path="*" element={<NotFound />} />
+                          </Routes>
+                        </Suspense>
+                      </ProgressiveLoadingProvider>
+                    </TripProvider>
+                  </RBACProvider>
+                </RBACDebugProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </QueryClientProvider>
+      </NetworkStatusSimple>
     </ErrorBoundary>
   );
 };

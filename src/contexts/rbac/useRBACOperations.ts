@@ -1,5 +1,5 @@
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 import { createPermissionUtils } from './permissionUtils';
@@ -19,6 +19,31 @@ export const useRBACOperations = ({
   setUsers,
   setRoles,
 }: UseRBACOperationsProps) => {
+  console.log('🔧 useRBACOperations: Initializing with React:', !!React);
+  
+  // Defensive check for React availability
+  if (!React || !React.useMemo) {
+    console.error('❌ React.useMemo not available in useRBACOperations');
+    return {
+      addUser: async () => {},
+      updateUser: async () => ({ id: '', name: '', phone: '', systemGroup: 'Employee' as const, status: 'Active' as const, createdAt: '', get role() { return this.systemGroup; } }),
+      deleteUser: async () => {},
+      changeUserPassword: async () => {},
+      addRole: async () => {},
+      updateRole: async () => {},
+      deleteRole: async () => {},
+      hasPermission: () => false,
+      getMenuItemPermissions: () => ({
+        dashboard: false,
+        companies: false,
+        vans: false,
+        users: false,
+        tripLogger: false,
+        tripHistory: false,
+      }),
+    };
+  }
+
   // Memoize permission utils to prevent recreation on every render
   const permissionUtils = useMemo(() => {
     console.log('Creating permission utils - User:', currentUser?.id, 'System Groups:', roles.length);

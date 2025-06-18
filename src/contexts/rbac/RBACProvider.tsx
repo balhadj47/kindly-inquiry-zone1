@@ -6,6 +6,14 @@ import { useRBACDataInit } from './useRBACDataInit';
 import { useRBACOperations } from './useRBACOperations';
 
 export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('🔄 RBACProvider: Starting render...');
+  
+  // Check React availability early
+  if (!React || !React.useState) {
+    console.error('❌ React hooks not available in RBACProvider');
+    return <div>Loading...</div>;
+  }
+
   const {
     currentUser,
     users,
@@ -44,6 +52,8 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUsers,
     setRoles,
   });
+
+  console.log('✅ RBACProvider: Rendering context with operations');
 
   return (
     <RBACContext.Provider value={{

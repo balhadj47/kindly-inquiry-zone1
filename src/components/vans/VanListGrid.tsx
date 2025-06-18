@@ -12,7 +12,7 @@ interface VanListGridProps {
 
 const VanListGrid = ({ vans, onEditVan, onQuickAction, onDeleteVan }: VanListGridProps) => {
   return (
-    <div className="max-w-7xl mx-auto grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4">
+    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
       {vans.map((van) => (
         <VanCard
           key={van.id}

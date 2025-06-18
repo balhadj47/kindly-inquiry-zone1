@@ -10,7 +10,8 @@ import {
   Shield,
   Calendar,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Car
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -49,85 +50,84 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const isControlExpired = controlDate && controlDate < today;
 
   return (
-    <Card className="w-full h-full flex flex-col hover:shadow-xl transition-all duration-300 hover:scale-[1.02] bg-white border-0 shadow-md">
-      <CardHeader className="pb-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] focus:outline focus:ring-2 focus:ring-ring">
+      <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1 min-w-0">
-            {van.reference_code && (
-              <span className="inline-block text-xs px-3 py-1 bg-blue-600 text-white rounded-full font-semibold uppercase mb-2 shadow-sm">
-                {van.reference_code}
-              </span>
-            )}
-            <CardTitle className="text-xl font-bold text-gray-900 truncate">{van.model}</CardTitle>
-            <p className="text-sm font-medium text-gray-600 mt-1">{van.license_plate}</p>
+          <div className="flex items-start space-x-3">
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <Car className="h-5 w-5 text-blue-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-lg">{van.model}</CardTitle>
+              <p className="text-sm font-medium text-gray-600 mt-1">{van.license_plate}</p>
+              {van.reference_code && (
+                <div className="flex items-center text-sm text-gray-500 mt-1">
+                  <Calendar className="h-3 w-3 mr-1" />
+                  {van.reference_code}
+                </div>
+              )}
+            </div>
           </div>
           {van.status && (
-            <Badge className={`${getStatusColor(van.status)} shadow-sm font-medium`}>
+            <Badge className={`${getStatusColor(van.status)} font-medium`}>
               {van.status}
             </Badge>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col p-4 space-y-4">
-        {van.insurer && (
-          <div className="flex items-center space-x-2 p-2 bg-gray-50 rounded-lg">
-            <Shield className="h-4 w-4 text-blue-600" />
-            <span className="text-sm font-medium text-gray-700">Assureur: {van.insurer}</span>
-          </div>
-        )}
-
-        <div className="grid grid-cols-1 gap-3">
-          {van.insurance_date && (
-            <div className={`flex items-center space-x-2 p-2 rounded-lg ${isInsuranceExpired ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
-              <Calendar className={`h-4 w-4 ${isInsuranceExpired ? 'text-red-600' : 'text-green-600'}`} />
-              <div className="flex-1">
-                <span className={`text-sm font-medium ${isInsuranceExpired ? 'text-red-800' : 'text-green-800'}`}>
-                  Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
-                </span>
-                {isInsuranceExpired && (
-                  <div className="flex items-center space-x-1 mt-1">
-                    <AlertTriangle className="h-3 w-3 text-red-500" />
-                    <span className="text-xs text-red-600 font-medium">Expirée</span>
-                  </div>
-                )}
-              </div>
+      <CardContent className="space-y-4">
+        {/* Insurance and Control Information */}
+        <div className="space-y-2">
+          {van.insurer && (
+            <div className="flex items-center space-x-2">
+              <Shield className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm text-gray-700">Assureur: {van.insurer}</span>
             </div>
           )}
-          {van.control_date && (
-            <div className={`flex items-center space-x-2 p-2 rounded-lg ${isControlExpired ? 'bg-red-50 border border-red-200' : 'bg-green-50 border border-green-200'}`}>
-              <Calendar className={`h-4 w-4 ${isControlExpired ? 'text-red-600' : 'text-green-600'}`} />
-              <div className="flex-1">
-                <span className={`text-sm font-medium ${isControlExpired ? 'text-red-800' : 'text-green-800'}`}>
-                  Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}
-                </span>
-                {isControlExpired && (
-                  <div className="flex items-center space-x-1 mt-1">
-                    <AlertTriangle className="h-3 w-3 text-red-500" />
-                    <span className="text-xs text-red-600 font-medium">Expiré</span>
-                  </div>
+          
+          {van.insurance_date && (
+            <div className="flex items-center space-x-2">
+              <Calendar className={`h-4 w-4 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
+              <span className={`text-sm ${isInsuranceExpired ? 'text-red-700' : 'text-gray-700'}`}>
+                Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
+                {isInsuranceExpired && (
+                  <span className="ml-1 text-red-600 font-medium">(Expirée)</span>
                 )}
-              </div>
+              </span>
+            </div>
+          )}
+          
+          {van.control_date && (
+            <div className="flex items-center space-x-2">
+              <Calendar className={`h-4 w-4 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
+              <span className={`text-sm ${isControlExpired ? 'text-red-700' : 'text-gray-700'}`}>
+                Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}
+                {isControlExpired && (
+                  <span className="ml-1 text-red-600 font-medium">(Expiré)</span>
+                )}
+              </span>
             </div>
           )}
         </div>
 
+        {/* Notes */}
         {van.notes && (
-          <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="border-t pt-3">
             <div className="flex items-start space-x-2">
-              <FileText className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-amber-800 line-clamp-3 leading-relaxed">{van.notes}</p>
+              <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-gray-700 line-clamp-2">{van.notes}</p>
             </div>
           </div>
         )}
-        
+
         {/* Action Buttons */}
-        <div className="flex space-x-2 pt-2 mt-auto">
+        <div className="flex space-x-2 pt-2">
           <Button
             variant="outline"
             size="sm"
-            onClick={handleEdit}
-            className="flex-1 hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
+            onClick={(e) => { e.stopPropagation(); handleEdit(); }}
+            className="flex-1"
           >
             <Edit className="h-3 w-3 mr-1" />
             Modifier
@@ -135,8 +135,8 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
           <Button
             variant="outline"
             size="sm"
-            onClick={handleQuickAction}
-            className="flex-1 hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-200"
+            onClick={(e) => { e.stopPropagation(); handleQuickAction(); }}
+            className="flex-1"
           >
             <Eye className="h-3 w-3 mr-1" />
             Voyages
@@ -146,7 +146,8 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
               <Button
                 variant="outline"
                 size="sm"
-                className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-300 px-3 transition-all duration-200"
+                onClick={(e) => e.stopPropagation()}
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3"
               >
                 <Trash2 className="h-3 w-3" />
               </Button>

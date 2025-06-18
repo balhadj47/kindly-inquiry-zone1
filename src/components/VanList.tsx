@@ -87,15 +87,23 @@ const VanList = React.memo(({
           {VirtualizedVanCard}
         </VirtualizedList>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6">
+        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
           {vans.map((van) => (
-            <VanCard
+            <div
               key={van.id}
-              van={van}
-              onEdit={onEditVan}
-              onQuickAction={onQuickAction}
-              onDelete={onDeleteVan}
-            />
+              className="cursor-pointer"
+              onClick={(e) => {
+                if ((e.target as HTMLElement).closest('button')) return;
+                onEditVan(van);
+              }}
+            >
+              <VanCard
+                van={van}
+                onEdit={onEditVan}
+                onQuickAction={onQuickAction}
+                onDelete={onDeleteVan}
+              />
+            </div>
           ))}
         </div>
       )}

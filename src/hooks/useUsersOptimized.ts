@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -203,16 +202,16 @@ export const useUserMutations = () => {
         phone: userData.phone,
         role: userData.role,
         status: userData.status,
-        badge_number: userData.badge_number,
-        date_of_birth: userData.date_of_birth,
-        place_of_birth: userData.place_of_birth,
-        address: userData.address,
-        driver_license: userData.driver_license,
+        badge_number: userData.badge_number || null,
+        date_of_birth: userData.date_of_birth && userData.date_of_birth.trim() !== '' ? userData.date_of_birth : null,
+        place_of_birth: userData.place_of_birth && userData.place_of_birth.trim() !== '' ? userData.place_of_birth : null,
+        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
+        driver_license: userData.driver_license && userData.driver_license.trim() !== '' ? userData.driver_license : null,
       };
 
       // Only update email if it's provided
       if (userData.email !== undefined) {
-        updateData.email = userData.email;
+        updateData.email = userData.email && userData.email.trim() !== '' ? userData.email : null;
       }
       
       const { data, error } = await supabase

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { SystemGroupName } from '@/types/systemGroups';
@@ -16,15 +15,15 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
-        badge_number: userData.badgeNumber,
-        date_of_birth: userData.dateOfBirth,
-        place_of_birth: userData.placeOfBirth,
-        address: userData.address,
-        driver_license: userData.driverLicense,
+        badge_number: userData.badgeNumber || null,
+        date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
+        place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
+        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
+        driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
       // Only add email if it's provided (not required for employees)
-      if (userData.email) {
+      if (userData.email && userData.email.trim() !== '') {
         insertData.email = userData.email;
       }
 
@@ -80,16 +79,16 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
-        badge_number: userData.badgeNumber,
-        date_of_birth: userData.dateOfBirth,
-        place_of_birth: userData.placeOfBirth,
-        address: userData.address,
-        driver_license: userData.driverLicense,
+        badge_number: userData.badgeNumber || null,
+        date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
+        place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
+        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
+        driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
       // Only update email if it's provided
       if (userData.email !== undefined) {
-        updateData.email = userData.email;
+        updateData.email = userData.email && userData.email.trim() !== '' ? userData.email : null;
       }
 
       const { data, error } = await supabase

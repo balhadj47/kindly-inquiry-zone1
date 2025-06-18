@@ -33,13 +33,13 @@ const VanList = React.memo(({
 
   if (vans.length === 0) {
     return (
-      <>
+      <div className="w-full">
         {showSummary && (
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 mb-4">
             Affichage de {vans.length} sur {totalVans} camionnettes
           </div>
         )}
-        <Card>
+        <Card className="w-full">
           <CardContent className="text-center py-12">
             <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune camionnette trouvée</h3>
@@ -57,7 +57,7 @@ const VanList = React.memo(({
             )}
           </CardContent>
         </Card>
-      </>
+      </div>
     );
   }
 
@@ -69,25 +69,27 @@ const VanList = React.memo(({
   };
 
   return (
-    <>
+    <div className="w-full">
       {showSummary && (
-        <div className="text-sm text-gray-600">
+        <div className="text-sm text-gray-600 mb-4">
           Affichage de {vans.length} sur {totalVans} camionnettes
         </div>
       )}
       
       {useVirtualization ? (
-        <VirtualizedList
-          height={600}
-          itemCount={vans.length}
-          itemSize={320}
-          itemData={virtualizedData}
-          className="border rounded-lg"
-        >
-          {VirtualizedVanCard}
-        </VirtualizedList>
+        <div className="w-full">
+          <VirtualizedList
+            height={600}
+            itemCount={vans.length}
+            itemSize={320}
+            itemData={virtualizedData}
+            className="w-full border rounded-lg"
+          >
+            {VirtualizedVanCard}
+          </VirtualizedList>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
           {vans.map((van) => (
             <VanCard
               key={van.id}
@@ -99,7 +101,7 @@ const VanList = React.memo(({
           ))}
         </div>
       )}
-    </>
+    </div>
   );
 });
 

@@ -52,21 +52,13 @@ const VansGrid = ({ vans, onEditVan, onDeleteVan }: VansGridProps) => {
         : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
     }`}>
       {vans.map((van) => (
-        <div
+        <VanCard
           key={van.id}
-          className="cursor-pointer"
-          onClick={(e) => {
-            if ((e.target as HTMLElement).closest('button')) return;
-            handleVanClick(van);
-          }}
-        >
-          <VanCard
-            van={van}
-            onEdit={onEditVan}
-            onQuickAction={() => {}}
-            onDelete={onDeleteVan}
-          />
-        </div>
+          van={van}
+          onEdit={onEditVan}
+          onQuickAction={() => {}}
+          onDelete={onDeleteVan}
+        />
       ))}
     </div>
   );

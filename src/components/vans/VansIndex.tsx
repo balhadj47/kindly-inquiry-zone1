@@ -11,6 +11,38 @@ import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const VansLoadingSkeleton = () => (
+  <div className="space-y-4 sm:space-y-6">
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+      <div>
+        <Skeleton className="h-8 w-64 mb-2" />
+        <Skeleton className="h-6 w-32" />
+      </div>
+      <Skeleton className="h-12 w-12 mt-4 lg:mt-0" />
+    </div>
+    
+    <Card>
+      <CardContent className="p-4 sm:pt-6">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <Skeleton className="h-10 flex-1" />
+          <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
+            <Skeleton className="h-10 w-full sm:w-[180px]" />
+            <Skeleton className="h-10 w-full sm:w-[200px]" />
+            <Skeleton className="h-10 w-12" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Skeleton key={index} className="h-64 w-full" />
+      ))}
+    </div>
+  </div>
+);
 
 const VansIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,7 +50,7 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  const { vans, refetch } = useVans();
+  const { vans, refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
   
   const setVans = () => {
@@ -120,6 +152,11 @@ const VansIndex = () => {
   const handleQuickAction = (van: any) => {
     console.log('Quick action for van:', van);
   };
+
+  // Show loading skeleton while data is loading
+  if (isLoading) {
+    return <VansLoadingSkeleton />;
+  }
 
   return (
     <div className="space-y-4 sm:space-y-6">

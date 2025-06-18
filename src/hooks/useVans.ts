@@ -11,6 +11,10 @@ export interface Van {
   status: string;
   created_at: string;
   updated_at: string;
+  insurer?: string;
+  insurance_date?: string;
+  control_date?: string;
+  notes?: string;
 }
 
 // Global cache to prevent multiple fetches
@@ -21,6 +25,7 @@ const CACHE_DURATION = 60000; // 1 minute cache
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
 
   const fetchVans = useCallback(async (useCache = true): Promise<Van[]> => {
@@ -38,9 +43,15 @@ export const useVans = () => {
           if (isMountedRef.current) {
             setVans(data);
             setError(null);
+            setIsLoading(false);
           }
           return data;
         }
+      }
+
+      // Set loading state
+      if (isMountedRef.current) {
+        setIsLoading(true);
       }
 
       // If there's already a fetch in progress, wait for it
@@ -50,6 +61,7 @@ export const useVans = () => {
         if (isMountedRef.current) {
           setVans(data);
           setError(null);
+          setIsLoading(false);
         }
         return data;
       }
@@ -83,6 +95,7 @@ export const useVans = () => {
       if (isMountedRef.current) {
         setVans(data);
         setError(null);
+        setIsLoading(false);
       }
 
       return data;
@@ -90,6 +103,7 @@ export const useVans = () => {
       console.error('🚐 useVans: Error fetching vans:', err);
       if (isMountedRef.current) {
         setError(err instanceof Error ? err.message : 'An error occurred');
+        setIsLoading(false);
       }
       throw err;
     } finally {
@@ -113,6 +127,7 @@ export const useVans = () => {
       console.log('🚐 useVans: Using existing cache on mount');
       setVans(globalVansCache.data);
       setError(null);
+      setIsLoading(false);
     } else {
       fetchVans();
     }
@@ -123,5 +138,5 @@ export const useVans = () => {
     };
   }, []); // Remove fetchVans from dependencies to prevent re-runs
 
-  return { vans, error, refetch };
+  return { vans, error, refetch, isLoading };
 };

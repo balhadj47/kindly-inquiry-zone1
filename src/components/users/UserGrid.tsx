@@ -5,6 +5,8 @@ import { User as UserIcon } from 'lucide-react';
 import { User } from '@/types/rbac';
 import UserCard from './UserCard';
 import UserPagination from './UserPagination';
+import VirtualizedList from '@/components/ui/virtualized-list';
+import VirtualizedUserCard from '@/components/virtualized/VirtualizedUserCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserGridProps {
@@ -36,6 +38,8 @@ const UserGrid: React.FC<UserGridProps> = ({
   const endIndex = startIndex + itemsPerPage;
   const paginatedUsers = users.slice(startIndex, endIndex);
 
+  const useVirtualization = users.length > 50;
+
   if (users.length === 0) {
     return (
       <Card>
@@ -63,23 +67,42 @@ const UserGrid: React.FC<UserGridProps> = ({
     );
   }
 
+  const virtualizedData = {
+    users: paginatedUsers,
+    onEditUser,
+    onDeleteUser,
+    onChangePassword
+  };
+
   return (
     <div className="space-y-4">
-      <div className={`grid gap-4 ${
-        isMobile 
-          ? 'grid-cols-1 sm:grid-cols-2' 
-          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-      }`}>
-        {paginatedUsers.map((user) => (
-          <UserCard
-            key={user.id}
-            user={user}
-            onEdit={onEditUser}
-            onDelete={onDeleteUser}
-            onChangePassword={onChangePassword}
-          />
-        ))}
-      </div>
+      {useVirtualization && !isMobile ? (
+        <VirtualizedList
+          height={600}
+          itemCount={paginatedUsers.length}
+          itemSize={320}
+          itemData={virtualizedData}
+          className="border rounded-lg"
+        >
+          {VirtualizedUserCard}
+        </VirtualizedList>
+      ) : (
+        <div className={`grid gap-4 ${
+          isMobile 
+            ? 'grid-cols-1 sm:grid-cols-2' 
+            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+        }`}>
+          {paginatedUsers.map((user) => (
+            <UserCard
+              key={user.id}
+              user={user}
+              onEdit={onEditUser}
+              onDelete={onDeleteUser}
+              onChangePassword={onChangePassword}
+            />
+          ))}
+        </div>
+      )}
 
       {totalPages > 1 && (
         <UserPagination

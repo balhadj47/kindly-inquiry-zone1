@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import { Search, Calendar, MapPin, Truck, Plus, Filter } from 'lucide-react';
 import { useTrips } from '@/hooks/trips/useTripsQuery';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { format } from 'date-fns';
+import VirtualizedList from '@/components/ui/virtualized-list';
+import VirtualizedTripCard from '@/components/virtualized/VirtualizedTripCard';
 
 const TripHistoryLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -126,6 +127,12 @@ const TripHistoryOptimized = () => {
     return trip.end_date ? 'Terminé' : 'En cours';
   };
 
+  const virtualizedData = {
+    trips: filteredTrips,
+    getStatusColor,
+    getStatusText
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
@@ -178,73 +185,15 @@ const TripHistoryOptimized = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {filteredTrips.map((trip) => (
-            <Card key={trip.id} className="hover:shadow-lg transition-shadow">
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <h3 className="font-semibold text-lg flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                      {trip.destination}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {format(new Date(trip.start_date), 'dd/MM/yyyy à HH:mm')}
-                    </p>
-                  </div>
-                  <Badge className={getStatusColor(trip)}>
-                    {getStatusText(trip)}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
-                  <div>
-                    <span className="font-medium text-gray-500">Camionnette:</span>
-                    <p className="flex items-center">
-                      <Truck className="h-3 w-3 mr-1" />
-                      {trip.van}
-                    </p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-500">KM Début:</span>
-                    <p>{trip.start_km.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-500">KM Fin:</span>
-                    <p>{trip.end_km ? trip.end_km.toLocaleString() : 'En cours'}</p>
-                  </div>
-                  <div>
-                    <span className="font-medium text-gray-500">Distance:</span>
-                    <p>
-                      {trip.end_km 
-                        ? `${(trip.end_km - trip.start_km).toLocaleString()} km`
-                        : 'En cours'
-                      }
-                    </p>
-                  </div>
-                </div>
-
-                {trip.notes && (
-                  <div className="mb-4">
-                    <span className="font-medium text-gray-500 text-sm">Notes:</span>
-                    <p className="text-sm text-gray-700 mt-1">{trip.notes}</p>
-                  </div>
-                )}
-
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm">
-                    Voir Détails
-                  </Button>
-                  {!trip.end_date && (
-                    <Button variant="outline" size="sm">
-                      Terminer Voyage
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <VirtualizedList
+          height={600}
+          itemCount={filteredTrips.length}
+          itemSize={280}
+          itemData={virtualizedData}
+          className="border rounded-lg"
+        >
+          {VirtualizedTripCard}
+        </VirtualizedList>
       )}
 
       {total > 20 && (

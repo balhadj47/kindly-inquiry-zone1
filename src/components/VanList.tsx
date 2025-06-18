@@ -4,6 +4,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, Plus } from 'lucide-react';
 import VanCard from './VanCard';
+import VirtualizedList from '@/components/ui/virtualized-list';
+import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
 
 interface VanListProps {
   vans: any[];
@@ -26,10 +28,9 @@ const VanList = React.memo(({
   onQuickAction,
   onDeleteVan
 }: VanListProps) => {
-  // Results Summary
   const showSummary = vans.length !== totalVans;
+  const useVirtualization = vans.length > 20;
 
-  // Empty State
   if (vans.length === 0) {
     return (
       <>
@@ -60,6 +61,13 @@ const VanList = React.memo(({
     );
   }
 
+  const virtualizedData = {
+    vans,
+    onEdit: onEditVan,
+    onQuickAction,
+    onDelete: onDeleteVan
+  };
+
   return (
     <>
       {showSummary && (
@@ -68,17 +76,29 @@ const VanList = React.memo(({
         </div>
       )}
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vans.map((van) => (
-          <VanCard
-            key={van.id}
-            van={van}
-            onEdit={onEditVan}
-            onQuickAction={onQuickAction}
-            onDelete={onDeleteVan}
-          />
-        ))}
-      </div>
+      {useVirtualization ? (
+        <VirtualizedList
+          height={600}
+          itemCount={vans.length}
+          itemSize={320}
+          itemData={virtualizedData}
+          className="border rounded-lg"
+        >
+          {VirtualizedVanCard}
+        </VirtualizedList>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {vans.map((van) => (
+            <VanCard
+              key={van.id}
+              van={van}
+              onEdit={onEditVan}
+              onQuickAction={onQuickAction}
+              onDelete={onDeleteVan}
+            />
+          ))}
+        </div>
+      )}
     </>
   );
 });

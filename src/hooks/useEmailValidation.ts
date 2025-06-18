@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useRBAC } from '@/contexts/RBACContext';
 import { useDebounce } from './useDebounce';
 
 interface EmailValidationResult {
@@ -18,9 +18,10 @@ export const useEmailValidation = (email: string, isRequired: boolean = true, ex
     error: null,
   });
 
+  const { users } = useRBAC();
   const debouncedEmail = useDebounce(email, 500);
 
-  const checkEmail = useCallback(async (emailToCheck: string) => {
+  const checkEmail = useCallback((emailToCheck: string) => {
     if (!emailToCheck || emailToCheck.trim() === '') {
       if (isRequired) {
         setResult({
@@ -54,47 +55,22 @@ export const useEmailValidation = (email: string, isRequired: boolean = true, ex
 
     setResult(prev => ({ ...prev, isChecking: true }));
 
-    try {
-      let query = supabase
-        .from('users')
-        .select('id')
-        .eq('email', emailToCheck.trim());
-
-      // If we're editing a user, exclude their current record from the check
-      if (excludeUserId) {
-        query = query.neq('id', parseInt(excludeUserId));
+    // Check for duplicates in the users list
+    const isDuplicate = users.some(user => {
+      // Skip the current user if we're editing
+      if (excludeUserId && user.id === excludeUserId) {
+        return false;
       }
+      return user.email && user.email.toLowerCase() === emailToCheck.toLowerCase().trim();
+    });
 
-      const { data, error } = await query.limit(1);
-
-      if (error) {
-        console.error('Error checking email:', error);
-        setResult({
-          isChecking: false,
-          isValid: false,
-          isDuplicate: false,
-          error: 'Erreur lors de la vérification de l\'email',
-        });
-        return;
-      }
-
-      const isDuplicate = data && data.length > 0;
-      setResult({
-        isChecking: false,
-        isValid: !isDuplicate,
-        isDuplicate,
-        error: isDuplicate ? 'Cet email est déjà utilisé' : null,
-      });
-    } catch (error) {
-      console.error('Error checking email:', error);
-      setResult({
-        isChecking: false,
-        isValid: false,
-        isDuplicate: false,
-        error: 'Erreur lors de la vérification de l\'email',
-      });
-    }
-  }, [isRequired, excludeUserId]);
+    setResult({
+      isChecking: false,
+      isValid: !isDuplicate,
+      isDuplicate,
+      error: isDuplicate ? 'Cet email est déjà utilisé' : null,
+    });
+  }, [users, isRequired, excludeUserId]);
 
   useEffect(() => {
     checkEmail(debouncedEmail);

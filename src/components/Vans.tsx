@@ -96,7 +96,7 @@ const Vans = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-none space-y-6">
       <VanStats 
         vans={vans}
         onAddVan={handleAddVan}

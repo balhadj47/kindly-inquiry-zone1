@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SortAsc, SortDesc, Filter } from 'lucide-react';
@@ -43,55 +42,49 @@ const VanFilters = ({
   };
 
   return (
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex flex-col sm:flex-row gap-2 flex-1">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                {statusOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
+      <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <SelectTrigger className="w-full sm:w-[180px]">
+          <Filter className="h-4 w-4 mr-2" />
+          <SelectValue placeholder="Filtrer par statut" />
+        </SelectTrigger>
+        <SelectContent>
+          {statusOptions.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-            <Select value={sortField} onValueChange={setSortField}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                {sortDirection === 'asc' ? 
-                  <SortAsc className="h-4 w-4 mr-2" /> : 
-                  <SortDesc className="h-4 w-4 mr-2" />
-                }
-                <SelectValue placeholder="Trier par..." />
-              </SelectTrigger>
-              <SelectContent>
-                {sortOptions.map(option => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+      <Select value={sortField} onValueChange={setSortField}>
+        <SelectTrigger className="w-full sm:w-[200px]">
+          {sortDirection === 'asc' ? 
+            <SortAsc className="h-4 w-4 mr-2" /> : 
+            <SortDesc className="h-4 w-4 mr-2" />
+          }
+          <SelectValue placeholder="Trier par..." />
+        </SelectTrigger>
+        <SelectContent>
+          {sortOptions.map(option => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-            <Button
-              variant="outline"
-              onClick={toggleSortDirection}
-              className="px-3"
-            >
-              {sortDirection === 'asc' ? 
-                <SortAsc className="h-4 w-4" /> : 
-                <SortDesc className="h-4 w-4" />
-              }
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <Button
+        variant="outline"
+        onClick={toggleSortDirection}
+        className="px-3"
+      >
+        {sortDirection === 'asc' ? 
+          <SortAsc className="h-4 w-4" /> : 
+          <SortDesc className="h-4 w-4" />
+        }
+      </Button>
+    </div>
   );
 };
 

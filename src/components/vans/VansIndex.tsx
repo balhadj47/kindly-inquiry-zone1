@@ -10,6 +10,7 @@ import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
+import { Card, CardContent } from '@/components/ui/card';
 
 const VansIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -112,19 +113,24 @@ const VansIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <VansHeader onAddVan={handleAddVan} />
       
-      <VansSearch 
-        searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
-      />
-
-      <VanFilters
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sortField={sortField}
-        setSortField={setSortField}
-        sortDirection={sortDirection}
-        setSortDirection={setSortDirection}
-      />
+      <Card>
+        <CardContent className="p-4 sm:pt-6">
+          <div className="flex flex-col lg:flex-row gap-4">
+            <VansSearch 
+              searchTerm={searchTerm} 
+              onSearchChange={setSearchTerm} 
+            />
+            <VanFilters
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              sortField={sortField}
+              setSortField={setSortField}
+              sortDirection={sortDirection}
+              setSortDirection={setSortDirection}
+            />
+          </div>
+        </CardContent>
+      </Card>
 
       {filteredAndSortedVans.length === 0 ? (
         <VansEmptyState 

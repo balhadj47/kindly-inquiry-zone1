@@ -62,6 +62,7 @@ const Index = () => {
                 hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>
               } />
               <Route path="/settings" element={<UserSettings />} />
+              <Route path="/user-settings" element={<UserSettings />} />
             </Routes>
           </main>
         </div>

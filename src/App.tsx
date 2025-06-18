@@ -29,7 +29,6 @@ const App = () => {
                 <TripProvider>
                   <Routes>
                     <Route path="/*" element={<Index />} />
-                    <Route path="/user-settings" element={<UserSettings />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </TripProvider>

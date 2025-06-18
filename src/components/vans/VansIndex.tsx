@@ -39,6 +39,8 @@ const VansIndex = () => {
   } = useVansState(setVans);
 
   const filteredAndSortedVans = useMemo(() => {
+    console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });
+    
     let filtered = vans.filter(van => {
       // Search filter
       const searchLower = searchTerm.toLowerCase();
@@ -47,11 +49,21 @@ const VansIndex = () => {
         van.model?.toLowerCase().includes(searchLower) ||
         van.reference_code?.toLowerCase().includes(searchLower);
 
-      // Status filter
+      // Status filter - make sure we're comparing the exact values
       const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
+      
+      console.log('Van filter check:', { 
+        vanId: van.id, 
+        vanStatus: van.status, 
+        statusFilter, 
+        matchesStatus, 
+        matchesSearch 
+      });
 
       return matchesSearch && matchesStatus;
     });
+
+    console.log('Filtered vans:', filtered.length);
 
     // Sort the filtered results
     filtered.sort((a, b) => {

@@ -232,26 +232,78 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Changing password for user:', userEmail);
     
     try {
-      // Get user by email to find their auth_user_id
+      // First, try to get the user by email to find their auth_user_id
       const { data: userData, error: fetchError } = await supabase
         .from('users')
-        .select('auth_user_id')
+        .select('auth_user_id, id')
         .eq('email', userEmail)
         .single();
 
-      if (fetchError || !userData?.auth_user_id) {
-        throw new Error('User not found or no auth account associated');
+      if (fetchError) {
+        console.error('Error fetching user data:', fetchError);
+        throw new Error('Utilisateur non trouvé');
       }
 
-      // Update password using admin API
+      if (!userData?.auth_user_id) {
+        console.log('User has no auth account, creating one...');
+        
+        // If user doesn't have an auth account, create one
+        const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+          email: userEmail,
+          password: newPassword,
+          email_confirm: true
+        });
+
+        if (createError) {
+          console.error('Error creating auth user:', createError);
+          throw new Error(`Impossible de créer le compte: ${createError.message}`);
+        }
+
+        // Update the user record with the new auth_user_id
+        if (authData.user) {
+          const { error: updateError } = await supabase
+            .from('users')
+            .update({ auth_user_id: authData.user.id })
+            .eq('id', userData.id);
+
+          if (updateError) {
+            console.error('Error updating user with auth_user_id:', updateError);
+            // Don't throw here, password was created successfully
+          }
+        }
+
+        console.log('Auth account created and password set successfully');
+        return;
+      }
+
+      // If user has an auth account, update the password
+      console.log('Updating password for existing auth user:', userData.auth_user_id);
+      
       const { error: passwordError } = await supabase.auth.admin.updateUserById(
         userData.auth_user_id,
         { password: newPassword }
       );
 
       if (passwordError) {
-        console.error('Error updating user password:', passwordError);
-        throw new Error(`Failed to update password: ${passwordError.message}`);
+        console.error('Error updating password:', passwordError);
+        
+        // If admin API fails, try alternative approach
+        if (passwordError.message.includes('not allowed') || passwordError.message.includes('permission')) {
+          console.log('Admin API not available, trying password reset approach...');
+          
+          // Send password reset email as fallback
+          const { error: resetError } = await supabase.auth.resetPasswordForEmail(userEmail, {
+            redirectTo: `${window.location.origin}/reset-password`
+          });
+
+          if (resetError) {
+            throw new Error('Impossible de changer le mot de passe. Veuillez contacter un administrateur système.');
+          }
+
+          throw new Error('Un email de réinitialisation de mot de passe a été envoyé à l\'utilisateur.');
+        }
+        
+        throw new Error(`Impossible de changer le mot de passe: ${passwordError.message}`);
       }
 
       console.log('Password updated successfully for user:', userEmail);

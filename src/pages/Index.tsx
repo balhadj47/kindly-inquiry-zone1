@@ -10,8 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import NetworkStatus from '@/components/NetworkStatus';
-import { Suspense } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Lazy load all page components
@@ -22,6 +21,9 @@ const Users = React.lazy(() => import('@/components/Users'));
 const TripLogger = React.lazy(() => import('@/components/TripLogger'));
 const TripHistory = React.lazy(() => import('@/components/TripHistory'));
 const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
+
+// Lazy load NetworkStatus to ensure it only loads when React is ready
+const NetworkStatus = React.lazy(() => import('@/components/NetworkStatus'));
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">
@@ -37,7 +39,18 @@ const PageLoadingSkeleton = () => (
 const Index = () => {
   console.log('📱 Index: Rendering main app...');
   
+  const [isReactFullyReady, setIsReactFullyReady] = useState(false);
   const isMobile = useIsMobile();
+  
+  // Ensure React is fully ready before rendering NetworkStatus
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReactFullyReady(true);
+      console.log('📱 Index: React is fully ready, can render NetworkStatus');
+    }, 1000); // Give React more time to fully initialize
+
+    return () => clearTimeout(timer);
+  }, []);
   
   // Safely access RBAC context
   let hasPermission: (permission: string) => boolean = () => false;
@@ -56,8 +69,12 @@ const Index = () => {
     <>
       <Toaster />
       <Sonner />
-      {/* NetworkStatus is now rendered after all contexts are loaded */}
-      <NetworkStatus />
+      {/* Only render NetworkStatus when React is fully ready */}
+      {isReactFullyReady && (
+        <Suspense fallback={null}>
+          <NetworkStatus />
+        </Suspense>
+      )}
       
       <TooltipProvider>
         <SidebarProvider defaultOpen={!isMobile}>

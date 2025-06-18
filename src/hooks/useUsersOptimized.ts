@@ -53,24 +53,27 @@ export const useUsers = (page = 1, limit = 20) => {
       console.log('👥 useUsersOptimized: Fetched in:', endTime - startTime, 'ms');
       
       return {
-        users: (data || []).map(user => ({
-          id: user.id.toString(),
-          name: user.name || '',
-          email: user.email || undefined,
-          phone: user.phone || '',
-          role: user.role || '',
-          status: user.status || 'Active',
-          created_at: user.created_at,
-          auth_user_id: user.auth_user_id || '',
-          profile_image: user.profile_image || '',
-          total_trips: user.total_trips || 0,
-          last_trip: user.last_trip || null,
-          badge_number: user.badge_number || undefined,
-          date_of_birth: user.date_of_birth || undefined,
-          place_of_birth: user.place_of_birth || undefined,
-          address: user.address || undefined,
-          driver_license: user.driver_license || undefined,
-        })),
+        users: (data || []).map(user => {
+          const dbUser = user as any; // Safe casting to access new fields
+          return {
+            id: dbUser.id.toString(),
+            name: dbUser.name || '',
+            email: dbUser.email || undefined,
+            phone: dbUser.phone || '',
+            role: dbUser.role || '',
+            status: dbUser.status || 'Active',
+            created_at: dbUser.created_at,
+            auth_user_id: dbUser.auth_user_id || '',
+            profile_image: dbUser.profile_image || '',
+            total_trips: dbUser.total_trips || 0,
+            last_trip: dbUser.last_trip || null,
+            badge_number: dbUser.badge_number || undefined,
+            date_of_birth: dbUser.date_of_birth || undefined,
+            place_of_birth: dbUser.place_of_birth || undefined,
+            address: dbUser.address || undefined,
+            driver_license: dbUser.driver_license || undefined,
+          };
+        }),
         total: count || 0
       };
     },
@@ -104,24 +107,27 @@ export const useUsersByRole = (role: string | null) => {
       const endTime = performance.now();
       console.log('👥 useUsersOptimized: Fetched users by role in:', endTime - startTime, 'ms');
       
-      return (data || []).map(user => ({
-        id: user.id.toString(),
-        name: user.name || '',
-        email: user.email || undefined,
-        phone: user.phone || '',
-        role: user.role || '',
-        status: user.status || 'Active',
-        created_at: user.created_at,
-        auth_user_id: user.auth_user_id || '',
-        profile_image: user.profile_image || '',
-        total_trips: user.total_trips || 0,
-        last_trip: user.last_trip || null,
-        badge_number: user.badge_number || undefined,
-        date_of_birth: user.date_of_birth || undefined,
-        place_of_birth: user.place_of_birth || undefined,
-        address: user.address || undefined,
-        driver_license: user.driver_license || undefined,
-      }));
+      return (data || []).map(user => {
+        const dbUser = user as any; // Safe casting to access new fields
+        return {
+          id: dbUser.id.toString(),
+          name: dbUser.name || '',
+          email: dbUser.email || undefined,
+          phone: dbUser.phone || '',
+          role: dbUser.role || '',
+          status: dbUser.status || 'Active',
+          created_at: dbUser.created_at,
+          auth_user_id: dbUser.auth_user_id || '',
+          profile_image: dbUser.profile_image || '',
+          total_trips: dbUser.total_trips || 0,
+          last_trip: dbUser.last_trip || null,
+          badge_number: dbUser.badge_number || undefined,
+          date_of_birth: dbUser.date_of_birth || undefined,
+          place_of_birth: dbUser.place_of_birth || undefined,
+          address: dbUser.address || undefined,
+          driver_license: dbUser.driver_license || undefined,
+        };
+      });
     },
     enabled: !!role,
     staleTime: 3 * 60 * 1000, // 3 minutes
@@ -154,23 +160,24 @@ export const useUser = (userId: string | null) => {
       const endTime = performance.now();
       console.log('👥 useUsersOptimized: Fetched user in:', endTime - startTime, 'ms');
       
+      const dbUser = data as any; // Safe casting to access new fields
       return {
-        id: data.id.toString(),
-        name: data.name || '',
-        email: data.email || undefined,
-        phone: data.phone || '',
-        role: data.role || '',
-        status: data.status || 'Active',
-        created_at: data.created_at,
-        auth_user_id: data.auth_user_id || '',
-        profile_image: data.profile_image || '',
-        total_trips: data.total_trips || 0,
-        last_trip: data.last_trip || null,
-        badge_number: data.badge_number || undefined,
-        date_of_birth: data.date_of_birth || undefined,
-        place_of_birth: data.place_of_birth || undefined,
-        address: data.address || undefined,
-        driver_license: data.driver_license || undefined,
+        id: dbUser.id.toString(),
+        name: dbUser.name || '',
+        email: dbUser.email || undefined,
+        phone: dbUser.phone || '',
+        role: dbUser.role || '',
+        status: dbUser.status || 'Active',
+        created_at: dbUser.created_at,
+        auth_user_id: dbUser.auth_user_id || '',
+        profile_image: dbUser.profile_image || '',
+        total_trips: dbUser.total_trips || 0,
+        last_trip: dbUser.last_trip || null,
+        badge_number: dbUser.badge_number || undefined,
+        date_of_birth: dbUser.date_of_birth || undefined,
+        place_of_birth: dbUser.place_of_birth || undefined,
+        address: dbUser.address || undefined,
+        driver_license: dbUser.driver_license || undefined,
       };
     },
     enabled: !!userId,

@@ -39,22 +39,23 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       }
 
       if (data && data[0]) {
+        const dbUser = data[0] as any; // Safe casting to access new fields
         const newUser: User = {
-          id: data[0].id.toString(),
-          name: data[0].name,
-          email: data[0].email || undefined,
-          phone: data[0].phone,
-          systemGroup: data[0].role as SystemGroupName,
-          status: data[0].status as UserStatus,
-          createdAt: data[0].created_at,
-          totalTrips: data[0].total_trips || 0,
-          lastTrip: data[0].last_trip,
-          profileImage: data[0].profile_image,
-          badgeNumber: data[0].badge_number,
-          dateOfBirth: data[0].date_of_birth,
-          placeOfBirth: data[0].place_of_birth,
-          address: data[0].address,
-          driverLicense: data[0].driver_license,
+          id: dbUser.id.toString(),
+          name: dbUser.name,
+          email: dbUser.email || undefined,
+          phone: dbUser.phone,
+          systemGroup: dbUser.role as SystemGroupName,
+          status: dbUser.status as UserStatus,
+          createdAt: dbUser.created_at,
+          totalTrips: dbUser.total_trips || 0,
+          lastTrip: dbUser.last_trip,
+          profileImage: dbUser.profile_image,
+          badgeNumber: dbUser.badge_number || undefined,
+          dateOfBirth: dbUser.date_of_birth || undefined,
+          placeOfBirth: dbUser.place_of_birth || undefined,
+          address: dbUser.address || undefined,
+          driverLicense: dbUser.driver_license || undefined,
           get role() { return this.systemGroup; }
         };
         
@@ -103,22 +104,23 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       }
 
       if (data && data[0]) {
+        const dbUser = data[0] as any; // Safe casting to access new fields
         const updatedUser: User = {
-          id: data[0].id.toString(),
-          name: data[0].name,
-          email: data[0].email || undefined,
-          phone: data[0].phone,
-          systemGroup: data[0].role as SystemGroupName,
-          status: data[0].status as UserStatus,
-          createdAt: data[0].created_at,
-          totalTrips: data[0].total_trips || 0,
-          lastTrip: data[0].last_trip,
-          profileImage: data[0].profile_image,
-          badgeNumber: data[0].badge_number,
-          dateOfBirth: data[0].date_of_birth,
-          placeOfBirth: data[0].place_of_birth,
-          address: data[0].address,
-          driverLicense: data[0].driver_license,
+          id: dbUser.id.toString(),
+          name: dbUser.name,
+          email: dbUser.email || undefined,
+          phone: dbUser.phone,
+          systemGroup: dbUser.role as SystemGroupName,
+          status: dbUser.status as UserStatus,
+          createdAt: dbUser.created_at,
+          totalTrips: dbUser.total_trips || 0,
+          lastTrip: dbUser.last_trip,
+          profileImage: dbUser.profile_image,
+          badgeNumber: dbUser.badge_number || undefined,
+          dateOfBirth: dbUser.date_of_birth || undefined,
+          placeOfBirth: dbUser.place_of_birth || undefined,
+          address: dbUser.address || undefined,
+          driverLicense: dbUser.driver_license || undefined,
           get role() { return this.systemGroup; }
         };
         

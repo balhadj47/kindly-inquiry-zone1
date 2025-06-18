@@ -4,8 +4,8 @@ import { clearPermissionCache } from './permissionUtils';
 import { User, Permission } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
-export const useRBACState = () => {
-  console.log('🔧 useRBACState: Initializing RBAC state...');
+export const useRBACStateNew = () => {
+  console.log('🔧 useRBACStateNew: Initializing RBAC state...');
   
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);

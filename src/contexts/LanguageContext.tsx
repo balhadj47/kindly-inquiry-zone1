@@ -15,6 +15,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (!context) {
+    console.error('useLanguage called outside of LanguageProvider');
     throw new Error('useLanguage must be used within a LanguageProvider');
   }
   return context;
@@ -25,10 +26,12 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  // Use proper React state management instead of hardcoded value
   const [language, setLanguageState] = useState<SupportedLanguage>('fr');
   
+  console.log('LanguageProvider: Rendering with language:', language);
+  
   const setLanguage = (lang: SupportedLanguage) => {
+    console.log('LanguageProvider: Setting language to:', lang);
     setLanguageState(lang);
   };
   
@@ -41,6 +44,8 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     t,
     isRTL
   };
+
+  console.log('LanguageProvider: Context value created:', { language, isRTL });
 
   return (
     <LanguageContext.Provider value={contextValue}>

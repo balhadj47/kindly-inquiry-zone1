@@ -1,9 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback } from 'react';
 import { clearPermissionCache } from './permissionUtils';
 import { User, Permission } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
 export const useRBACState = () => {
+  console.log('🔧 useRBACState: Initializing RBAC state...');
+  
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<SystemGroup[]>([]);

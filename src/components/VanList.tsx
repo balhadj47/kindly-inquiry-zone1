@@ -35,7 +35,7 @@ const VanList = React.memo(({
 
   if (vans.length === 0) {
     return (
-      <>
+      <div className="w-full">
         {showSummary && (
           <div className="text-sm text-gray-600 mb-4">
             Affichage de {vans.length} sur {totalVans} camionnettes
@@ -59,7 +59,7 @@ const VanList = React.memo(({
             )}
           </CardContent>
         </Card>
-      </>
+      </div>
     );
   }
 
@@ -85,19 +85,21 @@ const VanList = React.memo(({
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full space-y-4">
       {showSummary && (
-        <div className="text-sm text-gray-600 mb-4">
+        <div className="text-sm text-gray-600">
           Affichage de {vans.length} sur {totalVans} camionnettes
         </div>
       )}
       
-      {/* Simple flexbox layout for better control */}
-      <div className="flex flex-wrap gap-4">
+      {/* CSS Grid layout with explicit columns */}
+      <div className="grid gap-6" style={{
+        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
+      }}>
         {vans.map((van) => (
           <div
             key={van.id}
-            className="flex-1 min-w-[300px] max-w-[400px]"
+            className="cursor-pointer transform transition-transform hover:scale-[1.02]"
             onClick={(e) => {
               if ((e.target as HTMLElement).closest('button')) return;
               onEditVan(van);

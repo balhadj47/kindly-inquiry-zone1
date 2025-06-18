@@ -37,25 +37,25 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const isControlExpired = controlDate && controlDate < today;
 
   return (
-    <Card className="w-full h-full cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500">
-      <CardContent className="p-4 h-full flex flex-col">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-3">
-          <div className="flex items-center space-x-3 flex-1 min-w-0">
-            <div className="bg-blue-500 p-2 rounded-lg flex-shrink-0">
-              <Car className="h-4 w-4 text-white" />
+    <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white">
+      <CardContent className="p-6">
+        {/* Header with improved spacing */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-start space-x-3 flex-1 min-w-0">
+            <div className="bg-gradient-to-br from-blue-500 to-blue-600 p-3 rounded-xl shadow-sm">
+              <Car className="h-5 w-5 text-white" />
             </div>
-            <div className="min-w-0 flex-1">
-              <h3 className="font-bold text-gray-900 text-sm truncate">{van.model}</h3>
-              <div className="flex items-center text-xs text-gray-600">
-                <MapPin className="h-3 w-3 mr-1 flex-shrink-0" />
-                <span className="truncate">{van.license_plate}</span>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-bold text-gray-900 text-lg mb-1 truncate">{van.model}</h3>
+              <div className="flex items-center text-sm text-gray-600">
+                <MapPin className="h-4 w-4 mr-1 flex-shrink-0 text-gray-400" />
+                <span className="truncate font-medium">{van.license_plate}</span>
               </div>
             </div>
           </div>
           
           {van.status && (
-            <Badge className={`${getStatusColor(van.status)} text-xs flex-shrink-0`}>
+            <Badge className={`${getStatusColor(van.status)} text-xs font-medium px-2 py-1`}>
               {van.status}
             </Badge>
           )}
@@ -63,45 +63,45 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
 
         {/* Reference Code */}
         {van.reference_code && (
-          <div className="flex items-center text-xs text-gray-500 mb-3">
-            <FileText className="h-3 w-3 mr-1 flex-shrink-0" />
-            <span className="truncate">Réf: {van.reference_code}</span>
+          <div className="flex items-center text-sm text-gray-500 mb-4 bg-gray-50 rounded-lg p-2">
+            <FileText className="h-4 w-4 mr-2 text-gray-400" />
+            <span className="font-medium">Réf: {van.reference_code}</span>
           </div>
         )}
 
-        {/* Details Grid */}
-        <div className="flex-1 space-y-2 mb-3">
+        {/* Details */}
+        <div className="space-y-3 mb-4">
           {van.insurer && (
-            <div className="flex items-center space-x-2">
-              <Shield className="h-3 w-3 text-blue-500 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-500">Assureur</p>
-                <p className="text-xs font-medium text-gray-700 truncate">{van.insurer}</p>
+            <div className="flex items-center space-x-3">
+              <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 font-medium">Assureur</p>
+                <p className="text-sm font-semibold text-gray-800 truncate">{van.insurer}</p>
               </div>
             </div>
           )}
           
           {van.insurance_date && (
-            <div className="flex items-center space-x-2">
-              <Calendar className={`h-3 w-3 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-500">Assurance</p>
-                <p className={`text-xs font-medium ${isInsuranceExpired ? 'text-red-700' : 'text-gray-700'}`}>
+            <div className="flex items-center space-x-3">
+              <Calendar className={`h-4 w-4 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 font-medium">Assurance</p>
+                <p className={`text-sm font-semibold ${isInsuranceExpired ? 'text-red-700' : 'text-gray-800'}`}>
                   {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
-                  {isInsuranceExpired && <span className="text-red-600 ml-1">(Exp.)</span>}
+                  {isInsuranceExpired && <span className="text-red-600 ml-1 text-xs">(Exp.)</span>}
                 </p>
               </div>
             </div>
           )}
           
           {van.control_date && (
-            <div className="flex items-center space-x-2">
-              <Calendar className={`h-3 w-3 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs text-gray-500">Contrôle</p>
-                <p className={`text-xs font-medium ${isControlExpired ? 'text-red-700' : 'text-gray-700'}`}>
+            <div className="flex items-center space-x-3">
+              <Calendar className={`h-4 w-4 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500 font-medium">Contrôle</p>
+                <p className={`text-sm font-semibold ${isControlExpired ? 'text-red-700' : 'text-gray-800'}`}>
                   {format(new Date(van.control_date), 'dd/MM/yyyy')}
-                  {isControlExpired && <span className="text-red-600 ml-1">(Exp.)</span>}
+                  {isControlExpired && <span className="text-red-600 ml-1 text-xs">(Exp.)</span>}
                 </p>
               </div>
             </div>
@@ -110,13 +110,13 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
 
         {/* Notes */}
         {van.notes && (
-          <div className="mb-3 p-2 bg-gray-50 rounded text-xs">
-            <div className="flex items-start space-x-1">
-              <FileText className="h-3 w-3 text-gray-500 mt-0.5 flex-shrink-0" />
-              <div className="min-w-0 flex-1">
-                <p className="text-gray-500 mb-1">Notes</p>
-                <p className="text-gray-700 line-clamp-2">
-                  {van.notes.length > 60 ? `${van.notes.slice(0, 60)}...` : van.notes}
+          <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+            <div className="flex items-start space-x-2">
+              <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-blue-600 font-medium mb-1">Notes</p>
+                <p className="text-sm text-gray-700 leading-relaxed">
+                  {van.notes.length > 80 ? `${van.notes.slice(0, 80)}...` : van.notes}
                 </p>
               </div>
             </div>
@@ -124,23 +124,23 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
         )}
 
         {/* Actions */}
-        <div className="flex space-x-2 mt-auto">
+        <div className="flex space-x-3 pt-2">
           <Button
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); handleEdit(); }}
-            className="flex-1 text-xs h-8"
+            className="flex-1 h-9 font-medium hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
           >
-            <Edit className="h-3 w-3 mr-1" />
+            <Edit className="h-4 w-4 mr-2" />
             Modifier
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={(e) => { e.stopPropagation(); onDelete(van); }}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50 text-xs h-8"
+            className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200 transition-colors"
           >
-            <Trash2 className="h-3 w-3" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </CardContent>

@@ -87,11 +87,7 @@ const UserGrid: React.FC<UserGridProps> = ({
           {VirtualizedUserCard}
         </VirtualizedList>
       ) : (
-        <div className={`grid gap-4 ${
-          isMobile 
-            ? 'grid-cols-1 sm:grid-cols-2' 
-            : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-        }`}>
+        <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
           {paginatedUsers.map((user) => (
             <UserCard
               key={user.id}

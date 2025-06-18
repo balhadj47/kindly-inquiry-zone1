@@ -46,33 +46,29 @@ const VansGrid = ({ vans, onEditVan, onDeleteVan }: VansGridProps) => {
   }
 
   return (
-    <Card>
-      <CardContent className="p-6">
-        <div className={`grid gap-4 sm:gap-6 ${
-          isMobile 
-            ? 'grid-cols-1' 
-            : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
-        }`}>
-          {vans.map((van) => (
-            <div
-              key={van.id}
-              className="cursor-pointer"
-              onClick={(e) => {
-                if ((e.target as HTMLElement).closest('button')) return;
-                handleVanClick(van);
-              }}
-            >
-              <VanCard
-                van={van}
-                onEdit={onEditVan}
-                onQuickAction={() => {}}
-                onDelete={onDeleteVan}
-              />
-            </div>
-          ))}
+    <div className={`grid gap-4 sm:gap-6 ${
+      isMobile 
+        ? 'grid-cols-1' 
+        : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+    }`}>
+      {vans.map((van) => (
+        <div
+          key={van.id}
+          className="cursor-pointer"
+          onClick={(e) => {
+            if ((e.target as HTMLElement).closest('button')) return;
+            handleVanClick(van);
+          }}
+        >
+          <VanCard
+            van={van}
+            onEdit={onEditVan}
+            onQuickAction={() => {}}
+            onDelete={onDeleteVan}
+          />
         </div>
-      </CardContent>
-    </Card>
+      ))}
+    </div>
   );
 };
 

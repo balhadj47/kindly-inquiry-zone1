@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { User } from '@/types/rbac';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useToast } from '@/hooks/use-toast';
 import UserModalForm from './user-modal/UserModalForm';
 
 interface UserModalProps {
@@ -14,6 +15,7 @@ interface UserModalProps {
 const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addUser, updateUser } = useRBAC();
+  const { toast } = useToast();
 
   const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
@@ -21,13 +23,26 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
       if (user) {
         await updateUser(user.id, userData);
         console.log('User updated successfully');
+        toast({
+          title: 'Succès',
+          description: 'Utilisateur modifié avec succès',
+        });
       } else {
         await addUser(userData);
         console.log('User created successfully');
+        toast({
+          title: 'Succès',
+          description: 'Utilisateur créé avec succès',
+        });
       }
-      onClose();
+      onClose(); // This should close the modal after successful operation
     } catch (error) {
       console.error('Error submitting user:', error);
+      toast({
+        title: 'Erreur',
+        description: error instanceof Error ? error.message : 'Une erreur est survenue',
+        variant: 'destructive',
+      });
     } finally {
       setIsSubmitting(false);
     }

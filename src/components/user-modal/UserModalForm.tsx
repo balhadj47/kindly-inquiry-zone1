@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -36,6 +36,8 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
   isSubmitting,
   onCancel,
 }) => {
+  const [isEmailValid, setIsEmailValid] = useState(true);
+  
   const form = useForm<FormData>({
     defaultValues: {
       name: user?.name || '',
@@ -53,15 +55,20 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
   });
 
   const watchedRole = form.watch('systemGroup');
+  const watchedEmail = form.watch('email') || '';
 
   const handleSubmit = async (data: FormData) => {
     try {
+      console.log('Submitting user form with data:', data);
       await onSubmit(data);
+      console.log('User form submitted successfully');
       form.reset();
     } catch (error) {
       console.error('Error submitting user form:', error);
     }
   };
+
+  const canSubmit = isEmailValid && !isSubmitting;
 
   return (
     <Form {...form}>
@@ -77,6 +84,8 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           control={form.control}
           isSubmitting={isSubmitting}
           watchedRole={watchedRole}
+          watchedEmail={watchedEmail}
+          onEmailValidationChange={setIsEmailValid}
         />
 
         <DialogFooter>
@@ -88,7 +97,11 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           >
             Annuler
           </Button>
-          <Button type="submit" disabled={isSubmitting}>
+          <Button 
+            type="submit" 
+            disabled={!canSubmit}
+            className={!canSubmit ? 'opacity-50 cursor-not-allowed' : ''}
+          >
             {isSubmitting ? 'Enregistrement...' : user ? 'Modifier' : 'Créer'}
           </Button>
         </DialogFooter>

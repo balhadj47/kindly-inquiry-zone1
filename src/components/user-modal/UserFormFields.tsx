@@ -1,23 +1,33 @@
-
 import React from 'react';
 import { Control } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { SystemGroupName } from '@/types/systemGroups';
+import { useEmailValidation } from '@/hooks/useEmailValidation';
+import { Loader2 } from 'lucide-react';
 
 interface UserFormFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
   watchedRole: SystemGroupName;
+  watchedEmail: string;
+  onEmailValidationChange: (isValid: boolean) => void;
 }
 
 const UserFormFields: React.FC<UserFormFieldsProps> = ({
   control,
   isSubmitting,
   watchedRole,
+  watchedEmail,
+  onEmailValidationChange,
 }) => {
   const isEmployee = watchedRole === 'Employee';
+  const emailValidation = useEmailValidation(watchedEmail, !isEmployee);
+
+  React.useEffect(() => {
+    onEmailValidationChange(emailValidation.isValid && !emailValidation.isChecking);
+  }, [emailValidation.isValid, emailValidation.isChecking, onEmailValidationChange]);
 
   return (
     <>
@@ -55,13 +65,25 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
             <FormItem>
               <FormLabel>Adresse Email {!isEmployee && '*'}</FormLabel>
               <FormControl>
-                <Input
-                  {...field}
-                  type="email"
-                  placeholder="ex: jean.dupont@entreprise.com"
-                  disabled={isSubmitting}
-                />
+                <div className="relative">
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="ex: jean.dupont@entreprise.com"
+                    disabled={isSubmitting}
+                    className={`${
+                      emailValidation.error ? 'border-red-500 focus:border-red-500' : 
+                      emailValidation.isValid && field.value && !emailValidation.isChecking ? 'border-green-500' : ''
+                    }`}
+                  />
+                  {emailValidation.isChecking && (
+                    <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 animate-spin text-gray-400" />
+                  )}
+                </div>
               </FormControl>
+              {emailValidation.error && (
+                <p className="text-sm font-medium text-red-500">{emailValidation.error}</p>
+              )}
               <FormMessage />
             </FormItem>
           )}

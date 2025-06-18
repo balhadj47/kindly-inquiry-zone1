@@ -23,10 +23,10 @@ const VanFilters = ({
 }: VanFiltersProps) => {
   const statusOptions = [
     { value: 'all', label: 'Tous les Statuts' },
-    { value: 'Actif', label: 'Actif' },
-    { value: 'En Transit', label: 'En Transit' },
+    { value: 'Active', label: 'Active' },
+    { value: 'Inactive', label: 'Inactive' },
     { value: 'Maintenance', label: 'Maintenance' },
-    { value: 'Inactif', label: 'Inactif' },
+    { value: 'En Transit', label: 'En Transit' },
   ];
 
   const sortOptions = [

@@ -86,6 +86,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           watchedRole={watchedRole}
           watchedEmail={watchedEmail}
           onEmailValidationChange={setIsEmailValid}
+          userId={user?.id}
         />
 
         <DialogFooter>

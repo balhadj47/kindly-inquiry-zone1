@@ -10,7 +10,7 @@ interface EmailValidationResult {
   error: string | null;
 }
 
-export const useEmailValidation = (email: string, isRequired: boolean = true) => {
+export const useEmailValidation = (email: string, isRequired: boolean = true, excludeUserId?: string) => {
   const [result, setResult] = useState<EmailValidationResult>({
     isChecking: false,
     isValid: true,
@@ -55,11 +55,17 @@ export const useEmailValidation = (email: string, isRequired: boolean = true) =>
     setResult(prev => ({ ...prev, isChecking: true }));
 
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('users')
         .select('id')
-        .eq('email', emailToCheck.trim())
-        .limit(1);
+        .eq('email', emailToCheck.trim());
+
+      // If we're editing a user, exclude their current record from the check
+      if (excludeUserId) {
+        query = query.neq('id', parseInt(excludeUserId));
+      }
+
+      const { data, error } = await query.limit(1);
 
       if (error) {
         console.error('Error checking email:', error);
@@ -88,7 +94,7 @@ export const useEmailValidation = (email: string, isRequired: boolean = true) =>
         error: 'Erreur lors de la vérification de l\'email',
       });
     }
-  }, [isRequired]);
+  }, [isRequired, excludeUserId]);
 
   useEffect(() => {
     checkEmail(debouncedEmail);

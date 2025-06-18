@@ -13,6 +13,7 @@ interface UserFormFieldsProps {
   watchedRole: SystemGroupName;
   watchedEmail: string;
   onEmailValidationChange: (isValid: boolean) => void;
+  userId?: string; // Add userId prop for editing
 }
 
 const UserFormFields: React.FC<UserFormFieldsProps> = ({
@@ -21,9 +22,10 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
   watchedRole,
   watchedEmail,
   onEmailValidationChange,
+  userId,
 }) => {
   const isEmployee = watchedRole === 'Employee';
-  const emailValidation = useEmailValidation(watchedEmail, !isEmployee);
+  const emailValidation = useEmailValidation(watchedEmail, !isEmployee, userId);
 
   React.useEffect(() => {
     onEmailValidationChange(emailValidation.isValid && !emailValidation.isChecking);

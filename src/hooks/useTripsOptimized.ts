@@ -6,6 +6,9 @@ import { useToast } from '@/hooks/use-toast';
 export interface Trip {
   id: string;
   van: string;
+  driver: string;
+  company: string;
+  branch: string;
   start_date: string;
   end_date: string | null;
   start_km: number;
@@ -16,6 +19,9 @@ export interface Trip {
   branch_id: string;
   created_at: string;
   updated_at: string;
+  status?: string;
+  user_ids?: string[];
+  user_roles?: any;
 }
 
 // Base hook for all trips with pagination
@@ -48,8 +54,30 @@ export const useTrips = (page = 1, limit = 20) => {
       const endTime = performance.now();
       console.log('🚗 useTripsOptimized: Fetched in:', endTime - startTime, 'ms');
       
+      // Transform database records to match Trip interface
+      const transformedTrips: Trip[] = (data || []).map(trip => ({
+        id: trip.id.toString(),
+        van: trip.van || '',
+        driver: trip.driver || '',
+        company: trip.company || '',
+        branch: trip.branch || '',
+        start_date: trip.created_at, // Use created_at as start_date fallback
+        end_date: trip.end_date || null,
+        start_km: trip.start_km || 0,
+        end_km: trip.end_km || null,
+        destination: trip.notes || '', // Use notes as destination fallback
+        notes: trip.notes || '',
+        company_id: '', // Will need to be populated from relations if needed
+        branch_id: '', // Will need to be populated from relations if needed
+        created_at: trip.created_at,
+        updated_at: trip.created_at, // Fallback to created_at
+        status: trip.status || 'active',
+        user_ids: trip.user_ids || [],
+        user_roles: trip.user_roles || [],
+      }));
+      
       return {
-        trips: data || [],
+        trips: transformedTrips,
         total: count || 0
       };
     },
@@ -70,7 +98,7 @@ export const useActiveTrips = () => {
         .from('trips')
         .select('*')
         .is('end_date', null)
-        .order('start_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
         console.error('🚗 useTripsOptimized: Error:', error);
@@ -80,7 +108,27 @@ export const useActiveTrips = () => {
       const endTime = performance.now();
       console.log('🚗 useTripsOptimized: Fetched active trips in:', endTime - startTime, 'ms');
       
-      return data || [];
+      // Transform database records to match Trip interface
+      return (data || []).map(trip => ({
+        id: trip.id.toString(),
+        van: trip.van || '',
+        driver: trip.driver || '',
+        company: trip.company || '',
+        branch: trip.branch || '',
+        start_date: trip.created_at,
+        end_date: trip.end_date || null,
+        start_km: trip.start_km || 0,
+        end_km: trip.end_km || null,
+        destination: trip.notes || '',
+        notes: trip.notes || '',
+        company_id: '',
+        branch_id: '',
+        created_at: trip.created_at,
+        updated_at: trip.created_at,
+        status: trip.status || 'active',
+        user_ids: trip.user_ids || [],
+        user_roles: trip.user_roles || [],
+      }));
     },
     staleTime: 1 * 60 * 1000, // 1 minute (shorter for active trips)
     gcTime: 3 * 60 * 1000, // 3 minutes
@@ -97,10 +145,13 @@ export const useTrip = (tripId: string | null) => {
       console.log('🚗 useTripsOptimized: Fetching trip:', tripId);
       const startTime = performance.now();
       
+      // Convert string ID to number for database query
+      const numericId = parseInt(tripId, 10);
+      
       const { data, error } = await supabase
         .from('trips')
         .select('*')
-        .eq('id', tripId)
+        .eq('id', numericId)
         .single();
 
       if (error) {
@@ -111,7 +162,27 @@ export const useTrip = (tripId: string | null) => {
       const endTime = performance.now();
       console.log('🚗 useTripsOptimized: Fetched trip in:', endTime - startTime, 'ms');
       
-      return data;
+      // Transform database record to match Trip interface
+      return {
+        id: data.id.toString(),
+        van: data.van || '',
+        driver: data.driver || '',
+        company: data.company || '',
+        branch: data.branch || '',
+        start_date: data.created_at,
+        end_date: data.end_date || null,
+        start_km: data.start_km || 0,
+        end_km: data.end_km || null,
+        destination: data.notes || '',
+        notes: data.notes || '',
+        company_id: '',
+        branch_id: '',
+        created_at: data.created_at,
+        updated_at: data.created_at,
+        status: data.status || 'active',
+        user_ids: data.user_ids || [],
+        user_roles: data.user_roles || [],
+      };
     },
     enabled: !!tripId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -134,12 +205,14 @@ export const useTripMutations = () => {
         .from('trips')
         .insert([{
           van: tripData.van || '',
-          start_date: tripData.start_date || new Date().toISOString(),
+          driver: tripData.driver || '',
+          company: tripData.company || '',
+          branch: tripData.branch || '',
           start_km: tripData.start_km || 0,
-          destination: tripData.destination || '',
-          notes: tripData.notes,
-          company_id: tripData.company_id || '',
-          branch_id: tripData.branch_id || '',
+          notes: tripData.notes || '',
+          user_ids: tripData.user_ids || [],
+          user_roles: tripData.user_roles || [],
+          status: 'active',
         }])
         .select()
         .single();
@@ -166,16 +239,22 @@ export const useTripMutations = () => {
 
   const updateTrip = useMutation({
     mutationFn: async ({ id, ...tripData }: Partial<Trip> & { id: string }) => {
+      // Convert string ID to number for database query
+      const numericId = parseInt(id, 10);
+      
       const { data, error } = await supabase
         .from('trips')
         .update({
           van: tripData.van,
+          driver: tripData.driver,
+          company: tripData.company,
+          branch: tripData.branch,
           end_date: tripData.end_date,
           end_km: tripData.end_km,
-          destination: tripData.destination,
           notes: tripData.notes,
+          status: tripData.status,
         })
-        .eq('id', id)
+        .eq('id', numericId)
         .select()
         .single();
 
@@ -201,10 +280,13 @@ export const useTripMutations = () => {
 
   const deleteTrip = useMutation({
     mutationFn: async (tripId: string) => {
+      // Convert string ID to number for database query
+      const numericId = parseInt(tripId, 10);
+      
       const { error } = await supabase
         .from('trips')
         .delete()
-        .eq('id', tripId);
+        .eq('id', numericId);
 
       if (error) throw error;
     },

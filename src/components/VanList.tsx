@@ -92,26 +92,16 @@ const VanList = React.memo(({
         </div>
       )}
       
-      {/* CSS Grid layout with explicit columns */}
-      <div className="grid gap-6" style={{
-        gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))'
-      }}>
+      {/* Simple grid layout with auto-fit columns */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {vans.map((van) => (
-          <div
+          <VanCard
             key={van.id}
-            className="cursor-pointer transform transition-transform hover:scale-[1.02]"
-            onClick={(e) => {
-              if ((e.target as HTMLElement).closest('button')) return;
-              onEditVan(van);
-            }}
-          >
-            <VanCard
-              van={van}
-              onEdit={onEditVan}
-              onQuickAction={onQuickAction}
-              onDelete={onDeleteVan}
-            />
-          </div>
+            van={van}
+            onEdit={onEditVan}
+            onQuickAction={onQuickAction}
+            onDelete={onDeleteVan}
+          />
         ))}
       </div>
     </div>

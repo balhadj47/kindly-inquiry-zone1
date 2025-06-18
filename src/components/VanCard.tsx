@@ -37,7 +37,13 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const isControlExpired = controlDate && controlDate < today;
 
   return (
-    <Card className="h-full hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white">
+    <Card 
+      className="w-full cursor-pointer hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white"
+      onClick={(e) => {
+        if ((e.target as HTMLElement).closest('button')) return;
+        onEdit(van);
+      }}
+    >
       <CardContent className="p-6">
         {/* Header with improved spacing */}
         <div className="flex items-start justify-between mb-4">

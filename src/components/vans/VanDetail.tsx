@@ -4,20 +4,36 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Edit, Car } from 'lucide-react';
-import { useVan } from '@/hooks/useVansOptimized';
+import { useVans } from '@/hooks/useVans';
 
 const VanDetail = () => {
   const { vanId } = useParams();
   const navigate = useNavigate();
-  const { data: van, isLoading } = useVan(vanId || null);
+  const { vans, error } = useVans();
 
-  if (isLoading) {
+  const van = vans.find(v => v.id === vanId);
+
+  if (!vanId) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
-          <div className="h-64 bg-gray-200 rounded"></div>
-        </div>
+      <div className="text-center py-12">
+        <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">ID de camionnette manquant</h3>
+        <Button onClick={() => navigate('/vans')}>
+          Retour aux camionnettes
+        </Button>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Erreur de chargement</h3>
+        <p className="text-gray-600 mb-4">{error}</p>
+        <Button onClick={() => navigate('/vans')}>
+          Retour aux camionnettes
+        </Button>
       </div>
     );
   }

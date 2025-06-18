@@ -90,7 +90,7 @@ const VanList = React.memo(({
   }
 
   const virtualizedData = {
-    vans,
+    vans: filteredVans,
     onEditVan,
     onQuickAction,
     onDeleteVan,
@@ -101,7 +101,7 @@ const VanList = React.memo(({
     return (
       <VirtualizedList
         height={600}
-        itemCount={vans.length}
+        itemCount={filteredVans.length}
         itemSize={280}
         itemData={virtualizedData}
         className="border rounded-lg"
@@ -118,23 +118,15 @@ const VanList = React.memo(({
           Affichage de {filteredVans.length} sur {totalVans} camionnettes
         </div>
       )}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filteredVans.map((van) => (
-          <div
+          <VanCard
             key={van.id}
-            className="cursor-pointer"
-            onClick={(e) => {
-              if ((e.target as HTMLElement).closest('button')) return;
-              handleVanClick(van);
-            }}
-          >
-            <VanCard
-              van={van}
-              onEdit={onEditVan}
-              onQuickAction={handleVanClick}
-              onDelete={onDeleteVan}
-            />
-          </div>
+            van={van}
+            onEdit={onEditVan}
+            onQuickAction={handleVanClick}
+            onDelete={onDeleteVan}
+          />
         ))}
       </div>
     </div>

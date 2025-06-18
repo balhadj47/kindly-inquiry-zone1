@@ -24,8 +24,19 @@ interface VanCardProps {
 }
 
 const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
-  const handleEdit = React.useCallback(() => onEdit(van), [onEdit, van]);
-  const handleDelete = React.useCallback(() => onDelete(van), [onDelete, van]);
+  const handleEdit = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit(van);
+  }, [onEdit, van]);
+  
+  const handleDelete = React.useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDelete(van);
+  }, [onDelete, van]);
+
+  const handleCardClick = React.useCallback(() => {
+    onQuickAction(van);
+  }, [onQuickAction, van]);
 
   // Check if dates are expired
   const today = new Date();
@@ -38,7 +49,10 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const isControlExpired = controlDate && controlDate < today;
 
   return (
-    <Card className="w-full hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white">
+    <Card 
+      className="w-full hover:shadow-xl transition-all duration-300 border-0 shadow-md bg-white cursor-pointer"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-6">
         {/* Header with improved spacing */}
         <div className="flex items-start justify-between mb-4">
@@ -129,7 +143,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); handleEdit(); }}
+            onClick={handleEdit}
             className="flex-1 h-9 font-medium hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
           >
             <Edit className="h-4 w-4 mr-2" />
@@ -138,7 +152,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
           <Button
             variant="outline"
             size="sm"
-            onClick={(e) => { e.stopPropagation(); onDelete(van); }}
+            onClick={handleDelete}
             className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-200 transition-colors"
           >
             <Trash2 className="h-4 w-4" />

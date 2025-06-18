@@ -40,118 +40,33 @@ const AppLoadingSkeleton = () => (
   </div>
 );
 
-// Pure JavaScript React readiness check without hooks
-let reactReady = false;
-let appRender: () => void;
-
-const checkReactReadiness = () => {
-  try {
-    if (
-      React && 
-      typeof React === 'object' &&
-      typeof React.useState === 'function' &&
-      typeof React.useEffect === 'function' &&
-      typeof React.useContext === 'function' &&
-      typeof React.createElement === 'function'
-    ) {
-      console.log('🚀 App: React fully ready');
-      reactReady = true;
-      if (appRender) appRender();
-      return true;
-    }
-    return false;
-  } catch (error) {
-    console.error('🚀 App: Error checking React readiness:', error);
-    return false;
-  }
+const App = () => {
+  console.log('🚀 App: Functional component render');
+  
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <LanguageProvider>
+              <RBACProvider>
+                <TripProvider>
+                  <ProgressiveLoadingProvider>
+                    <Suspense fallback={<AppLoadingSkeleton />}>
+                      <Routes>
+                        <Route path="/*" element={<Index />} />
+                        <Route path="*" element={<NotFound />} />
+                      </Routes>
+                    </Suspense>
+                  </ProgressiveLoadingProvider>
+                </TripProvider>
+              </RBACProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
 };
-
-class App extends React.Component {
-  constructor(props: {}) {
-    super(props);
-    this.state = { ready: false };
-    console.log('🚀 App: Component constructor');
-  }
-
-  componentDidMount() {
-    console.log('🚀 App: Component mounted, checking React readiness...');
-    
-    appRender = () => {
-      this.setState({ ready: true });
-    };
-
-    // Try immediate check
-    if (checkReactReadiness()) {
-      return;
-    }
-
-    // Fallback timers
-    setTimeout(() => {
-      if (!checkReactReadiness()) {
-        console.log('🚀 App: React still not ready after 100ms, waiting longer...');
-      }
-    }, 100);
-    
-    setTimeout(() => {
-      if (!checkReactReadiness()) {
-        console.log('🚀 App: React still not ready after 300ms, forcing ready state...');
-        reactReady = true;
-        this.setState({ ready: true });
-      }
-    }, 300);
-  }
-
-  render() {
-    if (!(this.state as any).ready || !reactReady) {
-      console.log('🚀 App: React not ready yet, showing skeleton...');
-      return React.createElement(AppLoadingSkeleton);
-    }
-
-    console.log('🚀 App: React ready, rendering main application...');
-
-    return React.createElement(
-      ErrorBoundary,
-      null,
-      React.createElement(
-        QueryClientProvider,
-        { client: queryClient },
-        React.createElement(
-          BrowserRouter,
-          null,
-          React.createElement(
-            AuthProvider,
-            null,
-            React.createElement(
-              LanguageProvider,
-              null,
-              React.createElement(
-                RBACProvider,
-                null,
-                React.createElement(
-                  TripProvider,
-                  null,
-                  React.createElement(
-                    ProgressiveLoadingProvider,
-                    null,
-                    React.createElement(
-                      Suspense,
-                      { fallback: React.createElement(AppLoadingSkeleton) },
-                      React.createElement(
-                        Routes,
-                        null,
-                        React.createElement(Route, { path: "/*", element: React.createElement(Index) }),
-                        React.createElement(Route, { path: "*", element: React.createElement(NotFound) })
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    );
-  }
-}
 
 export default App;

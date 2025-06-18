@@ -41,33 +41,68 @@ const AppLoadingSkeleton = () => (
 );
 
 const App: React.FC = () => {
-  const [isReady, setIsReady] = useState(false);
+  const [isReactReady, setIsReactReady] = useState(false);
 
   useEffect(() => {
-    console.log('🚀 App: Initializing...');
+    console.log('🚀 App: Checking React readiness...');
     
-    // Ensure React and DOM are fully ready
-    const initTimer = setTimeout(() => {
-      // Verify React hooks are available
-      if (typeof React.useState === 'function' && typeof React.useContext === 'function') {
-        setIsReady(true);
-        console.log('🚀 App: React fully initialized and ready');
-      } else {
-        console.warn('🚀 App: React hooks not ready, retrying...');
-        // Retry after a bit more time
-        setTimeout(() => setIsReady(true), 200);
+    // More comprehensive React readiness check
+    const checkReactReadiness = () => {
+      try {
+        // Check if React object exists and has required methods
+        if (
+          React && 
+          typeof React === 'object' &&
+          typeof React.useState === 'function' &&
+          typeof React.useEffect === 'function' &&
+          typeof React.useContext === 'function' &&
+          typeof React.createElement === 'function'
+        ) {
+          console.log('🚀 App: React fully ready, setting state...');
+          setIsReactReady(true);
+          return true;
+        }
+        return false;
+      } catch (error) {
+        console.error('🚀 App: Error checking React readiness:', error);
+        return false;
       }
-    }, 150);
+    };
 
-    return () => clearTimeout(initTimer);
+    // Try immediate check first
+    if (checkReactReadiness()) {
+      return;
+    }
+
+    // If not ready, use multiple fallback timers
+    const timers: NodeJS.Timeout[] = [];
+    
+    // Try again after a short delay
+    timers.push(setTimeout(() => {
+      if (!checkReactReadiness()) {
+        console.log('🚀 App: React still not ready after 100ms, waiting longer...');
+      }
+    }, 100));
+    
+    // Fallback after more time
+    timers.push(setTimeout(() => {
+      if (!checkReactReadiness()) {
+        console.log('🚀 App: React still not ready after 300ms, forcing ready state...');
+        setIsReactReady(true);
+      }
+    }, 300));
+
+    return () => {
+      timers.forEach(timer => clearTimeout(timer));
+    };
   }, []);
 
-  if (!isReady) {
-    console.log('🚀 App: Still initializing, showing skeleton...');
+  if (!isReactReady) {
+    console.log('🚀 App: React not ready yet, showing skeleton...');
     return <AppLoadingSkeleton />;
   }
 
-  console.log('🚀 App: Ready, rendering main application...');
+  console.log('🚀 App: React ready, rendering main application...');
 
   return (
     <ErrorBoundary>

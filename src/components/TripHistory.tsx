@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useCompanies } from '@/hooks/useCompanies';

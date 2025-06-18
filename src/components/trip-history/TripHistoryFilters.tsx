@@ -39,6 +39,12 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
 
   const hasActiveFilters = searchTerm !== '' || companyFilter !== 'all' || vanFilter !== 'all';
 
+  // Get van display name for filter options
+  const getVanDisplayName = (van: Van) => {
+    const referenceCode = (van as any).reference_code || van.license_plate;
+    return `${referenceCode} - ${van.model}`;
+  };
+
   return (
     <Card>
       <CardHeader className={isMobile ? 'pb-3' : ''}>
@@ -99,8 +105,8 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
                     <SelectContent>
                       <SelectItem value="all">{t.allVansFilter}</SelectItem>
                       {vans.map((van) => (
-                        <SelectItem key={van.id} value={van.license_plate}>
-                          {van.license_plate}
+                        <SelectItem key={van.id} value={van.id}>
+                          {getVanDisplayName(van)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -137,8 +143,8 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
                 <SelectContent>
                   <SelectItem value="all">{t.allVansFilter}</SelectItem>
                   {vans.map((van) => (
-                    <SelectItem key={van.id} value={van.license_plate}>
-                      {van.license_plate}
+                    <SelectItem key={van.id} value={van.id}>
+                      {getVanDisplayName(van)}
                     </SelectItem>
                   ))}
                 </SelectContent>

@@ -62,7 +62,7 @@ export const useTrips = (page = 1, limit = 20) => {
         company: trip.company || '',
         branch: trip.branch || '',
         start_date: trip.created_at, // Use created_at as start_date fallback
-        end_date: trip.end_date || null,
+        end_date: null, // Set to null since there's no end_date in database
         start_km: trip.start_km || 0,
         end_km: trip.end_km || null,
         destination: trip.notes || '', // Use notes as destination fallback
@@ -97,7 +97,7 @@ export const useActiveTrips = () => {
       const { data, error } = await supabase
         .from('trips')
         .select('*')
-        .is('end_date', null)
+        .eq('status', 'active') // Filter by status instead of end_date
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -116,7 +116,7 @@ export const useActiveTrips = () => {
         company: trip.company || '',
         branch: trip.branch || '',
         start_date: trip.created_at,
-        end_date: trip.end_date || null,
+        end_date: null, // Set to null since there's no end_date in database
         start_km: trip.start_km || 0,
         end_km: trip.end_km || null,
         destination: trip.notes || '',
@@ -170,7 +170,7 @@ export const useTrip = (tripId: string | null) => {
         company: data.company || '',
         branch: data.branch || '',
         start_date: data.created_at,
-        end_date: data.end_date || null,
+        end_date: null, // Set to null since there's no end_date in database
         start_km: data.start_km || 0,
         end_km: data.end_km || null,
         destination: data.notes || '',
@@ -249,7 +249,6 @@ export const useTripMutations = () => {
           driver: tripData.driver,
           company: tripData.company,
           branch: tripData.branch,
-          end_date: tripData.end_date,
           end_km: tripData.end_km,
           notes: tripData.notes,
           status: tripData.status,

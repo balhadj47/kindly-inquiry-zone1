@@ -18,11 +18,16 @@ interface UserModalFormProps {
 
 interface FormData {
   name: string;
-  email: string;
+  email?: string;
   phone: string;
   systemGroup: SystemGroupName;
   status: UserStatus;
   profileImage?: string;
+  badgeNumber?: string;
+  dateOfBirth?: string;
+  placeOfBirth?: string;
+  address?: string;
+  driverLicense?: string;
 }
 
 const UserModalForm: React.FC<UserModalFormProps> = ({
@@ -39,6 +44,11 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
       systemGroup: user?.systemGroup || 'Employee',
       status: user?.status || 'Active',
       profileImage: user?.profileImage || '',
+      badgeNumber: user?.badgeNumber || '',
+      dateOfBirth: user?.dateOfBirth || '',
+      placeOfBirth: user?.placeOfBirth || '',
+      address: user?.address || '',
+      driverLicense: user?.driverLicense || '',
     },
   });
 

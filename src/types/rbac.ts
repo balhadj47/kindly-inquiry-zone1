@@ -7,7 +7,7 @@ export type UserStatus = 'Active' | 'Inactive' | 'Suspended' | 'Récupération' 
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string; // Made optional for employees
   phone: string;
   systemGroup: SystemGroupName;
   missionRole?: MissionRole;
@@ -17,6 +17,12 @@ export interface User {
   totalTrips?: number;
   lastTrip?: string;
   profileImage?: string;
+  // New fields for employees
+  badgeNumber?: string;
+  dateOfBirth?: string;
+  placeOfBirth?: string;
+  address?: string;
+  driverLicense?: string;
   // Backward compatibility - add a getter for role
   get role(): SystemGroupName;
 }

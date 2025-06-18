@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { SystemGroupName } from '@/types/systemGroups';
@@ -8,18 +7,31 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Adding user to database:', userData);
     
     try {
+      const insertData: any = {
+        name: userData.name,
+        phone: userData.phone,
+        role: userData.systemGroup,
+        status: userData.status || 'Active',
+        profile_image: userData.profileImage,
+        total_trips: userData.totalTrips || 0,
+        last_trip: userData.lastTrip || null,
+      };
+
+      // Only add email if it's provided (not required for employees)
+      if (userData.email) {
+        insertData.email = userData.email;
+      }
+
+      // Add employee-specific fields if they exist
+      if (userData.badgeNumber) insertData.badge_number = userData.badgeNumber;
+      if (userData.dateOfBirth) insertData.date_of_birth = userData.dateOfBirth;
+      if (userData.placeOfBirth) insertData.place_of_birth = userData.placeOfBirth;
+      if (userData.address) insertData.address = userData.address;
+      if (userData.driverLicense) insertData.driver_license = userData.driverLicense;
+
       const { data, error } = await supabase
         .from('users')
-        .insert([{
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          role: userData.systemGroup,
-          status: userData.status || 'Active',
-          profile_image: userData.profileImage,
-          total_trips: userData.totalTrips || 0,
-          last_trip: userData.lastTrip || null,
-        }])
+        .insert([insertData])
         .select();
 
       if (error) {
@@ -31,7 +43,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         const newUser: User = {
           id: data[0].id.toString(),
           name: data[0].name,
-          email: data[0].email,
+          email: data[0].email || undefined,
           phone: data[0].phone,
           systemGroup: data[0].role as SystemGroupName,
           status: data[0].status as UserStatus,
@@ -39,6 +51,11 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
+          badgeNumber: data[0].badge_number,
+          dateOfBirth: data[0].date_of_birth,
+          placeOfBirth: data[0].place_of_birth,
+          address: data[0].address,
+          driverLicense: data[0].driver_license,
           get role() { return this.systemGroup; }
         };
         
@@ -57,7 +74,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     try {
       const updateData: any = {
         name: userData.name,
-        email: userData.email,
         phone: userData.phone,
         role: userData.systemGroup,
         status: userData.status,
@@ -65,6 +81,18 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
       };
+
+      // Only update email if it's provided
+      if (userData.email !== undefined) {
+        updateData.email = userData.email;
+      }
+
+      // Update employee-specific fields
+      if (userData.badgeNumber !== undefined) updateData.badge_number = userData.badgeNumber;
+      if (userData.dateOfBirth !== undefined) updateData.date_of_birth = userData.dateOfBirth;
+      if (userData.placeOfBirth !== undefined) updateData.place_of_birth = userData.placeOfBirth;
+      if (userData.address !== undefined) updateData.address = userData.address;
+      if (userData.driverLicense !== undefined) updateData.driver_license = userData.driverLicense;
 
       const { data, error } = await supabase
         .from('users')
@@ -81,7 +109,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         const updatedUser: User = {
           id: data[0].id.toString(),
           name: data[0].name,
-          email: data[0].email,
+          email: data[0].email || undefined,
           phone: data[0].phone,
           systemGroup: data[0].role as SystemGroupName,
           status: data[0].status as UserStatus,
@@ -89,6 +117,11 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
+          badgeNumber: data[0].badge_number,
+          dateOfBirth: data[0].date_of_birth,
+          placeOfBirth: data[0].place_of_birth,
+          address: data[0].address,
+          driverLicense: data[0].driver_license,
           get role() { return this.systemGroup; }
         };
         

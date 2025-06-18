@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 export interface User {
   id: string;
   name: string;
-  email: string;
+  email?: string;
   phone: string;
   role: string;
   status: string;
@@ -15,6 +15,11 @@ export interface User {
   profile_image?: string;
   total_trips?: number;
   last_trip?: string;
+  badge_number?: string;
+  date_of_birth?: string;
+  place_of_birth?: string;
+  address?: string;
+  driver_license?: string;
 }
 
 // Base hook for all users with pagination
@@ -51,7 +56,7 @@ export const useUsers = (page = 1, limit = 20) => {
         users: (data || []).map(user => ({
           id: user.id.toString(),
           name: user.name || '',
-          email: user.email || '',
+          email: user.email || undefined,
           phone: user.phone || '',
           role: user.role || '',
           status: user.status || 'Active',
@@ -60,6 +65,11 @@ export const useUsers = (page = 1, limit = 20) => {
           profile_image: user.profile_image || '',
           total_trips: user.total_trips || 0,
           last_trip: user.last_trip || null,
+          badge_number: user.badge_number,
+          date_of_birth: user.date_of_birth,
+          place_of_birth: user.place_of_birth,
+          address: user.address,
+          driver_license: user.driver_license,
         })),
         total: count || 0
       };
@@ -97,7 +107,7 @@ export const useUsersByRole = (role: string | null) => {
       return (data || []).map(user => ({
         id: user.id.toString(),
         name: user.name || '',
-        email: user.email || '',
+        email: user.email || undefined,
         phone: user.phone || '',
         role: user.role || '',
         status: user.status || 'Active',
@@ -106,6 +116,11 @@ export const useUsersByRole = (role: string | null) => {
         profile_image: user.profile_image || '',
         total_trips: user.total_trips || 0,
         last_trip: user.last_trip || null,
+        badge_number: user.badge_number,
+        date_of_birth: user.date_of_birth,
+        place_of_birth: user.place_of_birth,
+        address: user.address,
+        driver_license: user.driver_license,
       }));
     },
     enabled: !!role,
@@ -114,7 +129,6 @@ export const useUsersByRole = (role: string | null) => {
   });
 };
 
-// Hook for a single user
 export const useUser = (userId: string | null) => {
   return useQuery({
     queryKey: ['users', userId],
@@ -143,7 +157,7 @@ export const useUser = (userId: string | null) => {
       return {
         id: data.id.toString(),
         name: data.name || '',
-        email: data.email || '',
+        email: data.email || undefined,
         phone: data.phone || '',
         role: data.role || '',
         status: data.status || 'Active',
@@ -152,6 +166,11 @@ export const useUser = (userId: string | null) => {
         profile_image: data.profile_image || '',
         total_trips: data.total_trips || 0,
         last_trip: data.last_trip || null,
+        badge_number: data.badge_number,
+        date_of_birth: data.date_of_birth,
+        place_of_birth: data.place_of_birth,
+        address: data.address,
+        driver_license: data.driver_license,
       };
     },
     enabled: !!userId,
@@ -160,7 +179,6 @@ export const useUser = (userId: string | null) => {
   });
 };
 
-// Mutations for user operations
 export const useUserMutations = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -173,15 +191,28 @@ export const useUserMutations = () => {
     mutationFn: async ({ id, ...userData }: Partial<User> & { id: string }) => {
       const numericId = parseInt(id, 10);
       
+      const updateData: any = {
+        name: userData.name,
+        phone: userData.phone,
+        role: userData.role,
+        status: userData.status,
+      };
+
+      // Only update email if it's provided
+      if (userData.email !== undefined) {
+        updateData.email = userData.email;
+      }
+
+      // Update employee-specific fields
+      if (userData.badge_number !== undefined) updateData.badge_number = userData.badge_number;
+      if (userData.date_of_birth !== undefined) updateData.date_of_birth = userData.date_of_birth;
+      if (userData.place_of_birth !== undefined) updateData.place_of_birth = userData.place_of_birth;
+      if (userData.address !== undefined) updateData.address = userData.address;
+      if (userData.driver_license !== undefined) updateData.driver_license = userData.driver_license;
+      
       const { data, error } = await supabase
         .from('users')
-        .update({
-          name: userData.name,
-          email: userData.email,
-          phone: userData.phone,
-          role: userData.role,
-          status: userData.status,
-        })
+        .update(updateData)
         .eq('id', numericId)
         .select()
         .single();

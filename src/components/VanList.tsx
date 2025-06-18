@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Van } from '@/types/van';
 import { useVansPagination } from '@/hooks/useVansPagination';
 import VanListGrid from './vans/VanListGrid';
 import VanListSummary from './vans/VanListSummary';
 import VanListPagination from './vans/VanListPagination';
 import VanListEmptyState from './vans/VanListEmptyState';
+import VanDetailsDialog from './vans/VanDetailsDialog';
 
 interface VanListProps {
   vans: any[];
@@ -29,8 +29,9 @@ const VanList = React.memo(({
   onQuickAction,
   onDeleteVan
 }: VanListProps) => {
-  const navigate = useNavigate();
   const [filteredVans, setFilteredVans] = useState(vans);
+  const [selectedVan, setSelectedVan] = useState<Van | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   
   const {
     currentPage,
@@ -60,7 +61,13 @@ const VanList = React.memo(({
   }, [vans, searchTerm, statusFilter]);
 
   const handleVanClick = (van: Van) => {
-    navigate(`/vans/${van.id}`);
+    setSelectedVan(van);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleCloseDetailsDialog = () => {
+    setIsDetailsDialogOpen(false);
+    setSelectedVan(null);
   };
 
   if (vans.length === 0) {
@@ -93,6 +100,13 @@ const VanList = React.memo(({
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
+      />
+
+      <VanDetailsDialog
+        van={selectedVan}
+        isOpen={isDetailsDialogOpen}
+        onClose={handleCloseDetailsDialog}
+        onEdit={onEditVan}
       />
     </div>
   );

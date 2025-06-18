@@ -41,8 +41,9 @@ const VansIndex = () => {
     refetch();
   };
 
+  // Remove the old navigation-based quick action
   const handleQuickAction = (van: any) => {
-    // Handle quick action - could be navigate to detail or other action
+    // This is now handled directly in VanList component
     console.log('Quick action for van:', van);
   };
 

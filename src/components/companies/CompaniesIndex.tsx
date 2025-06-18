@@ -6,12 +6,19 @@ import CompaniesEmptyState from './CompaniesEmptyState';
 import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
-import { useCompanies } from '@/hooks/useCompanies';
+import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
 const CompaniesIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const { companies, refetch, setCompanies } = useCompanies();
+  const { data: companies = [], refetch } = useAllCompaniesWithBranches();
+  const { invalidateCompanies } = useCompanyMutations();
+  
+  // Create a setter function that works with the existing hook
+  const setCompanies = () => {
+    invalidateCompanies();
+  };
+
   const {
     isModalOpen,
     setIsModalOpen,
@@ -31,6 +38,7 @@ const CompaniesIndex = () => {
 
   const handleModalSuccess = () => {
     refetch();
+    invalidateCompanies();
   };
 
   return (

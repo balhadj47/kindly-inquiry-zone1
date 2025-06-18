@@ -1,16 +1,9 @@
 
 import React from 'react';
 import { Building2 } from 'lucide-react';
-import CompanyBranchSelector from '../CompanyBranchSelector';
-
-interface Company {
-  id: string;
-  name: string;
-  branches: Array<{ id: string; name: string }>;
-}
+import CompanyBranchSelectorOptimized from '../CompanyBranchSelectorOptimized';
 
 interface CompanySelectionStepProps {
-  companies: Company[];
   selectedCompanyId: string;
   selectedBranchId: string;
   onCompanyChange: (companyId: string) => void;
@@ -18,7 +11,6 @@ interface CompanySelectionStepProps {
 }
 
 const CompanySelectionStep: React.FC<CompanySelectionStepProps> = ({
-  companies,
   selectedCompanyId,
   selectedBranchId,
   onCompanyChange,
@@ -34,8 +26,7 @@ const CompanySelectionStep: React.FC<CompanySelectionStepProps> = ({
         <p className="text-gray-600">Choisissez l'entreprise et la succursale pour cette mission</p>
       </div>
 
-      <CompanyBranchSelector
-        companies={companies}
+      <CompanyBranchSelectorOptimized
         selectedCompanyId={selectedCompanyId}
         selectedBranchId={selectedBranchId}
         onCompanyChange={onCompanyChange}

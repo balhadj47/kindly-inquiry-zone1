@@ -1,15 +1,12 @@
 
 import React from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 import TripLoggerForm from './TripLoggerForm';
 import QuickStatsSection from './QuickStatsSection';
-import TripLoggerLoadingSkeleton from './TripLoggerLoadingSkeleton';
 
 const TripLogger = () => {
   const { t } = useLanguage();
-  const { companies } = useCompanies();
   const { vans } = useVans();
 
   return (

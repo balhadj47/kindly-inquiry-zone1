@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, requireAuth } from '@/integrations/supabase/client';
 
 export const useLastTripKm = (vanId: string) => {
   const [lastKm, setLastKm] = useState<number | null>(null);
@@ -18,6 +18,9 @@ export const useLastTripKm = (vanId: string) => {
       setError(null);
       
       try {
+        // Require authentication
+        await requireAuth();
+        
         console.log('Fetching last trip km for van:', vanId);
         
         const { data, error } = await supabase

@@ -1,4 +1,5 @@
-import { supabase } from '@/integrations/supabase/client';
+
+import { supabase, requireAuth } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
 import { getTripCache, isTripCacheValid, setTripCache, getTripFetchPromise, setTripFetchPromise } from './TripCacheManager';
 
@@ -6,6 +7,9 @@ export const fetchTripsFromDatabase = async (useCache = true, limit?: number, of
   try {
     console.log('🚗 Starting to fetch trips data...');
     const startTime = performance.now();
+    
+    // Require authentication for all trip data access
+    await requireAuth();
     
     // Check cache first (only for full data requests)
     if (useCache && !limit && !offset && isTripCacheValid()) {
@@ -97,6 +101,9 @@ export const fetchTripsFromDatabase = async (useCache = true, limit?: number, of
 
 export const fetchTripsCount = async () => {
   try {
+    // Require authentication
+    await requireAuth();
+    
     const { count, error } = await (supabase as any)
       .from('trips')
       .select('*', { count: 'exact', head: true });
@@ -125,6 +132,9 @@ export const insertTripToDatabase = async (tripData: {
   startDate?: Date;
   endDate?: Date;
 }) => {
+  // Require authentication
+  await requireAuth();
+  
   console.log('Inserting trip with planned dates:', {
     startDate: tripData.startDate,
     endDate: tripData.endDate
@@ -175,6 +185,9 @@ export const insertTripToDatabase = async (tripData: {
 };
 
 export const updateTripInDatabase = async (tripId: number, endKm: number) => {
+  // Require authentication
+  await requireAuth();
+  
   // First get the trip to find the van ID
   const { data: tripData, error: tripError } = await (supabase as any)
     .from('trips')
@@ -222,6 +235,9 @@ export const updateTripInDatabase = async (tripId: number, endKm: number) => {
 };
 
 export const deleteTripFromDatabase = async (tripId: number) => {
+  // Require authentication
+  await requireAuth();
+  
   // First get the trip to find the van ID
   const { data: tripData, error: tripError } = await (supabase as any)
     .from('trips')

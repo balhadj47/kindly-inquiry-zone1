@@ -1,6 +1,5 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Navigate } from 'react-router-dom';
 
 interface Props {
   children: ReactNode;
@@ -34,18 +33,30 @@ class ErrorBoundary extends Component<Props, State> {
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Uncaught error:', error, errorInfo);
+    
+    // Use window.location for redirects to avoid React Router context issues
+    setTimeout(() => {
+      if (this.state.shouldRedirectToAuth) {
+        console.log('Server error detected, redirecting to auth page');
+        window.location.href = '/auth';
+      } else {
+        console.log('Application error detected, redirecting to dashboard');
+        window.location.href = '/dashboard';
+      }
+    }, 100);
   }
 
   public render() {
     if (this.state.hasError) {
-      if (this.state.shouldRedirectToAuth) {
-        console.log('Server error detected, redirecting to auth page');
-        return <Navigate to="/auth" replace />;
-      }
-      
-      // For other errors, redirect to dashboard
-      console.log('Application error detected, redirecting to dashboard');
-      return <Navigate to="/dashboard" replace />;
+      // Return a simple loading state instead of Navigate components
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Redirecting...</p>
+          </div>
+        </div>
+      );
     }
 
     return this.props.children;

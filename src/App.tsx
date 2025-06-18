@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -42,6 +42,15 @@ const AppLoadingSkeleton = () => (
 );
 
 const App: React.FC = () => {
+  const [isReactReady, setIsReactReady] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsReactReady(true);
+    }, 500); // Wait for React to be fully ready
+    return () => clearTimeout(timer);
+  }, []);
+
   if (import.meta.env.DEV) {
     console.log('🚀 App: Starting application...');
   }
@@ -50,7 +59,8 @@ const App: React.FC = () => {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <NetworkStatus />
+          {/* Only render NetworkStatus when React is ready */}
+          {isReactReady && <NetworkStatus />}
           <AuthProvider>
             <LanguageProvider>
               <RBACProvider>

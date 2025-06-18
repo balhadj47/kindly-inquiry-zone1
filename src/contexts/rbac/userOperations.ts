@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { SystemGroupName } from '@/types/systemGroups';
@@ -38,7 +39,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       }
 
       if (data && data[0]) {
-        const dbUser = data[0] as any; // Safe casting to access new fields
+        const dbUser = data[0] as any;
         const newUser: User = {
           id: dbUser.id.toString(),
           name: dbUser.name,
@@ -71,6 +72,18 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Updating user in database:', id, userData);
     
     try {
+      // First, get the current user to check if they have an auth account
+      const { data: currentUserData, error: fetchError } = await supabase
+        .from('users')
+        .select('email, auth_user_id')
+        .eq('id', parseInt(id))
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching current user:', fetchError);
+        throw new Error(`Failed to fetch current user: ${fetchError.message}`);
+      }
+
       const updateData: any = {
         name: userData.name,
         phone: userData.phone,
@@ -86,11 +99,13 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
-      // Only update email if it's provided
+      // Handle email updates
+      const emailChanged = userData.email !== undefined && userData.email !== currentUserData.email;
       if (userData.email !== undefined) {
         updateData.email = userData.email && userData.email.trim() !== '' ? userData.email : null;
       }
 
+      // Update the user record first
       const { data, error } = await supabase
         .from('users')
         .update(updateData)
@@ -102,8 +117,31 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw new Error(`Failed to update user: ${error.message}`);
       }
 
+      // If user has an auth account and email changed, update auth user
+      if (emailChanged && currentUserData.auth_user_id && userData.email) {
+        console.log('Updating auth user email for user:', id);
+        try {
+          // Note: This requires admin privileges in Supabase
+          const { error: authError } = await supabase.auth.admin.updateUserById(
+            currentUserData.auth_user_id,
+            { email: userData.email }
+          );
+
+          if (authError) {
+            console.error('Error updating auth user email:', authError);
+            // Log warning but don't fail the entire operation
+            console.warn('User data updated but auth email sync failed. Manual intervention may be required.');
+          } else {
+            console.log('Auth user email updated successfully');
+          }
+        } catch (authUpdateError) {
+          console.error('Error in auth user update:', authUpdateError);
+          console.warn('User data updated but auth email sync failed. Manual intervention may be required.');
+        }
+      }
+
       if (data && data[0]) {
-        const dbUser = data[0] as any; // Safe casting to access new fields
+        const dbUser = data[0] as any;
         const updatedUser: User = {
           id: dbUser.id.toString(),
           name: dbUser.name,
@@ -139,6 +177,19 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Deleting user from database:', id);
     
     try {
+      // First, get the user to check if they have an auth account
+      const { data: userData, error: fetchError } = await supabase
+        .from('users')
+        .select('auth_user_id, email')
+        .eq('id', parseInt(id))
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching user for deletion:', fetchError);
+        // Continue with deletion even if we can't fetch user data
+      }
+
+      // Delete from users table
       const { error } = await supabase
         .from('users')
         .delete()
@@ -147,6 +198,26 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       if (error) {
         console.error('Supabase error deleting user:', error);
         throw new Error(`Failed to delete user: ${error.message}`);
+      }
+
+      // If user has an auth account, delete it too
+      if (userData?.auth_user_id) {
+        console.log('Deleting auth user for user:', id);
+        try {
+          const { error: authError } = await supabase.auth.admin.deleteUser(
+            userData.auth_user_id
+          );
+
+          if (authError) {
+            console.error('Error deleting auth user:', authError);
+            console.warn('User deleted from database but auth user deletion failed. Manual cleanup may be required.');
+          } else {
+            console.log('Auth user deleted successfully');
+          }
+        } catch (authDeleteError) {
+          console.error('Error in auth user deletion:', authDeleteError);
+          console.warn('User deleted from database but auth user deletion failed. Manual cleanup may be required.');
+        }
       }
 
       console.log('User deleted from database successfully:', id);
@@ -159,7 +230,35 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
   const changeUserPassword = async (userEmail: string, newPassword: string) => {
     console.log('Changing password for user:', userEmail);
-    throw new Error('Password change requires backend implementation with admin privileges');
+    
+    try {
+      // Get user by email to find their auth_user_id
+      const { data: userData, error: fetchError } = await supabase
+        .from('users')
+        .select('auth_user_id')
+        .eq('email', userEmail)
+        .single();
+
+      if (fetchError || !userData?.auth_user_id) {
+        throw new Error('User not found or no auth account associated');
+      }
+
+      // Update password using admin API
+      const { error: passwordError } = await supabase.auth.admin.updateUserById(
+        userData.auth_user_id,
+        { password: newPassword }
+      );
+
+      if (passwordError) {
+        console.error('Error updating user password:', passwordError);
+        throw new Error(`Failed to update password: ${passwordError.message}`);
+      }
+
+      console.log('Password updated successfully for user:', userEmail);
+    } catch (error) {
+      console.error('Error in changeUserPassword operation:', error);
+      throw error;
+    }
   };
 
   return { addUser, updateUser, deleteUser, changeUserPassword };

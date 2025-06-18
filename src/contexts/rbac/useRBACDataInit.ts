@@ -38,9 +38,16 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
         setLoading(true);
 
         // Load data in parallel for better performance
+        console.log('📡 Loading system groups and users...');
         const [systemGroupsData, usersData] = await Promise.all([
-          loadRoles(),
-          loadUsers()
+          loadRoles().catch(error => {
+            console.error('❌ Error loading roles:', error);
+            return [];
+          }),
+          loadUsers().catch(error => {
+            console.error('❌ Error loading users:', error);
+            return [];
+          })
         ]);
 
         console.log('✅ Data loaded - System groups:', systemGroupsData.length, 'Users:', usersData.length);
@@ -71,6 +78,21 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
             setCurrentUser(basicUser);
             console.log('✅ Created basic user with Employee role');
           }
+        } else {
+          console.warn('⚠️ No users loaded from database');
+          // Still create a basic user for the auth user
+          const basicUser: User = {
+            id: authUser.id,
+            name: authUser.email.split('@')[0],
+            email: authUser.email,
+            phone: '',
+            systemGroup: 'Employee',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+            get role() { return this.systemGroup; }
+          };
+          setCurrentUser(basicUser);
+          console.log('✅ Created fallback user');
         }
 
         // Create permission utilities
@@ -78,11 +100,29 @@ export const useRBACDataInit = (state: RBACState, actions: RBACActions) => {
           console.log('🔧 Creating permission utilities...');
           createPermissionUtils(usersData, systemGroupsData);
           console.log('✅ Permission utilities ready');
+        } else {
+          console.warn('⚠️ No system groups loaded, permission utils not created');
         }
 
       } catch (error) {
         console.error('❌ RBAC initialization failed:', error);
-        // Don't leave the system in loading state on error
+        console.error('❌ Error stack:', error.stack);
+        
+        // Create fallback user even on error
+        if (authUser) {
+          const fallbackUser: User = {
+            id: authUser.id,
+            name: authUser.email.split('@')[0],
+            email: authUser.email,
+            phone: '',
+            systemGroup: 'Employee',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+            get role() { return this.systemGroup; }
+          };
+          setCurrentUser(fallbackUser);
+          console.log('✅ Created fallback user after error');
+        }
       } finally {
         setLoading(false);
         console.log('✅ RBAC initialization complete');

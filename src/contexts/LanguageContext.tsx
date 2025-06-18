@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { SupportedLanguage, TranslationKeys } from '@/types/language';
 import { translations } from '@/translations';
 
@@ -27,8 +27,15 @@ interface LanguageProviderProps {
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
   const [language, setLanguageState] = useState<SupportedLanguage>('fr');
+  const [isInitialized, setIsInitialized] = useState(false);
   
   console.log('LanguageProvider: Rendering with language:', language);
+  
+  useEffect(() => {
+    // Ensure context is properly initialized
+    setIsInitialized(true);
+    console.log('LanguageProvider: Context initialized');
+  }, []);
   
   const setLanguage = (lang: SupportedLanguage) => {
     console.log('LanguageProvider: Setting language to:', lang);
@@ -45,7 +52,16 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
     isRTL
   };
 
-  console.log('LanguageProvider: Context value created:', { language, isRTL });
+  console.log('LanguageProvider: Context value created:', { language, isRTL, isInitialized });
+
+  // Don't render children until context is properly initialized
+  if (!isInitialized) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <LanguageContext.Provider value={contextValue}>

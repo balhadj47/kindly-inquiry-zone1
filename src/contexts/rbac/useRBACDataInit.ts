@@ -2,7 +2,7 @@
 import { useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
-import { loadSystemGroups, loadUsers } from './dataLoaders';
+import { loadRoles, loadUsers } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
 
 interface UseRBACDataInitProps {
@@ -29,7 +29,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
         
         // Load both system groups and users in parallel
         const [systemGroups, users] = await Promise.all([
-          loadSystemGroups(),
+          loadRoles(),
           loadUsers()
         ]);
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useProgressiveLoadingContext } from '@/contexts/ProgressiveLoadingContext';
 import TripHistoryOptimizedSkeleton from './trip-history/TripHistoryOptimizedSkeleton';
@@ -12,10 +11,31 @@ const ProgressiveLoadingWrapper: React.FC<ProgressiveLoadingWrapperProps> = ({
   children, 
   fallback = <TripHistoryOptimizedSkeleton /> 
 }) => {
-  const { coreDataLoaded, isInitializing, error } = useProgressiveLoadingContext();
+  console.log('🔧 ProgressiveLoadingWrapper: Rendering...');
+  
+  let coreDataLoaded = false;
+  let isInitializing = true;
+  let error = null;
+  
+  try {
+    const context = useProgressiveLoadingContext();
+    coreDataLoaded = context.coreDataLoaded;
+    isInitializing = context.isInitializing;
+    error = context.error;
+    
+    console.log('🔧 ProgressiveLoadingWrapper: Context state', {
+      coreDataLoaded,
+      isInitializing,
+      error
+    });
+  } catch (contextError) {
+    console.warn('🔧 ProgressiveLoadingWrapper: Context not available, falling back to loading', contextError);
+    // Keep default values (loading state)
+  }
 
   // Show error state
   if (error) {
+    console.log('🔧 ProgressiveLoadingWrapper: Showing error state');
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
@@ -34,10 +54,12 @@ const ProgressiveLoadingWrapper: React.FC<ProgressiveLoadingWrapperProps> = ({
 
   // Show loading skeleton while core data is loading
   if (isInitializing || !coreDataLoaded) {
+    console.log('🔧 ProgressiveLoadingWrapper: Showing loading state');
     return <>{fallback}</>;
   }
 
   // Render children when core data is ready
+  console.log('🔧 ProgressiveLoadingWrapper: Rendering children');
   return <>{children}</>;
 };
 

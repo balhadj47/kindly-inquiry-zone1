@@ -16,8 +16,21 @@ import TripHistory from '@/components/TripHistory';
 import UserSettings from '@/pages/UserSettings';
 
 const AppContent = () => {
-  const { hasPermission } = useRBAC();
+  console.log('📱 AppContent: Rendering...');
+  
+  let hasPermission;
+  try {
+    const rbacContext = useRBAC();
+    hasPermission = rbacContext.hasPermission;
+    console.log('📱 AppContent: RBAC context loaded successfully');
+  } catch (error) {
+    console.error('📱 AppContent: Error accessing RBAC context:', error);
+    // Fallback: assume no permissions
+    hasPermission = () => false;
+  }
+  
   const isMobile = useIsMobile();
+  console.log('📱 AppContent: isMobile:', isMobile);
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
@@ -63,6 +76,7 @@ const AppContent = () => {
 };
 
 const Index = () => {
+  console.log('📱 Index: Rendering...');
   return <AppContent />;
 };
 

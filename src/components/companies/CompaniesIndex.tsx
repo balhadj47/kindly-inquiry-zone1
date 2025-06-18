@@ -11,6 +11,8 @@ import { useCompaniesState } from '@/hooks/useCompaniesState';
 
 const CompaniesIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
   const { data: companies = [], refetch } = useAllCompaniesWithBranches();
   const { invalidateCompanies } = useCompanyMutations();
   
@@ -36,6 +38,17 @@ const CompaniesIndex = () => {
     company.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const hasActiveFilters = searchTerm.length > 0;
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setCurrentPage(1);
+  };
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   const handleModalSuccess = () => {
     refetch();
     invalidateCompanies();
@@ -58,8 +71,13 @@ const CompaniesIndex = () => {
       ) : (
         <CompaniesGrid
           companies={filteredCompanies}
+          hasActiveFilters={hasActiveFilters}
+          clearFilters={clearFilters}
           onEditCompany={handleEditCompany}
           onDeleteCompany={handleDeleteCompany}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={handlePageChange}
         />
       )}
 

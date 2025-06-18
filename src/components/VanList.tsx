@@ -91,9 +91,10 @@ const VanList = React.memo(({
 
   const virtualizedData = {
     vans,
-    onEdit: onEditVan,
+    onEditVan,
     onQuickAction,
-    onDelete: onDeleteVan
+    onDeleteVan,
+    onNavigate: handleVanClick
   };
 
   if (useVirtualization) {
@@ -117,11 +118,7 @@ const VanList = React.memo(({
           Affichage de {filteredVans.length} sur {totalVans} camionnettes
         </div>
       )}
-      <div className={`grid gap-4 sm:gap-6 ${
-        isMobile 
-          ? 'grid-cols-1' 
-          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
-      }`}>
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {filteredVans.map((van) => (
           <div
             key={van.id}

@@ -14,6 +14,9 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
+// Lazy load NetworkStatus to avoid hooks initialization issues
+const NetworkStatus = lazy(() => import("./components/NetworkStatus"));
+
 // Optimize QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +40,12 @@ const AppLoadingSkeleton = () => (
         <Skeleton className="h-2 w-2 rounded-full" />
       </div>
     </div>
+  </div>
+);
+
+const NetworkStatusFallback = () => (
+  <div className="hidden">
+    {/* Network status loading or error - hidden fallback */}
   </div>
 );
 
@@ -69,6 +78,15 @@ const App = () => {
               <RBACProvider>
                 <TripProvider>
                   <ProgressiveLoadingProvider>
+                    {/* Network Status with Suspense and lazy loading */}
+                    {isReactReady && (
+                      <ErrorBoundary fallback={<NetworkStatusFallback />}>
+                        <Suspense fallback={<NetworkStatusFallback />}>
+                          <NetworkStatus />
+                        </Suspense>
+                      </ErrorBoundary>
+                    )}
+                    
                     <Suspense fallback={<AppLoadingSkeleton />}>
                       <Routes>
                         <Route path="/*" element={<Index />} />

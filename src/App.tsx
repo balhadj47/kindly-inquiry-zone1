@@ -5,6 +5,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RBACProvider } from "@/contexts/RBACContext";
+import { RBACDebugProvider } from "@/contexts/rbac/RBACDebugProvider";
 import { TripProvider } from "@/contexts/TripContext";
 import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,6 +43,8 @@ const AppLoadingSkeleton = () => (
 
 const App = () => {
   console.log('🚀 App: Functional component render');
+  console.log('🔍 React version check:', React.version);
+  console.log('🔍 useState available:', !!React.useState);
   
   return (
     <ErrorBoundary>
@@ -49,18 +52,20 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
-              <RBACProvider>
-                <TripProvider>
-                  <ProgressiveLoadingProvider>
-                    <Suspense fallback={<AppLoadingSkeleton />}>
-                      <Routes>
-                        <Route path="/*" element={<Index />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </ProgressiveLoadingProvider>
-                </TripProvider>
-              </RBACProvider>
+              <RBACDebugProvider>
+                <RBACProvider>
+                  <TripProvider>
+                    <ProgressiveLoadingProvider>
+                      <Suspense fallback={<AppLoadingSkeleton />}>
+                        <Routes>
+                          <Route path="/*" element={<Index />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </ProgressiveLoadingProvider>
+                  </TripProvider>
+                </RBACProvider>
+              </RBACDebugProvider>
             </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { RBACContext } from './context';
-import { useRBACStateNew } from './useRBACStateNew';
+import { useRBACStateClean } from './useRBACStateClean';
 import { useRBACDataInit } from './useRBACDataInit';
 import { useRBACOperations } from './useRBACOperations';
 
@@ -18,7 +18,7 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPermissions,
     setLoading,
     setUser,
-  } = useRBACStateNew();
+  } = useRBACStateClean();
 
   const state = {
     currentUser,

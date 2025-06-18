@@ -93,11 +93,8 @@ const UsersTab: React.FC<UsersTabProps> = ({
           setStatusFilter={setStatusFilter}
           roleFilter={roleFilter}
           setRoleFilter={setRoleFilter}
-          groupFilter="all"
-          setGroupFilter={() => {}}
           uniqueStatuses={uniqueStatuses}
           uniqueRoles={uniqueRoles}
-          groups={[]}
           filteredCount={filteredUsers.length}
           totalCount={safeUsers.length}
           hasActiveFilters={hasActiveFilters}

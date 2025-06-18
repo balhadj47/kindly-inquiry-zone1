@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, Filter, Shield, Users as UsersIcon, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, Shield, X, ChevronDown, ChevronUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface UserFiltersProps {
@@ -15,11 +15,8 @@ interface UserFiltersProps {
   setStatusFilter: (status: string) => void;
   roleFilter: string;
   setRoleFilter: (role: string) => void;
-  groupFilter: string;
-  setGroupFilter: (group: string) => void;
   uniqueStatuses: string[];
   uniqueRoles: string[];
-  groups: any[];
   filteredCount: number;
   totalCount: number;
   hasActiveFilters: boolean;
@@ -33,11 +30,8 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   setStatusFilter,
   roleFilter,
   setRoleFilter,
-  groupFilter,
-  setGroupFilter,
   uniqueStatuses,
   uniqueRoles,
-  groups,
   filteredCount,
   totalCount,
   hasActiveFilters,
@@ -49,7 +43,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({
   // Add comprehensive safety checks and default values
   const safeUniqueStatuses = Array.isArray(uniqueStatuses) ? uniqueStatuses.filter(Boolean) : [];
   const safeUniqueRoles = Array.isArray(uniqueRoles) ? uniqueRoles.filter(Boolean) : [];
-  const safeGroups = Array.isArray(groups) ? groups.filter(group => group && group.id && group.name) : [];
   const safeFilteredCount = typeof filteredCount === 'number' && !isNaN(filteredCount) ? filteredCount : 0;
   const safeTotalCount = typeof totalCount === 'number' && !isNaN(totalCount) ? totalCount : 0;
   const safeSearchTerm = typeof searchTerm === 'string' ? searchTerm : '';
@@ -79,14 +72,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({
     }
   };
 
-  const handleGroupChange = (value: string) => {
-    try {
-      setGroupFilter(value || 'all');
-    } catch (error) {
-      console.error('Error updating group filter:', error);
-    }
-  };
-
   const handleClearFilters = () => {
     try {
       clearFilters();
@@ -98,20 +83,12 @@ const UserFilters: React.FC<UserFiltersProps> = ({
     }
   };
 
-  // Find group name safely
-  const getGroupName = (groupId: string) => {
-    const group = safeGroups.find(g => g.id === groupId);
-    return group?.name || 'Groupe inconnu';
-  };
-
   console.log('UserFilters - Rendering with safe data:', {
     searchTerm: safeSearchTerm,
     statusFilter,
     roleFilter,
-    groupFilter,
     uniqueStatuses: safeUniqueStatuses.length,
     uniqueRoles: safeUniqueRoles.length,
-    groups: safeGroups.length,
     filteredCount: safeFilteredCount,
     totalCount: safeTotalCount,
     isMobile
@@ -145,7 +122,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
                   <span>Filtres</span>
                   {hasActiveFilters && (
                     <Badge variant="secondary" className="ml-2">
-                      {[statusFilter !== 'all', roleFilter !== 'all', groupFilter !== 'all'].filter(Boolean).length}
+                      {[statusFilter !== 'all', roleFilter !== 'all'].filter(Boolean).length}
                     </Badge>
                   )}
                 </div>
@@ -180,19 +157,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({
                     </SelectContent>
                   </Select>
 
-                  <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
-                    <SelectTrigger>
-                      <UsersIcon className="h-4 w-4 mr-2" />
-                      <SelectValue placeholder="Filtrer par groupe" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border shadow-lg z-50">
-                      <SelectItem value="all">Tous les Groupes</SelectItem>
-                      {safeGroups.map(group => (
-                        <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
                   {hasActiveFilters && (
                     <Button variant="outline" onClick={handleClearFilters} className="w-full flex items-center justify-center space-x-2">
                       <X className="h-4 w-4" />
@@ -204,7 +168,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
             </div>
           ) : (
             /* Desktop: Horizontal filters */
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Select value={statusFilter || 'all'} onValueChange={handleStatusChange}>
                 <SelectTrigger>
                   <Filter className="h-4 w-4 mr-2" />
@@ -231,19 +195,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({
                 </SelectContent>
               </Select>
 
-              <Select value={groupFilter || 'all'} onValueChange={handleGroupChange}>
-                <SelectTrigger>
-                  <UsersIcon className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filtrer par groupe" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border shadow-lg z-50">
-                  <SelectItem value="all">Tous les Groupes</SelectItem>
-                  {safeGroups.map(group => (
-                    <SelectItem key={group.id} value={group.id}>{group.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
               {hasActiveFilters && (
                 <Button variant="outline" onClick={handleClearFilters} className="flex items-center space-x-2">
                   <X className="h-4 w-4" />
@@ -265,11 +216,6 @@ const UserFilters: React.FC<UserFiltersProps> = ({
                 {safeSearchTerm && <Badge variant="secondary">Recherche: "{safeSearchTerm.substring(0, 20)}{safeSearchTerm.length > 20 ? '...' : ''}"</Badge>}
                 {statusFilter !== 'all' && <Badge variant="secondary">Statut: {statusFilter}</Badge>}
                 {roleFilter !== 'all' && <Badge variant="secondary">Rôle: {roleFilter}</Badge>}
-                {groupFilter !== 'all' && (
-                  <Badge variant="secondary">
-                    Groupe: {getGroupName(groupFilter)}
-                  </Badge>
-                )}
               </div>
             )}
           </div>

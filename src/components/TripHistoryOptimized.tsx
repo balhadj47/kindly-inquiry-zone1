@@ -7,7 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Calendar, MapPin, Truck, Plus, Filter } from 'lucide-react';
-import { useTrips, useTripMutations } from '@/hooks/useTripsOptimized';
+import { useTrips } from '@/hooks/trips/useTripsQuery';
+import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { format } from 'date-fns';
 
 const TripHistoryLoadingSkeleton = () => (

@@ -43,7 +43,7 @@ const Index = () => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsReady(true);
-    }, 200); // Increased delay to ensure React is fully ready
+    }, 500); // Further increased delay to ensure React is fully ready
     return () => clearTimeout(timer);
   }, []);
   
@@ -66,8 +66,14 @@ const Index = () => {
 
   return (
     <>
-      <Toaster />
-      <Sonner />
+      {/* Only render toast components when React is ready */}
+      {isReady && (
+        <>
+          <Toaster />
+          <Sonner />
+        </>
+      )}
+      
       <TooltipProvider>
         <SidebarProvider defaultOpen={!isMobile}>
           <div className="min-h-screen flex w-full overflow-hidden">

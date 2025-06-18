@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
 import { insertTripToDatabase, fetchTripsFromDatabase, updateTripInDatabase, deleteTripFromDatabase } from './trip/TripDatabaseOperations';
 import { transformDatabaseTrips } from './trip/tripTransformers';
@@ -9,22 +9,36 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const isMountedRef = useRef(true);
 
-  const loadTrips = async () => {
+  const loadTrips = async (useCache = true) => {
     try {
-      const data = await fetchTripsFromDatabase();
+      console.log('🚗 TripProvider: Loading trips...');
+      const data = await fetchTripsFromDatabase(useCache);
       const transformedTrips = transformDatabaseTrips(data);
       console.log('Transformed trips with dates:', transformedTrips);
-      setTrips(transformedTrips);
-      setError(null);
+      
+      if (isMountedRef.current) {
+        setTrips(transformedTrips);
+        setError(null);
+      }
     } catch (error) {
       console.error('Error loading trips:', error);
-      setError('Failed to load trips');
+      if (isMountedRef.current) {
+        setError('Failed to load trips');
+      }
     }
   };
 
   useEffect(() => {
+    console.log('🚗 TripProvider: useEffect triggered - component mounted');
+    isMountedRef.current = true;
     loadTrips();
+    
+    return () => {
+      console.log('🚗 TripProvider: Cleanup - component unmounting');
+      isMountedRef.current = false;
+    };
   }, []);
 
   const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
@@ -59,7 +73,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const newTrip = await insertTripToDatabase(tripToInsert);
       console.log('TripProvider: Trip inserted successfully:', newTrip);
       
-      await loadTrips();
+      // Force refresh without cache
+      await loadTrips(false);
       setError(null);
     } catch (error) {
       console.error('TripProvider: Error adding trip:', error);
@@ -72,7 +87,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const deleteTrip = async (tripId: number) => {
     try {
       await deleteTripFromDatabase(tripId);
-      await loadTrips();
+      // Force refresh without cache
+      await loadTrips(false);
       setError(null);
     } catch (error) {
       console.error('Error deleting trip:', error);
@@ -84,7 +100,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const endTrip = async (tripId: number, endKm: number) => {
     try {
       await updateTripInDatabase(tripId, endKm);
-      await loadTrips();
+      // Force refresh without cache
+      await loadTrips(false);
       setError(null);
     } catch (error) {
       console.error('Error ending trip:', error);
@@ -94,7 +111,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const refreshTrips = async () => {
-    await loadTrips();
+    console.log('🚗 TripProvider: Force refreshing trips...');
+    await loadTrips(false);
   };
 
   const value: TripContextType = {

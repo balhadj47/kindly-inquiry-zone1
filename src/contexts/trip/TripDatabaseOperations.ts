@@ -1,20 +1,63 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
+import { getTripCache, isTripCacheValid, setTripCache, getTripFetchPromise, setTripFetchPromise } from './TripCacheManager';
 
-export const fetchTripsFromDatabase = async () => {
-  const { data, error } = await (supabase as any)
-    .from('trips')
-    .select('*')
-    .order('created_at', { ascending: false });
+export const fetchTripsFromDatabase = async (useCache = true) => {
+  try {
+    console.log('🚗 Starting to fetch trips data...');
+    const startTime = performance.now();
+    
+    // Check cache first
+    if (useCache && isTripCacheValid()) {
+      const cache = getTripCache();
+      if (cache) {
+        console.log('🚗 Using cached trips data');
+        return cache.data;
+      }
+    }
 
-  if (error) {
-    console.error('Trips error:', error);
+    // If there's already a fetch in progress, wait for it
+    const existingPromise = getTripFetchPromise();
+    if (existingPromise) {
+      console.log('🚗 Waiting for existing trips fetch...');
+      return await existingPromise;
+    }
+
+    // Start new fetch
+    const fetchPromise = (async () => {
+      const { data, error } = await (supabase as any)
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Trips error:', error);
+        throw error;
+      }
+
+      const tripsData = data || [];
+      
+      // Update cache
+      setTripCache(tripsData);
+      
+      console.log('🚗 Successfully fetched trips data in:', performance.now() - startTime, 'ms');
+      return tripsData;
+    })();
+
+    setTripFetchPromise(fetchPromise);
+    
+    try {
+      const result = await fetchPromise;
+      return result;
+    } finally {
+      setTripFetchPromise(null);
+    }
+  } catch (error) {
+    console.error('🚗 Error fetching trips:', error);
+    setTripFetchPromise(null);
     throw error;
   }
-
-  console.log('Fetched trips:', data);
-  return data || [];
 };
 
 export const insertTripToDatabase = async (tripData: {
@@ -58,6 +101,11 @@ export const insertTripToDatabase = async (tripData: {
   }
 
   console.log('Trip added successfully:', data);
+  
+  // Clear cache to force refresh on next load
+  const { clearTripCache } = await import('./TripCacheManager');
+  clearTripCache();
+  
   return data;
 };
 
@@ -76,6 +124,10 @@ export const updateTripInDatabase = async (tripId: number, endKm: number) => {
   }
 
   console.log('Trip ended successfully:', tripId);
+  
+  // Clear cache to force refresh on next load
+  const { clearTripCache } = await import('./TripCacheManager');
+  clearTripCache();
 };
 
 export const deleteTripFromDatabase = async (tripId: number) => {
@@ -90,4 +142,8 @@ export const deleteTripFromDatabase = async (tripId: number) => {
   }
 
   console.log('Trip deleted successfully:', tripId);
+  
+  // Clear cache to force refresh on next load
+  const { clearTripCache } = await import('./TripCacheManager');
+  clearTripCache();
 };

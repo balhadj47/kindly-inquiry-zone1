@@ -7,13 +7,28 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
-import Dashboard from '@/components/Dashboard';
-import Companies from '@/components/Companies';
-import Vans from '@/components/Vans';
-import Users from '@/components/Users';
-import TripLogger from '@/components/TripLogger';
-import TripHistory from '@/components/TripHistory';
-import UserSettings from '@/pages/UserSettings';
+import { Suspense } from 'react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+// Lazy load all page components
+const Dashboard = React.lazy(() => import('@/components/Dashboard'));
+const Companies = React.lazy(() => import('@/components/Companies'));
+const Vans = React.lazy(() => import('@/components/Vans'));
+const Users = React.lazy(() => import('@/components/Users'));
+const TripLogger = React.lazy(() => import('@/components/TripLogger'));
+const TripHistory = React.lazy(() => import('@/components/TripHistory'));
+const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
+
+const PageLoadingSkeleton = () => (
+  <div className="space-y-6 p-6">
+    <Skeleton className="h-8 w-64" />
+    <div className="grid gap-6">
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  </div>
+);
 
 const Index = () => {
   console.log('📱 Index: Rendering main app...');
@@ -43,27 +58,29 @@ const Index = () => {
           <main className={`flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden ${
             isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
           }`}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/companies/*" element={
-                hasPermission('companies:read') ? <Companies /> : <div>Access Denied</div>
-              } />
-              <Route path="/vans" element={
-                hasPermission('vans:read') ? <Vans /> : <div>Access Denied</div>
-              } />
-              <Route path="/users" element={
-                hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
-              } />
-              <Route path="/trip-logger" element={
-                hasPermission('trips:create') ? <TripLogger /> : <div>Access Denied</div>
-              } />
-              <Route path="/trip-history" element={
-                hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>
-              } />
-              <Route path="/settings" element={<UserSettings />} />
-              <Route path="/user-settings" element={<UserSettings />} />
-            </Routes>
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/companies/*" element={
+                  hasPermission('companies:read') ? <Companies /> : <div>Access Denied</div>
+                } />
+                <Route path="/vans" element={
+                  hasPermission('vans:read') ? <Vans /> : <div>Access Denied</div>
+                } />
+                <Route path="/users" element={
+                  hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
+                } />
+                <Route path="/trip-logger" element={
+                  hasPermission('trips:create') ? <TripLogger /> : <div>Access Denied</div>
+                } />
+                <Route path="/trip-history" element={
+                  hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>
+                } />
+                <Route path="/settings" element={<UserSettings />} />
+                <Route path="/user-settings" element={<UserSettings />} />
+              </Routes>
+            </Suspense>
           </main>
         </div>
         

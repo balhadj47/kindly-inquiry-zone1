@@ -24,8 +24,7 @@ const SidebarMenuContent = () => {
     const { t } = useLanguage();
     const location = useLocation();
 
-    console.log('🔍 SidebarMenuContent render - Loading:', loading, 'User:', currentUser?.email);
-    console.log('🔍 Translation object t:', t);
+    console.log('🔍 SidebarMenuContent render - Loading:', loading, 'User:', currentUser?.email, 'SystemGroup:', currentUser?.systemGroup);
 
     const menuItems = [
       {
@@ -56,7 +55,7 @@ const SidebarMenuContent = () => {
         title: t?.logTrip || 'Log Trip',
         url: '/trip-logger',
         icon: MapPin,
-        permission: 'trips:read',
+        permission: 'trips:create',
       },
       {
         title: t?.tripHistory || 'Trip History',
@@ -74,9 +73,9 @@ const SidebarMenuContent = () => {
 
     console.log('🔍 Menu items defined:', menuItems.map(item => ({ title: item.title, permission: item.permission })));
 
-    // Show loading skeleton while RBAC initializes
-    if (loading) {
-      console.log('🔄 SidebarMenuContent: Showing loading skeleton');
+    // Don't show loading skeleton if we have a current user
+    if (loading && !currentUser) {
+      console.log('🔄 SidebarMenuContent: Showing loading skeleton - no user yet');
       return (
         <SidebarMenu>
           {[1, 2, 3, 4].map((i) => (
@@ -106,6 +105,11 @@ const SidebarMenuContent = () => {
         return hasAccess;
       } catch (error) {
         console.error(`❌ Error checking permission for ${item.title}:`, error);
+        // For administrators, show the item even if permission check fails
+        if (currentUser?.systemGroup === 'Administrator') {
+          console.log(`🔧 Admin fallback: showing ${item.title} for administrator`);
+          return true;
+        }
         return false;
       }
     });
@@ -114,7 +118,7 @@ const SidebarMenuContent = () => {
     console.log('🔍 Final menu items:', filteredItems.map(item => item.title));
 
     // Always show at least dashboard and settings if no other items are available
-    const finalItems = filteredItems.length > 0 ? filteredItems : [
+    const finalItems = filteredItems.length > 2 ? filteredItems : [
       menuItems[0], // Dashboard
       menuItems[menuItems.length - 1] // Settings
     ];

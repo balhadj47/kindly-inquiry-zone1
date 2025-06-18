@@ -25,14 +25,21 @@ export const useRBAC = () => {
         return false;
       }
 
-      if (loading) {
-        console.log('⏳ RBAC still loading, allowing access temporarily:', permission);
-        return true; // Allow access while loading to prevent UI flash
+      // Special handling for admin temporary user
+      if (currentUser.id === 'admin-temp' && currentUser.systemGroup === 'Administrator') {
+        console.log('🔓 Admin temp user - granting all permissions:', permission);
+        return true;
+      }
+
+      if (loading && roles.length === 0) {
+        console.log('⏳ RBAC still loading with no roles, denying access:', permission);
+        return false;
       }
 
       if (!roles || roles.length === 0) {
-        console.warn('⚠️ No roles loaded, denying permission:', permission);
-        return false;
+        console.warn('⚠️ No roles loaded, checking if administrator:', permission);
+        // Fallback for administrators when roles aren't loaded yet
+        return currentUser.systemGroup === 'Administrator';
       }
 
       const result = checkPermission(currentUser.id.toString(), permission);
@@ -46,6 +53,12 @@ export const useRBAC = () => {
         roles: roles?.length,
         loading
       });
+      
+      // Fallback for administrators in case of errors
+      if (currentUser?.systemGroup === 'Administrator') {
+        console.log('🔧 Fallback: granting admin access due to error');
+        return true;
+      }
       return false;
     }
   };

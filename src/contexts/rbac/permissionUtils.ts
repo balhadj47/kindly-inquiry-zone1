@@ -32,12 +32,26 @@ export const hasPermission = (userId: string, permission: string): boolean => {
   }
 
   try {
+    // Special handling for admin temp user
+    if (userId === 'admin-temp') {
+      console.log('🔓 Admin temp user detected, granting permission:', permission);
+      permissionCache.set(cacheKey, true);
+      return true;
+    }
+
     // Find user
     const user = usersData.find(u => u.id.toString() === userId.toString());
     if (!user) {
       console.warn(`⚠️ User not found: ${userId}`);
       permissionCache.set(cacheKey, false);
       return false;
+    }
+
+    // Special handling for Administrator system group
+    if (user.systemGroup === 'Administrator') {
+      console.log('🔓 Administrator user detected, granting permission:', permission);
+      permissionCache.set(cacheKey, true);
+      return true;
     }
 
     // Find system group

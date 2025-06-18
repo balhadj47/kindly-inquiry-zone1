@@ -49,23 +49,23 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   const isControlExpired = controlDate && controlDate < today;
 
   return (
-    <Card className="hover:shadow-lg transition-all duration-200 hover:scale-[1.02] focus:outline focus:ring-2 focus:ring-ring">
+    <Card className="w-full h-full hover:shadow-lg transition-all duration-200 hover:scale-[1.02] focus:outline focus:ring-2 focus:ring-ring">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-start space-x-3">
-            <div className="bg-blue-100 p-2 rounded-lg">
+          <div className="flex items-start space-x-3 min-w-0 flex-1">
+            <div className="bg-blue-100 p-2 rounded-lg flex-shrink-0">
               <Car className="h-5 w-5 text-blue-600" />
             </div>
-            <div>
-              <CardTitle className="text-lg">{van.model}</CardTitle>
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-lg truncate">{van.model}</CardTitle>
               <div className="flex items-center text-sm text-gray-500 mt-1">
-                <Calendar className="h-3 w-3 mr-1" />
-                {van.license_plate}
+                <Calendar className="h-3 w-3 mr-1 flex-shrink-0" />
+                <span className="truncate">{van.license_plate}</span>
               </div>
             </div>
           </div>
           {van.status && (
-            <Badge className={`${getStatusColor(van.status)} font-medium`}>
+            <Badge className={`${getStatusColor(van.status)} font-medium flex-shrink-0 ml-2`}>
               {van.status}
             </Badge>
           )}
@@ -76,23 +76,23 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
         {/* Van Information */}
         <div className="space-y-2">
           {van.reference_code && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700">Code: {van.reference_code}</span>
+              <span className="text-sm text-gray-700 truncate">Code: {van.reference_code}</span>
             </div>
           )}
           
           {van.insurer && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <Shield className="h-4 w-4 text-gray-500 flex-shrink-0" />
-              <span className="text-sm text-gray-700">Assureur: {van.insurer}</span>
+              <span className="text-sm text-gray-700 truncate">Assureur: {van.insurer}</span>
             </div>
           )}
           
           {van.insurance_date && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <Calendar className={`h-4 w-4 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
-              <span className={`text-sm ${isInsuranceExpired ? 'text-red-700' : 'text-gray-700'}`}>
+              <span className={`text-sm truncate ${isInsuranceExpired ? 'text-red-700' : 'text-gray-700'}`}>
                 Assurance: {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
                 {isInsuranceExpired && (
                   <span className="ml-1 text-red-600 font-medium">(Expirée)</span>
@@ -102,9 +102,9 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
           )}
           
           {van.control_date && (
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-2 min-w-0">
               <Calendar className={`h-4 w-4 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
-              <span className={`text-sm ${isControlExpired ? 'text-red-700' : 'text-gray-700'}`}>
+              <span className={`text-sm truncate ${isControlExpired ? 'text-red-700' : 'text-gray-700'}`}>
                 Contrôle: {format(new Date(van.control_date), 'dd/MM/yyyy')}
                 {isControlExpired && (
                   <span className="ml-1 text-red-600 font-medium">(Expiré)</span>
@@ -117,9 +117,9 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
         {/* Notes */}
         {van.notes && (
           <div className="border-t pt-3">
-            <div className="flex items-center space-x-2">
-              <FileText className="h-4 w-4 text-gray-500" />
-              <span className="text-sm">
+            <div className="flex items-center space-x-2 min-w-0">
+              <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+              <span className="text-sm truncate">
                 Notes: {van.notes.slice(0, 50)}{van.notes.length > 50 && '...'}
               </span>
             </div>

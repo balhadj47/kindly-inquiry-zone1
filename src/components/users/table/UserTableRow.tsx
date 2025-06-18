@@ -15,22 +15,52 @@ interface UserTableRowProps {
   onChangePassword: (user: User) => void;
 }
 
-const UserTableRow: React.FC<UserTableRowProps> = ({
+const UserTableRow: React.FC<UserTableRowProps> = React.memo(({
   user,
   onEditUser,
   onDeleteUser,
   onChangePassword,
 }) => {
+  const avatarSrc = React.useMemo(() => 
+    user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`,
+    [user.profileImage, user.name]
+  );
+
+  const userInitials = React.useMemo(() => 
+    getUserInitials(user.name),
+    [user.name]
+  );
+
+  const roleColorClasses = React.useMemo(() => 
+    getRoleColor(user.systemGroup),
+    [user.systemGroup]
+  );
+
+  const statusColorClasses = React.useMemo(() => 
+    getStatusColor(user.status),
+    [user.status]
+  );
+
+  const lastTripDate = React.useMemo(() => 
+    user.lastTrip ? new Date(user.lastTrip).toLocaleDateString('fr-FR') : null,
+    [user.lastTrip]
+  );
+
+  const createdAtDate = React.useMemo(() => 
+    new Date(user.createdAt).toLocaleDateString('fr-FR'),
+    [user.createdAt]
+  );
+
   return (
     <TableRow key={user.id} className="hover:bg-muted/50">
       <TableCell>
         <Avatar className="h-8 w-8">
           <AvatarImage 
-            src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+            src={avatarSrc}
             alt={user.name}
           />
           <AvatarFallback className="text-xs">
-            {getUserInitials(user.name)}
+            {userInitials}
           </AvatarFallback>
         </Avatar>
       </TableCell>
@@ -45,7 +75,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TableCell>
         <Badge 
           variant="outline" 
-          className={`text-xs ${getRoleColor(user.systemGroup)}`}
+          className={`text-xs ${roleColorClasses}`}
         >
           {user.systemGroup}
         </Badge>
@@ -54,7 +84,7 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TableCell>
         <Badge 
           variant="outline"
-          className={`text-xs ${getStatusColor(user.status)}`}
+          className={`text-xs ${statusColorClasses}`}
         >
           {user.status}
         </Badge>
@@ -76,16 +106,16 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       <TableCell>
         <div className="text-sm">
           <div className="font-medium">{user.totalTrips || 0}</div>
-          {user.lastTrip && (
+          {lastTripDate && (
             <div className="text-muted-foreground text-xs">
-              Dernier: {new Date(user.lastTrip).toLocaleDateString('fr-FR')}
+              Dernier: {lastTripDate}
             </div>
           )}
         </div>
       </TableCell>
       
       <TableCell className="text-sm text-muted-foreground">
-        {new Date(user.createdAt).toLocaleDateString('fr-FR')}
+        {createdAtDate}
       </TableCell>
       
       <TableCell>
@@ -98,6 +128,8 @@ const UserTableRow: React.FC<UserTableRowProps> = ({
       </TableCell>
     </TableRow>
   );
-};
+});
+
+UserTableRow.displayName = 'UserTableRow';
 
 export default UserTableRow;

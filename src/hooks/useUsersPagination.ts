@@ -21,6 +21,14 @@ export const useUsersPagination = ({
 }: UseUsersPaginationProps) => {
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Memoize filter dependencies to optimize useEffect
+  const filterDependencies = useMemo(() => ({
+    searchTerm,
+    statusFilter,
+    roleFilter,
+    view
+  }), [searchTerm, statusFilter, roleFilter, view]);
+
   // Safe page change handler
   const handlePageChange = useCallback((page: number) => {
     try {
@@ -31,18 +39,19 @@ export const useUsersPagination = ({
     }
   }, []);
 
-  // Reset to first page when filters change
+  // Reset to first page when filters change - optimized with memoized dependencies
   useEffect(() => {
     console.log('useUsersPagination - Resetting to page 1 due to filter change');
     setCurrentPage(1);
-  }, [searchTerm, statusFilter, roleFilter, view]);
+  }, [filterDependencies]);
 
-  // Calculate pagination safely
+  // Calculate pagination safely with optimized calculations
   const pagination = useMemo(() => {
-    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / itemsPerPage));
+    const safeItemsPerPage = Math.max(1, itemsPerPage);
+    const totalPages = Math.max(1, Math.ceil(filteredUsers.length / safeItemsPerPage));
     const safeCurrentPage = Math.min(Math.max(1, currentPage), totalPages);
-    const startIndex = (safeCurrentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const startIndex = (safeCurrentPage - 1) * safeItemsPerPage;
+    const endIndex = startIndex + safeItemsPerPage;
     const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
     return {

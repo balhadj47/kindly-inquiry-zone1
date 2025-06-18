@@ -15,7 +15,7 @@ interface UserFormFieldsProps {
   userId?: string;
 }
 
-const UserFormFields: React.FC<UserFormFieldsProps> = ({
+const UserFormFields: React.FC<UserFormFieldsProps> = React.memo(({
   control,
   isSubmitting,
   watchedRole,
@@ -23,7 +23,10 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
   onEmailValidationChange,
   userId,
 }) => {
-  const isEmployee = watchedRole === 'Employee';
+  const isEmployee = React.useMemo(() => 
+    watchedRole === 'Employee', 
+    [watchedRole]
+  );
 
   return (
     <>
@@ -41,7 +44,6 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
         isSubmitting={isSubmitting}
       />
 
-      {/* Employee-specific fields - only show for Employee role */}
       {isEmployee && (
         <EmployeeFields
           control={control}
@@ -50,6 +52,8 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
       )}
     </>
   );
-};
+});
+
+UserFormFields.displayName = 'UserFormFields';
 
 export default UserFormFields;

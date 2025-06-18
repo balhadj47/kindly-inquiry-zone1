@@ -24,6 +24,26 @@ export const useUsersFiltering = ({
     return users.filter(user => user && typeof user === 'object' && user.id);
   }, [users]);
 
+  // Memoize search term processing
+  const normalizedSearchTerm = useMemo(() => 
+    typeof searchTerm === 'string' ? searchTerm.toLowerCase().trim() : '',
+    [searchTerm]
+  );
+
+  // Memoize filter functions for better performance
+  const filterFunctions = useMemo(() => ({
+    searchFilter: (user: User) => {
+      if (!normalizedSearchTerm) return true;
+      return (
+        (user.name && user.name.toLowerCase().includes(normalizedSearchTerm)) ||
+        (user.email && user.email.toLowerCase().includes(normalizedSearchTerm)) ||
+        (user.licenseNumber && user.licenseNumber.toLowerCase().includes(normalizedSearchTerm))
+      );
+    },
+    statusFilter: (user: User) => !statusFilter || statusFilter === 'all' || user.status === statusFilter,
+    roleFilter: (user: User) => !roleFilter || roleFilter === 'all' || user.systemGroup === roleFilter
+  }), [normalizedSearchTerm, statusFilter, roleFilter]);
+
   // Memoize filtered users to prevent unnecessary recalculations
   const filteredUsers = useMemo(() => {
     try {
@@ -33,31 +53,28 @@ export const useUsersFiltering = ({
           return false;
         }
 
-        const safeSearchTerm = typeof searchTerm === 'string' ? searchTerm.toLowerCase() : '';
-        
-        const matchesSearch = !safeSearchTerm || 
-          (user.name && user.name.toLowerCase().includes(safeSearchTerm)) ||
-          (user.email && user.email.toLowerCase().includes(safeSearchTerm)) ||
-          (user.licenseNumber && user.licenseNumber.toLowerCase().includes(safeSearchTerm));
-
-        const matchesStatus = !statusFilter || statusFilter === 'all' || user.status === statusFilter;
-        const matchesRole = !roleFilter || roleFilter === 'all' || user.systemGroup === roleFilter;
-
-        return matchesSearch && matchesStatus && matchesRole;
+        return (
+          filterFunctions.searchFilter(user) &&
+          filterFunctions.statusFilter(user) &&
+          filterFunctions.roleFilter(user)
+        );
       });
     } catch (error) {
       console.error('Error filtering users:', error);
       return [];
     }
-  }, [safeUsers, searchTerm, statusFilter, roleFilter]);
+  }, [safeUsers, filterFunctions]);
 
-  // Memoize unique values
+  // Memoize unique values with better performance
   const uniqueStatuses = useMemo(() => {
     try {
-      const statuses = safeUsers
-        .map(user => user?.status)
-        .filter(status => status && typeof status === 'string');
-      return [...new Set(statuses)];
+      const statusSet = new Set<string>();
+      safeUsers.forEach(user => {
+        if (user?.status && typeof user.status === 'string') {
+          statusSet.add(user.status);
+        }
+      });
+      return Array.from(statusSet);
     } catch (error) {
       console.error('Error calculating unique statuses:', error);
       return [];
@@ -66,10 +83,13 @@ export const useUsersFiltering = ({
 
   const uniqueRoles = useMemo(() => {
     try {
-      const roles = safeUsers
-        .map(user => user?.systemGroup)
-        .filter(role => role && typeof role === 'string');
-      return [...new Set(roles)];
+      const rolesSet = new Set<string>();
+      safeUsers.forEach(user => {
+        if (user?.systemGroup && typeof user.systemGroup === 'string') {
+          rolesSet.add(user.systemGroup);
+        }
+      });
+      return Array.from(rolesSet);
     } catch (error) {
       console.error('Error calculating unique roles:', error);
       return [];

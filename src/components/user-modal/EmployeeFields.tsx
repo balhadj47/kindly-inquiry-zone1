@@ -9,17 +9,24 @@ interface EmployeeFieldsProps {
   isSubmitting: boolean;
 }
 
-const EmployeeFields: React.FC<EmployeeFieldsProps> = ({
+const EmployeeFields: React.FC<EmployeeFieldsProps> = React.memo(({
   control,
   isSubmitting,
 }) => {
+  const requiredFields = React.useMemo(() => ({
+    badgeNumber: { required: 'Le numéro de badge est requis' },
+    dateOfBirth: { required: 'La date de naissance est requise' },
+    placeOfBirth: { required: 'Le lieu de naissance est requis' },
+    address: { required: 'L\'adresse est requise' }
+  }), []);
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={control}
           name="badgeNumber"
-          rules={{ required: 'Le numéro de badge est requis' }}
+          rules={requiredFields.badgeNumber}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Numéro de Badge *</FormLabel>
@@ -38,7 +45,7 @@ const EmployeeFields: React.FC<EmployeeFieldsProps> = ({
         <FormField
           control={control}
           name="dateOfBirth"
-          rules={{ required: 'La date de naissance est requise' }}
+          rules={requiredFields.dateOfBirth}
           render={({ field }) => (
             <FormItem>
               <FormLabel>Date de Naissance *</FormLabel>
@@ -58,7 +65,7 @@ const EmployeeFields: React.FC<EmployeeFieldsProps> = ({
       <FormField
         control={control}
         name="placeOfBirth"
-        rules={{ required: 'Le lieu de naissance est requis' }}
+        rules={requiredFields.placeOfBirth}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Lieu de Naissance *</FormLabel>
@@ -77,7 +84,7 @@ const EmployeeFields: React.FC<EmployeeFieldsProps> = ({
       <FormField
         control={control}
         name="address"
-        rules={{ required: 'L\'adresse est requise' }}
+        rules={requiredFields.address}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Adresse *</FormLabel>
@@ -112,6 +119,8 @@ const EmployeeFields: React.FC<EmployeeFieldsProps> = ({
       />
     </>
   );
-};
+});
+
+EmployeeFields.displayName = 'EmployeeFields';
 
 export default EmployeeFields;

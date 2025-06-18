@@ -9,10 +9,23 @@ interface SystemFieldsProps {
   isSubmitting: boolean;
 }
 
-const SystemFields: React.FC<SystemFieldsProps> = ({
+const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
   control,
   isSubmitting,
 }) => {
+  const systemGroupOptions = React.useMemo(() => [
+    { value: "Administrator", label: "Administrateur" },
+    { value: "Supervisor", label: "Superviseur" },
+    { value: "Employee", label: "Employé" }
+  ], []);
+
+  const statusOptions = React.useMemo(() => [
+    { value: "Active", label: "Actif" },
+    { value: "Récupération", label: "Récupération" },
+    { value: "Congé", label: "Congé" },
+    { value: "Congé maladie", label: "Congé maladie" }
+  ], []);
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
@@ -29,9 +42,11 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="Administrator">Administrateur</SelectItem>
-                <SelectItem value="Supervisor">Superviseur</SelectItem>
-                <SelectItem value="Employee">Employé</SelectItem>
+                {systemGroupOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -53,10 +68,11 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                <SelectItem value="Active">Actif</SelectItem>
-                <SelectItem value="Récupération">Récupération</SelectItem>
-                <SelectItem value="Congé">Congé</SelectItem>
-                <SelectItem value="Congé maladie">Congé maladie</SelectItem>
+                {statusOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <FormMessage />
@@ -65,6 +81,8 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
       />
     </div>
   );
-};
+});
+
+SystemFields.displayName = 'SystemFields';
 
 export default SystemFields;

@@ -5,8 +5,8 @@ export const navigation = {
   companies: 'Entreprises',
   vansDrivers: 'Camionnettes et Chauffeurs',
   users: 'Utilisateurs',
-  logTrip: 'Enregistrer un Programme',
-  tripHistory: 'Historique des Programmes',
+  logTrip: 'Enregistrer une Mission',
+  tripHistory: 'Historique des Missions',
   settings: 'Paramètres',
   
   // Navigation - Mobile specific
@@ -17,5 +17,5 @@ export const navigation = {
   
   // Navigation - Sidebar specific
   dashboardFull: 'Tableau de Bord',
-  logTripFull: 'Logger Voyage',
+  logTripFull: 'Logger Mission',
 };

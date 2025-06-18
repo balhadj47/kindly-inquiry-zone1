@@ -5,8 +5,8 @@ export const navigation = {
   companies: 'Companies',
   vansDrivers: 'Vans & Drivers',
   users: 'Users',
-  logTrip: 'Log Trip',
-  tripHistory: 'Trip History',
+  logTrip: 'Log Mission',
+  tripHistory: 'Mission History',
   settings: 'Settings',
   
   // Navigation - Mobile specific
@@ -17,5 +17,5 @@ export const navigation = {
   
   // Navigation - Sidebar specific
   dashboardFull: 'Dashboard',
-  logTripFull: 'Log Trip',
+  logTripFull: 'Log Mission',
 };

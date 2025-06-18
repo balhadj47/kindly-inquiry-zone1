@@ -5,8 +5,8 @@ export const navigation = {
   companies: 'الشركات',
   vansDrivers: 'الشاحنات والسائقين',
   users: 'المستخدمين',
-  logTrip: 'تسجيل الرحلة',
-  tripHistory: 'تاريخ الرحلات',
+  logTrip: 'تسجيل المهمة',
+  tripHistory: 'تاريخ المهام',
   settings: 'الإعدادات',
   
   // Navigation - Mobile specific
@@ -17,5 +17,5 @@ export const navigation = {
   
   // Navigation - Sidebar specific
   dashboardFull: 'لوحة التحكم',
-  logTripFull: 'تسجيل الرحلة',
+  logTripFull: 'تسجيل المهمة',
 };

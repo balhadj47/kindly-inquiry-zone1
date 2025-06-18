@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import VirtualizedList from '@/components/ui/virtualized-list';
 import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
+import { Van } from '@/types/van';
 
 interface VanListProps {
   vans: any[];
@@ -39,7 +41,9 @@ const VanList = React.memo(({
   useEffect(() => {
     const filtered = vans.filter((van) => {
       if (searchTerm) {
-        return van.name.toLowerCase().includes(searchTerm.toLowerCase());
+        return van.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+               van.model?.toLowerCase().includes(searchTerm.toLowerCase());
       }
       if (statusFilter !== 'all') {
         return van.status === statusFilter;
@@ -108,7 +112,16 @@ const VanList = React.memo(({
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {showSummary && (
+        <div className="text-sm text-gray-600">
+          Affichage de {filteredVans.length} sur {totalVans} camionnettes
+        </div>
+      )}
+      <div className={`grid gap-4 sm:gap-6 ${
+        isMobile 
+          ? 'grid-cols-1' 
+          : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
+      }`}>
         {filteredVans.map((van) => (
           <div
             key={van.id}

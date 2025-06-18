@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
@@ -95,15 +96,15 @@ const Vans = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
-      <div className="flex-shrink-0">
+    <div className="h-full max-h-full overflow-hidden flex flex-col">
+      <div className="flex-shrink-0 px-6 pt-6">
         <VanStats 
           vans={vans}
           onAddVan={handleAddVan}
         />
       </div>
       
-      <div className="flex-shrink-0 mt-6">
+      <div className="flex-shrink-0 px-6 mt-6">
         <VanFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -116,7 +117,7 @@ const Vans = () => {
         />
       </div>
 
-      <div className="flex-1 mt-6 min-h-0">
+      <div className="flex-1 min-h-0 px-6 mt-6 pb-6">
         <VanList
           vans={filteredAndSortedVans}
           totalVans={vans.length}

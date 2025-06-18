@@ -15,6 +15,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // Add safety checks for React hooks
+  if (!React || typeof React.useState !== 'function') {
+    console.warn('AuthProvider: React not fully loaded, waiting...');
+    return <div>Loading...</div>;
+  }
+
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);

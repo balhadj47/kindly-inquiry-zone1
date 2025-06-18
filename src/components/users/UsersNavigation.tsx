@@ -1,37 +1,33 @@
 
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, Users, Target } from 'lucide-react';
 import RolesTab from './RolesTab';
-import MissionRolesTab from './MissionRolesTab';
 
 interface UsersNavigationProps {
   canManageGroups: boolean;
   children: React.ReactNode;
 }
 
-const UsersNavigation: React.FC<UsersNavigationProps> = ({ canManageGroups, children }) => {
+const UsersNavigation: React.FC<UsersNavigationProps> = ({ 
+  canManageGroups, 
+  children 
+}) => {
   return (
-    <Tabs defaultValue="users" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="users" className="flex items-center space-x-2">
-          <User className="h-4 w-4" />
-          <span>Utilisateurs</span>
-        </TabsTrigger>
+    <Tabs defaultValue="users" className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="users">Utilisateurs</TabsTrigger>
         {canManageGroups && (
-          <TabsTrigger value="roles" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Groupes Système</span>
-          </TabsTrigger>
+          <TabsTrigger value="roles">Groupes Système</TabsTrigger>
         )}
-        <TabsTrigger value="mission-roles" className="flex items-center space-x-2">
-          <Target className="h-4 w-4" />
-          <span>Rôles de Mission</span>
-        </TabsTrigger>
       </TabsList>
-      {children}
+      
+      {/* Users Tab Content */}
+      <div className="mt-6">
+        {children}
+      </div>
+      
+      {/* Roles Tab Content */}
       {canManageGroups && <RolesTab />}
-      <MissionRolesTab />
     </Tabs>
   );
 };

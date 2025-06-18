@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus } from 'lucide-react';
+import { Plus, Users } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 
 interface UsersHeaderProps {
@@ -10,37 +9,29 @@ interface UsersHeaderProps {
 }
 
 const UsersHeader: React.FC<UsersHeaderProps> = ({ onAddUser }) => {
-  const { hasPermission } = useRBAC();
+  const { hasPermission, users } = useRBAC();
+  const canCreateUsers = hasPermission('users:create');
 
   return (
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Gestion des Utilisateurs</h1>
-        <p className="text-muted-foreground">
-          Gérez les utilisateurs et leurs permissions dans le système.
-        </p>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Users className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion des Utilisateurs</h1>
+          <p className="text-gray-600 mt-1">
+            {users.length} utilisateur{users.length !== 1 ? 's' : ''} dans le système
+          </p>
+        </div>
       </div>
       
-      <TooltipProvider>
-        <div className="flex items-center gap-2">
-          {hasPermission('users:create') && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button 
-                  onClick={onAddUser} 
-                  size="icon"
-                  className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                >
-                  <Plus className="h-5 w-5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Nouvel Utilisateur</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </div>
-      </TooltipProvider>
+      {canCreateUsers && (
+        <Button onClick={onAddUser} className="flex items-center space-x-2">
+          <Plus className="h-4 w-4" />
+          <span>Nouvel Utilisateur</span>
+        </Button>
+      )}
     </div>
   );
 };

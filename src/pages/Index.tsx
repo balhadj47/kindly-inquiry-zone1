@@ -15,27 +15,27 @@ import TripLogger from '@/components/TripLogger';
 import TripHistory from '@/components/TripHistory';
 import UserSettings from '@/pages/UserSettings';
 
-const AppContent = () => {
-  console.log('📱 AppContent: Rendering...');
+const Index = () => {
+  console.log('📱 Index: Rendering main app...');
   
-  let hasPermission;
+  const isMobile = useIsMobile();
+  
+  // Safely access RBAC context
+  let hasPermission = () => false;
   try {
     const rbacContext = useRBAC();
     hasPermission = rbacContext.hasPermission;
-    console.log('📱 AppContent: RBAC context loaded successfully');
+    console.log('📱 Index: RBAC context loaded successfully');
   } catch (error) {
-    console.error('📱 AppContent: Error accessing RBAC context:', error);
-    // Fallback: assume no permissions
-    hasPermission = () => false;
+    console.error('📱 Index: Error accessing RBAC context:', error);
+    // Continue with no permissions for now
   }
-  
-  const isMobile = useIsMobile();
-  console.log('📱 AppContent: isMobile:', isMobile);
+
+  console.log('📱 Index: isMobile:', isMobile);
 
   return (
     <SidebarProvider defaultOpen={!isMobile}>
       <div className="min-h-screen flex w-full overflow-hidden">
-        {/* Hide sidebar on mobile since we're using bottom nav */}
         {!isMobile && <AppSidebar />}
         
         <div className="flex-1 flex flex-col min-w-0 transition-all duration-200 h-screen">
@@ -43,41 +43,33 @@ const AppContent = () => {
           <main className={`flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden ${
             isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
           }`}>
-            <div>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                {hasPermission('companies:read') && (
-                  <Route path="/companies/*" element={<Companies />} />
-                )}
-                {hasPermission('vans:read') && (
-                  <Route path="/vans" element={<Vans />} />
-                )}
-                {hasPermission('users:read') && (
-                  <Route path="/users" element={<Users />} />
-                )}
-                {hasPermission('trips:read') && (
-                  <>
-                    <Route path="/trip-logger" element={<TripLogger />} />
-                    <Route path="/trip-history" element={<TripHistory />} />
-                  </>
-                )}
-                <Route path="/settings" element={<UserSettings />} />
-              </Routes>
-            </div>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/companies/*" element={
+                hasPermission('companies:read') ? <Companies /> : <div>Access Denied</div>
+              } />
+              <Route path="/vans" element={
+                hasPermission('vans:read') ? <Vans /> : <div>Access Denied</div>
+              } />
+              <Route path="/users" element={
+                hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
+              } />
+              <Route path="/trip-logger" element={
+                hasPermission('trips:read') ? <TripLogger /> : <div>Access Denied</div>
+              } />
+              <Route path="/trip-history" element={
+                hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>
+              } />
+              <Route path="/settings" element={<UserSettings />} />
+            </Routes>
           </main>
         </div>
         
-        {/* Mobile bottom navigation */}
         {isMobile && <MobileBottomNav />}
       </div>
     </SidebarProvider>
   );
-};
-
-const Index = () => {
-  console.log('📱 Index: Rendering...');
-  return <AppContent />;
 };
 
 export default Index;

@@ -15,30 +15,34 @@ import UserSettings from "./pages/UserSettings";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <LanguageProvider>
-            <RBACProvider>
-              <TripProvider>
-                <ProgressiveLoadingProvider>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/user-settings" element={<UserSettings />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </ProgressiveLoadingProvider>
-              </TripProvider>
-            </RBACProvider>
-          </LanguageProvider>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('🚀 App: Starting application...');
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <LanguageProvider>
+              <RBACProvider>
+                <TripProvider>
+                  <ProgressiveLoadingProvider>
+                    <Routes>
+                      <Route path="/*" element={<Index />} />
+                      <Route path="/user-settings" element={<UserSettings />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </ProgressiveLoadingProvider>
+                </TripProvider>
+              </RBACProvider>
+            </LanguageProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;

@@ -4,7 +4,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, Plus } from 'lucide-react';
 import VanCard from './VanCard';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { useNavigate } from 'react-router-dom';
 import { Van } from '@/types/van';
 import { useVansPagination } from '@/hooks/useVansPagination';
@@ -75,124 +74,46 @@ const VanList = React.memo(({
 
   if (vans.length === 0) {
     return (
-      <div className="h-full flex flex-col overflow-hidden">
-        <div className="flex-1 flex items-center justify-center">
-          <Card>
-            <CardContent className="text-center py-12">
-              <Car className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Aucune camionnette trouvée</h3>
-              <p className="text-gray-600 mb-4">
-                {searchTerm || statusFilter !== 'all' 
-                  ? "Essayez d'ajuster votre recherche ou vos filtres" 
-                  : "Commencez par ajouter votre première camionnette"
-                }
-              </p>
-              {(!searchTerm && statusFilter === 'all') && (
-                <Button onClick={onAddVan}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Ajouter Votre Première Camionnette
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="w-full max-w-md">
+          <CardContent className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+              <Car className="h-8 w-8 text-gray-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Aucune camionnette trouvée</h3>
+            <p className="text-sm text-gray-600 mb-6">
+              {searchTerm || statusFilter !== 'all' 
+                ? "Essayez d'ajuster votre recherche ou vos filtres" 
+                : "Commencez par ajouter votre première camionnette"
+              }
+            </p>
+            {(!searchTerm && statusFilter === 'all') && (
+              <Button onClick={onAddVan} className="w-full">
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter Votre Première Camionnette
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
-  const renderPaginationItems = () => {
-    const items = [];
-    const maxVisiblePages = 5;
-    
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is small
-      for (let i = 1; i <= totalPages; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              href="#"
-              isActive={currentPage === i}
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(i);
-              }}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    } else {
-      // Show ellipsis for large page counts
-      const start = Math.max(1, currentPage - 2);
-      const end = Math.min(totalPages, start + maxVisiblePages - 1);
-      
-      if (start > 1) {
-        items.push(
-          <PaginationItem key={1}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(1);
-              }}
-            >
-              1
-            </PaginationLink>
-          </PaginationItem>
-        );
-        if (start > 2) {
-          items.push(<PaginationEllipsis key="start-ellipsis" />);
-        }
-      }
-      
-      for (let i = start; i <= end; i++) {
-        items.push(
-          <PaginationItem key={i}>
-            <PaginationLink
-              href="#"
-              isActive={currentPage === i}
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(i);
-              }}
-            >
-              {i}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-      
-      if (end < totalPages) {
-        if (end < totalPages - 1) {
-          items.push(<PaginationEllipsis key="end-ellipsis" />);
-        }
-        items.push(
-          <PaginationItem key={totalPages}>
-            <PaginationLink
-              href="#"
-              onClick={(e) => {
-                e.preventDefault();
-                handlePageChange(totalPages);
-              }}
-            >
-              {totalPages}
-            </PaginationLink>
-          </PaginationItem>
-        );
-      }
-    }
-    
-    return items;
-  };
-
   return (
-    <div className="space-y-4">
-      <div className="text-sm text-gray-600">
-        Affichage de {paginatedVans.length} sur {filteredVans.length} camionnettes (Page {currentPage} sur {totalPages})
+    <div className="space-y-6">
+      {/* Results Summary */}
+      <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Affichage de <span className="font-medium text-foreground">{paginatedVans.length}</span> sur{' '}
+          <span className="font-medium text-foreground">{filteredVans.length}</span> camionnettes
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Page {currentPage} sur {totalPages}
+        </div>
       </div>
       
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+      {/* Vans Grid */}
+      <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
         {paginatedVans.map((van) => (
           <VanCard
             key={van.id}
@@ -204,38 +125,126 @@ const VanList = React.memo(({
         ))}
       </div>
 
+      {/* Pagination */}
       {totalPages > 1 && (
-        <Pagination className="justify-center">
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) {
-                    handlePageChange(currentPage - 1);
-                  }
-                }}
-                className={currentPage === 1 ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-            
-            {renderPaginationItems()}
-            
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) {
-                    handlePageChange(currentPage + 1);
-                  }
-                }}
-                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : ''}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+        <div className="flex justify-center pt-4">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) {
+                      handlePageChange(currentPage - 1);
+                    }
+                  }}
+                  className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                const pageNumber = i + 1;
+                if (totalPages <= 5) {
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === pageNumber}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(pageNumber);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                // Show ellipsis logic for larger page counts
+                const start = Math.max(1, currentPage - 2);
+                const end = Math.min(totalPages, start + 4);
+                
+                if (pageNumber === 1 && start > 1) {
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(1);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        1
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                if (pageNumber === 2 && start > 2) {
+                  return <PaginationEllipsis key="start-ellipsis" />;
+                }
+                
+                if (pageNumber >= start && pageNumber <= end) {
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        isActive={currentPage === pageNumber}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(pageNumber);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {pageNumber}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                if (pageNumber === totalPages - 1 && end < totalPages - 1) {
+                  return <PaginationEllipsis key="end-ellipsis" />;
+                }
+                
+                if (pageNumber === totalPages && end < totalPages) {
+                  return (
+                    <PaginationItem key={pageNumber}>
+                      <PaginationLink
+                        href="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handlePageChange(totalPages);
+                        }}
+                        className="cursor-pointer"
+                      >
+                        {totalPages}
+                      </PaginationLink>
+                    </PaginationItem>
+                  );
+                }
+                
+                return null;
+              })}
+              
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) {
+                      handlePageChange(currentPage + 1);
+                    }
+                  }}
+                  className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       )}
     </div>
   );

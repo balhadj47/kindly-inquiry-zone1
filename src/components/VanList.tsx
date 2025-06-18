@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Car, Plus } from 'lucide-react';
@@ -7,6 +6,7 @@ import VanCard from './VanCard';
 import VirtualizedList from '@/components/ui/virtualized-list';
 import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useNavigate } from 'react-router-dom';
 
 interface VanListProps {
   vans: any[];
@@ -32,6 +32,26 @@ const VanList = React.memo(({
   const isMobile = useIsMobile();
   const showSummary = vans.length !== totalVans;
   const useVirtualization = vans.length > 20 && !isMobile;
+  const navigate = useNavigate();
+
+  const [filteredVans, setFilteredVans] = useState(vans);
+
+  useEffect(() => {
+    const filtered = vans.filter((van) => {
+      if (searchTerm) {
+        return van.name.toLowerCase().includes(searchTerm.toLowerCase());
+      }
+      if (statusFilter !== 'all') {
+        return van.status === statusFilter;
+      }
+      return true;
+    });
+    setFilteredVans(filtered);
+  }, [vans, searchTerm, statusFilter]);
+
+  const handleVanClick = (van: Van) => {
+    navigate(`/vans/${van.id}`);
+  };
 
   if (vans.length === 0) {
     return (
@@ -87,25 +107,25 @@ const VanList = React.memo(({
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {showSummary && (
-        <div className="text-sm text-gray-600 mb-4 flex-shrink-0">
-          Affichage de {vans.length} sur {totalVans} camionnettes
-        </div>
-      )}
-      
-      <div className="flex-1 overflow-y-auto overflow-x-hidden">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-1">
-          {vans.map((van) => (
+    <div className="space-y-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {filteredVans.map((van) => (
+          <div
+            key={van.id}
+            className="cursor-pointer"
+            onClick={(e) => {
+              if ((e.target as HTMLElement).closest('button')) return;
+              handleVanClick(van);
+            }}
+          >
             <VanCard
-              key={van.id}
               van={van}
               onEdit={onEditVan}
-              onQuickAction={onQuickAction}
+              onQuickAction={handleVanClick}
               onDelete={onDeleteVan}
             />
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
   );

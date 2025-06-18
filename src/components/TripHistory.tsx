@@ -9,17 +9,22 @@ import TripHistoryHeader from './trip-history/TripHistoryHeader';
 import TripHistoryFilters from './trip-history/TripHistoryFilters';
 import TripHistoryStats from './trip-history/TripHistoryStats';
 import TripHistoryList from './trip-history/TripHistoryList';
+import TripHistoryOptimizedSkeleton from './trip-history/TripHistoryOptimizedSkeleton';
 
 const TripHistory = () => {
-  const { trips, deleteTrip } = useTrip();
-  const { companies } = useCompanies();
-  const { vans } = useVans();
+  const { trips, deleteTrip, error: tripsError } = useTrip();
+  const { companies, error: companiesError } = useCompanies();
+  const { vans, error: vansError } = useVans();
   const { toast } = useToast();
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [vanFilter, setVanFilter] = useState('all');
   const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
+
+  // Show loading skeleton while any critical data is loading
+  const isLoading = !trips || !companies || !vans;
+  const hasError = tripsError || companiesError || vansError;
 
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
@@ -30,6 +35,8 @@ const TripHistory = () => {
   };
 
   const filteredTrips = useMemo(() => {
+    if (!trips || !vans) return [];
+    
     return trips.filter(trip => {
       const vanDisplayName = getVanDisplayName(trip.van);
       const matchesSearch = 
@@ -75,6 +82,29 @@ const TripHistory = () => {
     setCompanyFilter('all');
     setVanFilter('all');
   };
+
+  // Show loading skeleton
+  if (isLoading) {
+    return <TripHistoryOptimizedSkeleton />;
+  }
+
+  // Show error state
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+          <p className="text-gray-600 mb-4">Impossible de charger les données</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Actualiser
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

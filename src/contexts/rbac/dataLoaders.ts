@@ -3,11 +3,28 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 import { SystemGroupsService } from '@/services/systemGroupsService';
-import { DatabaseCleanupService } from '@/services/databaseCleanupService';
 
-export const loadUsers = async (): Promise<User[]> => {
+// Cache for faster subsequent loads
+let usersCache: { data: User[]; timestamp: number } | null = null;
+let rolesCache: { data: SystemGroup[]; timestamp: number } | null = null;
+const CACHE_DURATION = 300000; // 5 minutes cache for RBAC data
+
+export const loadUsers = async (useCache = true): Promise<User[]> => {
   try {
     console.log('🔄 Loading users from database...');
+    const startTime = performance.now();
+    
+    // Check cache first
+    if (useCache && usersCache) {
+      const { data, timestamp } = usersCache;
+      const isValid = Date.now() - timestamp < CACHE_DURATION;
+      
+      if (isValid) {
+        console.log('✅ Users loaded from cache in:', performance.now() - startTime, 'ms');
+        return data;
+      }
+    }
+
     const { data, error } = await supabase
       .from('users')
       .select('*')
@@ -15,7 +32,7 @@ export const loadUsers = async (): Promise<User[]> => {
 
     if (error) {
       console.error('❌ Error loading users:', error);
-      return [];
+      return usersCache?.data || [];
     }
 
     // Transform the database data to match our User interface
@@ -34,24 +51,58 @@ export const loadUsers = async (): Promise<User[]> => {
       get role() { return this.systemGroup; }
     }));
 
-    console.log('✅ Users loaded successfully:', users.length);
+    // Update cache
+    usersCache = {
+      data: users,
+      timestamp: Date.now()
+    };
+
+    const endTime = performance.now();
+    console.log('✅ Users loaded successfully in:', endTime - startTime, 'ms -', users.length, 'users');
     return users;
   } catch (error) {
     console.error('❌ Exception loading users:', error);
-    return [];
+    return usersCache?.data || [];
   }
 };
 
-export const loadRoles = async (): Promise<SystemGroup[]> => {
+export const loadRoles = async (useCache = true): Promise<SystemGroup[]> => {
   try {
-    console.log('🔄 Loading system groups with cleanup...');
+    console.log('🔄 Loading system groups...');
+    const startTime = performance.now();
     
-    // Run cleanup first to ensure clean state
-    await DatabaseCleanupService.runFullCleanup();
+    // Check cache first
+    if (useCache && rolesCache) {
+      const { data, timestamp } = rolesCache;
+      const isValid = Date.now() - timestamp < CACHE_DURATION;
+      
+      if (isValid) {
+        console.log('✅ Roles loaded from cache in:', performance.now() - startTime, 'ms');
+        return data;
+      }
+    }
+
+    // Load directly without cleanup for better performance
+    const roles = await SystemGroupsService.loadSystemGroups();
     
-    return await SystemGroupsService.loadSystemGroups();
+    // Update cache
+    rolesCache = {
+      data: roles,
+      timestamp: Date.now()
+    };
+
+    const endTime = performance.now();
+    console.log('✅ Roles loaded successfully in:', endTime - startTime, 'ms -', roles.length, 'roles');
+    return roles;
   } catch (error) {
-    console.error('❌ Error loading roles with cleanup:', error);
-    return await SystemGroupsService.loadSystemGroups();
+    console.error('❌ Error loading roles:', error);
+    return rolesCache?.data || [];
   }
+};
+
+// Function to clear caches when needed
+export const clearRBACCache = () => {
+  console.log('🧹 Clearing RBAC cache');
+  usersCache = null;
+  rolesCache = null;
 };

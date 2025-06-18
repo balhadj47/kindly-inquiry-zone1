@@ -1,8 +1,11 @@
-import { useLocation } from "react-router-dom";
+
+import { useLocation, Navigate } from "react-router-dom";
 import { useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 const NotFound = () => {
   const location = useLocation();
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     console.error(
@@ -11,17 +14,20 @@ const NotFound = () => {
     );
   }, [location.pathname]);
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">404</h1>
-        <p className="text-xl text-gray-600 mb-4">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 hover:text-blue-700 underline">
-          Return to Home
-        </a>
-      </div>
-    </div>
-  );
+  // If still loading auth state, wait
+  if (loading) {
+    return null;
+  }
+
+  // If no user is authenticated, redirect to auth page
+  if (!user) {
+    console.log("404: Redirecting unauthenticated user to auth page");
+    return <Navigate to="/auth" replace />;
+  }
+
+  // If user is authenticated but page not found, redirect to dashboard
+  console.log("404: Redirecting authenticated user to dashboard");
+  return <Navigate to="/dashboard" replace />;
 };
 
 export default NotFound;

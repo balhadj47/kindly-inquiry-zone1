@@ -12,6 +12,7 @@ import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext
 import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import NetworkStatus from "@/components/NetworkStatus";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Lazy load main components
 const Index = lazy(() => import("./pages/Index"));
@@ -49,31 +50,33 @@ const App = () => {
   }
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <NetworkStatus />
-        <BrowserRouter>
-          <AuthProvider>
-            <LanguageProvider>
-              <RBACProvider>
-                <TripProvider>
-                  <ProgressiveLoadingProvider>
-                    <Suspense fallback={<AppLoadingSkeleton />}>
-                      <Routes>
-                        <Route path="/*" element={<Index />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </Suspense>
-                  </ProgressiveLoadingProvider>
-                </TripProvider>
-              </RBACProvider>
-            </LanguageProvider>
-          </AuthProvider>
-        </BrowserRouter>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <NetworkStatus />
+          <BrowserRouter>
+            <AuthProvider>
+              <LanguageProvider>
+                <RBACProvider>
+                  <TripProvider>
+                    <ProgressiveLoadingProvider>
+                      <Suspense fallback={<AppLoadingSkeleton />}>
+                        <Routes>
+                          <Route path="/*" element={<Index />} />
+                          <Route path="*" element={<NotFound />} />
+                        </Routes>
+                      </Suspense>
+                    </ProgressiveLoadingProvider>
+                  </TripProvider>
+                </RBACProvider>
+              </LanguageProvider>
+            </AuthProvider>
+          </BrowserRouter>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 };
 

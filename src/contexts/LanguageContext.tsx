@@ -26,31 +26,32 @@ interface LanguageProviderProps {
 }
 
 export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
-  const [language, setLanguageState] = useState<SupportedLanguage>('fr');
-  const [isInitialized, setIsInitialized] = useState(false);
+  // Use React.useState explicitly to ensure React is available
+  const [language, setLanguageState] = React.useState<SupportedLanguage>('fr');
+  const [isInitialized, setIsInitialized] = React.useState(false);
   
   console.log('LanguageProvider: Rendering with language:', language);
   
-  useEffect(() => {
+  React.useEffect(() => {
     // Ensure context is properly initialized
     setIsInitialized(true);
     console.log('LanguageProvider: Context initialized');
   }, []);
   
-  const setLanguage = (lang: SupportedLanguage) => {
+  const setLanguage = React.useCallback((lang: SupportedLanguage) => {
     console.log('LanguageProvider: Setting language to:', lang);
     setLanguageState(lang);
-  };
+  }, []);
   
   const isRTL = language === 'ar';
   const t = translations[language];
 
-  const contextValue: LanguageContextType = {
+  const contextValue: LanguageContextType = React.useMemo(() => ({
     language,
     setLanguage,
     t,
     isRTL
-  };
+  }), [language, setLanguage, t, isRTL]);
 
   console.log('LanguageProvider: Context value created:', { language, isRTL, isInitialized });
 

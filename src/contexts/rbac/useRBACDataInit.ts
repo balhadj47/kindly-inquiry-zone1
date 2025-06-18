@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
 import { loadRoles, loadUsers } from './dataLoaders';
@@ -12,21 +12,20 @@ interface UseRBACDataInitProps {
 
 export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
   const { user: authUser } = useAuth();
+  const initializationRef = useRef(false);
 
   useEffect(() => {
-    const initializeRBAC = async () => {
-      if (!authUser?.email) {
-        console.log('🔄 RBAC: No auth user email, skipping initialization');
-        actions.setLoading(false);
-        return;
-      }
+    // Prevent multiple initializations
+    if (initializationRef.current || !authUser?.email) {
+      return;
+    }
 
-      console.log('🚀 Starting optimized RBAC initialization for user:', authUser.email);
+    const initializeRBAC = async () => {
+      console.log('🚀 Starting RBAC initialization for user:', authUser.email);
+      initializationRef.current = true;
       actions.setLoading(true);
 
       try {
-        console.log('📡 Loading system groups and users in parallel...');
-        
         // Load both system groups and users in parallel
         const [systemGroups, users] = await Promise.all([
           loadRoles(),
@@ -57,12 +56,11 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
           });
           actions.setCurrentUser(currentUser);
         } else {
-          console.warn('⚠️ Current user not found in users list for email:', authUser.email);
-          console.log('Available users:', users.map(u => ({ id: u.id, email: u.email })));
+          console.warn('⚠️ Current user not found, checking for admin access');
           
           // For admin access, let's check if this is a known admin email
           if (authUser.email === 'gb47@msn.com') {
-            console.log('🔓 Allowing admin access for known admin email');
+            console.log('🔓 Creating admin temp user for known admin email');
             const adminUser = {
               id: 'admin-temp',
               name: 'Administrator',
@@ -80,10 +78,6 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
         }
 
         // Initialize permission utilities
-        console.log('🔧 Creating permission utils with:', { 
-          usersCount: users.length, 
-          systemGroupsCount: systemGroups.length 
-        });
         createPermissionUtils(users, systemGroups);
 
       } catch (error) {
@@ -96,15 +90,12 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     };
 
     initializeRBAC();
-  }, [authUser?.email, actions]);
+  }, [authUser?.email]); // Only depend on email to prevent loops
 
-  // Log state changes for debugging
+  // Reset initialization flag when user changes
   useEffect(() => {
-    console.log('🔄 RBAC State Update:', {
-      currentUser: state.currentUser?.id,
-      usersCount: state.users.length,
-      rolesCount: state.roles.length,
-      loading: state.loading
-    });
-  }, [state.currentUser, state.users.length, state.roles.length, state.loading]);
+    if (!authUser?.email) {
+      initializationRef.current = false;
+    }
+  }, [authUser?.email]);
 };

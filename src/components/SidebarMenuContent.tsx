@@ -73,7 +73,7 @@ const SidebarMenuContent = () => {
 
     console.log('🔍 Menu items defined:', menuItems.map(item => ({ title: item.title, permission: item.permission })));
 
-    // Don't show loading skeleton if we have a current user
+    // Only show loading if we don't have a user yet
     if (loading && !currentUser) {
       console.log('🔄 SidebarMenuContent: Showing loading skeleton - no user yet');
       return (
@@ -92,7 +92,7 @@ const SidebarMenuContent = () => {
       );
     }
 
-    // Filter items based on permissions
+    // If we have a user, show all items they have access to
     const filteredItems = menuItems.filter((item) => {
       if (!item.permission) {
         console.log(`✅ Menu item "${item.title}": no permission required, showing`);
@@ -105,11 +105,6 @@ const SidebarMenuContent = () => {
         return hasAccess;
       } catch (error) {
         console.error(`❌ Error checking permission for ${item.title}:`, error);
-        // For administrators, show the item even if permission check fails
-        if (currentUser?.systemGroup === 'Administrator') {
-          console.log(`🔧 Admin fallback: showing ${item.title} for administrator`);
-          return true;
-        }
         return false;
       }
     });
@@ -117,17 +112,9 @@ const SidebarMenuContent = () => {
     console.log('🔍 SidebarMenuContent: Filtered items:', filteredItems.length, 'of', menuItems.length);
     console.log('🔍 Final menu items:', filteredItems.map(item => item.title));
 
-    // Always show at least dashboard and settings if no other items are available
-    const finalItems = filteredItems.length > 2 ? filteredItems : [
-      menuItems[0], // Dashboard
-      menuItems[menuItems.length - 1] // Settings
-    ];
-
-    console.log('🔍 Final items to render:', finalItems.length);
-
     return (
       <SidebarMenu>
-        {finalItems.map((item) => {
+        {filteredItems.map((item) => {
           const isActive = location.pathname === item.url || 
             (item.url === '/dashboard' && location.pathname === '/');
           
@@ -151,7 +138,6 @@ const SidebarMenuContent = () => {
     );
   } catch (error) {
     console.error('❌ CRITICAL ERROR in SidebarMenuContent:', error);
-    console.error('❌ Error stack:', error.stack);
     
     // Fallback rendering in case of critical errors
     return (

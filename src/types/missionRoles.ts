@@ -6,7 +6,7 @@ export interface MissionRoleInfo {
   id: string;
   name: MissionRole;
   description: string;
-  category: 'leadership' | 'transport' | 'security' | 'armed';
+  category: 'leadership' | 'driver' | 'security' | 'armed';
 }
 
 export const MISSION_ROLES: MissionRoleInfo[] = [
@@ -20,7 +20,7 @@ export const MISSION_ROLES: MissionRoleInfo[] = [
     id: 'chauffeur',
     name: 'Chauffeur',
     description: 'Conduit les véhicules de transport',
-    category: 'transport'
+    category: 'driver'
   },
   {
     id: 'aps',

@@ -1,4 +1,5 @@
 
+import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +10,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RBACProvider } from "@/contexts/RBACContext";
 import { TripProvider } from "@/contexts/TripContext";
 import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
-import { Suspense, lazy } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import NetworkStatus from "@/components/NetworkStatus";
 import ErrorBoundary from "@/components/ErrorBoundary";
@@ -44,7 +44,7 @@ const AppLoadingSkeleton = () => (
   </div>
 );
 
-const App = () => {
+const App: React.FC = () => {
   if (import.meta.env.DEV) {
     console.log('🚀 App: Starting application...');
   }
@@ -52,11 +52,11 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <NetworkStatus />
-          <BrowserRouter>
+        <BrowserRouter>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <NetworkStatus />
             <AuthProvider>
               <LanguageProvider>
                 <RBACProvider>
@@ -73,8 +73,8 @@ const App = () => {
                 </RBACProvider>
               </LanguageProvider>
             </AuthProvider>
-          </BrowserRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </BrowserRouter>
       </QueryClientProvider>
     </ErrorBoundary>
   );

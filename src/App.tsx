@@ -14,9 +14,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
-// Lazy load NetworkStatus to avoid hooks initialization issues
-const NetworkStatus = lazy(() => import("./components/NetworkStatus"));
-
 // Optimize QueryClient configuration
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -43,31 +40,8 @@ const AppLoadingSkeleton = () => (
   </div>
 );
 
-const NetworkStatusFallback = () => (
-  <div className="hidden">
-    {/* Network status loading or error - hidden fallback */}
-  </div>
-);
-
 const App = () => {
   console.log('🚀 App: Functional component render');
-  
-  const [isReactReady, setIsReactReady] = useState(false);
-
-  useEffect(() => {
-    // Ensure React is fully initialized before allowing components that use hooks
-    const checkReactReadiness = () => {
-      if (typeof React !== 'undefined' && React.useState && React.useEffect) {
-        console.log('🚀 App: React is ready, enabling hook-dependent components');
-        setIsReactReady(true);
-      } else {
-        console.log('🚀 App: React not ready yet, retrying...');
-        setTimeout(checkReactReadiness, 10);
-      }
-    };
-    
-    checkReactReadiness();
-  }, []);
   
   return (
     <ErrorBoundary>
@@ -78,15 +52,6 @@ const App = () => {
               <RBACProvider>
                 <TripProvider>
                   <ProgressiveLoadingProvider>
-                    {/* Network Status with Suspense and lazy loading */}
-                    {isReactReady && (
-                      <ErrorBoundary fallback={<NetworkStatusFallback />}>
-                        <Suspense fallback={<NetworkStatusFallback />}>
-                          <NetworkStatus />
-                        </Suspense>
-                      </ErrorBoundary>
-                    )}
-                    
                     <Suspense fallback={<AppLoadingSkeleton />}>
                       <Routes>
                         <Route path="/*" element={<Index />} />

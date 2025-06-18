@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useState, useEffect } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -42,6 +42,23 @@ const AppLoadingSkeleton = () => (
 
 const App = () => {
   console.log('🚀 App: Functional component render');
+  
+  const [isReactReady, setIsReactReady] = useState(false);
+
+  useEffect(() => {
+    // Ensure React is fully initialized before allowing components that use hooks
+    const checkReactReadiness = () => {
+      if (typeof React !== 'undefined' && React.useState && React.useEffect) {
+        console.log('🚀 App: React is ready, enabling hook-dependent components');
+        setIsReactReady(true);
+      } else {
+        console.log('🚀 App: React not ready yet, retrying...');
+        setTimeout(checkReactReadiness, 10);
+      }
+    };
+    
+    checkReactReadiness();
+  }, []);
   
   return (
     <ErrorBoundary>

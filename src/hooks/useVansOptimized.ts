@@ -39,7 +39,11 @@ export const useVans = () => {
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetched in:', endTime - startTime, 'ms');
       
-      return data || [];
+      // Transform data to ensure all required fields are present
+      return (data || []).map(van => ({
+        ...van,
+        updated_at: van.created_at, // Use created_at as fallback for updated_at if not present
+      }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -62,17 +66,23 @@ export const useAvailableVans = () => {
 
       if (tripsError) {
         console.error('🚐 useVansOptimized: Error fetching active trips:', tripsError);
-        throw tripsError;
+        // Continue without filtering if trips query fails
       }
 
       const activeVanIds = activeTrips?.map(trip => trip.van) || [];
 
-      const { data, error } = await supabase
+      let query = supabase
         .from('vans')
         .select('*')
-        .not('id', 'in', `(${activeVanIds.join(',')})`)
         .eq('status', 'Active')
         .order('license_plate');
+
+      // Only apply filter if we have active van IDs
+      if (activeVanIds.length > 0) {
+        query = query.not('id', 'in', `(${activeVanIds.join(',')})`);
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('🚐 useVansOptimized: Error:', error);
@@ -82,7 +92,11 @@ export const useAvailableVans = () => {
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetched available vans in:', endTime - startTime, 'ms');
       
-      return data || [];
+      // Transform data to ensure all required fields are present
+      return (data || []).map(van => ({
+        ...van,
+        updated_at: van.created_at, // Use created_at as fallback for updated_at if not present
+      }));
     },
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for availability)
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -113,7 +127,11 @@ export const useVan = (vanId: string | null) => {
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetched van in:', endTime - startTime, 'ms');
       
-      return data;
+      // Transform data to ensure all required fields are present
+      return {
+        ...data,
+        updated_at: data.created_at, // Use created_at as fallback for updated_at if not present
+      };
     },
     enabled: !!vanId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -134,7 +152,16 @@ export const useVanMutations = () => {
     mutationFn: async (vanData: Partial<Van>) => {
       const { data, error } = await supabase
         .from('vans')
-        .insert([vanData])
+        .insert([{
+          license_plate: vanData.license_plate || '',
+          model: vanData.model || '',
+          reference_code: vanData.reference_code || '',
+          status: vanData.status || 'Active',
+          insurer: vanData.insurer,
+          insurance_date: vanData.insurance_date,
+          control_date: vanData.control_date,
+          notes: vanData.notes,
+        }])
         .select()
         .single();
 
@@ -162,7 +189,16 @@ export const useVanMutations = () => {
     mutationFn: async ({ id, ...vanData }: Partial<Van> & { id: string }) => {
       const { data, error } = await supabase
         .from('vans')
-        .update(vanData)
+        .update({
+          license_plate: vanData.license_plate,
+          model: vanData.model,
+          reference_code: vanData.reference_code,
+          status: vanData.status,
+          insurer: vanData.insurer,
+          insurance_date: vanData.insurance_date,
+          control_date: vanData.control_date,
+          notes: vanData.notes,
+        })
         .eq('id', id)
         .select()
         .single();

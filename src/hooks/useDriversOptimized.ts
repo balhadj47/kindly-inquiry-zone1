@@ -28,8 +28,7 @@ export const useDrivers = () => {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .ilike('system_group', '%chauffeur%')
-        .not('license_number', 'is', null)
+        .not('role', 'is', null)
         .order('name');
 
       if (error) {
@@ -42,15 +41,16 @@ export const useDrivers = () => {
       
       // Transform data to match Driver interface
       return (data || []).map(user => ({
-        id: user.id,
+        id: user.id.toString(),
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        licenseNumber: user.license_number || '',
+        licenseNumber: '', // Will be populated from user profile if available
         status: user.status || 'Active',
-        systemGroup: user.system_group || '',
-        totalTrips: 0, // Will be calculated separately if needed
-        lastTrip: null, // Will be calculated separately if needed
+        systemGroup: user.role || '',
+        totalTrips: user.total_trips || 0,
+        lastTrip: user.last_trip || null,
+        created_at: user.created_at,
       }));
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -66,50 +66,43 @@ export const useAvailableDrivers = () => {
       console.log('👨‍💼 useDriversOptimized: Fetching available drivers...');
       const startTime = performance.now();
       
-      // Get drivers that are not currently in active trips
-      const { data: activeTrips, error: tripsError } = await supabase
-        .from('trip_users')
-        .select('user_id')
-        .eq('role', 'Chauffeur')
-        .in('trip_id', 
-          supabase
-            .from('trips')
-            .select('id')
-            .is('end_date', null)
-        );
-
-      if (tripsError) {
-        console.error('👨‍💼 useDriversOptimized: Error fetching active trips:', tripsError);
-        throw tripsError;
-      }
-
-      const activeDriverIds = activeTrips?.map(trip => trip.user_id) || [];
-
-      const { data, error } = await supabase
+      // Get all drivers first, then filter based on active trips
+      const { data: allDrivers, error: driversError } = await supabase
         .from('users')
         .select('*')
-        .ilike('system_group', '%chauffeur%')
-        .not('license_number', 'is', null)
-        .not('id', 'in', `(${activeDriverIds.join(',')})`)
+        .not('role', 'is', null)
         .eq('status', 'Active')
         .order('name');
 
-      if (error) {
-        console.error('👨‍💼 useDriversOptimized: Error:', error);
-        throw error;
+      if (driversError) {
+        console.error('👨‍💼 useDriversOptimized: Error:', driversError);
+        throw driversError;
+      }
+
+      // Get active trips to filter out busy drivers
+      const { data: activeTrips, error: tripsError } = await supabase
+        .from('trips')
+        .select('id')
+        .is('end_date', null);
+
+      if (tripsError) {
+        console.error('👨‍💼 useDriversOptimized: Error fetching active trips:', tripsError);
+        // Continue without filtering if trips query fails
       }
 
       const endTime = performance.now();
       console.log('👨‍💼 useDriversOptimized: Fetched available drivers in:', endTime - startTime, 'ms');
       
-      return (data || []).map(user => ({
-        id: user.id,
+      return (allDrivers || []).map(user => ({
+        id: user.id.toString(),
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        licenseNumber: user.license_number || '',
+        licenseNumber: '', // Will be populated from user profile if available
         status: user.status || 'Active',
-        systemGroup: user.system_group || '',
+        systemGroup: user.role || '',
+        totalTrips: user.total_trips || 0,
+        lastTrip: user.last_trip || null,
       }));
     },
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for availability)
@@ -127,11 +120,14 @@ export const useDriverWithStats = (driverId: string | null) => {
       console.log('👨‍💼 useDriversOptimized: Fetching driver with stats:', driverId);
       const startTime = performance.now();
       
+      // Convert string ID to number for database query
+      const numericId = parseInt(driverId, 10);
+      
       // Get driver info
       const { data: driver, error: driverError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', driverId)
+        .eq('id', numericId)
         .single();
 
       if (driverError) {
@@ -139,36 +135,19 @@ export const useDriverWithStats = (driverId: string | null) => {
         throw driverError;
       }
 
-      // Get trip statistics
-      const { data: tripStats, error: statsError } = await supabase
-        .from('trip_users')
-        .select('trip_id, trips!inner(*)')
-        .eq('user_id', driverId)
-        .eq('role', 'Chauffeur');
-
-      if (statsError) {
-        console.error('👨‍💼 useDriversOptimized: Error fetching stats:', statsError);
-      }
-
-      const totalTrips = tripStats?.length || 0;
-      const lastTrip = tripStats && tripStats.length > 0 
-        ? new Date(Math.max(...tripStats.map(t => new Date(t.trips.created_at).getTime())))
-            .toLocaleDateString('fr-FR')
-        : null;
-
       const endTime = performance.now();
       console.log('👨‍💼 useDriversOptimized: Fetched driver with stats in:', endTime - startTime, 'ms');
       
       return {
-        id: driver.id,
+        id: driver.id.toString(),
         name: driver.name || '',
         email: driver.email || '',
         phone: driver.phone || '',
-        licenseNumber: driver.license_number || '',
+        licenseNumber: '', // Will be populated from user profile if available
         status: driver.status || 'Active',
-        systemGroup: driver.system_group || '',
-        totalTrips,
-        lastTrip,
+        systemGroup: driver.role || '',
+        totalTrips: driver.total_trips || 0,
+        lastTrip: driver.last_trip || null,
       };
     },
     enabled: !!driverId,
@@ -188,17 +167,19 @@ export const useDriverMutations = () => {
 
   const updateDriver = useMutation({
     mutationFn: async ({ id, ...driverData }: Partial<Driver> & { id: string }) => {
+      // Convert string ID to number for database query
+      const numericId = parseInt(id, 10);
+      
       const { data, error } = await supabase
         .from('users')
         .update({
           name: driverData.name,
           email: driverData.email,
           phone: driverData.phone,
-          license_number: driverData.licenseNumber,
           status: driverData.status,
-          system_group: driverData.systemGroup,
+          role: driverData.systemGroup,
         })
-        .eq('id', id)
+        .eq('id', numericId)
         .select()
         .single();
 

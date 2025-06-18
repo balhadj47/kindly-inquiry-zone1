@@ -8,7 +8,6 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { RBACProvider } from "@/contexts/RBACContext";
 import { TripProvider } from "@/contexts/TripContext";
-import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import UserSettings from "./pages/UserSettings";
@@ -28,13 +27,11 @@ const App = () => {
             <LanguageProvider>
               <RBACProvider>
                 <TripProvider>
-                  <ProgressiveLoadingProvider>
-                    <Routes>
-                      <Route path="/*" element={<Index />} />
-                      <Route path="/user-settings" element={<UserSettings />} />
-                      <Route path="*" element={<NotFound />} />
-                    </Routes>
-                  </ProgressiveLoadingProvider>
+                  <Routes>
+                    <Route path="/*" element={<Index />} />
+                    <Route path="/user-settings" element={<UserSettings />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
                 </TripProvider>
               </RBACProvider>
             </LanguageProvider>

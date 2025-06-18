@@ -21,7 +21,7 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   // Safely access RBAC context
-  let hasPermission = () => false;
+  let hasPermission: (permission: string) => boolean = () => false;
   try {
     const rbacContext = useRBAC();
     hasPermission = rbacContext.hasPermission;
@@ -56,7 +56,7 @@ const Index = () => {
                 hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
               } />
               <Route path="/trip-logger" element={
-                hasPermission('trips:read') ? <TripLogger /> : <div>Access Denied</div>
+                hasPermission('trips:create') ? <TripLogger /> : <div>Access Denied</div>
               } />
               <Route path="/trip-history" element={
                 hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>

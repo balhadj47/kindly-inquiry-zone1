@@ -96,21 +96,23 @@ const Vans = () => {
 
   return (
     <div className="space-y-6">
-      <VanStats 
-        vans={vans}
-        onAddVan={handleAddVan}
-      />
-      
-      <VanFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sortField={sortField}
-        setSortField={setSortField}
-        sortDirection={sortDirection}
-        toggleSort={toggleSort}
-      />
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <VanStats 
+          vans={vans}
+          onAddVan={handleAddVan}
+        />
+        
+        <VanFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          toggleSort={toggleSort}
+        />
+      </div>
 
       <VanList
         vans={filteredAndSortedVans}

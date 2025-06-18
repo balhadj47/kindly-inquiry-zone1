@@ -6,11 +6,12 @@ import VanCard from '../VanCard';
 import VirtualizedList from '@/components/ui/virtualized-list';
 import VirtualizedVanCard from '@/components/virtualized/VirtualizedVanCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { Van } from '@/types/van';
 
 interface VansGridProps {
-  vans: any[];
-  onEditVan: (van: any) => void;
-  onDeleteVan: (van: any) => void;
+  vans: Van[];
+  onEditVan: (van: Van) => void;
+  onDeleteVan: (van: Van) => void;
 }
 
 const VansGrid = ({ vans, onEditVan, onDeleteVan }: VansGridProps) => {
@@ -18,14 +19,19 @@ const VansGrid = ({ vans, onEditVan, onDeleteVan }: VansGridProps) => {
   const isMobile = useIsMobile();
   const useVirtualization = vans.length > 20 && !isMobile;
 
-  const handleVanClick = (van: any) => {
+  const handleVanClick = (van: Van) => {
     navigate(`/vans/${van.id}`);
+  };
+
+  const handleVanEdit = (van: Van) => {
+    onEditVan(van);
   };
 
   const virtualizedData = {
     vans,
-    onEditVan,
-    onDeleteVan
+    onEditVan: handleVanEdit,
+    onDeleteVan,
+    onNavigate: handleVanClick
   };
 
   if (useVirtualization) {
@@ -52,13 +58,22 @@ const VansGrid = ({ vans, onEditVan, onDeleteVan }: VansGridProps) => {
         : 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3'
     }`}>
       {vans.map((van) => (
-        <VanCard
+        <div
           key={van.id}
-          van={van}
-          onEdit={onEditVan}
-          onQuickAction={() => {}}
-          onDelete={onDeleteVan}
-        />
+          className="cursor-pointer"
+          onClick={(e) => {
+            // Prevent navigation when clicking action buttons
+            if ((e.target as HTMLElement).closest('button')) return;
+            handleVanClick(van);
+          }}
+        >
+          <VanCard
+            van={van}
+            onEdit={handleVanEdit}
+            onQuickAction={handleVanClick}
+            onDelete={onDeleteVan}
+          />
+        </div>
       ))}
     </div>
   );

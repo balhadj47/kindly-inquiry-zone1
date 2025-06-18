@@ -16,16 +16,17 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
+        badge_number: userData.badgeNumber,
+        date_of_birth: userData.dateOfBirth,
+        place_of_birth: userData.placeOfBirth,
+        address: userData.address,
+        driver_license: userData.driverLicense,
       };
 
       // Only add email if it's provided (not required for employees)
       if (userData.email) {
         insertData.email = userData.email;
       }
-
-      // Note: Employee-specific fields (badge_number, date_of_birth, place_of_birth, address, driver_license) 
-      // are not yet added to the database schema. These need to be added as columns to the users table in Supabase.
-      console.log('Note: Employee fields not saved to database - columns need to be added to Supabase users table');
 
       const { data, error } = await supabase
         .from('users')
@@ -49,12 +50,11 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
-          // Set employee fields from form data since they're not in DB yet
-          badgeNumber: userData.badgeNumber,
-          dateOfBirth: userData.dateOfBirth,
-          placeOfBirth: userData.placeOfBirth,
-          address: userData.address,
-          driverLicense: userData.driverLicense,
+          badgeNumber: data[0].badge_number,
+          dateOfBirth: data[0].date_of_birth,
+          placeOfBirth: data[0].place_of_birth,
+          address: data[0].address,
+          driverLicense: data[0].driver_license,
           get role() { return this.systemGroup; }
         };
         
@@ -79,15 +79,17 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips,
         last_trip: userData.lastTrip,
+        badge_number: userData.badgeNumber,
+        date_of_birth: userData.dateOfBirth,
+        place_of_birth: userData.placeOfBirth,
+        address: userData.address,
+        driver_license: userData.driverLicense,
       };
 
       // Only update email if it's provided
       if (userData.email !== undefined) {
         updateData.email = userData.email;
       }
-
-      // Note: Employee-specific fields are not updated in database until columns are added
-      console.log('Note: Employee fields not updated in database - columns need to be added to Supabase users table');
 
       const { data, error } = await supabase
         .from('users')
@@ -112,12 +114,11 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           totalTrips: data[0].total_trips || 0,
           lastTrip: data[0].last_trip,
           profileImage: data[0].profile_image,
-          // Set employee fields from form data since they're not in DB yet
-          badgeNumber: userData.badgeNumber,
-          dateOfBirth: userData.dateOfBirth,
-          placeOfBirth: userData.placeOfBirth,
-          address: userData.address,
-          driverLicense: userData.driverLicense,
+          badgeNumber: data[0].badge_number,
+          dateOfBirth: data[0].date_of_birth,
+          placeOfBirth: data[0].place_of_birth,
+          address: data[0].address,
+          driverLicense: data[0].driver_license,
           get role() { return this.systemGroup; }
         };
         

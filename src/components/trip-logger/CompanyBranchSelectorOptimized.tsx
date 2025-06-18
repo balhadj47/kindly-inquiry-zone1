@@ -3,7 +3,8 @@ import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { useCompaniesBase, useCompanyBranches } from '@/hooks/useCompaniesOptimized';
+import { useCompaniesBase } from '@/hooks/useCompaniesOptimized';
+import { useCompanyBranches } from '@/hooks/useBranchesOptimized';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface CompanyBranchSelectorOptimizedProps {

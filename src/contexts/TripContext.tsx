@@ -9,11 +9,13 @@ const TripContext = createContext<TripContextType | undefined>(undefined);
 export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
 
   const loadTrips = async (useCache = true) => {
     try {
       console.log('🚗 TripProvider: Loading trips...');
+      setIsLoading(true);
       const data = await fetchTripsFromDatabase(useCache);
       const transformedTrips = transformDatabaseTrips(data);
       console.log('Transformed trips with dates:', transformedTrips);
@@ -26,6 +28,10 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Error loading trips:', error);
       if (isMountedRef.current) {
         setError('Failed to load trips');
+      }
+    } finally {
+      if (isMountedRef.current) {
+        setIsLoading(false);
       }
     }
   };
@@ -122,6 +128,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     endTrip,
     refreshTrips,
     error,
+    isLoading,
   };
 
   return <TripContext.Provider value={value}>{children}</TripContext.Provider>;

@@ -21,6 +21,8 @@ export interface Trip {
   status?: string;
   startDate?: Date;
   endDate?: Date;
+  destination?: string;
+  distance?: number;
 }
 
 export interface TripContextType {
@@ -30,4 +32,5 @@ export interface TripContextType {
   endTrip: (tripId: number, endKm: number) => Promise<void>;
   refreshTrips: () => Promise<void>;
   error: string | null;
+  isLoading: boolean;
 }

@@ -116,7 +116,7 @@ const TripHistory = () => {
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg font-medium">{trip.company || trip.destination}</CardTitle>
+                          <CardTitle className="text-lg font-medium">{trip.company || trip.notes}</CardTitle>
                           <p className="text-sm text-gray-600"><Calendar className="h-4 w-4 mr-1 inline-block" /> {formattedStartDate}</p>
                         </div>
                         <Badge variant="secondary">
@@ -126,7 +126,7 @@ const TripHistory = () => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="text-sm text-gray-600">
-                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Destination: {trip.destination}</p>
+                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Destination: {trip.notes || 'Non spécifiée'}</p>
                         <p><Clock className="h-4 w-4 mr-1 inline-block" /> Début: {formattedStartTime}</p>
                         {endDate && <p><Clock className="h-4 w-4 mr-1 inline-block" /> Fin: {formattedEndTime}</p>}
                         <p><Users className="h-4 w-4 mr-1 inline-block" /> Utilisateurs: {trip.userIds?.length || 0}</p>

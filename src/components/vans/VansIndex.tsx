@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -9,8 +9,10 @@ import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import { useAllVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansState } from '@/hooks/useVansState';
+import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Van } from '@/types/van';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -47,14 +49,39 @@ const VansIndex = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [localVans, setLocalVans] = useState<Van[]>([]);
   
   // Get vans data and control functions using optimized pattern
-  const { data: vans = [], refetch, isLoading } = useAllVans();
+  const { data: serverVans = [], refetch, isLoading } = useAllVans();
   const { invalidateVans } = useVanMutations();
+  const { compareAndEditData } = useSelectiveUpdate();
+
+  // Initialize local vans state on first load
+  useEffect(() => {
+    if (serverVans.length > 0 && localVans.length === 0) {
+      console.log('🚐 VansIndex: Initializing local vans state');
+      setLocalVans(serverVans);
+    }
+  }, [serverVans, localVans.length]);
+
+  // Auto-refresh and selective update when server data changes
+  useEffect(() => {
+    if (serverVans.length > 0 && localVans.length > 0) {
+      console.log('🔄 VansIndex: Applying selective updates...');
+      compareAndEditData(localVans, serverVans, setLocalVans);
+    }
+  }, [serverVans, compareAndEditData, localVans.length]);
+
+  // Auto-refresh when component mounts (entering the page)
+  useEffect(() => {
+    console.log('🚐 VansIndex: Page entered, refreshing data...');
+    refetch();
+  }, [refetch]);
 
   // Create a setter function that works with the existing hook
   const setVans = () => {
     invalidateVans();
+    refetch();
   };
 
   const {
@@ -70,14 +97,17 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
+  // Use local vans for filtering and sorting
+  const vansToUse = localVans.length > 0 ? localVans : serverVans;
+
   const filteredAndSortedVans = useMemo(() => {
-    console.log('Filtering vans:', { vans: vans?.length || 0, statusFilter, searchTerm });
+    console.log('Filtering vans:', { vans: vansToUse?.length || 0, statusFilter, searchTerm });
     
-    if (!vans || vans.length === 0) {
+    if (!vansToUse || vansToUse.length === 0) {
       return [];
     }
     
-    let filtered = vans.filter(van => {
+    let filtered = vansToUse.filter(van => {
       // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
@@ -147,7 +177,7 @@ const VansIndex = () => {
     });
 
     return filtered;
-  }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [vansToUse, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
     refetch();
@@ -159,7 +189,7 @@ const VansIndex = () => {
   };
 
   // Show loading skeleton only when loading and no cached data
-  if (isLoading && (!vans || vans.length === 0)) {
+  if (isLoading && vansToUse.length === 0) {
     return <VansLoadingSkeleton />;
   }
 
@@ -194,7 +224,7 @@ const VansIndex = () => {
       ) : (
         <VanList
           vans={filteredAndSortedVans}
-          totalVans={vans?.length || 0}
+          totalVans={vansToUse?.length || 0}
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           onAddVan={handleAddVan}

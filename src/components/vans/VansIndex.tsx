@@ -211,15 +211,6 @@ const VansIndex = () => {
               setSortDirection={setSortDirection}
             />
           </div>
-          
-          {/* Status indicator - only show when changes detected */}
-          {hasChanges && (
-            <div className="flex items-center justify-end mt-4 pt-2 border-t border-gray-100">
-              <div className="text-sm text-blue-600 font-medium">
-                Données mises à jour
-              </div>
-            </div>
-          )}
         </CardContent>
       </Card>
 

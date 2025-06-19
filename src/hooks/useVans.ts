@@ -1,21 +1,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-
-export interface Van {
-  id: string;
-  license_plate: string;
-  model: string;
-  reference_code: string;
-  driver_id: string | null;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  insurer?: string;
-  insurance_date?: string;
-  control_date?: string;
-  notes?: string;
-}
+import { Van } from '@/types/van';
 
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
@@ -52,7 +38,12 @@ export const useVans = () => {
         throw error;
       }
 
-      const vansData = data || [];
+      // Ensure we have the updated_at field, add it if missing
+      const vansData = (data || []).map(van => ({
+        ...van,
+        updated_at: van.updated_at || van.created_at || new Date().toISOString()
+      })) as Van[];
+      
       const endTime = performance.now();
       console.log('🚐 useVans: Fresh fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
       

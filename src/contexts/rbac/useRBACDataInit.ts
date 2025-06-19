@@ -10,6 +10,16 @@ interface UseRBACDataInitProps {
   actions: RBACActions;
 }
 
+// Known admin emails - these will always get Administrator privileges
+const ADMIN_EMAILS = [
+  'gb47@msn.com',
+  'admin@example.com'
+];
+
+const isAdminEmail = (email: string): boolean => {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+};
+
 export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
   const initializationRef = useRef(false);
@@ -70,13 +80,20 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
           actions.setCurrentUser(currentUser);
         } else {
           console.log('⚠️ Current user not found in system, creating basic profile');
+          
+          // Check if user is a known admin
+          const isAdmin = isAdminEmail(authUser.email || '');
+          const systemGroup = isAdmin ? 'Administrator' : 'Employee';
+          
+          console.log('🔐 Assigning system group:', systemGroup, 'for email:', authUser.email);
+          
           // Create a basic user profile for authenticated users not in the system
           const basicUser = {
             id: authUser.id,
             name: authUser.email?.split('@')[0] || 'User',
             email: authUser.email || '',
             phone: '',
-            systemGroup: 'Employee' as const,
+            systemGroup: systemGroup as const,
             status: 'Active' as const,
             createdAt: new Date().toISOString(),
             get role() { return this.systemGroup; }

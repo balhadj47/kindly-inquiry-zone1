@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -8,9 +8,7 @@ import VanList from '../VanList';
 import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
-import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
-import { useModernRefresh } from '@/hooks/useModernRefresh';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -53,8 +51,6 @@ const VansIndex = () => {
   
   // Get vans data and control functions
   const { vans, refetch, isLoading } = useVans();
-  const { deleteVan } = useVanDelete(() => refetch());
-  const { modernRefresh, isRefreshing, refreshProgress } = useModernRefresh();
 
   const {
     isModalOpen,
@@ -68,22 +64,6 @@ const VansIndex = () => {
     handleDeleteVan,
     handleConfirmDelete
   } = useVansState(refetch);
-
-  // Modern refresh with smart updates
-  const handleModernRefresh = useCallback(async () => {
-    if (!vans) return;
-    
-    await modernRefresh(
-      vans,
-      refetch,
-      () => {}, // No need to manually update since refetch handles it
-      {
-        showToast: true,
-        onStart: () => console.log('🚀 Starting modern refresh...'),
-        onComplete: () => console.log('✅ Modern refresh completed')
-      }
-    );
-  }, [vans, modernRefresh, refetch]);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans?.length || 0, statusFilter, searchTerm });
@@ -165,8 +145,7 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    // Trigger modern refresh after modal success
-    handleModernRefresh();
+    refetch();
   };
 
   const handleQuickAction = (van: any) => {
@@ -180,12 +159,7 @@ const VansIndex = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <VansHeader 
-        onAddVan={handleAddVan} 
-        onRefresh={handleModernRefresh}
-        isRefreshing={isRefreshing}
-        refreshProgress={refreshProgress}
-      />
+      <VansHeader onAddVan={handleAddVan} />
       
       <Card>
         <CardContent className="p-4 sm:pt-6">

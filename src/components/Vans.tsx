@@ -1,8 +1,7 @@
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 // Lazy load van-related components
 const VansIndex = React.lazy(() => import('./vans/VansIndex'));
@@ -24,13 +23,6 @@ const VanLoadingSkeleton = () => (
 );
 
 const Vans = () => {
-  const { refreshPage } = useCacheRefresh();
-
-  // Clear cache and refresh data when component mounts
-  useEffect(() => {
-    refreshPage(['vans']);
-  }, [refreshPage]);
-
   return (
     <Suspense fallback={<VanLoadingSkeleton />}>
       <Routes>

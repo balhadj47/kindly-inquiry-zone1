@@ -80,17 +80,17 @@ const VansIndex = () => {
     await refreshChanges();
   }, [refreshChanges]);
 
-  // New compare and edit function
+  // Fixed compare and edit function
   const handleCompareAndEdit = useCallback(async () => {
     console.log('🔍 VansIndex: Compare and edit triggered');
     try {
       // Fetch fresh data from database
       const freshData = await refetch();
       
-      // Compare and selectively update only changed fields
-      const result = await compareAndEditData(vans, freshData, (updatedData) => {
-        console.log('📝 Applying selective updates to van data');
-        // The data is already updated by the refetch, but we log the selective changes
+      // The refetch already updates the vans state with fresh data
+      // But we can still use compareAndEditData for logging purposes
+      const result = await compareAndEditData(vans, freshData, () => {
+        console.log('📝 Selective updates detected and applied');
       });
       
       if (result.hasChanges) {

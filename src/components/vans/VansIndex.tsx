@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -12,6 +11,7 @@ import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -52,6 +52,7 @@ const VansIndex = () => {
   
   const { vans, refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
+  const { refreshPage } = useCacheRefresh();
   
   const setVans = () => {
     refetch();
@@ -69,6 +70,16 @@ const VansIndex = () => {
     handleDeleteVan,
     handleConfirmDelete
   } = useVansState(setVans);
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['vans']);
+  }, [refreshPage]);
+
+  const handleRefresh = () => {
+    refreshPage(['vans']);
+    refetch();
+  };
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });
@@ -160,7 +171,7 @@ const VansIndex = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <VansHeader onAddVan={handleAddVan} />
+      <VansHeader onAddVan={handleAddVan} onRefresh={handleRefresh} />
       
       <Card>
         <CardContent className="p-4 sm:pt-6">

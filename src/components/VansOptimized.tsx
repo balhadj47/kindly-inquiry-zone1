@@ -1,10 +1,13 @@
-import React, { useState, useMemo } from 'react';
+
+import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import VanStats from './VanStats';
 import VanFilters from './VanFilters';
 import VanList from './VanList';
 import VanModal from './VanModal';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { RefreshButton } from '@/components/ui/refresh-button';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -49,6 +52,17 @@ const VansOptimized = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
+  const { refreshPage } = useCacheRefresh();
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['vans']);
+  }, [refreshPage]);
+
+  const handleRefresh = async () => {
+    refreshPage(['vans']);
+    await refetch();
+  };
 
   if (isLoading) {
     return <VansLoadingSkeleton />;
@@ -149,6 +163,11 @@ const VansOptimized = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
+        <RefreshButton onRefresh={handleRefresh} />
+      </div>
+      
       <VanStats 
         vans={vans}
         onAddVan={handleAddVan}

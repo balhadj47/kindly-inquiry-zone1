@@ -1,40 +1,18 @@
+
 /**
- * Simplified van data updater with direct refresh approach
+ * Simplified van data updater - direct approach
  */
 
-export const updateVanFields = (currentVans, newVans, setVans) => {
-  console.log('🔄 updateVanFields: Starting update...');
-  console.log('Current vans:', currentVans?.length || 0);
-  console.log('New vans:', newVans?.length || 0);
+export const updateVanFields = (serverVans, setLocalVans) => {
+  console.log('🔄 updateVanFields: Direct update with server data');
+  console.log('Server vans:', serverVans?.length || 0);
 
-  // Always update if we have new data
-  if (newVans && Array.isArray(newVans)) {
-    console.log('✅ updateVanFields: Setting new data');
-    setVans(newVans);
-    return;
-  }
-
-  // Fallback: keep current data if no new data
-  if (!newVans && currentVans && Array.isArray(currentVans)) {
-    console.log('📋 updateVanFields: No new data, keeping current');
-    return;
-  }
-
-  // Default: set empty array
-  console.log('🔄 updateVanFields: Setting empty array as fallback');
-  setVans([]);
-};
-
-export const shouldRefreshVans = (currentVans, serverVans) => {
-  // Always refresh if we have server data
+  // Direct update - no complex logic
   if (serverVans && Array.isArray(serverVans)) {
-    return true;
+    setLocalVans(serverVans);
+    console.log('✅ updateVanFields: Data updated directly');
+  } else {
+    setLocalVans([]);
+    console.log('🔄 updateVanFields: Set empty array');
   }
-  
-  // Refresh if no current data
-  if (!currentVans || currentVans.length === 0) {
-    return true;
-  }
-
-  return false;
 };

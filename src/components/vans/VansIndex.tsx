@@ -48,32 +48,16 @@ const VansIndex = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [localVans, setLocalVans] = useState<Van[]>([]);
   
   // Get vans data and control functions using optimized pattern
   const { data: serverVans = [], refetch, isLoading } = useAllVans();
   const { invalidateVans } = useVanMutations();
 
-  // Direct update when server data changes
+  // Single useEffect for data refresh on mount
   useEffect(() => {
-    console.log('🚐 VansIndex: Server data changed, updating directly...');
-    if (serverVans && Array.isArray(serverVans)) {
-      setLocalVans(serverVans);
-    }
-  }, [serverVans]);
-
-  // Refresh when component mounts
-  useEffect(() => {
-    console.log('🚐 VansIndex: Page entered, refreshing data...');
-    const refreshData = async () => {
-      try {
-        await refetch();
-      } catch (error) {
-        console.error('Error refreshing data:', error);
-      }
-    };
-    refreshData();
-  }, []);
+    console.log('🚐 VansIndex: Component mounted, triggering refresh');
+    refetch();
+  }, [refetch]);
 
   // Create a setter function that works with the existing hook
   const setVans = () => {
@@ -94,8 +78,8 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
-  // Use local vans for filtering and sorting
-  const vansToUse = localVans.length > 0 ? localVans : serverVans;
+  // Use server vans directly - no local state management
+  const vansToUse = serverVans;
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vansToUse?.length || 0, statusFilter, searchTerm });

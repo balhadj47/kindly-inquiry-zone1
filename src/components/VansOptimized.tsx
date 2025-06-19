@@ -1,7 +1,5 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
-import { updateVanFields, shouldRefreshVans } from '@/utils/vanFieldUpdater';
 import VanStats from './VanStats';
 import VanFilters from './VanFilters';
 import VanList from './VanList';
@@ -48,7 +46,6 @@ const VansLoadingSkeleton = () => (
 const VansOptimized = () => {
   const { data: serverVans = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
-  const [localVans, setLocalVans] = useState<Van[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
@@ -57,17 +54,9 @@ const VansOptimized = () => {
   const [selectedVan, setSelectedVan] = useState(null);
   const { refreshPage } = useCacheRefresh();
 
-  // Direct update when server data changes
+  // Single useEffect for data refresh on mount
   useEffect(() => {
-    console.log('🚐 VansOptimized: Server data changed, updating directly...');
-    if (serverVans && Array.isArray(serverVans)) {
-      setLocalVans(serverVans);
-    }
-  }, [serverVans]);
-
-  // Refresh when component mounts
-  useEffect(() => {
-    console.log('🚐 VansOptimized: Page entered, refreshing data...');
+    console.log('🚐 VansOptimized: Component mounted, triggering refresh');
     const refreshData = async () => {
       try {
         refreshPage(['vans']);
@@ -77,15 +66,15 @@ const VansOptimized = () => {
       }
     };
     refreshData();
-  }, []);
+  }, [refetch, refreshPage]);
 
   const handleRefresh = async () => {
     refreshPage(['vans']);
     await refetch();
   };
 
-  // Use local vans for display
-  const vansToUse = localVans.length > 0 ? localVans : serverVans;
+  // Use server vans directly - no local state management
+  const vansToUse = serverVans;
 
   if (isLoading && vansToUse.length === 0) {
     return <VansLoadingSkeleton />;

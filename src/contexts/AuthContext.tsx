@@ -38,34 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       console.log("Initial session check:", session?.user?.id);
       
-      // If no session, create a temporary admin session for development
-      if (!session) {
-        console.log("No session found, creating temporary admin session");
-        const tempUser = {
-          id: 'temp-admin-user',
-          email: 'admin@temp.com',
-          user_metadata: {},
-          app_metadata: {},
-          aud: 'authenticated',
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        } as User;
-        
-        const tempSession = {
-          user: tempUser,
-          access_token: 'temp-token',
-          token_type: 'bearer',
-          expires_in: 3600,
-          expires_at: Date.now() + 3600000,
-          refresh_token: 'temp-refresh'
-        } as Session;
-        
-        setSession(tempSession);
-        setUser(tempUser);
-      } else {
-        setSession(session);
-        setUser(session.user);
-      }
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
@@ -74,12 +48,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       (event, session) => {
         console.log('Auth state changed:', event, session?.user?.id);
         
-        // Only update state if there's an actual change
-        if (session?.user?.id !== user?.id || session?.access_token !== subscriptionRef.current?.access_token) {
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
-        
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );

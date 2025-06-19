@@ -21,13 +21,20 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
       return;
     }
 
+    // If no user is authenticated, don't initialize RBAC
+    if (!authUser) {
+      console.log('❌ No authenticated user, skipping RBAC initialization');
+      actions.setLoading(false);
+      return;
+    }
+
     // Prevent multiple initializations
     if (initializationRef.current) {
       return;
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 Starting RBAC initialization for user:', authUser?.email || 'temp-user');
+      console.log('🚀 Starting RBAC initialization for user:', authUser?.email);
       initializationRef.current = true;
       actions.setLoading(true);
 
@@ -41,21 +48,17 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
         console.log('✅ RBAC Data loaded:', {
           systemGroupsCount: systemGroups.length,
           usersCount: users.length,
-          authUserEmail: authUser?.email || 'temp-user'
+          authUserEmail: authUser?.email
         });
 
         // Set the data
         actions.setRoles(systemGroups);
         actions.setUsers(users);
 
-        // Find current user by email or use temp admin
-        let currentUser = null;
-        
-        if (authUser?.email && authUser.email !== 'admin@temp.com') {
-          currentUser = users.find(user => 
-            user.email?.toLowerCase() === authUser.email?.toLowerCase()
-          );
-        }
+        // Find current user by email
+        const currentUser = users.find(user => 
+          user.email?.toLowerCase() === authUser.email?.toLowerCase()
+        );
 
         if (currentUser) {
           console.log('✅ Current user found:', {
@@ -66,18 +69,19 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
           });
           actions.setCurrentUser(currentUser);
         } else {
-          console.log('🔓 Creating admin temp user for development');
-          const adminUser = {
-            id: 'admin-temp',
-            name: 'Administrator',
-            email: authUser?.email || 'admin@temp.com',
+          console.log('⚠️ Current user not found in system, creating basic profile');
+          // Create a basic user profile for authenticated users not in the system
+          const basicUser = {
+            id: authUser.id,
+            name: authUser.email?.split('@')[0] || 'User',
+            email: authUser.email || '',
             phone: '',
-            systemGroup: 'Administrator' as const,
+            systemGroup: 'User' as const,
             status: 'Active' as const,
             createdAt: new Date().toISOString(),
             get role() { return this.systemGroup; }
           };
-          actions.setCurrentUser(adminUser);
+          actions.setCurrentUser(basicUser);
         }
 
         // Initialize permission utilities
@@ -85,19 +89,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
 
       } catch (error) {
         console.error('❌ RBAC initialization error:', error);
-        
-        // Create fallback admin user even on error
-        const fallbackUser = {
-          id: 'admin-temp',
-          name: 'Administrator',
-          email: authUser?.email || 'admin@temp.com',
-          phone: '',
-          systemGroup: 'Administrator' as const,
-          status: 'Active' as const,
-          createdAt: new Date().toISOString(),
-          get role() { return this.systemGroup; }
-        };
-        actions.setCurrentUser(fallbackUser);
+        actions.setCurrentUser(null);
       } finally {
         actions.setLoading(false);
         console.log('🏁 RBAC initialization completed');
@@ -105,7 +97,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     };
 
     initializeRBAC();
-  }, [authUser?.email, authLoading]); // Include authLoading in dependencies
+  }, [authUser?.email, authLoading]);
 
   // Reset initialization flag when user changes
   useEffect(() => {

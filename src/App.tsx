@@ -1,5 +1,5 @@
 
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { Suspense, lazy } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -11,9 +11,11 @@ import { ProgressiveLoadingProvider } from "@/contexts/ProgressiveLoadingContext
 import { Skeleton } from "@/components/ui/skeleton";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import NetworkStatusSimple from "@/components/NetworkStatusSimple";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // Lazy load main components
 const Index = lazy(() => import("./pages/Index"));
+const AuthPage = lazy(() => import("./pages/AuthPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Optimize QueryClient configuration
@@ -44,8 +46,6 @@ const AppLoadingSkeleton = () => (
 
 const App = () => {
   console.log('🚀 App: Functional component render');
-  console.log('🔍 React version check:', React.version);
-  console.log('🔍 useState available:', !!React.useState);
   
   return (
     <ErrorBoundary>
@@ -60,7 +60,12 @@ const App = () => {
                       <ProgressiveLoadingProvider>
                         <Suspense fallback={<AppLoadingSkeleton />}>
                           <Routes>
-                            <Route path="/*" element={<Index />} />
+                            <Route path="/auth" element={<AuthPage />} />
+                            <Route path="/*" element={
+                              <ProtectedRoute>
+                                <Index />
+                              </ProtectedRoute>
+                            } />
                             <Route path="*" element={<NotFound />} />
                           </Routes>
                         </Suspense>

@@ -24,29 +24,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
 export const requireAuth = async () => {
   const { data: { session }, error } = await supabase.auth.getSession();
   
-  if (error) {
-    console.error('Auth check error:', error);
-    // For development, allow temporary access
-    console.log('🔧 Development mode: allowing temporary access');
-    return {
-      user: {
-        id: 'temp-admin-user',
-        email: 'admin@temp.com'
-      },
-      access_token: 'temp-token'
-    };
-  }
-  
-  if (!session) {
-    console.log('No active session found, creating temporary session for development');
-    // For development, create a temporary session
-    return {
-      user: {
-        id: 'temp-admin-user',
-        email: 'admin@temp.com'
-      },
-      access_token: 'temp-token'
-    };
+  if (error || !session) {
+    throw new Error('Authentication required');
   }
   
   return session;

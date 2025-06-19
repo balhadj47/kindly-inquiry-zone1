@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useTrip } from '@/contexts/TripContext';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { RefreshButton } from '@/components/ui/refresh-button';
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
 import QuickActions from './dashboard/QuickActions';
@@ -54,9 +56,23 @@ const DashboardLoadingSkeleton = () => {
 
 const Dashboard = () => {
   const { users } = useRBAC();
-  const { vans } = useVans();
-  const { companies } = useCompanies();
+  const { vans, refetch: refetchVans } = useVans();
+  const { companies, refetch: refetchCompanies } = useCompanies();
   const { trips } = useTrip();
+  const { refreshPage } = useCacheRefresh();
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['users', 'vans', 'companies', 'trips']);
+  }, [refreshPage]);
+
+  const handleRefresh = async () => {
+    refreshPage(['users', 'vans', 'companies', 'trips']);
+    await Promise.all([
+      refetchVans?.(),
+      refetchCompanies?.()
+    ]);
+  };
 
   const stats = calculateDashboardStats(users, vans, companies, trips);
   const chartData = createChartData(companies, trips);
@@ -65,8 +81,11 @@ const Dashboard = () => {
     <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
-        <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+          <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
+        </div>
+        <RefreshButton onRefresh={handleRefresh} />
       </div>
 
       <EnhancedStatsGrid stats={stats} />

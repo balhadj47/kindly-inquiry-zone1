@@ -1,7 +1,8 @@
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 // Lazy load company-related components
 const CompaniesIndex = React.lazy(() => import('./companies/CompaniesIndex'));
@@ -24,6 +25,13 @@ const CompanyLoadingSkeleton = () => (
 );
 
 const Companies = () => {
+  const { refreshPage } = useCacheRefresh();
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['companies', 'branches']);
+  }, [refreshPage]);
+
   return (
     <Suspense fallback={<CompanyLoadingSkeleton />}>
       <Routes>

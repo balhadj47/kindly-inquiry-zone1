@@ -1,12 +1,25 @@
 
-import { useMemo, useRef } from 'react';
+import { useMemo, useRef, useEffect } from 'react';
 
 export const useSmartContentUpdate = <T>(data: T[], keyField: keyof T) => {
   const previousDataRef = useRef<Map<any, T>>(new Map());
+  const isFirstRenderRef = useRef(true);
   
   const { updatedItems, newItems, removedItems, unchangedItems } = useMemo(() => {
     const currentMap = new Map(data.map(item => [item[keyField], item]));
     const previousMap = previousDataRef.current;
+    
+    // Skip analysis on first render
+    if (isFirstRenderRef.current) {
+      isFirstRenderRef.current = false;
+      previousDataRef.current = currentMap;
+      return { 
+        updatedItems: [], 
+        newItems: [], 
+        removedItems: [], 
+        unchangedItems: data 
+      };
+    }
     
     const updatedItems: T[] = [];
     const newItems: T[] = [];
@@ -25,7 +38,7 @@ export const useSmartContentUpdate = <T>(data: T[], keyField: keyof T) => {
         // Remove from removed keys since it still exists
         removedKeys.delete(key);
         
-        // Check if item has changed
+        // Check if item has changed (deep comparison)
         if (JSON.stringify(item) !== JSON.stringify(previousItem)) {
           updatedItems.push(item);
         } else {
@@ -39,16 +52,26 @@ export const useSmartContentUpdate = <T>(data: T[], keyField: keyof T) => {
     // Update reference for next comparison
     previousDataRef.current = currentMap;
 
-    console.log('📊 Content update analysis:', {
-      total: data.length,
-      new: newItems.length,
-      updated: updatedItems.length,
-      unchanged: unchangedItems.length,
-      removed: removedItems.length
-    });
+    if (updatedItems.length > 0 || newItems.length > 0 || removedItems.length > 0) {
+      console.log('📊 Content changes detected:', {
+        total: data.length,
+        new: newItems.length,
+        updated: updatedItems.length,
+        unchanged: unchangedItems.length,
+        removed: removedItems.length
+      });
+    }
 
     return { updatedItems, newItems, removedItems, unchangedItems };
   }, [data, keyField]);
+
+  // Reset on data change from external source (like page navigation)
+  useEffect(() => {
+    if (data.length === 0) {
+      isFirstRenderRef.current = true;
+      previousDataRef.current = new Map();
+    }
+  }, [data.length]);
 
   return {
     updatedItems,

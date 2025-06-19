@@ -74,7 +74,7 @@ const VansIndex = () => {
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
 
-  // Real-time data updates
+  // Manual refresh system
   const { forceUpdate, isEnabled: isRealTimeEnabled } = useRealTimeUpdates({
     onUpdate: async () => {
       // Clear global cache first for fresh data
@@ -84,20 +84,19 @@ const VansIndex = () => {
       }
       await refetch();
     },
-    interval: 30000, // Update every 30 seconds
     enabled: true
   });
 
   // Force refresh with cache clearing
   const handleRefresh = async () => {
-    console.log('🔄 VansIndex: Force refresh triggered');
+    console.log('🔄 VansIndex: Manual refresh triggered');
     await forceUpdate();
   };
 
-  // Log content changes
+  // Log content changes when they occur
   React.useEffect(() => {
     if (hasChanges) {
-      console.log('📊 Content changes detected:', {
+      console.log('📊 Content updated:', {
         updated: updatedItems.length,
         new: newItems.length
       });
@@ -213,18 +212,14 @@ const VansIndex = () => {
             />
           </div>
           
-          {/* Real-time status indicator */}
-          <div className="flex items-center justify-between mt-4 pt-2 border-t border-gray-100">
-            <div className="flex items-center space-x-2 text-sm text-gray-500">
-              <div className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
-              <span>{isRealTimeEnabled ? 'Mises à jour automatiques activées' : 'Mises à jour automatiques désactivées'}</span>
-            </div>
-            {hasChanges && (
+          {/* Status indicator - only show when changes detected */}
+          {hasChanges && (
+            <div className="flex items-center justify-end mt-4 pt-2 border-t border-gray-100">
               <div className="text-sm text-blue-600 font-medium">
-                Nouvelles données détectées
+                Données mises à jour
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 

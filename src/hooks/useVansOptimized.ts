@@ -10,7 +10,7 @@ export const useAllVans = () => {
   return useQuery({
     queryKey: VANS_QUERY_KEY,
     queryFn: async (): Promise<Van[]> => {
-      console.log('🚐 useVansOptimized: Fetching fresh data from database...');
+      console.log('🚐 useVansOptimized: Fetching data from database...');
       const startTime = performance.now();
       
       const { data, error } = await supabase
@@ -42,12 +42,12 @@ export const useAllVans = () => {
       })) as Van[];
       
       const endTime = performance.now();
-      console.log('🚐 useVansOptimized: Fresh fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
+      console.log('🚐 useVansOptimized: Fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
       
       return vansData;
     },
-    staleTime: 0, // Always consider data stale
-    gcTime: 0, // Don't cache data
+    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
+    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -76,6 +76,10 @@ export const useVanMutations = () => {
 
   const invalidateVans = () => {
     queryClient.invalidateQueries({ queryKey: VANS_QUERY_KEY });
+  };
+
+  const refreshVans = () => {
+    queryClient.refetchQueries({ queryKey: VANS_QUERY_KEY });
   };
 
   const createVan = useMutation({
@@ -182,5 +186,6 @@ export const useVanMutations = () => {
     updateVan,
     deleteVan,
     invalidateVans,
+    refreshVans,
   };
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -49,13 +48,12 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Get fresh vans data - no caching, always fresh
+  // Get vans data with caching enabled
   const { data: vansData = [], refetch, isLoading, isError } = useAllVans();
-  const { invalidateVans } = useVanMutations();
+  const { invalidateVans, refreshVans } = useVanMutations();
 
   const setVans = () => {
-    invalidateVans();
-    refetch();
+    refreshVans();
   };
 
   const {
@@ -151,8 +149,7 @@ const VansIndex = () => {
   }, [vansData, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    refetch();
-    invalidateVans();
+    refreshVans();
   };
 
   const handleQuickAction = (van: any) => {
@@ -172,7 +169,7 @@ const VansIndex = () => {
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
           <p className="text-gray-600 mb-4">Impossible de charger les camionnettes</p>
           <button 
-            onClick={() => refetch()} 
+            onClick={() => refreshVans()} 
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
           >
             Réessayer

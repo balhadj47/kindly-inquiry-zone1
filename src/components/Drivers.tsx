@@ -8,7 +8,6 @@ import { Search, User, Phone, Mail, Plus } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useRBAC } from '@/contexts/RBACContext';
 import { getRoleNameFromId, isDriverRole } from '@/utils/roleUtils';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 
 const DriversLoadingSkeleton = () => {
@@ -76,16 +75,16 @@ const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
-  const { users, loading } = useRBAC();
-  const { refreshPage } = useCacheRefresh();
+  const { users, loading, refetch: refetchUsers } = useRBAC();
 
-  // Clear cache and refresh data when component mounts
+  // Refresh data when component mounts (user enters the page)
   useEffect(() => {
-    refreshPage(['users']);
-  }, [refreshPage]);
+    console.log('🚗 Drivers component mounted, refreshing data');
+    refetchUsers?.();
+  }, [refetchUsers]);
 
   const handleRefresh = () => {
-    refreshPage(['users']);
+    refetchUsers?.();
   };
 
   if (loading) {

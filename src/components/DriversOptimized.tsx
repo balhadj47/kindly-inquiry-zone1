@@ -7,7 +7,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Phone, Mail, Plus } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useDrivers } from '@/hooks/useDriversOptimized';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 
 const DriversLoadingSkeleton = () => (
@@ -71,15 +70,14 @@ const DriversOptimized = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const { data: drivers = [], isLoading, error, refetch } = useDrivers();
-  const { refreshPage } = useCacheRefresh();
 
-  // Clear cache and refresh data when component mounts
+  // Refresh data when component mounts (user enters the page)
   useEffect(() => {
-    refreshPage(['drivers']);
-  }, [refreshPage]);
+    console.log('🚗 DriversOptimized component mounted, refreshing data');
+    refetch();
+  }, [refetch]);
 
   const handleRefresh = async () => {
-    refreshPage(['drivers']);
     await refetch();
   };
 

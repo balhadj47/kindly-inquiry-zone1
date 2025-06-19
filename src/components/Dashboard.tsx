@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -6,6 +5,7 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useTrip } from '@/contexts/TripContext';
+import { useVanMutations } from '@/hooks/useVansOptimized';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
@@ -59,15 +59,21 @@ const Dashboard = () => {
   const { vans, refetch: refetchVans } = useVans();
   const { companies, refetch: refetchCompanies } = useCompanies();
   const { trips } = useTrip();
+  const { refreshVans } = useVanMutations();
   const { refreshPage } = useCacheRefresh();
 
-  // Clear cache and refresh data when component mounts
+  // Refresh data when component mounts (user enters the page)
   useEffect(() => {
+    console.log('📊 Dashboard component mounted, refreshing data');
+    refreshVans();
+    refetchVans?.();
+    refetchCompanies?.();
     refreshPage(['users', 'vans', 'companies', 'trips']);
-  }, [refreshPage]);
+  }, [refreshVans, refetchVans, refetchCompanies, refreshPage]);
 
   const handleRefresh = async () => {
     refreshPage(['users', 'vans', 'companies', 'trips']);
+    refreshVans();
     await Promise.all([
       refetchVans?.(),
       refetchCompanies?.()

@@ -2,7 +2,7 @@
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { useCompanies } from '@/hooks/useCompanies';
 
 // Lazy load company-related components
 const CompaniesIndex = React.lazy(() => import('./companies/CompaniesIndex'));
@@ -25,12 +25,13 @@ const CompanyLoadingSkeleton = () => (
 );
 
 const Companies = () => {
-  const { refreshPage } = useCacheRefresh();
+  const { refetch: refetchCompanies } = useCompanies();
 
-  // Clear cache and refresh data when component mounts
+  // Refresh data when component mounts (user enters the page)
   useEffect(() => {
-    refreshPage(['companies', 'branches']);
-  }, [refreshPage]);
+    console.log('🏢 Companies component mounted, refreshing data');
+    refetchCompanies?.();
+  }, [refetchCompanies]);
 
   return (
     <Suspense fallback={<CompanyLoadingSkeleton />}>

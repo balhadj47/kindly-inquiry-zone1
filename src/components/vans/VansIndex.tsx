@@ -53,12 +53,6 @@ const VansIndex = () => {
   const { data: vansData = [], refetch, isLoading, isError } = useAllVans();
   const { invalidateVans } = useVanMutations();
 
-  // Force fresh data on component mount
-  useEffect(() => {
-    console.log('🚐 VansIndex: Component mounted, forcing fresh data fetch');
-    refetch();
-  }, [refetch]);
-
   const setVans = () => {
     invalidateVans();
     refetch();
@@ -77,17 +71,14 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
-  // Use server vans directly - no local state management
-  const vansToUse = serverVans;
-
   const filteredAndSortedVans = useMemo(() => {
-    console.log('Filtering vans:', { vans: vansToUse?.length || 0, statusFilter, searchTerm });
+    console.log('Filtering vans:', { vans: vansData?.length || 0, statusFilter, searchTerm });
     
-    if (!vansToUse || vansToUse.length === 0) {
+    if (!vansData || vansData.length === 0) {
       return [];
     }
     
-    let filtered = vansToUse.filter(van => {
+    let filtered = vansData.filter(van => {
       // Search filter
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
@@ -157,7 +148,7 @@ const VansIndex = () => {
     });
 
     return filtered;
-  }, [vansToUse, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [vansData, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
     refetch();

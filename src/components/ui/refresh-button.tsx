@@ -15,7 +15,7 @@ interface RefreshButtonProps {
 export const RefreshButton: React.FC<RefreshButtonProps> = ({
   onRefresh,
   className,
-  size = 'default',
+  size = 'icon',
   variant = 'outline',
   disabled = false,
 }) => {
@@ -28,6 +28,12 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
     setIsRefreshing(true);
     
     try {
+      // Clear cache immediately for faster updates
+      if (typeof window !== 'undefined') {
+        (window as any).globalVansCache = null;
+        (window as any).globalFetchPromise = null;
+      }
+      
       await onRefresh();
       console.log('✅ RefreshButton: Refresh completed');
     } catch (error) {
@@ -36,7 +42,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       // Shorter animation time for better responsiveness
       setTimeout(() => {
         setIsRefreshing(false);
-      }, 500);
+      }, 300);
     }
   };
 
@@ -55,11 +61,9 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       <RefreshCw 
         className={cn(
           "h-4 w-4", 
-          isRefreshing && "animate-spin",
-          size !== 'icon' && "mr-2"
+          isRefreshing && "animate-spin"
         )} 
       />
-      {size !== 'icon' && (isRefreshing ? 'Actualisation...' : 'Actualiser')}
     </Button>
   );
 };

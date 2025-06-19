@@ -12,6 +12,7 @@ import { useVansState } from '@/hooks/useVansState';
 import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -52,6 +53,7 @@ const VansIndex = () => {
   
   const { vans, refetch, refreshChanges, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
+  const { compareAndEditData } = useSelectiveUpdate();
 
   const {
     isModalOpen,
@@ -77,6 +79,29 @@ const VansIndex = () => {
     console.log('🔍 VansIndex: Checking for changes...');
     await refreshChanges();
   }, [refreshChanges]);
+
+  // New compare and edit function
+  const handleCompareAndEdit = useCallback(async () => {
+    console.log('🔍 VansIndex: Compare and edit triggered');
+    try {
+      // Fetch fresh data from database
+      const freshData = await refetch();
+      
+      // Compare and selectively update only changed fields
+      const result = await compareAndEditData(vans, freshData, (updatedData) => {
+        console.log('📝 Applying selective updates to van data');
+        // The data is already updated by the refetch, but we log the selective changes
+      });
+      
+      if (result.hasChanges) {
+        console.log(`✅ Compare and edit completed: ${result.updatedCount} items updated`);
+      } else {
+        console.log('📊 No changes found during comparison');
+      }
+    } catch (error) {
+      console.error('❌ Compare and edit failed:', error);
+    }
+  }, [vans, refetch, compareAndEditData]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
@@ -192,6 +217,7 @@ const VansIndex = () => {
         onAddVan={handleAddVan} 
         onRefresh={handleRefresh}
         onCheckChanges={handleCheckChanges}
+        onCompareAndEdit={handleCompareAndEdit}
       />
       
       <Card>

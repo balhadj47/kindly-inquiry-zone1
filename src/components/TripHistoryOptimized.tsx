@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useTripsQuery } from '@/hooks/trips/useTripsQuery';
+import { useTrip } from '@/contexts/TripContext';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import TripHistoryHeader from './trip-history/TripHistoryHeader';
 import TripHistoryFilters from './trip-history/TripHistoryFilters';
@@ -20,21 +20,20 @@ const TripHistoryOptimized = () => {
   const [tripToDelete, setTripToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortBy, setSortBy] = useState('start_date');
+  const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
 
-  // Data fetching
-  const { data: tripsData, isLoading, error, refetch } = useTripsQuery();
-  const trips = tripsData?.trips || [];
+  // Data fetching from context
+  const { trips, isLoading, error, refreshTrips } = useTrip();
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
     console.log('🗂️ TripHistoryOptimized component mounted, refreshing data');
-    refetch();
-  }, [refetch]);
+    refreshTrips();
+  }, [refreshTrips]);
 
   const handleRefresh = async () => {
-    await refetch();
+    await refreshTrips();
   };
 
   // Handlers for dialogs
@@ -55,8 +54,8 @@ const TripHistoryOptimized = () => {
 
       const matchesTab =
         activeTab === 'all' ||
-        (activeTab === 'active' && !trip.end_date) ||
-        (activeTab === 'completed' && trip.end_date);
+        (activeTab === 'active' && !trip.endDate) ||
+        (activeTab === 'completed' && trip.endDate);
 
       return matchesSearchTerm && matchesTab;
     });
@@ -92,15 +91,15 @@ const TripHistoryOptimized = () => {
 
   const totalDistance = React.useMemo(() => {
     return trips.reduce((sum, trip) => {
-      const startKm = trip.start_km || 0;
-      const endKm = trip.end_km || 0;
+      const startKm = trip.startKm || 0;
+      const endKm = trip.endKm || 0;
       return sum + (endKm > startKm ? endKm - startKm : 0);
     }, 0);
   }, [trips]);
 
   const totalTrips = trips.length;
-  const activeTripsCount = trips.filter(trip => !trip.end_date).length;
-  const completedTripsCount = trips.filter(trip => trip.end_date).length;
+  const activeTripsCount = trips.filter(trip => !trip.endDate).length;
+  const completedTripsCount = trips.filter(trip => trip.endDate).length;
 
   if (isLoading) {
     return <TripHistoryOptimizedSkeleton />;
@@ -166,7 +165,7 @@ const TripHistoryOptimized = () => {
                     <p className="text-sm text-gray-600">{trip.notes}</p>
                   </div>
                   <span className="text-sm text-gray-500">
-                    {new Date(trip.created_at).toLocaleDateString()}
+                    {new Date(trip.timestamp).toLocaleDateString()}
                   </span>
                 </div>
               </div>

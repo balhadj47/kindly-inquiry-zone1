@@ -22,13 +22,22 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
-    if (isRefreshing) return;
+    if (isRefreshing || disabled) return;
     
+    console.log('🔄 RefreshButton: Starting refresh...');
     setIsRefreshing(true);
+    
     try {
       await onRefresh();
+      console.log('✅ RefreshButton: Refresh completed');
+    } catch (error) {
+      console.error('❌ RefreshButton: Refresh failed:', error);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500); // Minimum animation time
+      // Ensure minimum animation time for better UX
+      setTimeout(() => {
+        setIsRefreshing(false);
+        console.log('🔄 RefreshButton: Animation completed');
+      }, 800);
     }
   };
 
@@ -38,7 +47,11 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       disabled={disabled || isRefreshing}
       size={size}
       variant={variant}
-      className={cn(className)}
+      className={cn(
+        'transition-all duration-200',
+        isRefreshing && 'opacity-75',
+        className
+      )}
     >
       <RefreshCw 
         className={cn(

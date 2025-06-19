@@ -76,9 +76,16 @@ const VansIndex = () => {
     refreshPage(['vans']);
   }, [refreshPage]);
 
-  const handleRefresh = () => {
-    refreshPage(['vans']);
-    refetch();
+  const handleRefresh = async () => {
+    console.log('🔄 VansIndex: Starting refresh...');
+    try {
+      // Use both cache refresh and direct refetch for comprehensive refresh
+      await refreshPage(['vans']);
+      await refetch();
+      console.log('✅ VansIndex: Refresh completed');
+    } catch (error) {
+      console.error('❌ VansIndex: Refresh failed:', error);
+    }
   };
 
   const filteredAndSortedVans = useMemo(() => {

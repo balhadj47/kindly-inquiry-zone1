@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -10,6 +9,8 @@ import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
+import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
+import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -70,19 +71,38 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
+  // Smart content update tracking
+  const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
+
+  // Real-time data updates
+  const { forceUpdate, isEnabled: isRealTimeEnabled } = useRealTimeUpdates({
+    onUpdate: async () => {
+      // Clear global cache first for fresh data
+      if (typeof window !== 'undefined') {
+        (window as any).globalVansCache = null;
+        (window as any).globalFetchPromise = null;
+      }
+      await refetch();
+    },
+    interval: 30000, // Update every 30 seconds
+    enabled: true
+  });
+
   // Force refresh with cache clearing
   const handleRefresh = async () => {
     console.log('🔄 VansIndex: Force refresh triggered');
-    
-    // Clear global cache first
-    if (typeof window !== 'undefined') {
-      (window as any).globalVansCache = null;
-      (window as any).globalFetchPromise = null;
-    }
-    
-    // Force fresh fetch
-    await refetch();
+    await forceUpdate();
   };
+
+  // Log content changes
+  React.useEffect(() => {
+    if (hasChanges) {
+      console.log('📊 Content changes detected:', {
+        updated: updatedItems.length,
+        new: newItems.length
+      });
+    }
+  }, [hasChanges, updatedItems.length, newItems.length]);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });
@@ -191,6 +211,19 @@ const VansIndex = () => {
               sortDirection={sortDirection}
               setSortDirection={setSortDirection}
             />
+          </div>
+          
+          {/* Real-time status indicator */}
+          <div className="flex items-center justify-between mt-4 pt-2 border-t border-gray-100">
+            <div className="flex items-center space-x-2 text-sm text-gray-500">
+              <div className={`w-2 h-2 rounded-full ${isRealTimeEnabled ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+              <span>{isRealTimeEnabled ? 'Mises à jour automatiques activées' : 'Mises à jour automatiques désactivées'}</span>
+            </div>
+            {hasChanges && (
+              <div className="text-sm text-blue-600 font-medium">
+                Nouvelles données détectées
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

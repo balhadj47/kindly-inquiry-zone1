@@ -38,7 +38,6 @@ export const useVans = () => {
           driver_id,
           status,
           created_at,
-          updated_at,
           insurer,
           insurance_date,
           control_date,
@@ -51,10 +50,10 @@ export const useVans = () => {
         throw error;
       }
 
-      // Ensure we have the updated_at field, add it if missing
+      // Transform data to match Van interface, adding updated_at as fallback
       const vansData = (data || []).map(van => ({
         ...van,
-        updated_at: van.updated_at || van.created_at || new Date().toISOString()
+        updated_at: van.created_at // Use created_at as fallback for updated_at
       })) as Van[];
       
       const endTime = performance.now();

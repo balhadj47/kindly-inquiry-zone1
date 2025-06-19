@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -10,7 +10,7 @@ import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
-import { useGranularRefresh } from '@/hooks/useGranularRefresh';
+import { useModernRefresh } from '@/hooks/useModernRefresh';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -51,10 +51,10 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Use the vans directly from the hook instead of local state
+  // Get vans data and control functions
   const { vans, refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
-  const { refreshGranular, isRefreshing } = useGranularRefresh();
+  const { modernRefresh, isRefreshing, refreshProgress } = useModernRefresh();
 
   const {
     isModalOpen,
@@ -69,15 +69,21 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // Stable refresh function that doesn't cause loops
+  // Modern refresh with smart updates
   const handleModernRefresh = useCallback(async () => {
-    console.log('🚀 Modern refresh initiated...');
-    try {
-      await refetch();
-    } catch (error) {
-      console.error('❌ Refresh failed:', error);
-    }
-  }, [refetch]);
+    if (!vans) return;
+    
+    await modernRefresh(
+      vans,
+      refetch,
+      () => {}, // No need to manually update since refetch handles it
+      {
+        showToast: true,
+        onStart: () => console.log('🚀 Starting modern refresh...'),
+        onComplete: () => console.log('✅ Modern refresh completed')
+      }
+    );
+  }, [vans, modernRefresh, refetch]);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans?.length || 0, statusFilter, searchTerm });
@@ -159,8 +165,8 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    // Simple refetch after modal success
-    refetch();
+    // Trigger modern refresh after modal success
+    handleModernRefresh();
   };
 
   const handleQuickAction = (van: any) => {
@@ -178,6 +184,7 @@ const VansIndex = () => {
         onAddVan={handleAddVan} 
         onRefresh={handleModernRefresh}
         isRefreshing={isRefreshing}
+        refreshProgress={refreshProgress}
       />
       
       <Card>

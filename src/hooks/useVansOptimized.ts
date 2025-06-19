@@ -53,6 +53,22 @@ export const useAllVans = () => {
   });
 };
 
+// Export useVans as an alias for backward compatibility
+export const useVans = useAllVans;
+
+// Export useAvailableVans for van selector
+export const useAvailableVans = () => {
+  const { data: allVans = [], ...rest } = useAllVans();
+  
+  // Filter to only available vans (assuming 'Actif' status means available)
+  const availableVans = allVans.filter(van => van.status === 'Actif');
+  
+  return {
+    data: availableVans,
+    ...rest
+  };
+};
+
 export const useVanMutations = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -62,7 +78,7 @@ export const useVanMutations = () => {
   };
 
   const createVan = useMutation({
-    mutationFn: async (vanData: Partial<Van>) => {
+    mutationFn: async (vanData: Omit<Van, 'id' | 'created_at' | 'updated_at'>) => {
       const { data, error } = await supabase
         .from('vans')
         .insert([vanData])

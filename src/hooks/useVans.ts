@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Van } from '@/types/van';
+import { useSelectiveDataUpdate } from './useSelectiveDataUpdate';
 
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
@@ -9,6 +10,7 @@ export const useVans = () => {
   const [isLoading, setIsLoading] = useState(true);
   const isMountedRef = useRef(true);
   const fetchingRef = useRef(false);
+  const { compareAndUpdate } = useSelectiveDataUpdate<Van>();
 
   const fetchVans = useCallback(async (forceRefresh = false): Promise<Van[]> => {
     // Prevent multiple simultaneous fetches
@@ -61,7 +63,13 @@ export const useVans = () => {
       
       // Update state only if component is still mounted
       if (isMountedRef.current) {
-        setVans(vansData);
+        // Use selective update to only change what's different
+        if (vans.length > 0 && !forceRefresh) {
+          compareAndUpdate(vans, vansData, setVans);
+        } else {
+          // First load or force refresh - set all data
+          setVans(vansData);
+        }
         setError(null);
         setIsLoading(false);
       }
@@ -77,12 +85,18 @@ export const useVans = () => {
     } finally {
       fetchingRef.current = false;
     }
-  }, [vans]);
+  }, [vans, compareAndUpdate]);
 
   // Force refresh function - always gets fresh data
   const refetch = useCallback(async () => {
     console.log('🚐 useVans: Manual refetch requested');
     return await fetchVans(true);
+  }, [fetchVans]);
+
+  // Selective refresh function - compares and updates only changed data
+  const refreshChanges = useCallback(async () => {
+    console.log('🚐 useVans: Selective refresh requested');
+    return await fetchVans(false);
   }, [fetchVans]);
 
   useEffect(() => {
@@ -98,5 +112,5 @@ export const useVans = () => {
     };
   }, []); // Remove fetchVans dependency to prevent re-running
 
-  return { vans, error, refetch, isLoading };
+  return { vans, error, refetch, refreshChanges, isLoading };
 };

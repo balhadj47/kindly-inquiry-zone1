@@ -50,7 +50,7 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  const { vans, refetch, isLoading } = useVans();
+  const { vans, refetch, refreshChanges, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
 
   const {
@@ -66,11 +66,17 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // Simple manual refresh
+  // Full refresh for manual refresh button
   const handleRefresh = useCallback(async () => {
     console.log('🔄 VansIndex: Manual refresh triggered');
     await refetch();
   }, [refetch]);
+
+  // Selective refresh for checking changes
+  const handleCheckChanges = useCallback(async () => {
+    console.log('🔍 VansIndex: Checking for changes...');
+    await refreshChanges();
+  }, [refreshChanges]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
@@ -167,7 +173,8 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    refetch();
+    // Use selective refresh after modal success to only update changed data
+    refreshChanges();
   };
 
   const handleQuickAction = (van: any) => {
@@ -181,7 +188,11 @@ const VansIndex = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <VansHeader onAddVan={handleAddVan} onRefresh={handleRefresh} />
+      <VansHeader 
+        onAddVan={handleAddVan} 
+        onRefresh={handleRefresh}
+        onCheckChanges={handleCheckChanges}
+      />
       
       <Card>
         <CardContent className="p-4 sm:pt-6">

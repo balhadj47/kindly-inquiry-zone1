@@ -91,10 +91,10 @@ const VansIndex = () => {
     }
   }, [hasChanges, updatedItems.length, newItems.length]);
 
-  // Force refresh when component mounts (page navigation)
+  // Use selective refresh when navigating back to the page
   React.useEffect(() => {
-    console.log('🔄 VansIndex: Component mounted - triggering fresh data load');
-    handleRefresh();
+    console.log('🔄 VansIndex: Component mounted - triggering selective refresh');
+    handleCheckChanges();
   }, []); // Only run on mount
 
   const filteredAndSortedVans = useMemo(() => {

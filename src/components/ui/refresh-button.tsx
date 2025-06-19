@@ -10,6 +10,7 @@ interface RefreshButtonProps {
   size?: 'default' | 'sm' | 'lg' | 'icon';
   variant?: 'default' | 'outline' | 'ghost' | 'secondary';
   disabled?: boolean;
+  children?: React.ReactNode;
 }
 
 export const RefreshButton: React.FC<RefreshButtonProps> = ({
@@ -18,6 +19,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
   size = 'icon',
   variant = 'outline',
   disabled = false,
+  children,
 }) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -52,12 +54,14 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
         className
       )}
     >
-      <RefreshCw 
-        className={cn(
-          "h-4 w-4", 
-          isRefreshing && "animate-spin"
-        )} 
-      />
+      {children || (
+        <RefreshCw 
+          className={cn(
+            "h-4 w-4", 
+            isRefreshing && "animate-spin"
+          )} 
+        />
+      )}
     </Button>
   );
 };

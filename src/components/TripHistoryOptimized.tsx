@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -25,12 +24,6 @@ const TripHistoryOptimized = () => {
 
   // Data fetching from context
   const { trips, isLoading, error, refreshTrips } = useTrip();
-
-  // Refresh data when component mounts (user enters the page)
-  useEffect(() => {
-    console.log('🗂️ TripHistoryOptimized component mounted, refreshing data');
-    refreshTrips();
-  }, [refreshTrips]);
 
   const handleRefresh = async () => {
     await refreshTrips();

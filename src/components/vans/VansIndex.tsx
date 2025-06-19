@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -11,6 +10,7 @@ import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
 import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
+import { useInPlaceUpdate } from '@/hooks/useInPlaceUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -53,6 +53,7 @@ const VansIndex = () => {
   
   const { vans, refetch, refreshChanges, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
+  const { updateInPlace } = useInPlaceUpdate();
 
   const {
     isModalOpen,
@@ -67,23 +68,29 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // Real-time refresh that preserves UI state and only updates changed items
-  const handleRealTimeRefresh = useCallback(async () => {
-    console.log('🔄 VansIndex: Real-time refresh - preserving UI and updating only changes...');
+  // True real-time refresh that preserves individual van card states
+  const handleTrueRealTimeRefresh = useCallback(async () => {
+    console.log('🔄 VansIndex: True real-time refresh - preserving individual van states...');
     
     try {
-      // Use refreshChanges which leverages selective data update
-      // This will only update the specific van objects that have changed
-      // without clearing the entire UI
-      await refreshChanges();
-      console.log('✅ Real-time refresh completed - UI preserved, only changed items updated');
+      // Get fresh data from database
+      const freshData = await refetch();
+      
+      // Use in-place update to preserve unchanged van object references
+      // This ensures React doesn't re-render van cards that haven't changed
+      const { hasChanges } = updateInPlace(vans, freshData, (updatedVans) => {
+        // This callback is only called if there are actual changes
+        console.log('✅ Van data updated with preserved references');
+      });
+      
+      if (!hasChanges) {
+        console.log('📊 No van changes detected - UI completely preserved');
+      }
+      
     } catch (error) {
-      console.error('❌ Real-time refresh failed:', error);
-      // Even in fallback, try to preserve UI as much as possible
-      console.log('🔄 Fallback: Using selective refresh...');
-      await refreshChanges();
+      console.error('❌ True real-time refresh failed:', error);
     }
-  }, [refreshChanges]);
+  }, [vans, refetch, updateInPlace]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
@@ -181,8 +188,8 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    // Use real-time refresh after modal success to preserve UI
-    handleRealTimeRefresh();
+    // Use true real-time refresh after modal success
+    handleTrueRealTimeRefresh();
   };
 
   const handleQuickAction = (van: any) => {
@@ -198,7 +205,7 @@ const VansIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <VansHeader 
         onAddVan={handleAddVan} 
-        onRefresh={handleRealTimeRefresh}
+        onRefresh={handleTrueRealTimeRefresh}
       />
       
       <Card>

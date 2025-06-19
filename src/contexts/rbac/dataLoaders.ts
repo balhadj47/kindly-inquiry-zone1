@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
 import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -26,15 +25,15 @@ export const loadUsers = async (): Promise<User[]> => {
     role_id: user.role_id || 3, // Default to Employee role_id
     status: user.status as User['status'] || 'Active',
     createdAt: user.created_at,
-    licenseNumber: user.driver_license || undefined,
+    licenseNumber: (user as any).driver_license || undefined,
     totalTrips: user.total_trips || 0,
     lastTrip: user.last_trip || undefined,
     profileImage: user.profile_image || undefined,
-    badgeNumber: user.badge_number || undefined,
-    dateOfBirth: user.date_of_birth || undefined,
-    placeOfBirth: user.place_of_birth || undefined,
-    address: user.address || undefined,
-    driverLicense: user.driver_license || undefined,
+    badgeNumber: (user as any).badge_number || undefined,
+    dateOfBirth: (user as any).date_of_birth || undefined,
+    placeOfBirth: (user as any).place_of_birth || undefined,
+    address: (user as any).address || undefined,
+    driverLicense: (user as any).driver_license || undefined,
   }));
 };
 

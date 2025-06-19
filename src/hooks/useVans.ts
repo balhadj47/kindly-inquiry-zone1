@@ -7,9 +7,10 @@ import { useSelectiveDataUpdate } from './useSelectiveDataUpdate';
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // Changed: Start with false, only set true during actual fetching
   const isMountedRef = useRef(true);
   const fetchingRef = useRef(false);
+  const hasInitialLoadRef = useRef(false); // Track if we've loaded data at least once
   const { compareAndUpdate } = useSelectiveDataUpdate<Van>();
 
   const fetchVans = useCallback(async (forceRefresh = false): Promise<Van[]> => {
@@ -22,10 +23,12 @@ export const useVans = () => {
     try {
       fetchingRef.current = true;
       
-      if (isMountedRef.current) {
+      // Only show loading if we don't have initial data yet
+      if (isMountedRef.current && !hasInitialLoadRef.current) {
         setIsLoading(true);
-        setError(null);
       }
+      
+      setError(null);
 
       console.log('🚐 useVans: Fetching fresh data from database...');
       const startTime = performance.now();
@@ -71,6 +74,7 @@ export const useVans = () => {
           setVans(vansData);
         }
         setError(null);
+        hasInitialLoadRef.current = true; // Mark that we've loaded data
         setIsLoading(false);
       }
       

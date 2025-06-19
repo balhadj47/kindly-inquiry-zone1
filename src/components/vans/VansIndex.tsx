@@ -150,7 +150,7 @@ const VansIndex = () => {
     console.log('Quick action for van:', van);
   };
 
-  // Show loading skeleton only on initial load when there's no data
+  // Show loading skeleton only on initial load when there's no cached data
   if (isLoading && (!vans || vans.length === 0)) {
     return <VansLoadingSkeleton />;
   }

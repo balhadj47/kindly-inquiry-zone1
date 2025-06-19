@@ -9,7 +9,6 @@ import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
-import { useRealTimeUpdates } from '@/hooks/useRealTimeUpdates';
 import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,34 +73,35 @@ const VansIndex = () => {
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
 
-  // Manual refresh system
-  const { forceUpdate, isEnabled: isRealTimeEnabled } = useRealTimeUpdates({
-    onUpdate: async () => {
-      // Clear global cache first for fresh data
-      if (typeof window !== 'undefined') {
-        (window as any).globalVansCache = null;
-        (window as any).globalFetchPromise = null;
-      }
-      await refetch();
-    },
-    enabled: true
-  });
-
-  // Force refresh with cache clearing
+  // Manual refresh with immediate cache clearing
   const handleRefresh = async () => {
-    console.log('🔄 VansIndex: Manual refresh triggered');
-    await forceUpdate();
+    console.log('🔄 VansIndex: Manual refresh triggered - clearing cache immediately');
+    
+    // Clear global cache immediately
+    if (typeof window !== 'undefined') {
+      (window as any).globalVansCache = null;
+      (window as any).globalFetchPromise = null;
+    }
+    
+    // Force fresh data fetch
+    await refetch();
   };
 
   // Log content changes when they occur
   React.useEffect(() => {
     if (hasChanges) {
-      console.log('📊 Content updated:', {
+      console.log('📊 VansIndex: Content updated:', {
         updated: updatedItems.length,
         new: newItems.length
       });
     }
   }, [hasChanges, updatedItems.length, newItems.length]);
+
+  // Force refresh when component mounts (page navigation)
+  React.useEffect(() => {
+    console.log('🔄 VansIndex: Component mounted - triggering fresh data load');
+    handleRefresh();
+  }, []); // Only run on mount
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });

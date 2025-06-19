@@ -17,10 +17,10 @@ export interface Van {
   notes?: string;
 }
 
-// Reduced cache duration for faster updates
-const CACHE_DURATION = 5000; // 5 seconds instead of 30
+// Shorter cache duration for faster updates
+const CACHE_DURATION = 2000; // 2 seconds
 
-// Global cache management
+// Global cache management with immediate clearing capability
 const getCacheFromWindow = () => {
   if (typeof window !== 'undefined') {
     return (window as any).globalVansCache || null;
@@ -38,6 +38,7 @@ const clearCacheFromWindow = () => {
   if (typeof window !== 'undefined') {
     (window as any).globalVansCache = null;
     (window as any).globalFetchPromise = null;
+    console.log('🗑️ Cleared all global caches');
   }
 };
 
@@ -80,7 +81,13 @@ export const useVans = () => {
     try {
       const startTime = performance.now();
       
-      // Check if we should use cache
+      // Always clear cache on force refresh
+      if (forceRefresh) {
+        console.log('🚐 useVans: Force refresh - clearing all caches immediately');
+        clearCacheFromWindow();
+      }
+
+      // Check cache only if not force refresh
       if (!forceRefresh) {
         const globalVansCache = getCacheFromWindow();
         if (globalVansCache) {
@@ -88,29 +95,27 @@ export const useVans = () => {
           const isValid = Date.now() - timestamp < CACHE_DURATION;
           
           if (isValid) {
-            console.log('🚐 useVans: Using cached data (valid for', (CACHE_DURATION - (Date.now() - timestamp)) / 1000, 'more seconds)');
+            console.log('🚐 useVans: Using cached data');
             updateVansData(data);
             return data;
+          } else {
+            console.log('🚐 useVans: Cache expired, clearing');
+            clearCacheFromWindow();
           }
         }
       }
 
-      // Clear cache if force refresh
+      // Set loading state immediately
+      if (isMountedRef.current) {
+        setIsLoading(true);
+      }
+
+      // Clear existing fetch promise on force refresh
       if (forceRefresh) {
-        console.log('🚐 useVans: Force refresh - clearing cache');
-        clearCacheFromWindow();
+        setFetchPromiseToWindow(null);
       }
 
-      // Prevent rapid duplicate fetches
-      const now = Date.now();
-      if (!forceRefresh && (now - lastFetchRef.current) < 1000) {
-        console.log('🚐 useVans: Rate limiting fetch');
-        const cachedData = getCacheFromWindow()?.data;
-        if (cachedData) return cachedData;
-      }
-      lastFetchRef.current = now;
-
-      // Check for existing fetch promise
+      // Check for existing fetch promise only if not force refresh
       const existingPromise = getFetchPromiseFromWindow();
       if (existingPromise && !forceRefresh) {
         console.log('🚐 useVans: Waiting for existing fetch');
@@ -119,14 +124,9 @@ export const useVans = () => {
         return data;
       }
 
-      // Set loading state
-      if (isMountedRef.current) {
-        setIsLoading(true);
-      }
-
       // Start fresh fetch
       const fetchPromise = (async () => {
-        console.log('🚐 useVans: Fetching from database...');
+        console.log('🚐 useVans: Fetching fresh data from database...');
         const { data, error } = await (supabase as any)
           .from('vans')
           .select('*')
@@ -139,7 +139,7 @@ export const useVans = () => {
 
         const vansData = data || [];
         const endTime = performance.now();
-        console.log('🚐 useVans: Fetched', vansData.length, 'vans in', endTime - startTime, 'ms');
+        console.log('🚐 useVans: Fresh fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
         
         return vansData;
       })();
@@ -162,18 +162,19 @@ export const useVans = () => {
     }
   }, [updateVansData]);
 
-  // Force refresh function
+  // Force refresh function with immediate cache clearing
   const refetch = useCallback(async () => {
-    console.log('🚐 useVans: Manual refetch requested');
+    console.log('🚐 useVans: Manual refetch requested - force refresh');
+    clearCacheFromWindow(); // Clear immediately
     return await fetchVans(true);
   }, [fetchVans]);
 
   useEffect(() => {
-    console.log('🚐 useVans: Component mounted, checking cache...');
+    console.log('🚐 useVans: Component mounted');
     isMountedRef.current = true;
     
-    // Always try to fetch fresh data on mount, but use cache if very recent
-    fetchVans(false);
+    // On mount, always fetch fresh data
+    fetchVans(true);
     
     return () => {
       console.log('🚐 useVans: Component unmounting');

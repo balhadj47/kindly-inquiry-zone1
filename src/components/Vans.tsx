@@ -28,6 +28,7 @@ const Vans = () => {
 
   // Clear cache and refresh data when component mounts
   useEffect(() => {
+    console.log('🚐 Vans component mounted, refreshing cache');
     refreshPage(['vans']);
   }, [refreshPage]);
 
@@ -35,7 +36,7 @@ const Vans = () => {
     <Suspense fallback={<VanLoadingSkeleton />}>
       <Routes>
         <Route path="/" element={<VansIndex />} />
-        <Route path=":vanId" element={<VanDetail />} />
+        <Route path="/:vanId" element={<VanDetail />} />
       </Routes>
     </Suspense>
   );

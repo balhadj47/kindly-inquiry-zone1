@@ -17,16 +17,41 @@ export interface Van {
   notes?: string;
 }
 
-// Global cache to prevent multiple fetches
-let globalVansCache: { data: Van[]; timestamp: number } | null = null;
-let globalFetchPromise: Promise<Van[]> | null = null;
-const CACHE_DURATION = 60000; // 1 minute cache
+// Global cache - moved to window to make it clearable
+const getCacheFromWindow = () => {
+  if (typeof window !== 'undefined') {
+    return (window as any).globalVansCache || null;
+  }
+  return null;
+};
+
+const setCacheToWindow = (cache: any) => {
+  if (typeof window !== 'undefined') {
+    (window as any).globalVansCache = cache;
+  }
+};
+
+const getFetchPromiseFromWindow = () => {
+  if (typeof window !== 'undefined') {
+    return (window as any).globalFetchPromise || null;
+  }
+  return null;
+};
+
+const setFetchPromiseToWindow = (promise: any) => {
+  if (typeof window !== 'undefined') {
+    (window as any).globalFetchPromise = promise;
+  }
+};
+
+const CACHE_DURATION = 30000; // Reduced to 30 seconds for more frequent updates
 
 export const useVans = () => {
   const [vans, setVans] = useState<Van[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(() => {
     // Only start with loading true if we don't have valid cached data
+    const globalVansCache = getCacheFromWindow();
     if (globalVansCache && Date.now() - globalVansCache.timestamp < CACHE_DURATION) {
       return false;
     }
@@ -36,31 +61,38 @@ export const useVans = () => {
 
   const fetchVans = useCallback(async (useCache = true): Promise<Van[]> => {
     try {
-      console.log('🚐 useVans: Starting to fetch vans data...');
+      console.log('🚐 useVans: Starting to fetch vans data...', { useCache });
       const startTime = performance.now();
       
       // Check global cache first
-      if (useCache && globalVansCache) {
-        const { data, timestamp } = globalVansCache;
-        const isValid = Date.now() - timestamp < CACHE_DURATION;
-        
-        if (isValid) {
-          console.log('🚐 useVans: Using global cached data');
-          if (isMountedRef.current) {
-            setVans(data);
-            setError(null);
-            setIsLoading(false);
+      if (useCache) {
+        const globalVansCache = getCacheFromWindow();
+        if (globalVansCache) {
+          const { data, timestamp } = globalVansCache;
+          const isValid = Date.now() - timestamp < CACHE_DURATION;
+          
+          if (isValid) {
+            console.log('🚐 useVans: Using global cached data');
+            if (isMountedRef.current) {
+              setVans(data);
+              setError(null);
+              setIsLoading(false);
+            }
+            return data;
+          } else {
+            console.log('🚐 useVans: Cache expired, clearing...');
+            setCacheToWindow(null);
           }
-          return data;
         }
       }
 
-      // Set loading state only if we don't have cached data
-      if (isMountedRef.current && !globalVansCache) {
+      // Set loading state
+      if (isMountedRef.current) {
         setIsLoading(true);
       }
 
       // If there's already a fetch in progress, wait for it
+      const globalFetchPromise = getFetchPromiseFromWindow();
       if (globalFetchPromise) {
         console.log('🚐 useVans: Waiting for existing fetch...');
         const data = await globalFetchPromise;
@@ -73,7 +105,8 @@ export const useVans = () => {
       }
 
       // Start new fetch
-      globalFetchPromise = (async () => {
+      const fetchPromise = (async () => {
+        console.log('🚐 useVans: Making fresh database call...');
         const { data, error } = await (supabase as any)
           .from('vans')
           .select('*');
@@ -86,16 +119,18 @@ export const useVans = () => {
         const vansData = data || [];
         
         // Update global cache
-        globalVansCache = {
+        setCacheToWindow({
           data: vansData,
           timestamp: Date.now()
-        };
+        });
 
-        console.log('🚐 useVans: Successfully fetched vans data in:', performance.now() - startTime, 'ms');
+        console.log('🚐 useVans: Successfully fetched fresh vans data in:', performance.now() - startTime, 'ms');
         return vansData;
       })();
 
-      const data = await globalFetchPromise;
+      setFetchPromiseToWindow(fetchPromise);
+      
+      const data = await fetchPromise;
       
       // Only update state if component is still mounted
       if (isMountedRef.current) {
@@ -113,14 +148,15 @@ export const useVans = () => {
       }
       throw err;
     } finally {
-      globalFetchPromise = null;
+      setFetchPromiseToWindow(null);
     }
   }, []);
 
   // Force refresh without cache
   const refetch = useCallback(() => {
-    console.log('🚐 useVans: Force refreshing data...');
-    globalVansCache = null;
+    console.log('🚐 useVans: Force refreshing data (clearing cache)...');
+    setCacheToWindow(null);
+    setFetchPromiseToWindow(null);
     return fetchVans(false);
   }, [fetchVans]);
 
@@ -129,13 +165,15 @@ export const useVans = () => {
     isMountedRef.current = true;
     
     // Check if we already have cached data
+    const globalVansCache = getCacheFromWindow();
     if (globalVansCache && Date.now() - globalVansCache.timestamp < CACHE_DURATION) {
       console.log('🚐 useVans: Using existing cache on mount');
       setVans(globalVansCache.data);
       setError(null);
       setIsLoading(false);
     } else {
-      fetchVans();
+      console.log('🚐 useVans: No valid cache, fetching fresh data');
+      fetchVans(false); // Always fetch fresh data on mount
     }
     
     return () => {

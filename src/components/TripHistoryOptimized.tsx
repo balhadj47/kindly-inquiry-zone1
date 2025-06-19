@@ -11,6 +11,9 @@ import TripHistoryOptimizedSkeleton from './trip-history/TripHistoryOptimizedSke
 import TripDetailsDialog from './TripDetailsDialog';
 import TripEndDialog from './trip-history/TripEndDialog';
 import TripDeleteDialog from './trip-history/TripDeleteDialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useVans } from '@/hooks/useVans';
+import { useCompanies } from '@/hooks/useCompanies';
 
 const TripHistoryOptimized = () => {
   console.log('🗂️ TripHistoryOptimized: Component rendering...');
@@ -21,11 +24,16 @@ const TripHistoryOptimized = () => {
   const [tripToDelete, setTripToDelete] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [companyFilter, setCompanyFilter] = useState('all');
+  const [vanFilter, setVanFilter] = useState('all');
   const [sortBy, setSortBy] = useState('timestamp');
   const [sortOrder, setSortOrder] = useState('desc');
+  const [deletingTripId, setDeletingTripId] = useState(null);
 
   // Data fetching from context
-  const { trips, isLoading, error } = useTrip();
+  const { trips, isLoading, error, deleteTrip } = useTrip();
+  const { vans } = useVans();
+  const { companies } = useCompanies();
   
   console.log('🗂️ TripHistoryOptimized: Raw trips data:', trips);
   console.log('🗂️ TripHistoryOptimized: Data state:', {
@@ -127,7 +135,24 @@ const TripHistoryOptimized = () => {
     setTripToDelete(null);
   };
 
-  // Filtering trips based on search term and active tab
+  const handleDeleteTrip = async (tripId) => {
+    try {
+      setDeletingTripId(tripId);
+      await deleteTrip(tripId);
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+    } finally {
+      setDeletingTripId(null);
+    }
+  };
+
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setCompanyFilter('all');
+    setVanFilter('all');
+  };
+
+  // Filtering trips based on search term, company, van, and active tab
   const filteredTrips = useMemo(() => {
     console.log('🗂️ TripHistoryOptimized: Filtering trips...');
     
@@ -146,20 +171,25 @@ const TripHistoryOptimized = () => {
         const searchTermLower = searchTerm.toLowerCase();
         const matchesSearchTerm =
           (trip.company || '').toLowerCase().includes(searchTermLower) ||
+          (trip.branch || '').toLowerCase().includes(searchTermLower) ||
+          (trip.driver || '').toLowerCase().includes(searchTermLower) ||
           (trip.notes || '').toLowerCase().includes(searchTermLower);
+
+        const matchesCompany = companyFilter === 'all' || trip.company === companyFilter;
+        const matchesVan = vanFilter === 'all' || trip.van === vanFilter;
 
         const matchesTab =
           activeTab === 'all' ||
-          (activeTab === 'active' && !trip.endDate) ||
-          (activeTab === 'completed' && trip.endDate);
+          (activeTab === 'active' && trip.status === 'active') ||
+          (activeTab === 'completed' && trip.status === 'completed');
 
-        return matchesSearchTerm && matchesTab;
+        return matchesSearchTerm && matchesCompany && matchesVan && matchesTab;
       });
     } catch (filterError) {
       console.error('🗂️ TripHistoryOptimized: Error filtering trips:', filterError);
       return [];
     }
-  }, [processedTrips, searchTerm, activeTab]);
+  }, [processedTrips, searchTerm, companyFilter, vanFilter, activeTab]);
 
   // Sorting trips
   const sortedTrips = useMemo(() => {
@@ -210,8 +240,8 @@ const TripHistoryOptimized = () => {
   }, [filteredTrips, sortBy, sortOrder]);
 
   const totalTrips = Array.isArray(processedTrips) ? processedTrips.length : 0;
-  const activeTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && !trip.endDate).length : 0;
-  const completedTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && trip.endDate).length : 0;
+  const activeTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && trip.status === 'active').length : 0;
+  const completedTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && trip.status === 'completed').length : 0;
 
   console.log('🗂️ TripHistoryOptimized: Render state:', {
     totalTrips,
@@ -253,68 +283,44 @@ const TripHistoryOptimized = () => {
           </Button>
         </div>
 
-        <div className="bg-white p-4 sm:p-6 rounded-lg border border-gray-200 space-y-4">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <input
-                type="text"
-                placeholder="Rechercher par entreprise ou destination..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
+        <TripHistoryFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          companyFilter={companyFilter}
+          setCompanyFilter={setCompanyFilter}
+          vanFilter={vanFilter}
+          setVanFilter={setVanFilter}
+          companies={companies}
+          vans={vans}
+          onClearFilters={handleClearFilters}
+          disabled={isLoading}
+        />
 
         <TripHistoryStats trips={sortedTrips} />
 
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            Voyages ({sortedTrips.length})
-          </h2>
-          <div className="space-y-4">
-            {sortedTrips.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Aucun voyage trouvé</p>
-              </div>
-            ) : (
-              sortedTrips.map((trip) => {
-                if (!trip) {
-                  console.warn('🗂️ TripHistoryOptimized: Skipping null trip in render');
-                  return null;
-                }
-                
-                try {
-                  return (
-                    <div
-                      key={trip.id}
-                      className="border border-gray-200 rounded-lg p-4 hover:shadow-md cursor-pointer"
-                      onClick={() => handleOpenTripDetails(trip)}
-                    >
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <h3 className="font-semibold text-gray-900">{trip.company || 'Entreprise inconnue'}</h3>
-                          <p className="text-sm text-gray-600">{trip.notes || 'Aucune note'}</p>
-                        </div>
-                        <span className="text-sm text-gray-500">
-                          {trip.timestamp ? new Date(trip.timestamp).toLocaleDateString() : 'Date inconnue'}
-                        </span>
-                      </div>
-                    </div>
-                  );
-                } catch (renderError) {
-                  console.error('🗂️ TripHistoryOptimized: Error rendering trip:', renderError, trip);
-                  return (
-                    <div key={trip.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
-                      <p className="text-red-600">Erreur d'affichage du voyage {trip.id}</p>
-                    </div>
-                  );
-                }
-              })
-            )}
-          </div>
-        </div>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="all">
+              Tous ({totalTrips})
+            </TabsTrigger>
+            <TabsTrigger value="active">
+              Actifs ({activeTripsCount})
+            </TabsTrigger>
+            <TabsTrigger value="completed">
+              Terminés ({completedTripsCount})
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value={activeTab} className="mt-6">
+            <TripHistoryList
+              filteredTrips={sortedTrips}
+              totalTrips={processedTrips}
+              onTripClick={handleOpenTripDetails}
+              onDeleteTrip={handleDeleteTrip}
+              deletingTripId={deletingTripId}
+            />
+          </TabsContent>
+        </Tabs>
 
         <TripDetailsDialog
           trip={selectedTrip}
@@ -334,6 +340,7 @@ const TripHistoryOptimized = () => {
           onClose={handleCloseTripDeleteDialog}
           onConfirm={() => {
             console.log('🗂️ TripHistoryOptimized: Deleting trip:', tripToDelete);
+            handleDeleteTrip(tripToDelete.id);
             handleCloseTripDeleteDialog();
           }}
         />

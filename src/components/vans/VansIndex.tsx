@@ -67,20 +67,23 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // Smart refresh that compares and updates only changed data
-  const handleSmartRefresh = useCallback(async () => {
-    console.log('🔄 VansIndex: Smart refresh - comparing database with cache...');
+  // Real-time refresh that preserves UI state and only updates changed items
+  const handleRealTimeRefresh = useCallback(async () => {
+    console.log('🔄 VansIndex: Real-time refresh - preserving UI and updating only changes...');
     
     try {
-      // Use the selective refresh that compares data
+      // Use refreshChanges which leverages selective data update
+      // This will only update the specific van objects that have changed
+      // without clearing the entire UI
       await refreshChanges();
-      console.log('✅ Smart refresh completed - only changed data updated');
+      console.log('✅ Real-time refresh completed - UI preserved, only changed items updated');
     } catch (error) {
-      console.error('❌ Smart refresh failed, falling back to full refresh:', error);
-      // Fallback to full refresh if smart refresh fails
-      await refetch();
+      console.error('❌ Real-time refresh failed:', error);
+      // Even in fallback, try to preserve UI as much as possible
+      console.log('🔄 Fallback: Using selective refresh...');
+      await refreshChanges();
     }
-  }, [refreshChanges, refetch]);
+  }, [refreshChanges]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
@@ -88,7 +91,7 @@ const VansIndex = () => {
   // Log content changes when they occur
   React.useEffect(() => {
     if (hasChanges) {
-      console.log('📊 VansIndex: Smart update detected changes:', {
+      console.log('📊 VansIndex: Real-time update detected changes:', {
         updated: updatedItems.length,
         new: newItems.length,
         total: vans.length
@@ -100,7 +103,7 @@ const VansIndex = () => {
   React.useEffect(() => {
     console.log('🔄 VansIndex: Component mounted - triggering initial selective refresh');
     refreshChanges();
-  }, []); // Only run on mount
+  }, [refreshChanges]);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });
@@ -178,8 +181,8 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    // Use smart refresh after modal success to only update changed data
-    handleSmartRefresh();
+    // Use real-time refresh after modal success to preserve UI
+    handleRealTimeRefresh();
   };
 
   const handleQuickAction = (van: any) => {
@@ -195,7 +198,7 @@ const VansIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <VansHeader 
         onAddVan={handleAddVan} 
-        onRefresh={handleSmartRefresh}
+        onRefresh={handleRealTimeRefresh}
       />
       
       <Card>

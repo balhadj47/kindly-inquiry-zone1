@@ -5,34 +5,28 @@ import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './utils/serviceWorker';
 
-// Import React explicitly and make it available globally IMMEDIATELY
+// Import React and ensure it's globally available
 import * as React from 'react';
 
-// CRITICAL: Make React globally available before any other imports or operations
-declare global {
-  interface Window {
-    React: typeof React;
-  }
+// Make React globally available immediately
+if (typeof window !== 'undefined') {
+  window.React = React;
+  
+  // Ensure React hooks are available on the React object
+  Object.defineProperty(window, 'React', {
+    value: React,
+    writable: false,
+    configurable: false
+  });
 }
 
-// Force React to be available globally
-window.React = React;
-
-// Validate that React hooks are working
-try {
-  const testState = React.useState(0);
-  const testEffect = React.useEffect;
-  const testContext = React.useContext;
-  
-  if (!testState || !testEffect || !testContext) {
-    throw new Error('React hooks validation failed');
-  }
-  
-  console.log('✅ React hooks validated successfully');
-} catch (error) {
-  console.error('❌ CRITICAL: React hooks validation failed:', error);
-  throw new Error('React initialization failed - hooks not available');
+// Validate React hooks availability
+console.log('🌟 Main: Validating React hooks...');
+if (!React.useState || !React.useEffect || !React.useContext) {
+  console.error('❌ CRITICAL: React hooks not available');
+  throw new Error('React hooks validation failed');
 }
+console.log('✅ React hooks validation successful');
 
 // Only log in development
 if (import.meta.env.DEV) {
@@ -51,9 +45,32 @@ if (import.meta.env.DEV) {
   console.log('🌟 Main: React root created, rendering App...');
 }
 
+// Wrap the App in an error boundary at the highest level
+const AppWithErrorBoundary = () => {
+  try {
+    return <App />;
+  } catch (error) {
+    console.error('❌ Critical App error:', error);
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-xl font-bold text-red-600 mb-2">Application Error</h1>
+          <p className="text-gray-600 mb-4">The application failed to start properly.</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    );
+  }
+};
+
 root.render(
   <StrictMode>
-    <App />
+    <AppWithErrorBoundary />
   </StrictMode>
 );
 

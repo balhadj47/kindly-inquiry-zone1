@@ -45,7 +45,22 @@ const AppLoadingSkeleton = () => (
 );
 
 const App = () => {
-  console.log('🚀 App: Functional component render');
+  console.log('🚀 App: Starting application render');
+  
+  // Simple validation that React is working
+  const [isReady, setIsReady] = React.useState(false);
+  
+  React.useEffect(() => {
+    console.log('🚀 App: useEffect working correctly');
+    setIsReady(true);
+  }, []);
+  
+  if (!isReady) {
+    console.log('🚀 App: Waiting for React initialization...');
+    return <AppLoadingSkeleton />;
+  }
+  
+  console.log('🚀 App: React initialized, rendering main app');
   
   return (
     <ErrorBoundary>

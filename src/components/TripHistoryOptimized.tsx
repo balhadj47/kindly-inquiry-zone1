@@ -57,30 +57,40 @@ const TripHistoryOptimized = () => {
           return null;
         }
 
-        // Handle complex date structures
+        // Handle complex date structures more robustly
         const processDate = (dateObj) => {
           if (!dateObj) return null;
           
-          // Handle nested date structure
-          if (dateObj._type === 'Date' && dateObj.value) {
-            if (dateObj.value.iso) {
-              return dateObj.value.iso;
+          try {
+            // Handle nested date structure with _type: 'Date'
+            if (dateObj._type === 'Date' && dateObj.value) {
+              if (dateObj.value.iso) {
+                return dateObj.value.iso;
+              }
+              if (dateObj.value.value && typeof dateObj.value.value === 'number') {
+                return new Date(dateObj.value.value).toISOString();
+              }
             }
-            if (dateObj.value.value) {
-              return new Date(dateObj.value.value).toISOString();
+            
+            // Handle direct date values
+            if (typeof dateObj === 'string') {
+              return dateObj;
             }
+            
+            if (dateObj instanceof Date) {
+              return dateObj.toISOString();
+            }
+            
+            // Try to parse as timestamp if it's a number
+            if (typeof dateObj === 'number') {
+              return new Date(dateObj).toISOString();
+            }
+            
+            return null;
+          } catch (err) {
+            console.warn('🗂️ TripHistoryOptimized: Error processing individual date:', err, dateObj);
+            return null;
           }
-          
-          // Handle direct date values
-          if (typeof dateObj === 'string') {
-            return dateObj;
-          }
-          
-          if (dateObj instanceof Date) {
-            return dateObj.toISOString();
-          }
-          
-          return null;
         };
 
         const processedTrip = {
@@ -91,6 +101,9 @@ const TripHistoryOptimized = () => {
 
         console.log('🗂️ TripHistoryOptimized: Processed trip:', {
           id: trip.id,
+          company: trip.company,
+          driver: trip.driver,
+          status: trip.status,
           originalStartDate: trip.startDate,
           processedStartDate: processedTrip.startDate,
           originalEndDate: trip.endDate,
@@ -162,7 +175,7 @@ const TripHistoryOptimized = () => {
     }
 
     try {
-      return processedTrips.filter((trip) => {
+      const filtered = processedTrips.filter((trip) => {
         if (!trip) {
           console.warn('🗂️ TripHistoryOptimized: Found null/undefined trip');
           return false;
@@ -185,6 +198,9 @@ const TripHistoryOptimized = () => {
 
         return matchesSearchTerm && matchesCompany && matchesVan && matchesTab;
       });
+
+      console.log('🗂️ TripHistoryOptimized: Filtered trips count:', filtered.length);
+      return filtered;
     } catch (filterError) {
       console.error('🗂️ TripHistoryOptimized: Error filtering trips:', filterError);
       return [];
@@ -243,11 +259,12 @@ const TripHistoryOptimized = () => {
   const activeTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && trip.status === 'active').length : 0;
   const completedTripsCount = Array.isArray(processedTrips) ? processedTrips.filter(trip => trip && trip.status === 'completed').length : 0;
 
-  console.log('🗂️ TripHistoryOptimized: Render state:', {
+  console.log('🗂️ TripHistoryOptimized: Final render state:', {
     totalTrips,
     activeTripsCount,
     completedTripsCount,
-    filteredCount: sortedTrips.length
+    filteredCount: sortedTrips.length,
+    currentTab: activeTab
   });
 
   if (isLoading) {
@@ -270,96 +287,81 @@ const TripHistoryOptimized = () => {
     );
   }
 
-  console.log('🗂️ TripHistoryOptimized: Rendering main content');
+  console.log('🗂️ TripHistoryOptimized: Rendering main content with', sortedTrips.length, 'trips');
 
-  try {
-    return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-center">
-          <TripHistoryHeader />
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter un voyage
-          </Button>
-        </div>
-
-        <TripHistoryFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          companyFilter={companyFilter}
-          setCompanyFilter={setCompanyFilter}
-          vanFilter={vanFilter}
-          setVanFilter={setVanFilter}
-          companies={companies}
-          vans={vans}
-          onClearFilters={handleClearFilters}
-          disabled={isLoading}
-        />
-
-        <TripHistoryStats trips={sortedTrips} />
-
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="all">
-              Tous ({totalTrips})
-            </TabsTrigger>
-            <TabsTrigger value="active">
-              Actifs ({activeTripsCount})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Terminés ({completedTripsCount})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value={activeTab} className="mt-6">
-            <TripHistoryList
-              filteredTrips={sortedTrips}
-              totalTrips={processedTrips}
-              onTripClick={handleOpenTripDetails}
-              onDeleteTrip={handleDeleteTrip}
-              deletingTripId={deletingTripId}
-            />
-          </TabsContent>
-        </Tabs>
-
-        <TripDetailsDialog
-          trip={selectedTrip}
-          isOpen={!!selectedTrip}
-          onClose={handleCloseTripDetails}
-        />
-
-        <TripEndDialog
-          trip={tripToEnd}
-          isOpen={!!tripToEnd}
-          onClose={handleCloseTripEndDialog}
-        />
-
-        <TripDeleteDialog
-          trip={tripToDelete}
-          isOpen={!!tripToDelete}
-          onClose={handleCloseTripDeleteDialog}
-          onConfirm={() => {
-            console.log('🗂️ TripHistoryOptimized: Deleting trip:', tripToDelete);
-            handleDeleteTrip(tripToDelete.id);
-            handleCloseTripDeleteDialog();
-          }}
-        />
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <TripHistoryHeader />
+        <Button>
+          <Plus className="h-4 w-4 mr-2" />
+          Ajouter un voyage
+        </Button>
       </div>
-    );
-  } catch (mainRenderError) {
-    console.error('🗂️ TripHistoryOptimized: Critical render error:', mainRenderError);
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-red-600 mb-2">Erreur critique</h3>
-          <p className="text-gray-600 mb-4">Une erreur est survenue lors du rendu de la page</p>
-          <Button onClick={() => window.location.reload()}>
-            Actualiser la page
-          </Button>
-        </div>
-      </div>
-    );
-  }
+
+      <TripHistoryFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        companyFilter={companyFilter}
+        setCompanyFilter={setCompanyFilter}
+        vanFilter={vanFilter}
+        setVanFilter={setVanFilter}
+        companies={companies}
+        vans={vans}
+        onClearFilters={handleClearFilters}
+        disabled={isLoading}
+      />
+
+      <TripHistoryStats trips={sortedTrips} />
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="all">
+            Tous ({totalTrips})
+          </TabsTrigger>
+          <TabsTrigger value="active">
+            Actifs ({activeTripsCount})
+          </TabsTrigger>
+          <TabsTrigger value="completed">
+            Terminés ({completedTripsCount})
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value={activeTab} className="mt-6">
+          <TripHistoryList
+            filteredTrips={sortedTrips}
+            totalTrips={processedTrips}
+            onTripClick={handleOpenTripDetails}
+            onDeleteTrip={handleDeleteTrip}
+            deletingTripId={deletingTripId}
+          />
+        </TabsContent>
+      </Tabs>
+
+      <TripDetailsDialog
+        trip={selectedTrip}
+        isOpen={!!selectedTrip}
+        onClose={handleCloseTripDetails}
+      />
+
+      <TripEndDialog
+        trip={tripToEnd}
+        isOpen={!!tripToEnd}
+        onClose={handleCloseTripEndDialog}
+      />
+
+      <TripDeleteDialog
+        trip={tripToDelete}
+        isOpen={!!tripToDelete}
+        onClose={handleCloseTripDeleteDialog}
+        onConfirm={() => {
+          console.log('🗂️ TripHistoryOptimized: Deleting trip:', tripToDelete);
+          handleDeleteTrip(tripToDelete.id);
+          handleCloseTripDeleteDialog();
+        }}
+      />
+    </div>
+  );
 };
 
 export default TripHistoryOptimized;

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -11,7 +11,6 @@ import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -52,7 +51,6 @@ const VansIndex = () => {
   
   const { vans, refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
-  const { refreshPage } = useCacheRefresh();
   
   const setVans = () => {
     refetch();
@@ -71,21 +69,10 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
-  // Clear cache and refresh data when component mounts
-  useEffect(() => {
-    refreshPage(['vans']);
-  }, [refreshPage]);
-
+  // Simplified refresh handler - just use the refetch function
   const handleRefresh = async () => {
-    console.log('🔄 VansIndex: Starting refresh...');
-    try {
-      // Use both cache refresh and direct refetch for comprehensive refresh
-      await refreshPage(['vans']);
-      await refetch();
-      console.log('✅ VansIndex: Refresh completed');
-    } catch (error) {
-      console.error('❌ VansIndex: Refresh failed:', error);
-    }
+    console.log('🔄 VansIndex: Manual refresh triggered');
+    await refetch();
   };
 
   const filteredAndSortedVans = useMemo(() => {

@@ -6,17 +6,21 @@ export const useCacheRefresh = () => {
   const queryClient = useQueryClient();
 
   const refreshPage = useCallback(async (queryKeys: string[]) => {
-    console.log('🔄 Refreshing cache for keys:', queryKeys);
+    console.log('🔄 Cache refresh for keys:', queryKeys);
     
     try {
-      // Instead of clearing, invalidate and refetch to update data
+      // Clear global caches immediately
+      if (typeof window !== 'undefined') {
+        if (queryKeys.includes('vans')) {
+          (window as any).globalVansCache = null;
+          (window as any).globalFetchPromise = null;
+          console.log('🔄 Cleared vans global cache');
+        }
+      }
+
+      // Invalidate and refetch React Query caches
       const promises = queryKeys.map(async (key) => {
-        console.log(`🔄 Invalidating and refetching: ${key}`);
-        
-        // Invalidate to mark as stale
         await queryClient.invalidateQueries({ queryKey: [key] });
-        
-        // Force refetch to get fresh data
         await queryClient.refetchQueries({ 
           queryKey: [key],
           type: 'active' 
@@ -24,33 +28,25 @@ export const useCacheRefresh = () => {
       });
       
       await Promise.all(promises);
-      console.log('✅ Cache refresh completed for keys:', queryKeys);
+      console.log('✅ Cache refresh completed');
       
     } catch (error) {
       console.error('❌ Cache refresh failed:', error);
     }
-    
-    // Also clear any global caches to ensure fresh data
-    if (typeof window !== 'undefined') {
-      if (queryKeys.includes('vans')) {
-        (window as any).globalVansCache = null;
-        (window as any).globalFetchPromise = null;
-      }
-    }
   }, [queryClient]);
 
   const refreshAll = useCallback(async () => {
-    console.log('🔄 Refreshing all cache');
+    console.log('🔄 Refreshing all caches');
     try {
-      // Invalidate all queries and refetch
-      await queryClient.invalidateQueries();
-      await queryClient.refetchQueries({ type: 'active' });
-      
-      // Clear global caches
+      // Clear all global caches
       if (typeof window !== 'undefined') {
         (window as any).globalVansCache = null;
         (window as any).globalFetchPromise = null;
       }
+      
+      // Invalidate and refetch all React Query caches
+      await queryClient.invalidateQueries();
+      await queryClient.refetchQueries({ type: 'active' });
       
       console.log('✅ All cache refresh completed');
     } catch (error) {
@@ -59,8 +55,9 @@ export const useCacheRefresh = () => {
   }, [queryClient]);
 
   const clearCache = useCallback(() => {
-    console.log('🗑️ Clearing all cache');
-    // Remove all cached data
+    console.log('🗑️ Clearing all caches');
+    
+    // Clear React Query cache
     queryClient.clear();
     
     // Clear global caches

@@ -33,11 +33,10 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
     } catch (error) {
       console.error('❌ RefreshButton: Refresh failed:', error);
     } finally {
-      // Ensure minimum animation time for better UX
+      // Shorter animation time for better responsiveness
       setTimeout(() => {
         setIsRefreshing(false);
-        console.log('🔄 RefreshButton: Animation completed');
-      }, 800);
+      }, 500);
     }
   };
 

@@ -8,30 +8,30 @@ import { registerServiceWorker } from './utils/serviceWorker';
 // Import React explicitly and make it available globally
 import React from 'react';
 
-// Ensure React and its hooks are available globally
+// Critical: Ensure React is available globally BEFORE anything else
 if (typeof window !== 'undefined') {
   (window as any).React = React;
-  console.log('🔧 Main: React made available globally:', !!React);
-  console.log('🔧 Main: React hooks available:', !!React.useState, !!React.useContext, !!React.useEffect);
-}
-
-// Validate React hooks availability before continuing
-if (!React.useState || !React.useContext || !React.useEffect) {
-  console.error('❌ CRITICAL: React hooks not available in main.tsx');
-  throw new Error('React hooks not available');
+  
+  // Validate React is properly loaded
+  if (!React || !React.useState || !React.useContext || !React.useEffect) {
+    console.error('❌ CRITICAL: React or React hooks not available');
+    throw new Error('React initialization failed - hooks not available');
+  }
+  
+  console.log('✅ React initialized successfully with version:', React.version);
+  console.log('✅ React hooks validated:', {
+    useState: !!React.useState,
+    useContext: !!React.useContext,
+    useEffect: !!React.useEffect
+  });
 }
 
 // Only log in development
 if (import.meta.env.DEV) {
   console.log('🌟 Main: Starting application with React version:', React.version);
-  console.log('🌟 Main: React hooks available:', !!React.useState, !!React.useContext);
 }
 
 const rootElement = document.getElementById("root");
-
-if (import.meta.env.DEV) {
-  console.log('🌟 Main: Root element:', rootElement);
-}
 
 if (!rootElement) {
   throw new Error('Root element not found');

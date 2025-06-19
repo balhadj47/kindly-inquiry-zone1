@@ -78,7 +78,17 @@ export const useVanMutations = () => {
   };
 
   const createVan = useMutation({
-    mutationFn: async (vanData: Omit<Van, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (vanData: {
+      license_plate: string;
+      model: string;
+      reference_code?: string;
+      driver_id?: string | null;
+      status?: string;
+      insurer?: string;
+      insurance_date?: string;
+      control_date?: string;
+      notes?: string;
+    }) => {
       const { data, error } = await supabase
         .from('vans')
         .insert([vanData])

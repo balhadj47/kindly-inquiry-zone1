@@ -3,6 +3,14 @@ import React, { createContext, useContext, ReactNode, useState, useEffect, useCa
 import { SupportedLanguage, TranslationKeys } from '@/types/language';
 import { translations } from '@/translations';
 
+// Ensure React hooks are available
+if (!useState || !useContext || !useCallback || !useMemo) {
+  console.error('❌ CRITICAL: React hooks not available in LanguageContext');
+  throw new Error('React hooks not available');
+}
+
+console.log('🔧 LanguageContext: React hooks validation passed');
+
 interface LanguageContextType {
   language: SupportedLanguage;
   setLanguage: (lang: SupportedLanguage) => void;

@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
 import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
-// Define the expected database user structure
+// Define the expected database user structure based on actual schema
 interface DbUser {
   id: number;
   auth_user_id: string | null;
@@ -44,7 +44,9 @@ export const loadUsers = async (): Promise<User[]> => {
       return [];
     }
 
-    const transformedUsers = data.map((user: DbUser) => {
+    const transformedUsers = data.map((rawUser: any) => {
+      // Cast to our expected type to safely access properties
+      const user = rawUser as DbUser;
       console.log('🔄 Transforming user:', user.id, user);
       
       return {

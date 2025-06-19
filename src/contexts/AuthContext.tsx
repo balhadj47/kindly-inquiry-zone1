@@ -3,10 +3,13 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
-// Debug logging for React availability
-console.log('🔧 AuthContext: React available:', !!React);
-console.log('🔧 AuthContext: useState available:', !!useState);
-console.log('🔧 AuthContext: useContext available:', !!useContext);
+// Ensure React hooks are available
+if (!useState || !useContext || !useEffect) {
+  console.error('❌ CRITICAL: React hooks not available in AuthContext');
+  throw new Error('React hooks not available');
+}
+
+console.log('🔧 AuthContext: React hooks validation passed');
 
 interface AuthContextType {
   user: User | null;

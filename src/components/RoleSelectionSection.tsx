@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Search, Shield, Car, UserCheck, Target } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { MissionRole } from '@/types/missionRoles';
-import { getRoleNameFromId } from '@/utils/roleUtils';
 
 interface UserWithRoles {
   userId: string;
@@ -18,7 +17,7 @@ interface RoleSelectionSectionProps {
   setUserSearchQuery: (query: string) => void;
   selectedUsersWithRoles: UserWithRoles[];
   onUserRoleSelection: (userId: string, roles: MissionRole[]) => void;
-  filterByRole?: string;
+  filterByRoleId?: number;
 }
 
 const MISSION_ROLES: { value: MissionRole; label: string; icon: React.ComponentType<any>; color: string; selectedColor: string }[] = [
@@ -33,7 +32,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
   setUserSearchQuery,
   selectedUsersWithRoles,
   onUserRoleSelection,
-  filterByRole,
+  filterByRoleId,
 }) => {
   const { users } = useRBAC();
 
@@ -42,7 +41,7 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
     const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
       (user.email && user.email.toLowerCase().includes(userSearchQuery.toLowerCase()));
     
-    const matchesRole = !filterByRole || getRoleNameFromId(user.role_id) === filterByRole;
+    const matchesRole = !filterByRoleId || user.role_id === filterByRoleId;
     
     return matchesSearch && matchesRole;
   });

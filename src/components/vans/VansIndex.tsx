@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -13,6 +14,7 @@ import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
+import { supabase } from '@/integrations/supabase/client';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -80,17 +82,44 @@ const VansIndex = () => {
     await refreshChanges();
   }, [refreshChanges]);
 
-  // Fixed compare and edit function
+  // Fixed compare and edit function that fetches fresh data and compares properly
   const handleCompareAndEdit = useCallback(async () => {
     console.log('🔍 VansIndex: Compare and edit triggered');
     try {
-      // Fetch fresh data from database
-      const freshData = await refetch();
+      // First get the current data for comparison
+      const currentData = [...vans];
       
-      // The refetch already updates the vans state with fresh data
-      // But we can still use compareAndEditData for logging purposes
-      const result = await compareAndEditData(vans, freshData, () => {
+      // Fetch fresh data from database without updating state yet
+      console.log('📊 Fetching fresh data for comparison...');
+      const { data: freshVansData, error } = await supabase
+        .from('vans')
+        .select(`
+          id,
+          license_plate,
+          model,
+          reference_code,
+          driver_id,
+          status,
+          created_at,
+          insurer,
+          insurance_date,
+          control_date,
+          notes
+        `)
+        .order('license_plate');
+
+      if (error) throw error;
+
+      const freshData = (freshVansData || []).map(van => ({
+        ...van,
+        updated_at: van.created_at
+      }));
+
+      // Use compareAndEditData to detect and apply only the changes
+      const result = await compareAndEditData(currentData, freshData, () => {
         console.log('📝 Selective updates detected and applied');
+        // Force a refresh to update the UI with the new data
+        refetch();
       });
       
       if (result.hasChanges) {
@@ -101,7 +130,7 @@ const VansIndex = () => {
     } catch (error) {
       console.error('❌ Compare and edit failed:', error);
     }
-  }, [vans, refetch, compareAndEditData]);
+  }, [vans, compareAndEditData, refetch]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');

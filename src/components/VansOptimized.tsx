@@ -1,7 +1,6 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
-import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
+import { updateVanFields, shouldRefreshVans } from '@/utils/vanFieldUpdater';
 import VanStats from './VanStats';
 import VanFilters from './VanFilters';
 import VanList from './VanList';
@@ -48,7 +47,6 @@ const VansLoadingSkeleton = () => (
 const VansOptimized = () => {
   const { data: serverVans = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
-  const { compareAndEditData } = useSelectiveUpdate();
   const [localVans, setLocalVans] = useState<Van[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -58,21 +56,13 @@ const VansOptimized = () => {
   const [selectedVan, setSelectedVan] = useState(null);
   const { refreshPage } = useCacheRefresh();
 
-  // Initialize local vans state on first load
-  useEffect(() => {
-    if (serverVans.length > 0 && localVans.length === 0) {
-      console.log('🚐 VansOptimized: Initializing local vans state');
-      setLocalVans(serverVans);
-    }
-  }, [serverVans, localVans.length]);
-
   // Auto-refresh and selective update when server data changes
   useEffect(() => {
-    if (serverVans.length > 0 && localVans.length > 0) {
-      console.log('🔄 VansOptimized: Applying selective updates...');
-      compareAndEditData(localVans, serverVans, setLocalVans);
+    if (shouldRefreshVans(localVans, serverVans)) {
+      console.log('🚐 VansOptimized: Updating vans with selective field updates...');
+      updateVanFields(localVans, serverVans, setLocalVans);
     }
-  }, [serverVans, compareAndEditData, localVans.length]);
+  }, [serverVans, localVans]);
 
   // Clear cache and refresh data when component mounts
   useEffect(() => {

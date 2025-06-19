@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -9,7 +8,7 @@ import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import { useAllVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansState } from '@/hooks/useVansState';
-import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
+import { updateVanFields, shouldRefreshVans } from '@/utils/vanFieldUpdater';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Van } from '@/types/van';
@@ -54,23 +53,14 @@ const VansIndex = () => {
   // Get vans data and control functions using optimized pattern
   const { data: serverVans = [], refetch, isLoading } = useAllVans();
   const { invalidateVans } = useVanMutations();
-  const { compareAndEditData } = useSelectiveUpdate();
-
-  // Initialize local vans state on first load
-  useEffect(() => {
-    if (serverVans.length > 0 && localVans.length === 0) {
-      console.log('🚐 VansIndex: Initializing local vans state');
-      setLocalVans(serverVans);
-    }
-  }, [serverVans, localVans.length]);
 
   // Auto-refresh and selective update when server data changes
   useEffect(() => {
-    if (serverVans.length > 0 && localVans.length > 0) {
-      console.log('🔄 VansIndex: Applying selective updates...');
-      compareAndEditData(localVans, serverVans, setLocalVans);
+    if (shouldRefreshVans(localVans, serverVans)) {
+      console.log('🚐 VansIndex: Updating vans with selective field updates...');
+      updateVanFields(localVans, serverVans, setLocalVans);
     }
-  }, [serverVans, compareAndEditData, localVans.length]);
+  }, [serverVans, localVans]);
 
   // Auto-refresh when component mounts (entering the page)
   useEffect(() => {

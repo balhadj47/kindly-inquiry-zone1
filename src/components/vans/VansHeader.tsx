@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { RefreshButton } from '@/components/ui/refresh-button';
 import { Plus, RefreshCw } from 'lucide-react';
 
 interface VansHeaderProps {
@@ -24,13 +23,15 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, onCheckCha
       
       <div className="flex items-center gap-2 mt-4 lg:mt-0">
         {onCheckChanges && (
-          <RefreshButton
-            onRefresh={onCheckChanges}
+          <Button
+            onClick={onCheckChanges}
             variant="outline"
-            size="icon"
+            size="sm"
+            className="flex items-center gap-2 px-3"
           >
             <RefreshCw className="h-4 w-4" />
-          </RefreshButton>
+            <span className="hidden sm:inline">Vérifier les changements</span>
+          </Button>
         )}
         
         <Button 

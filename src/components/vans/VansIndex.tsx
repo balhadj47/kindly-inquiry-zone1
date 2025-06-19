@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -6,7 +7,7 @@ import VansEmptyState from './VansEmptyState';
 import VanList from '../VanList';
 import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
-import { useVans } from '@/hooks/useVans';
+import { useAllVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansState } from '@/hooks/useVansState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,8 +48,14 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Get vans data and control functions
-  const { vans, refetch, isLoading } = useVans();
+  // Get vans data and control functions using optimized pattern
+  const { data: vans = [], refetch, isLoading } = useAllVans();
+  const { invalidateVans } = useVanMutations();
+
+  // Create a setter function that works with the existing hook
+  const setVans = () => {
+    invalidateVans();
+  };
 
   const {
     isModalOpen,
@@ -61,7 +68,7 @@ const VansIndex = () => {
     handleEditVan,
     handleDeleteVan,
     handleConfirmDelete
-  } = useVansState(refetch);
+  } = useVansState(setVans);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans?.length || 0, statusFilter, searchTerm });
@@ -144,13 +151,14 @@ const VansIndex = () => {
 
   const handleModalSuccess = () => {
     refetch();
+    invalidateVans();
   };
 
   const handleQuickAction = (van: any) => {
     console.log('Quick action for van:', van);
   };
 
-  // Show loading skeleton only on initial load when there's no cached data
+  // Show loading skeleton only when loading and no cached data
   if (isLoading && (!vans || vans.length === 0)) {
     return <VansLoadingSkeleton />;
   }

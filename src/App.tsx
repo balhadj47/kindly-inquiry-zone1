@@ -13,12 +13,6 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import NetworkStatusSimple from "@/components/NetworkStatusSimple";
 import ProtectedRoute from "@/components/ProtectedRoute";
 
-// Validate React hooks before proceeding
-if (!React || !React.useState || !React.useContext || !React.useEffect) {
-  console.error('❌ CRITICAL: React hooks not available in App component');
-  throw new Error('React hooks not available');
-}
-
 // Lazy load main components
 const Index = lazy(() => import("./pages/Index"));
 const AuthPage = lazy(() => import("./pages/AuthPage"));
@@ -52,19 +46,6 @@ const AppLoadingSkeleton = () => (
 
 const App = () => {
   console.log('🚀 App: Functional component render');
-  
-  // Additional validation within component
-  if (!React.useState) {
-    console.error('❌ React hooks validation failed in App component');
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-xl font-bold text-red-600 mb-2">Application Error</h1>
-          <p className="text-gray-600">Please refresh the page</p>
-        </div>
-      </div>
-    );
-  }
   
   return (
     <ErrorBoundary>

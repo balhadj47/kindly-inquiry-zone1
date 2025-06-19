@@ -5,25 +5,33 @@ import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './utils/serviceWorker';
 
-// Import React explicitly and make it available globally
-import React from 'react';
+// Import React explicitly and make it available globally IMMEDIATELY
+import * as React from 'react';
 
-// Critical: Ensure React is available globally BEFORE anything else
-if (typeof window !== 'undefined') {
-  (window as any).React = React;
+// CRITICAL: Make React globally available before any other imports or operations
+declare global {
+  interface Window {
+    React: typeof React;
+  }
+}
+
+// Force React to be available globally
+window.React = React;
+
+// Validate that React hooks are working
+try {
+  const testState = React.useState(0);
+  const testEffect = React.useEffect;
+  const testContext = React.useContext;
   
-  // Validate React is properly loaded
-  if (!React || !React.useState || !React.useContext || !React.useEffect) {
-    console.error('❌ CRITICAL: React or React hooks not available');
-    throw new Error('React initialization failed - hooks not available');
+  if (!testState || !testEffect || !testContext) {
+    throw new Error('React hooks validation failed');
   }
   
-  console.log('✅ React initialized successfully with version:', React.version);
-  console.log('✅ React hooks validated:', {
-    useState: !!React.useState,
-    useContext: !!React.useContext,
-    useEffect: !!React.useEffect
-  });
+  console.log('✅ React hooks validated successfully');
+} catch (error) {
+  console.error('❌ CRITICAL: React hooks validation failed:', error);
+  throw new Error('React initialization failed - hooks not available');
 }
 
 // Only log in development

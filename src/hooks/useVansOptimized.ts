@@ -89,9 +89,15 @@ export const useVanMutations = () => {
       control_date?: string;
       notes?: string;
     }) => {
+      // Ensure reference_code has a value
+      const dataToInsert = {
+        ...vanData,
+        reference_code: vanData.reference_code || vanData.license_plate || 'AUTO',
+      };
+      
       const { data, error } = await supabase
         .from('vans')
-        .insert([vanData])
+        .insert(dataToInsert)
         .select()
         .single();
 

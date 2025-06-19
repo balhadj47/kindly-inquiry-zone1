@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -8,7 +9,6 @@ import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import { useAllVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansState } from '@/hooks/useVansState';
-import { updateVanFields, shouldRefreshVans } from '@/utils/vanFieldUpdater';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Van } from '@/types/van';
@@ -49,17 +49,16 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  // Get vans data and control functions using optimized pattern
-  const { data: serverVans = [], refetch, isLoading } = useAllVans();
+  // Get fresh vans data - no caching, always fresh
+  const { data: vansData = [], refetch, isLoading, isError } = useAllVans();
   const { invalidateVans } = useVanMutations();
 
-  // Single useEffect for data refresh on mount
+  // Force fresh data on component mount
   useEffect(() => {
-    console.log('🚐 VansIndex: Component mounted, triggering refresh');
+    console.log('🚐 VansIndex: Component mounted, forcing fresh data fetch');
     refetch();
   }, [refetch]);
 
-  // Create a setter function that works with the existing hook
   const setVans = () => {
     invalidateVans();
     refetch();
@@ -169,9 +168,27 @@ const VansIndex = () => {
     console.log('Quick action for van:', van);
   };
 
-  // Show loading skeleton only when loading and no cached data
-  if (isLoading && vansToUse.length === 0) {
+  // Show loading only when actually loading
+  if (isLoading) {
     return <VansLoadingSkeleton />;
+  }
+
+  // Show error state
+  if (isError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+          <p className="text-gray-600 mb-4">Impossible de charger les camionnettes</p>
+          <button 
+            onClick={() => refetch()} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -205,7 +222,7 @@ const VansIndex = () => {
       ) : (
         <VanList
           vans={filteredAndSortedVans}
-          totalVans={vansToUse?.length || 0}
+          totalVans={vansData?.length || 0}
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           onAddVan={handleAddVan}

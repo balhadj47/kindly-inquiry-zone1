@@ -5,7 +5,6 @@ import VanFilters from './VanFilters';
 import VanList from './VanList';
 import VanModal from './VanModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { Van } from '@/types/van';
 
@@ -44,7 +43,7 @@ const VansLoadingSkeleton = () => (
 );
 
 const VansOptimized = () => {
-  const { data: serverVans = [], isLoading, error, refetch } = useVans();
+  const { data: vansData = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -52,34 +51,23 @@ const VansOptimized = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
-  const { refreshPage } = useCacheRefresh();
 
-  // Single useEffect for data refresh on mount
+  // Force fresh data on component mount
   useEffect(() => {
-    console.log('🚐 VansOptimized: Component mounted, triggering refresh');
-    const refreshData = async () => {
-      try {
-        refreshPage(['vans']);
-        await refetch();
-      } catch (error) {
-        console.error('Error refreshing data:', error);
-      }
-    };
-    refreshData();
-  }, [refetch, refreshPage]);
+    console.log('🚐 VansOptimized: Component mounted, forcing fresh data fetch');
+    refetch();
+  }, [refetch]);
 
   const handleRefresh = async () => {
-    refreshPage(['vans']);
     await refetch();
   };
 
-  // Use server vans directly - no local state management
-  const vansToUse = serverVans;
-
-  if (isLoading && vansToUse.length === 0) {
+  // Show loading only when actually loading
+  if (isLoading) {
     return <VansLoadingSkeleton />;
   }
 
+  // Show error state
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -107,7 +95,7 @@ const VansOptimized = () => {
   };
 
   const filteredAndSortedVans = useMemo(() => {
-    let filtered = vansToUse.filter(van => {
+    let filtered = vansData.filter(van => {
       if (!van || typeof van !== 'object') return false;
       const licensePlateStr = typeof van.license_plate === 'string' ? van.license_plate : '';
       const modelStr = typeof van.model === 'string' ? van.model : '';
@@ -143,7 +131,7 @@ const VansOptimized = () => {
           return direction * aVal.localeCompare(bVal);
       }
     });
-  }, [vansToUse, searchTerm, statusFilter, sortField, sortDirection]);
+  }, [vansData, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleAddVan = () => {
     setSelectedVan(null);
@@ -181,7 +169,7 @@ const VansOptimized = () => {
       </div>
       
       <VanStats 
-        vans={vansToUse}
+        vans={vansData}
         onAddVan={handleAddVan}
       />
       
@@ -198,7 +186,7 @@ const VansOptimized = () => {
 
       <VanList
         vans={filteredAndSortedVans}
-        totalVans={vansToUse.length}
+        totalVans={vansData.length}
         searchTerm={searchTerm}
         statusFilter={statusFilter}
         onAddVan={handleAddVan}

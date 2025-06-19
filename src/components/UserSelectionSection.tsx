@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Users, Search } from 'lucide-react';
 import { useUserFiltering } from '@/hooks/useUserFiltering';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 interface UserSelectionSectionProps {
   userSearchQuery: string;
@@ -20,14 +21,14 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
 }) => {
   const { filteredUsers, totalFilteredUsers, users } = useUserFiltering(userSearchQuery);
 
-  // Group users by their system group
+  // Group users by their role_id
   const usersByRole = React.useMemo(() => {
     const grouped = filteredUsers.reduce((acc, user) => {
-      const systemGroup = user.systemGroup;
-      if (!acc[systemGroup]) {
-        acc[systemGroup] = [];
+      const roleName = getRoleNameFromId(user.role_id);
+      if (!acc[roleName]) {
+        acc[roleName] = [];
       }
-      acc[systemGroup].push(user);
+      acc[roleName].push(user);
       return acc;
     }, {} as Record<string, typeof filteredUsers>);
     
@@ -52,20 +53,20 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         />
       </div>
 
-      {/* Users grouped by their system groups */}
+      {/* Users grouped by their roles */}
       <div className="max-h-96 overflow-y-auto border rounded-md">
         {usersByRole.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-8">
             {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
           </p>
         ) : (
-          usersByRole.map(([systemGroup, roleUsers]) => {
+          usersByRole.map(([roleName, roleUsers]) => {
             if (!roleUsers || roleUsers.length === 0) return null;
 
             return (
-              <div key={systemGroup} className="border-b last:border-b-0">
+              <div key={roleName} className="border-b last:border-b-0">
                 <div className="px-4 py-3 bg-gray-100 font-medium text-sm border-b">
-                  {systemGroup} ({roleUsers.length} users)
+                  {roleName} ({roleUsers.length} users)
                 </div>
                 <div className="p-3 space-y-3">
                   {roleUsers.map((user) => {
@@ -87,7 +88,7 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
                           <div className="flex justify-between items-center">
                             <div>
                               <span className="font-medium">{user.name}</span>
-                              <span className="text-sm text-gray-500 ml-2">({user.systemGroup})</span>
+                              <span className="text-sm text-gray-500 ml-2">({getRoleNameFromId(user.role_id)})</span>
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 user.status === 'Active' ? 'bg-green-100 text-green-800' :
                                 user.status === 'Récupération' ? 'bg-yellow-100 text-yellow-800' :

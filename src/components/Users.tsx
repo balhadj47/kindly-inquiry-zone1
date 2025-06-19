@@ -43,11 +43,11 @@ const Users = () => {
     'users:create': hasPermission('users:create'),
     'groups:read': hasPermission('groups:read'),
     'groups:manage': hasPermission('groups:manage'),
-    currentUserSystemGroup: currentUser?.systemGroup
+    currentUserRoleId: currentUser?.role_id
   });
 
   // Check if user can manage groups
-  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.systemGroup === 'Administrator';
+  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.role_id === 1;
 
   const clearFilters = () => {
     setSearchTerm('');

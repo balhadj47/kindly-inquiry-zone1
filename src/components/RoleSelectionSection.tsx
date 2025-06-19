@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -7,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Search, Shield, Car, UserCheck, Target } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { MissionRole } from '@/types/missionRoles';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 interface UserWithRoles {
   userId: string;
@@ -37,12 +37,12 @@ const RoleSelectionSection: React.FC<RoleSelectionSectionProps> = ({
 }) => {
   const { users } = useRBAC();
 
-  // Filter users based on search query and system group
+  // Filter users based on search query and role_id
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(userSearchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(userSearchQuery.toLowerCase());
+      (user.email && user.email.toLowerCase().includes(userSearchQuery.toLowerCase()));
     
-    const matchesRole = !filterByRole || user.systemGroup === filterByRole;
+    const matchesRole = !filterByRole || getRoleNameFromId(user.role_id) === filterByRole;
     
     return matchesSearch && matchesRole;
   });

@@ -34,8 +34,11 @@ CREATE TABLE IF NOT EXISTS user_groups (
   color VARCHAR DEFAULT '#3b82f6'
 );
 
--- Users table
-CREATE TABLE IF NOT EXISTS users (
+-- Drop the old role column if it exists and recreate users table with correct structure
+DROP TABLE IF EXISTS users CASCADE;
+
+-- Users table with only role_id (no role column)
+CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,
   email VARCHAR UNIQUE,

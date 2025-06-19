@@ -7,6 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Phone, Mail, Plus } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useRBAC } from '@/contexts/RBACContext';
+import { getRoleNameFromId, isDriverRole } from '@/utils/roleUtils';
 
 const DriversLoadingSkeleton = () => {
   return (
@@ -83,14 +84,14 @@ const Drivers = () => {
   const drivers = useMemo(() => {
     return users.filter(user => 
       user.licenseNumber && 
-      (user.systemGroup.includes('Chauffeur') || user.systemGroup.includes('Driver'))
+      isDriverRole(user.role_id)
     );
   }, [users]);
 
   const filteredDrivers = drivers.filter(driver =>
     driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (driver.licenseNumber && driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    driver.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (driver.email && driver.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusColor = (status) => {
@@ -190,7 +191,7 @@ const Drivers = () => {
                 </div>
                 
                 <div className="text-sm text-gray-600">
-                  <p><span className="font-medium">Role:</span> {driver.systemGroup}</p>
+                  <p><span className="font-medium">Role:</span> {getRoleNameFromId(driver.role_id)}</p>
                   <p><span className="font-medium">Voyages Totaux:</span> {driver.totalTrips || 0}</p>
                   <p><span className="font-medium">Dernier Voyage:</span> {driver.lastTrip || 'Jamais'}</p>
                 </div>

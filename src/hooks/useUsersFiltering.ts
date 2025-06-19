@@ -1,6 +1,6 @@
-
 import { useMemo } from 'react';
 import { User } from '@/types/rbac';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 interface UseUsersFilteringProps {
   users: User[];
@@ -41,7 +41,7 @@ export const useUsersFiltering = ({
       );
     },
     statusFilter: (user: User) => !statusFilter || statusFilter === 'all' || user.status === statusFilter,
-    roleFilter: (user: User) => !roleFilter || roleFilter === 'all' || user.systemGroup === roleFilter
+    roleFilter: (user: User) => !roleFilter || roleFilter ===  'all' || getRoleNameFromId(user.role_id) === roleFilter
   }), [normalizedSearchTerm, statusFilter, roleFilter]);
 
   // Memoize filtered users to prevent unnecessary recalculations
@@ -85,8 +85,8 @@ export const useUsersFiltering = ({
     try {
       const rolesSet = new Set<string>();
       safeUsers.forEach(user => {
-        if (user?.systemGroup && typeof user.systemGroup === 'string') {
-          rolesSet.add(user.systemGroup);
+        if (user?.role_id && typeof user.role_id === 'number') {
+          rolesSet.add(getRoleNameFromId(user.role_id));
         }
       });
       return Array.from(rolesSet);

@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { 
   Calendar, 
@@ -11,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 export const useSidebarMenuItems = () => {
   const { t } = useLanguage();
@@ -66,7 +66,7 @@ export const useSidebarMenuItems = () => {
   const filteredMenuItems = useMemo(() => {
     console.log('=== Menu Items Filtering Debug ===');
     console.log('Loading state:', loading);
-    console.log('Current user:', currentUser?.id, currentUser?.systemGroup);
+    console.log('Current user:', currentUser?.id, currentUser?.role_id);
     console.log('Roles loaded:', roles.length);
     
     // If still loading, show all items for now to avoid empty menu

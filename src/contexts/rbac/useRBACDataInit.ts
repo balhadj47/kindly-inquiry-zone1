@@ -76,7 +76,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
             name: authUser.email?.split('@')[0] || 'User',
             email: authUser.email || '',
             phone: '',
-            systemGroup: 'User' as const,
+            systemGroup: 'Employee' as const,
             status: 'Active' as const,
             createdAt: new Date().toISOString(),
             get role() { return this.systemGroup; }

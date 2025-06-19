@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
 import { insertTripToDatabase, fetchTripsFromDatabase, updateTripInDatabase, deleteTripFromDatabase } from './trip/TripDatabaseOperations';
 import { transformDatabaseTrips } from './trip/tripTransformers';
@@ -12,7 +12,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
 
-  const loadTrips = async (useCache = true) => {
+  const loadTrips = useCallback(async (useCache = true) => {
     try {
       console.log('🚗 TripProvider: Loading trips...');
       setIsLoading(true);
@@ -34,7 +34,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsLoading(false);
       }
     }
-  };
+  }, []);
 
   useEffect(() => {
     console.log('🚗 TripProvider: useEffect triggered - component mounted');
@@ -45,9 +45,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🚗 TripProvider: Cleanup - component unmounting');
       isMountedRef.current = false;
     };
-  }, []);
+  }, []); // Remove loadTrips from dependencies to prevent infinite loop
 
-  const addTrip = async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
+  const addTrip = useCallback(async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
     try {
       console.log('TripProvider: Adding trip with data:', tripData);
       console.log('Planned dates being sent:', {
@@ -88,9 +88,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError(errorMessage);
       throw error;
     }
-  };
+  }, [loadTrips]);
 
-  const deleteTrip = async (tripId: number) => {
+  const deleteTrip = useCallback(async (tripId: number) => {
     try {
       await deleteTripFromDatabase(tripId);
       // Force refresh without cache
@@ -101,9 +101,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError('Failed to delete trip');
       throw error;
     }
-  };
+  }, [loadTrips]);
 
-  const endTrip = async (tripId: number, endKm: number) => {
+  const endTrip = useCallback(async (tripId: number, endKm: number) => {
     try {
       await updateTripInDatabase(tripId, endKm);
       // Force refresh without cache
@@ -114,12 +114,12 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setError('Failed to end trip');
       throw error;
     }
-  };
+  }, [loadTrips]);
 
-  const refreshTrips = async () => {
+  const refreshTrips = useCallback(async () => {
     console.log('🚗 TripProvider: Force refreshing trips...');
     await loadTrips(false);
-  };
+  }, [loadTrips]);
 
   const value: TripContextType = {
     trips,

@@ -1,4 +1,3 @@
-
 import { SystemGroupName, SystemGroup, Permission } from './systemGroups';
 import { MissionRole } from './missionRoles';
 
@@ -9,7 +8,7 @@ export interface User {
   name: string;
   email?: string; // Made optional for employees
   phone: string;
-  systemGroup: SystemGroupName;
+  role_id: number; // Use role_id instead of systemGroup
   missionRole?: MissionRole;
   status: UserStatus;
   createdAt: string;
@@ -23,8 +22,9 @@ export interface User {
   placeOfBirth?: string;
   address?: string;
   driverLicense?: string;
-  // Backward compatibility - add a getter for role
+  // Backward compatibility - add a getter for role that returns the systemGroup name
   get role(): SystemGroupName;
+  get systemGroup(): SystemGroupName;
 }
 
 // Re-export system group types for backward compatibility

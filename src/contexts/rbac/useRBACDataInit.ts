@@ -4,13 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
 import { loadRoles, loadUsers } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
+import { SystemGroupName } from '@/types/systemGroups';
 
 interface UseRBACDataInitProps {
   state: RBACState;
   actions: RBACActions;
 }
 
-// Known admin emails - these will always get Administrator privileges
+// Known admin emails - these will always get Administrator privileges (role_id: 1)
 const ADMIN_EMAILS = [
   'gb47@msn.com',
   'admin@example.com'
@@ -18,6 +19,17 @@ const ADMIN_EMAILS = [
 
 const isAdminEmail = (email: string): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
+};
+
+// Helper function to get systemGroup name from role_id
+const getSystemGroupFromRoleId = (roleId: number, roles: any[]): SystemGroupName => {
+  const role = roles.find(r => r.id === roleId.toString());
+  return role?.name || 'Employee';
+};
+
+// Helper function to get role_id from email
+const getRoleIdForEmail = (email: string): number => {
+  return isAdminEmail(email) ? 1 : 3; // 1 = Administrator, 3 = Employee
 };
 
 export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
@@ -75,17 +87,16 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
             id: currentUser.id,
             name: currentUser.name,
             email: currentUser.email,
-            systemGroup: currentUser.systemGroup
+            role_id: currentUser.role_id
           });
           actions.setCurrentUser(currentUser);
         } else {
           console.log('⚠️ Current user not found in system, creating basic profile');
           
-          // Check if user is a known admin
-          const isAdmin = isAdminEmail(authUser.email || '');
-          const systemGroup = isAdmin ? 'Administrator' : 'Employee';
+          // Get appropriate role_id for this user
+          const roleId = getRoleIdForEmail(authUser.email || '');
           
-          console.log('🔐 Assigning system group:', systemGroup, 'for email:', authUser.email);
+          console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
           
           // Create a basic user profile for authenticated users not in the system
           const basicUser = {
@@ -93,10 +104,15 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
             name: authUser.email?.split('@')[0] || 'User',
             email: authUser.email || '',
             phone: '',
-            systemGroup,
-            status: 'Active',
+            role_id: roleId,
+            status: 'Active' as const,
             createdAt: new Date().toISOString(),
-            get role() { return this.systemGroup; }
+            get role(): SystemGroupName { 
+              return getSystemGroupFromRoleId(this.role_id, systemGroups);
+            },
+            get systemGroup(): SystemGroupName { 
+              return getSystemGroupFromRoleId(this.role_id, systemGroups);
+            }
           };
           actions.setCurrentUser(basicUser);
         }

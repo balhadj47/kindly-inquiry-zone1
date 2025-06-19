@@ -1,108 +1,73 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
-import { SystemGroup } from '@/types/systemGroups';
-import { SystemGroupsService } from '@/services/systemGroupsService';
+import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
-// Cache for faster subsequent loads
-let usersCache: { data: User[]; timestamp: number } | null = null;
-let rolesCache: { data: SystemGroup[]; timestamp: number } | null = null;
-const CACHE_DURATION = 300000; // 5 minutes cache for RBAC data
+export const loadUsers = async (): Promise<User[]> => {
+  console.log('📊 Loading users from database...');
+  
+  const { data, error } = await supabase
+    .from('users')
+    .select('*')
+    .order('created_at', { ascending: false });
 
-export const loadUsers = async (useCache = true): Promise<User[]> => {
-  try {
-    console.log('🔄 Loading users from database...');
-    const startTime = performance.now();
-    
-    // Check cache first
-    if (useCache && usersCache) {
-      const { data, timestamp } = usersCache;
-      const isValid = Date.now() - timestamp < CACHE_DURATION;
-      
-      if (isValid) {
-        console.log('✅ Users loaded from cache in:', performance.now() - startTime, 'ms');
-        return data;
-      }
-    }
-
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('❌ Error loading users:', error);
-      return usersCache?.data || [];
-    }
-
-    // Transform the database data to match our User interface
-    const users: User[] = (data || []).map(user => ({
-      id: user.id.toString(),
-      name: user.name || '',
-      email: user.email || '',
-      phone: user.phone || '',
-      systemGroup: user.role as any,
-      status: user.status as any,
-      createdAt: user.created_at,
-      totalTrips: user.total_trips || 0,
-      lastTrip: user.last_trip,
-      profileImage: user.profile_image,
-      // Add backward compatibility getter
-      get role() { return this.systemGroup; }
-    }));
-
-    // Update cache
-    usersCache = {
-      data: users,
-      timestamp: Date.now()
-    };
-
-    const endTime = performance.now();
-    console.log('✅ Users loaded successfully in:', endTime - startTime, 'ms -', users.length, 'users');
-    return users;
-  } catch (error) {
-    console.error('❌ Exception loading users:', error);
-    return usersCache?.data || [];
+  if (error) {
+    console.error('❌ Error loading users:', error);
+    throw error;
   }
+
+  console.log('✅ Raw users data loaded:', data?.length || 0);
+
+  // Helper function to get systemGroup name from role_id
+  const getSystemGroupFromRoleId = (roleId: number | null): SystemGroupName => {
+    if (roleId === 1) return 'Administrator';
+    if (roleId === 2) return 'Supervisor';
+    return 'Employee'; // Default to Employee (role_id 3 or null)
+  };
+
+  return (data || []).map(user => ({
+    id: user.id.toString(),
+    name: user.name || '',
+    email: user.email || undefined,
+    phone: user.phone || '',
+    role_id: user.role_id || 3, // Default to Employee role_id
+    status: user.status as User['status'] || 'Active',
+    createdAt: user.created_at,
+    licenseNumber: user.auth_user_id || undefined,
+    totalTrips: user.total_trips || 0,
+    lastTrip: user.last_trip || undefined,
+    profileImage: user.profile_image || undefined,
+    // Add getter methods for backward compatibility
+    get role(): SystemGroupName {
+      return getSystemGroupFromRoleId(this.role_id);
+    },
+    get systemGroup(): SystemGroupName {
+      return getSystemGroupFromRoleId(this.role_id);
+    }
+  }));
 };
 
-export const loadRoles = async (useCache = true): Promise<SystemGroup[]> => {
-  try {
-    console.log('🔄 Loading system groups...');
-    const startTime = performance.now();
-    
-    // Check cache first
-    if (useCache && rolesCache) {
-      const { data, timestamp } = rolesCache;
-      const isValid = Date.now() - timestamp < CACHE_DURATION;
-      
-      if (isValid) {
-        console.log('✅ Roles loaded from cache in:', performance.now() - startTime, 'ms');
-        return data;
-      }
-    }
+export const loadRoles = async (): Promise<SystemGroup[]> => {
+  console.log('📊 Loading system groups from database...');
+  
+  const { data, error } = await supabase
+    .from('user_groups')
+    .select('*')
+    .order('name');
 
-    // Load directly without cleanup for better performance
-    const roles = await SystemGroupsService.loadSystemGroups();
-    
-    // Update cache
-    rolesCache = {
-      data: roles,
-      timestamp: Date.now()
-    };
-
-    const endTime = performance.now();
-    console.log('✅ Roles loaded successfully in:', endTime - startTime, 'ms -', roles.length, 'roles');
-    return roles;
-  } catch (error) {
-    console.error('❌ Error loading roles:', error);
-    return rolesCache?.data || [];
+  if (error) {
+    console.error('❌ Error loading system groups:', error);
+    throw error;
   }
-};
 
-// Function to clear caches when needed
-export const clearRBACCache = () => {
-  console.log('🧹 Clearing RBAC cache');
-  usersCache = null;
-  rolesCache = null;
+  console.log('✅ Raw system groups data loaded:', data?.length || 0);
+
+  return (data || []).map(group => ({
+    id: group.id,
+    name: group.name as SystemGroupName,
+    description: group.description || '',
+    permissions: group.permissions || [],
+    color: group.color || '#3b82f6',
+    isSystemRole: true,
+  }));
 };

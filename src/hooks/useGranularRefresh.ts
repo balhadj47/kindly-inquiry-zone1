@@ -1,3 +1,4 @@
+
 import { useCallback, useState } from 'react';
 
 export const useGranularRefresh = <T extends { id: string }>() => {
@@ -47,7 +48,7 @@ export const useGranularRefresh = <T extends { id: string }>() => {
     return changeCount;
   }, []);
 
-  const refreshGranular = useCallback(async <T extends { id: string }>(
+  const refreshGranular = useCallback(async (
     currentItems: T[],
     fetchFn: () => Promise<T[]>,
     setItems: React.Dispatch<React.SetStateAction<T[]>>

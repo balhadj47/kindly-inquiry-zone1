@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
-import { Van } from '@/hooks/useVans';
+import { Van } from '@/types/van';
 
 export interface TripHistoryFiltersProps {
   searchTerm: string;

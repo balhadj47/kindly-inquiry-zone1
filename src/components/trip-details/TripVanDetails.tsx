@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Truck } from 'lucide-react';
 import { type Trip } from '@/contexts/TripContext';
-import { type Van } from '@/hooks/useVans';
+import { type Van } from '@/types/van';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface TripVanDetailsProps {

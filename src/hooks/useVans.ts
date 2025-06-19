@@ -30,7 +30,20 @@ export const useVans = () => {
       
       const { data, error } = await supabase
         .from('vans')
-        .select('*')
+        .select(`
+          id,
+          license_plate,
+          model,
+          reference_code,
+          driver_id,
+          status,
+          created_at,
+          updated_at,
+          insurer,
+          insurance_date,
+          control_date,
+          notes
+        `)
         .order('license_plate');
 
       if (error) {

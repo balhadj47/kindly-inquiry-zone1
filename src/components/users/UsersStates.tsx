@@ -12,11 +12,14 @@ export const LoadingState = () => (
 );
 
 interface ErrorStateProps {
-  title: string;
-  message: string;
+  title?: string;
+  message?: string;
 }
 
-export const ErrorState: React.FC<ErrorStateProps> = ({ title, message }) => (
+export const ErrorState: React.FC<ErrorStateProps> = ({ 
+  title = "Erreur de chargement", 
+  message = "Une erreur s'est produite lors du chargement des données." 
+}) => (
   <div className="flex items-center justify-center min-h-[400px]">
     <div className="text-center max-w-md">
       <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />

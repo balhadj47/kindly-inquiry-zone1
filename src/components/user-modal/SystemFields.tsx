@@ -13,10 +13,10 @@ const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
   control,
   isSubmitting,
 }) => {
-  const systemGroupOptions = React.useMemo(() => [
-    { value: "Administrator", label: "Administrateur" },
-    { value: "Supervisor", label: "Superviseur" },
-    { value: "Employee", label: "Employé" }
+  const roleOptions = React.useMemo(() => [
+    { value: 1, label: "Administrateur" },
+    { value: 2, label: "Superviseur" },
+    { value: 3, label: "Employé" }
   ], []);
 
   const statusOptions = React.useMemo(() => [
@@ -30,20 +30,24 @@ const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <FormField
         control={control}
-        name="systemGroup"
-        rules={{ required: 'Le groupe système est requis' }}
+        name="role_id"
+        rules={{ required: 'Le rôle est requis' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Groupe Système</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+            <FormLabel>Rôle</FormLabel>
+            <Select 
+              onValueChange={(value) => field.onChange(parseInt(value))} 
+              value={field.value?.toString()} 
+              disabled={isSubmitting}
+            >
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Sélectionner un groupe" />
+                  <SelectValue placeholder="Sélectionner un rôle" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {systemGroupOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+                {roleOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value.toString()}>
                     {option.label}
                   </SelectItem>
                 ))}

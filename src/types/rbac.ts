@@ -22,9 +22,6 @@ export interface User {
   placeOfBirth?: string;
   address?: string;
   driverLicense?: string;
-  // Backward compatibility - add a getter for role that returns the systemGroup name
-  get role(): SystemGroupName;
-  get systemGroup(): SystemGroupName;
 }
 
 // Re-export system group types for backward compatibility

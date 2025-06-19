@@ -1,6 +1,7 @@
 
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
+import { getPermissionsForRoleId } from '@/utils/rolePermissions';
 
 let permissionCache = new Map<string, boolean>();
 let usersData: User[] = [];
@@ -47,24 +48,19 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return false;
     }
 
-    // Special handling for Administrator system group
-    if (user.systemGroup === 'Administrator') {
+    // Special handling for Administrator role_id (1)
+    if (user.role_id === 1) {
       console.log('🔓 Administrator user detected, granting permission:', permission);
       permissionCache.set(cacheKey, true);
       return true;
     }
 
-    // Find system group
-    const systemGroup = systemGroupsData.find(g => g.name === user.systemGroup);
-    if (!systemGroup) {
-      console.warn(`⚠️ System group not found: ${user.systemGroup}`);
-      permissionCache.set(cacheKey, false);
-      return false;
-    }
-
-    // Check permission
-    const hasAccess = systemGroup.permissions.includes(permission);
+    // Get permissions for the user's role_id
+    const userPermissions = getPermissionsForRoleId(user.role_id);
+    const hasAccess = userPermissions.includes(permission);
+    
     permissionCache.set(cacheKey, hasAccess);
+    console.log(`🔐 Permission check result: ${permission} = ${hasAccess} for user ${userId} (role_id: ${user.role_id})`);
     
     return hasAccess;
   } catch (error) {
@@ -84,8 +80,7 @@ export const getUserPermissions = (userId: string): string[] => {
     const user = usersData.find(u => u.id.toString() === userId.toString());
     if (!user) return [];
 
-    const systemGroup = systemGroupsData.find(g => g.name === user.systemGroup);
-    return systemGroup?.permissions || [];
+    return getPermissionsForRoleId(user.role_id);
   } catch (error) {
     console.error('❌ Error getting user permissions:', error);
     return [];

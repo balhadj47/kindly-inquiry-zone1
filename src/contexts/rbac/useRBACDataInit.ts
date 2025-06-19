@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
 import { loadRoles, loadUsers } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
-import { SystemGroupName } from '@/types/systemGroups';
 
 interface UseRBACDataInitProps {
   state: RBACState;
@@ -19,12 +18,6 @@ const ADMIN_EMAILS = [
 
 const isAdminEmail = (email: string): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
-};
-
-// Helper function to get systemGroup name from role_id
-const getSystemGroupFromRoleId = (roleId: number, roles: any[]): SystemGroupName => {
-  const role = roles.find(r => r.id === roleId.toString());
-  return role?.name || 'Employee';
 };
 
 // Helper function to get role_id from email
@@ -107,12 +100,6 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
             role_id: roleId,
             status: 'Active' as const,
             createdAt: new Date().toISOString(),
-            get role(): SystemGroupName { 
-              return getSystemGroupFromRoleId(this.role_id, systemGroups);
-            },
-            get systemGroup(): SystemGroupName { 
-              return getSystemGroupFromRoleId(this.role_id, systemGroups);
-            }
           };
           actions.setCurrentUser(basicUser);
         }

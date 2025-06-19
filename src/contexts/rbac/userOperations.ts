@@ -1,6 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
-import { SystemGroupName } from '@/types/systemGroups';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
   const addUser = async (userData: Partial<User>) => {
@@ -55,12 +54,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           placeOfBirth: dbUser.place_of_birth || undefined,
           address: dbUser.address || undefined,
           driverLicense: dbUser.driver_license || undefined,
-          get role(): SystemGroupName {
-            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
-          },
-          get systemGroup(): SystemGroupName {
-            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
-          }
         };
         
         console.log('User created successfully:', newUser);
@@ -162,12 +155,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           placeOfBirth: dbUser.place_of_birth || undefined,
           address: dbUser.address || undefined,
           driverLicense: dbUser.driver_license || undefined,
-          get role(): SystemGroupName {
-            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
-          },
-          get systemGroup(): SystemGroupName {
-            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
-          }
         };
         
         console.log('User updated successfully:', updatedUser);

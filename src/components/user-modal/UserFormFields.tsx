@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import { SystemGroupName } from '@/types/systemGroups';
 import BasicInfoFields from './BasicInfoFields';
 import SystemFields from './SystemFields';
 import EmployeeFields from './EmployeeFields';
@@ -9,7 +8,7 @@ import EmployeeFields from './EmployeeFields';
 interface UserFormFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
-  watchedRole: SystemGroupName;
+  watchedRoleId: number;
   watchedEmail: string;
   onEmailValidationChange: (isValid: boolean) => void;
   userId?: string;
@@ -18,14 +17,14 @@ interface UserFormFieldsProps {
 const UserFormFields: React.FC<UserFormFieldsProps> = React.memo(({
   control,
   isSubmitting,
-  watchedRole,
+  watchedRoleId,
   watchedEmail,
   onEmailValidationChange,
   userId,
 }) => {
   const isEmployee = React.useMemo(() => 
-    watchedRole === 'Employee', 
-    [watchedRole]
+    watchedRoleId === 3, // Employee role_id is 3
+    [watchedRoleId]
   );
 
   return (

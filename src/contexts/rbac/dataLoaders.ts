@@ -18,13 +18,6 @@ export const loadUsers = async (): Promise<User[]> => {
 
   console.log('✅ Raw users data loaded:', data?.length || 0);
 
-  // Helper function to get systemGroup name from role_id
-  const getSystemGroupFromRoleId = (roleId: number | null): SystemGroupName => {
-    if (roleId === 1) return 'Administrator';
-    if (roleId === 2) return 'Supervisor';
-    return 'Employee'; // Default to Employee (role_id 3 or null)
-  };
-
   return (data || []).map(user => ({
     id: user.id.toString(),
     name: user.name || '',
@@ -37,13 +30,11 @@ export const loadUsers = async (): Promise<User[]> => {
     totalTrips: user.total_trips || 0,
     lastTrip: user.last_trip || undefined,
     profileImage: user.profile_image || undefined,
-    // Add getter methods for backward compatibility
-    get role(): SystemGroupName {
-      return getSystemGroupFromRoleId(this.role_id);
-    },
-    get systemGroup(): SystemGroupName {
-      return getSystemGroupFromRoleId(this.role_id);
-    }
+    badgeNumber: user.badge_number || undefined,
+    dateOfBirth: user.date_of_birth || undefined,
+    placeOfBirth: user.place_of_birth || undefined,
+    address: user.address || undefined,
+    driverLicense: user.driver_license || undefined,
   }));
 };
 

@@ -27,27 +27,30 @@ CREATE TABLE IF NOT EXISTS branches (
 
 -- User groups table for roles and permissions
 CREATE TABLE IF NOT EXISTS user_groups (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   description TEXT,
   permissions TEXT[] DEFAULT '{}',
-  color VARCHAR DEFAULT '#3b82f6',
-  role_id INTEGER
+  color VARCHAR DEFAULT '#3b82f6'
 );
 
 -- Users table
 CREATE TABLE IF NOT EXISTS users (
   id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,
-  email VARCHAR NOT NULL UNIQUE,
+  email VARCHAR UNIQUE,
   phone VARCHAR NOT NULL,
-  role VARCHAR NOT NULL DEFAULT 'Employee',
+  role_id INTEGER DEFAULT 3 REFERENCES user_groups(id),
   status VARCHAR NOT NULL DEFAULT 'Active',
   auth_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  role_id INTEGER,
   profile_image TEXT,
   total_trips INTEGER DEFAULT 0,
   last_trip VARCHAR,
+  badge_number VARCHAR,
+  date_of_birth DATE,
+  place_of_birth VARCHAR,
+  address TEXT,
+  driver_license VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
 );
 
@@ -113,16 +116,20 @@ CREATE POLICY "Users can manage trips" ON trips FOR ALL USING (auth.role() = 'au
 
 -- Insert default user groups
 INSERT INTO user_groups (id, name, description, permissions, color) VALUES
-  ('550e8400-e29b-41d4-a716-446655440001', 'Administrator', 'Accès complet au système', 
+  (1, 'Administrator', 'Accès complet au système', 
    ARRAY['users:read', 'users:create', 'users:update', 'users:delete', 'vans:read', 'vans:create', 'vans:update', 'vans:delete', 'trips:read', 'trips:create', 'trips:update', 'trips:delete', 'companies:read', 'companies:create', 'companies:update', 'companies:delete', 'groups:read', 'groups:manage', 'dashboard:read', 'settings:read', 'settings:update'], 
    '#dc2626'),
-  ('550e8400-e29b-41d4-a716-446655440002', 'Supervisor', 'Accès superviseur', 
+  (2, 'Supervisor', 'Accès superviseur', 
    ARRAY['users:read', 'users:update', 'vans:read', 'vans:update', 'trips:read', 'trips:create', 'trips:update', 'companies:read', 'groups:read', 'dashboard:read'], 
    '#ea580c'),
-  ('550e8400-e29b-41d4-a716-446655440003', 'Employee', 'Accès employé standard', 
+  (3, 'Employee', 'Accès employé standard', 
    ARRAY['dashboard:read', 'trips:read', 'trips:create', 'companies:read', 'vans:read'], 
    '#3b82f6')
-ON CONFLICT (name) DO NOTHING;
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  description = EXCLUDED.description,
+  permissions = EXCLUDED.permissions,
+  color = EXCLUDED.color;
 
 -- Function to get current user with RBAC info
 CREATE OR REPLACE FUNCTION get_current_user_rbac()
@@ -131,13 +138,17 @@ RETURNS TABLE (
   name VARCHAR,
   email VARCHAR,
   phone VARCHAR,
-  role VARCHAR,
+  role_id INTEGER,
   status VARCHAR,
   auth_user_id UUID,
-  role_id INTEGER,
   profile_image TEXT,
   total_trips INTEGER,
   last_trip VARCHAR,
+  badge_number VARCHAR,
+  date_of_birth DATE,
+  place_of_birth VARCHAR,
+  address TEXT,
+  driver_license VARCHAR,
   created_at TIMESTAMP WITH TIME ZONE
 ) 
 LANGUAGE plpgsql
@@ -145,7 +156,7 @@ SECURITY DEFINER
 AS $$
 BEGIN
   RETURN QUERY
-  SELECT u.id, u.name, u.email, u.phone, u.role, u.status, u.auth_user_id, u.role_id, u.profile_image, u.total_trips, u.last_trip, u.created_at
+  SELECT u.id, u.name, u.email, u.phone, u.role_id, u.status, u.auth_user_id, u.profile_image, u.total_trips, u.last_trip, u.badge_number, u.date_of_birth, u.place_of_birth, u.address, u.driver_license, u.created_at
   FROM users u
   WHERE u.auth_user_id = auth.uid();
 END;

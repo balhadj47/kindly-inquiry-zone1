@@ -10,7 +10,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       const insertData: any = {
         name: userData.name,
         phone: userData.phone,
-        role: userData.systemGroup,
+        role_id: userData.role_id || 3, // Default to Employee
         status: userData.status || 'Active',
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips || 0,
@@ -44,7 +44,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: dbUser.name,
           email: dbUser.email || undefined,
           phone: dbUser.phone,
-          systemGroup: dbUser.role as SystemGroupName,
+          role_id: dbUser.role_id || 3,
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
@@ -55,7 +55,12 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           placeOfBirth: dbUser.place_of_birth || undefined,
           address: dbUser.address || undefined,
           driverLicense: dbUser.driver_license || undefined,
-          get role() { return this.systemGroup; }
+          get role(): SystemGroupName {
+            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
+          },
+          get systemGroup(): SystemGroupName {
+            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
+          }
         };
         
         console.log('User created successfully:', newUser);
@@ -86,7 +91,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       const updateData: any = {
         name: userData.name,
         phone: userData.phone,
-        role: userData.systemGroup,
+        role_id: userData.role_id || 3,
         status: userData.status,
         profile_image: userData.profileImage,
         total_trips: userData.totalTrips,
@@ -146,7 +151,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           name: dbUser.name,
           email: dbUser.email || undefined,
           phone: dbUser.phone,
-          systemGroup: dbUser.role as SystemGroupName,
+          role_id: dbUser.role_id || 3,
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
@@ -157,7 +162,12 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           placeOfBirth: dbUser.place_of_birth || undefined,
           address: dbUser.address || undefined,
           driverLicense: dbUser.driver_license || undefined,
-          get role() { return this.systemGroup; }
+          get role(): SystemGroupName {
+            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
+          },
+          get systemGroup(): SystemGroupName {
+            return this.role_id === 1 ? 'Administrator' : this.role_id === 2 ? 'Supervisor' : 'Employee';
+          }
         };
         
         console.log('User updated successfully:', updatedUser);

@@ -10,23 +10,8 @@ import * as React from 'react';
 
 // Make React globally available immediately
 if (typeof window !== 'undefined') {
-  window.React = React;
-  
-  // Ensure React hooks are available on the React object
-  Object.defineProperty(window, 'React', {
-    value: React,
-    writable: false,
-    configurable: false
-  });
+  (window as any).React = React;
 }
-
-// Validate React hooks availability
-console.log('🌟 Main: Validating React hooks...');
-if (!React.useState || !React.useEffect || !React.useContext) {
-  console.error('❌ CRITICAL: React hooks not available');
-  throw new Error('React hooks validation failed');
-}
-console.log('✅ React hooks validation successful');
 
 // Only log in development
 if (import.meta.env.DEV) {

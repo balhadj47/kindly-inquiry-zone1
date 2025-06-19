@@ -1,169 +1,136 @@
 
--- Fleet Management Database Schema
+-- Enable necessary extensions
+create extension if not exists "uuid-ossp";
 
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
+-- Create users table with all required fields
+create table if not exists users (
+  id serial primary key,
+  auth_user_id uuid references auth.users(id) on delete cascade,
+  name text not null,
+  email text,
+  phone text not null default '',
+  role_id integer not null default 3,
+  status text not null default 'Active',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  driver_license text,
+  total_trips integer default 0,
+  last_trip timestamp with time zone,
+  profile_image text,
+  badge_number text,
+  date_of_birth date,
+  place_of_birth text,
+  address text
+);
+
+-- Create user_groups table (system roles)
+create table if not exists user_groups (
+  id serial primary key,
+  name text not null unique,
+  description text,
+  permissions jsonb default '[]'::jsonb,
+  color text default '#3b82f6',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Insert default system groups
+insert into user_groups (id, name, description, permissions, color) values 
+(1, 'Administrator', 'Full system access', '["users:read", "users:create", "users:update", "users:delete", "vans:read", "vans:create", "vans:update", "vans:delete", "trips:read", "trips:create", "trips:update", "trips:delete", "companies:read", "companies:create", "companies:update", "companies:delete", "groups:read", "groups:manage", "dashboard:read", "settings:read", "settings:update"]'::jsonb, '#dc2626'),
+(2, 'Supervisor', 'Supervisory access', '["users:read", "users:update", "vans:read", "vans:update", "trips:read", "trips:create", "trips:update", "companies:read", "groups:read", "dashboard:read"]'::jsonb, '#ea580c'),
+(3, 'Employee', 'Basic employee access', '["dashboard:read", "trips:read", "trips:create", "companies:read", "vans:read"]'::jsonb, '#3b82f6')
+on conflict (id) do update set
+  name = excluded.name,
+  description = excluded.description,
+  permissions = excluded.permissions,
+  color = excluded.color;
 
 -- Companies table
-CREATE TABLE IF NOT EXISTS companies (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR NOT NULL,
-  address TEXT,
-  phone VARCHAR,
-  email VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+create table if not exists companies (
+  id serial primary key,
+  name text not null,
+  address text,
+  phone text,
+  email text,
+  contact_person text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Branches table
-CREATE TABLE IF NOT EXISTS branches (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  name VARCHAR NOT NULL,
-  company_id UUID REFERENCES companies(id) ON DELETE CASCADE,
-  address TEXT,
-  phone VARCHAR,
-  email VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- User groups table for roles and permissions
-CREATE TABLE IF NOT EXISTS user_groups (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL UNIQUE,
-  description TEXT,
-  permissions TEXT[] DEFAULT '{}',
-  color VARCHAR DEFAULT '#3b82f6'
-);
-
--- Drop any existing foreign key constraints and dependent views
-DROP VIEW IF EXISTS user_permissions_view CASCADE;
-DROP INDEX IF EXISTS idx_users_group_id CASCADE;
-
--- Recreate users table with only role_id (no role or group_id columns)
-DROP TABLE IF EXISTS users CASCADE;
-
-CREATE TABLE users (
-  id SERIAL PRIMARY KEY,
-  name VARCHAR NOT NULL,
-  email VARCHAR UNIQUE,
-  phone VARCHAR NOT NULL,
-  role_id INTEGER DEFAULT 3 REFERENCES user_groups(id),
-  status VARCHAR NOT NULL DEFAULT 'Active',
-  auth_user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
-  profile_image TEXT,
-  total_trips INTEGER DEFAULT 0,
-  last_trip VARCHAR,
-  badge_number VARCHAR,
-  date_of_birth DATE,
-  place_of_birth VARCHAR,
-  address TEXT,
-  driver_license VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+-- Company branches table
+create table if not exists company_branches (
+  id serial primary key,
+  company_id integer references companies(id) on delete cascade,
+  name text not null,
+  address text,
+  phone text,
+  manager_name text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Vans table
-CREATE TABLE IF NOT EXISTS vans (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  reference_code VARCHAR NOT NULL UNIQUE,
-  model VARCHAR NOT NULL,
-  license_plate VARCHAR,
-  driver_id UUID,
-  status VARCHAR DEFAULT 'Active',
-  insurer VARCHAR,
-  insurance_date DATE,
-  control_date DATE,
-  notes TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+create table if not exists vans (
+  id serial primary key,
+  license_plate text not null unique,
+  model text not null,
+  year integer,
+  capacity integer,
+  current_km integer default 0,
+  last_maintenance_km integer default 0,
+  status text default 'Available',
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Trips table
-CREATE TABLE IF NOT EXISTS trips (
-  id SERIAL PRIMARY KEY,
-  van UUID REFERENCES vans(id) NOT NULL,
-  driver VARCHAR NOT NULL,
-  company UUID REFERENCES companies(id) NOT NULL,
-  branch UUID REFERENCES branches(id) NOT NULL,
-  start_km INTEGER,
-  end_km INTEGER,
-  status VARCHAR DEFAULT 'active',
-  planned_start_date TIMESTAMP WITH TIME ZONE,
-  planned_end_date TIMESTAMP WITH TIME ZONE,
-  notes TEXT,
-  user_ids TEXT[] DEFAULT '{}',
-  user_roles JSONB DEFAULT '[]',
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+create table if not exists trips (
+  id serial primary key,
+  van_id integer references vans(id) on delete restrict,
+  driver_id integer references users(id) on delete restrict,
+  company_id integer references companies(id) on delete restrict,
+  branch_id integer references company_branches(id) on delete restrict,
+  destination text not null,
+  purpose text,
+  start_time timestamp with time zone default timezone('utc'::text, now()) not null,
+  end_time timestamp with time zone,
+  start_km integer not null,
+  end_km integer,
+  status text default 'Active',
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Enable Row Level Security on all tables
-ALTER TABLE companies ENABLE ROW LEVEL SECURITY;
-ALTER TABLE branches ENABLE ROW LEVEL SECURITY;
-ALTER TABLE user_groups ENABLE ROW LEVEL SECURITY;
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE vans ENABLE ROW LEVEL SECURITY;
-ALTER TABLE trips ENABLE ROW LEVEL SECURITY;
+-- Mission roles table
+create table if not exists mission_roles (
+  id serial primary key,
+  name text not null unique,
+  description text,
+  permissions jsonb default '[]'::jsonb,
+  color text default '#6b7280',
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
 
--- Basic RLS policies for authenticated users
-CREATE POLICY "Users can view companies" ON companies FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Users can manage companies" ON companies FOR ALL USING (auth.role() = 'authenticated');
+-- Insert default mission roles
+insert into mission_roles (name, description, permissions, color) values 
+('Driver', 'Vehicle operator', '["trips:create", "trips:update", "vans:read"]'::jsonb, '#10b981'),
+('Assistant', 'Mission assistant', '["trips:read", "companies:read"]'::jsonb, '#8b5cf6'),
+('Supervisor', 'Mission supervisor', '["trips:read", "trips:update", "users:read"]'::jsonb, '#f59e0b')
+on conflict (name) do update set
+  description = excluded.description,
+  permissions = excluded.permissions,
+  color = excluded.color;
 
-CREATE POLICY "Users can view branches" ON branches FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Users can manage branches" ON branches FOR ALL USING (auth.role() = 'authenticated');
+-- RLS Policies
+alter table users enable row level security;
+alter table companies enable row level security;
+alter table company_branches enable row level security;
+alter table vans enable row level security;
+alter table trips enable row level security;
+alter table user_groups enable row level security;
+alter table mission_roles enable row level security;
 
-CREATE POLICY "Users can view user_groups" ON user_groups FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Admins can manage user_groups" ON user_groups FOR ALL USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can view users" ON users FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Users can manage users" ON users FOR ALL USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can view vans" ON vans FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Users can manage vans" ON vans FOR ALL USING (auth.role() = 'authenticated');
-
-CREATE POLICY "Users can view trips" ON trips FOR SELECT USING (auth.role() = 'authenticated');
-CREATE POLICY "Users can manage trips" ON trips FOR ALL USING (auth.role() = 'authenticated');
-
--- Insert default user groups
-INSERT INTO user_groups (id, name, description, permissions, color) VALUES
-  (1, 'Administrator', 'Accès complet au système', 
-   ARRAY['users:read', 'users:create', 'users:update', 'users:delete', 'vans:read', 'vans:create', 'vans:update', 'vans:delete', 'trips:read', 'trips:create', 'trips:update', 'trips:delete', 'companies:read', 'companies:create', 'companies:update', 'companies:delete', 'groups:read', 'groups:manage', 'dashboard:read', 'settings:read', 'settings:update'], 
-   '#dc2626'),
-  (2, 'Supervisor', 'Accès superviseur', 
-   ARRAY['users:read', 'users:update', 'vans:read', 'vans:update', 'trips:read', 'trips:create', 'trips:update', 'companies:read', 'groups:read', 'dashboard:read'], 
-   '#ea580c'),
-  (3, 'Employee', 'Accès employé standard', 
-   ARRAY['dashboard:read', 'trips:read', 'trips:create', 'companies:read', 'vans:read'], 
-   '#3b82f6')
-ON CONFLICT (id) DO UPDATE SET
-  name = EXCLUDED.name,
-  description = EXCLUDED.description,
-  permissions = EXCLUDED.permissions,
-  color = EXCLUDED.color;
-
--- Function to get current user with RBAC info
-CREATE OR REPLACE FUNCTION get_current_user_rbac()
-RETURNS TABLE (
-  id INTEGER,
-  name VARCHAR,
-  email VARCHAR,
-  phone VARCHAR,
-  role_id INTEGER,
-  status VARCHAR,
-  auth_user_id UUID,
-  profile_image TEXT,
-  total_trips INTEGER,
-  last_trip VARCHAR,
-  badge_number VARCHAR,
-  date_of_birth DATE,
-  place_of_birth VARCHAR,
-  address TEXT,
-  driver_license VARCHAR,
-  created_at TIMESTAMP WITH TIME ZONE
-) 
-LANGUAGE plpgsql
-SECURITY DEFINER
-AS $$
-BEGIN
-  RETURN QUERY
-  SELECT u.id, u.name, u.email, u.phone, u.role_id, u.status, u.auth_user_id, u.profile_image, u.total_trips, u.last_trip, u.badge_number, u.date_of_birth, u.place_of_birth, u.address, u.driver_license, u.created_at
-  FROM users u
-  WHERE u.auth_user_id = auth.uid();
-END;
-$$;
+-- Allow all operations for authenticated users (simplified for development)
+create policy "Allow all for authenticated users" on users for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on companies for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on company_branches for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on vans for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on trips for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on user_groups for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on mission_roles for all using (auth.role() = 'authenticated');

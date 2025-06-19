@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -19,7 +18,6 @@ const VansLoadingSkeleton = () => (
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-6 w-32" />
       </div>
-      <Skeleton className="h-12 w-12 mt-4 lg:mt-0" />
     </div>
     
     <Card>
@@ -152,8 +150,8 @@ const VansIndex = () => {
     console.log('Quick action for van:', van);
   };
 
-  // Show loading skeleton while data is loading
-  if (isLoading) {
+  // Show loading skeleton only on initial load when there's no data
+  if (isLoading && (!vans || vans.length === 0)) {
     return <VansLoadingSkeleton />;
   }
 

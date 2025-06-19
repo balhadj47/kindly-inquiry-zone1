@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { Search, Download, Calendar, Clock, Building2, Truck, Users, MapPin, FileText, Trash2, CheckCircle, Filter } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -206,9 +205,6 @@ const TripHistoryOptimized = () => {
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
           <p className="text-gray-600 mb-4">Impossible de charger l'historique des voyages</p>
-          <Button onClick={() => window.location.reload()}>
-            Actualiser la page
-          </Button>
         </div>
       </div>
     );

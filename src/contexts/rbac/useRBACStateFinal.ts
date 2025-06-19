@@ -1,14 +1,75 @@
 
-import { useState } from 'react';
-import { User, Permission } from '@/types/rbac';
-import { SystemGroup } from '@/types/systemGroups';
+import { useState, useCallback } from 'react';
+import type { User } from '@/types/rbac';
+import type { SystemGroup } from '@/types/systemGroups';
 
 export const useRBACStateFinal = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsersState] = useState<User[]>([]);
   const [roles, setRoles] = useState<SystemGroup[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);  
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Safe setter for users with validation
+  const setUsers = useCallback((usersOrUpdater: User[] | ((prev: User[]) => User[])) => {
+    console.log('🔄 useRBACStateFinal: setUsers called with:', typeof usersOrUpdater);
+    
+    if (typeof usersOrUpdater === 'function') {
+      setUsersState(prev => {
+        const newUsers = usersOrUpdater(prev);
+        console.log('🔄 useRBACStateFinal: Updater function result:', newUsers?.length || 0);
+        
+        if (!Array.isArray(newUsers)) {
+          console.warn('🔄 useRBACStateFinal: Invalid users data from updater, keeping previous state');
+          return prev;
+        }
+        
+        // Validate each user object
+        const validUsers = newUsers.filter(user => {
+          if (!user || typeof user !== 'object') {
+            console.warn('🔄 useRBACStateFinal: Invalid user object:', user);
+            return false;
+          }
+          if (!user.id || !user.name) {
+            console.warn('🔄 useRBACStateFinal: User missing required fields:', user);
+            return false;
+          }
+          return true;
+        });
+        
+        console.log('🔄 useRBACStateFinal: Validated users:', validUsers.length);
+        return validUsers;
+      });
+    } else {
+      console.log('🔄 useRBACStateFinal: Direct users array:', usersOrUpdater?.length || 0);
+      
+      if (!Array.isArray(usersOrUpdater)) {
+        console.warn('🔄 useRBACStateFinal: Invalid users data, keeping current state');
+        return;
+      }
+      
+      // Validate each user object
+      const validUsers = usersOrUpdater.filter(user => {
+        if (!user || typeof user !== 'object') {
+          console.warn('🔄 useRBACStateFinal: Invalid user object:', user);
+          return false;
+        }
+        if (!user.id || !user.name) {
+          console.warn('🔄 useRBACStateFinal: User missing required fields:', user);
+          return false;
+        }
+        return true;
+      });
+      
+      console.log('🔄 useRBACStateFinal: Setting validated users:', validUsers.length);
+      setUsersState(validUsers);
+    }
+  }, []);
+
+  const setUser = useCallback((user: User | null) => {
+    console.log('🔄 useRBACStateFinal: setUser called with:', user?.id || 'null');
+    setCurrentUser(user);
+  }, []);
 
   console.log('🔄 useRBACStateFinal: Current state:', {
     currentUser: currentUser?.id || 'null',
@@ -17,56 +78,16 @@ export const useRBACStateFinal = () => {
     loading
   });
 
-  const setUser = (user: User | null) => {
-    console.log('🔄 useRBACStateFinal: Setting user:', user?.id || 'null');
-    // Add null check to prevent type errors
-    if (user && typeof user === 'object') {
-      setCurrentUser(user);
-    } else {
-      setCurrentUser(null);
-    }
-  };
-
-  const safeSetUsers = (newUsers: User[]) => {
-    // Ensure we have a valid array
-    if (Array.isArray(newUsers)) {
-      setUsers(newUsers);
-    } else {
-      console.warn('🔄 useRBACStateFinal: Invalid users data, using empty array');
-      setUsers([]);
-    }
-  };
-
-  const safeSetRoles = (newRoles: SystemGroup[]) => {
-    // Ensure we have a valid array
-    if (Array.isArray(newRoles)) {
-      setRoles(newRoles);
-    } else {
-      console.warn('🔄 useRBACStateFinal: Invalid roles data, using empty array');
-      setRoles([]);
-    }
-  };
-
-  const safeSetPermissions = (newPermissions: Permission[]) => {
-    // Ensure we have a valid array
-    if (Array.isArray(newPermissions)) {
-      setPermissions(newPermissions);
-    } else {
-      console.warn('🔄 useRBACStateFinal: Invalid permissions data, using empty array');
-      setPermissions([]);
-    }
-  };
-
   return {
     currentUser,
     users,
     roles,
     permissions,
     loading,
-    setCurrentUser: setUser,
-    setUsers: safeSetUsers,
-    setRoles: safeSetRoles,
-    setPermissions: safeSetPermissions,
+    setCurrentUser,
+    setUsers,
+    setRoles,
+    setPermissions,
     setLoading,
     setUser,
   };

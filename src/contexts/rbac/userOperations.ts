@@ -11,7 +11,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: userData.phone,
         role_id: userData.role_id || 3, // Default to Employee
         status: userData.status || 'Active',
-        profile_image: userData.profileImage,
+        profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
         badge_number: userData.badgeNumber || null,
@@ -47,8 +47,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
-          lastTrip: dbUser.last_trip,
-          profileImage: dbUser.profile_image,
+          lastTrip: dbUser.last_trip || undefined,
+          profileImage: dbUser.profile_image || undefined,
           badgeNumber: dbUser.badge_number || undefined,
           dateOfBirth: dbUser.date_of_birth || undefined,
           placeOfBirth: dbUser.place_of_birth || undefined,
@@ -86,9 +86,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         phone: userData.phone,
         role_id: userData.role_id || 3,
         status: userData.status,
-        profile_image: userData.profileImage,
-        total_trips: userData.totalTrips,
-        last_trip: userData.lastTrip,
+        profile_image: userData.profileImage || null,
+        total_trips: userData.totalTrips || 0,
+        last_trip: userData.lastTrip || null,
         badge_number: userData.badgeNumber || null,
         date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
         place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
@@ -148,8 +148,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
           totalTrips: dbUser.total_trips || 0,
-          lastTrip: dbUser.last_trip,
-          profileImage: dbUser.profile_image,
+          lastTrip: dbUser.last_trip || undefined,
+          profileImage: dbUser.profile_image || undefined,
           badgeNumber: dbUser.badge_number || undefined,
           dateOfBirth: dbUser.date_of_birth || undefined,
           placeOfBirth: dbUser.place_of_birth || undefined,
@@ -157,8 +157,16 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           driverLicense: dbUser.driver_license || undefined,
         };
         
-        console.log('User updated successfully:', updatedUser);
-        setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+        console.log('User updated successfully, updating state:', updatedUser);
+        
+        // Update the users array with the updated user
+        setUsers(prev => {
+          console.log('Current users before update:', prev.length);
+          const updatedUsers = prev.map(user => user.id === id ? updatedUser : user);
+          console.log('Updated users array:', updatedUsers.length);
+          return updatedUsers;
+        });
+        
         return updatedUser;
       }
 

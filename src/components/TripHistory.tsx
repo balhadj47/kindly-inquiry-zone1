@@ -1,121 +1,151 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, MapPin, Clock, Users, Truck, Plus } from 'lucide-react';
+import { formatDistanceToNow, format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { useTrip } from '@/contexts/TripContext';
-import { useCompanies } from '@/hooks/useCompanies';
-import { useVans } from '@/hooks/useVans';
 import TripDetailsDialog from './TripDetailsDialog';
-import { useToast } from '@/hooks/use-toast';
-import TripHistoryHeader from './trip-history/TripHistoryHeader';
-import TripHistoryFilters from './trip-history/TripHistoryFilters';
-import TripHistoryStats from './trip-history/TripHistoryStats';
-import TripHistoryList from './trip-history/TripHistoryList';
-import ProgressiveLoadingWrapper from './ProgressiveLoadingWrapper';
-import { useProgressiveLoadingContext } from '@/contexts/ProgressiveLoadingContext';
+import TripHistoryLoadingSkeleton from './TripHistoryLoadingSkeleton';
+import { RefreshButton } from '@/components/ui/refresh-button';
 
 const TripHistory = () => {
-  const { trips, deleteTrip } = useTrip();
-  const { companies } = useCompanies();
-  const { vans } = useVans();
-  const { secondaryDataLoaded } = useProgressiveLoadingContext();
-  const { toast } = useToast();
   const [selectedTrip, setSelectedTrip] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [companyFilter, setCompanyFilter] = useState('all');
-  const [vanFilter, setVanFilter] = useState('all');
-  const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('all');
+  const { trips, loading, error, refreshTrips } = useTrip();
 
-  const getVanDisplayName = (vanId: string) => {
-    const van = vans?.find(v => v.id === vanId);
-    if (van) {
-      return van.license_plate ? `${van.license_plate} - ${van.model}` : van.model;
-    }
-    return vanId;
+  // Refresh data when component mounts (user enters the page)
+  useEffect(() => {
+    console.log('🗂️ TripHistory component mounted, refreshing data');
+    refreshTrips();
+  }, [refreshTrips]);
+
+  const handleRefresh = () => {
+    refreshTrips();
   };
 
   const filteredTrips = useMemo(() => {
     if (!trips) return [];
-    
-    return trips.filter(trip => {
-      const vanDisplayName = getVanDisplayName(trip.van);
-      const matchesSearch = 
-        trip.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        vanDisplayName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        trip.driver.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesCompany = companyFilter === 'all' || trip.company === companyFilter;
-      const matchesVan = vanFilter === 'all' || trip.van === vanFilter;
-      
-      return matchesSearch && matchesCompany && matchesVan;
-    });
-  }, [trips, searchTerm, companyFilter, vanFilter, vans]);
 
-  const handleDeleteTrip = async (tripId: number) => {
-    console.log('Delete button clicked for trip:', tripId);
-    setDeletingTripId(tripId);
-    
-    try {
-      await deleteTrip(tripId);
-      
-      toast({
-        title: "Succès",
-        description: "Le voyage a été supprimé avec succès",
+    let filtered = [...trips];
+
+    if (activeTab !== 'all') {
+      filtered = filtered.filter(trip => {
+        const now = new Date();
+        const endDate = trip.end_date ? new Date(trip.end_date) : null;
+
+        if (activeTab === 'active') {
+          return !endDate; // Active trips have no end date
+        } else if (activeTab === 'completed') {
+          return endDate && endDate <= now; // Completed trips have an end date in the past
+        }
+
+        return true;
       });
-      
-      console.log('Trip deleted successfully:', tripId);
-    } catch (error) {
-      console.error('Error deleting trip:', error);
-      toast({
-        title: "Erreur",
-        description: "Impossible de supprimer le voyage",
-        variant: "destructive",
-      });
-    } finally {
-      setDeletingTripId(null);
     }
+
+    return filtered;
+  }, [trips, activeTab]);
+
+  const handleTripClick = (trip) => {
+    setSelectedTrip(trip);
   };
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setCompanyFilter('all');
-    setVanFilter('all');
+  const handleCloseDialog = () => {
+    setSelectedTrip(null);
   };
+
+  if (loading) {
+    return <TripHistoryLoadingSkeleton />;
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+          <p className="text-gray-600 mb-4">Impossible de charger l'historique des voyages</p>
+          <Button onClick={handleRefresh}>Réessayer</Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <ProgressiveLoadingWrapper>
-      <div className="space-y-6">
-        <TripHistoryHeader />
-
-        <TripHistoryFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          companyFilter={companyFilter}
-          setCompanyFilter={setCompanyFilter}
-          vanFilter={vanFilter}
-          setVanFilter={setVanFilter}
-          companies={companies || []}
-          vans={vans || []}
-          onClearFilters={clearFilters}
-          disabled={!secondaryDataLoaded}
-        />
-
-        <TripHistoryStats trips={trips || []} />
-
-        <TripHistoryList
-          filteredTrips={filteredTrips}
-          totalTrips={trips || []}
-          onTripClick={setSelectedTrip}
-          onDeleteTrip={handleDeleteTrip}
-          deletingTripId={deletingTripId}
-        />
-
-        <TripDetailsDialog
-          trip={selectedTrip}
-          isOpen={!!selectedTrip}
-          onClose={() => setSelectedTrip(null)}
-        />
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold text-gray-900">Historique des Voyages</h1>
+        <RefreshButton onRefresh={handleRefresh} />
       </div>
-    </ProgressiveLoadingWrapper>
+
+      <Tabs defaultValue="all" className="w-full">
+        <TabsList>
+          <TabsTrigger value="all" onClick={() => setActiveTab('all')}>Tous</TabsTrigger>
+          <TabsTrigger value="active" onClick={() => setActiveTab('active')}>En Cours</TabsTrigger>
+          <TabsTrigger value="completed" onClick={() => setActiveTab('completed')}>Terminés</TabsTrigger>
+        </TabsList>
+        <TabsContent value="all" className="space-y-4">
+          {filteredTrips.length === 0 ? (
+            <Card>
+              <CardContent className="text-center py-12">
+                <Truck className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun voyage trouvé</h3>
+                <p className="text-gray-600 mb-4">
+                  {activeTab === 'all'
+                    ? "Il n'y a aucun voyage enregistré."
+                    : `Il n'y a aucun voyage ${activeTab === 'active' ? 'en cours' : 'terminé'}.`}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTrips.map((trip) => {
+                const startDate = new Date(trip.start_date);
+                const endDate = trip.end_date ? new Date(trip.end_date) : null;
+                const timeAgo = formatDistanceToNow(startDate, { addSuffix: true, locale: fr });
+                const formattedStartDate = format(startDate, 'dd MMMM yyyy', { locale: fr });
+                const formattedStartTime = format(startDate, 'HH:mm');
+                const formattedEndDate = endDate ? format(endDate, 'dd MMMM yyyy', { locale: fr }) : 'En cours';
+                const formattedEndTime = endDate ? format(endDate, 'HH:mm') : '';
+
+                return (
+                  <Card key={trip.id} className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => handleTripClick(trip)}>
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-lg font-medium">{trip.name}</CardTitle>
+                          <p className="text-sm text-gray-600"><Calendar className="h-4 w-4 mr-1 inline-block" /> {formattedStartDate}</p>
+                        </div>
+                        <Badge variant="secondary">
+                          {endDate ? 'Terminé' : 'En cours'}
+                        </Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="text-sm text-gray-600">
+                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Départ: {trip.start_location}</p>
+                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Arrivée: {trip.end_location}</p>
+                        <p><Clock className="h-4 w-4 mr-1 inline-block" /> Début: {formattedStartTime}</p>
+                        {endDate && <p><Clock className="h-4 w-4 mr-1 inline-block" /> Fin: {formattedEndTime}</p>}
+                        <p><Users className="h-4 w-4 mr-1 inline-block" /> Passagers: {trip.passengers}</p>
+                        <p>
+                          <Truck className="h-4 w-4 mr-1 inline-block" />
+                          Créé il y a {timeAgo}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
+
+      <TripDetailsDialog trip={selectedTrip} onClose={handleCloseDialog} />
+    </div>
   );
 };
 

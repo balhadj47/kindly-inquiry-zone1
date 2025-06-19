@@ -40,8 +40,9 @@ const Users = () => {
     handleDeleteUser,
   } = useUserActionHandlers();
 
-  // Clear cache and refresh data when component mounts
+  // Refresh data when component mounts (user enters the page)
   useEffect(() => {
+    console.log('👥 Users component mounted, refreshing data');
     refreshPage(['users', 'user_groups']);
   }, [refreshPage]);
 

@@ -1,83 +1,104 @@
-import React, { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Calendar, MapPin, Truck, Plus, Filter } from 'lucide-react';
-import { useTrips } from '@/hooks/trips/useTripsQuery';
-import { useTripMutations } from '@/hooks/trips/useTripMutations';
-import { format } from 'date-fns';
-import VirtualizedList from '@/components/ui/virtualized-list';
-import VirtualizedTripCard from '@/components/virtualized/VirtualizedTripCard';
-
-const TripHistoryLoadingSkeleton = () => (
-  <div className="space-y-6">
-    <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-      <Skeleton className="h-9 w-64 mb-4 md:mb-0" />
-      <Skeleton className="h-10 w-32" />
-    </div>
-
-    <Card>
-      <CardContent className="pt-6">
-        <div className="flex flex-col md:flex-row gap-4">
-          <Skeleton className="h-10 flex-1" />
-          <Skeleton className="h-10 w-48" />
-          <Skeleton className="h-10 w-32" />
-        </div>
-      </CardContent>
-    </Card>
-
-    <div className="space-y-4">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <Card key={index} className="animate-pulse">
-          <CardContent className="pt-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="space-y-2">
-                <Skeleton className="h-6 w-48" />
-                <Skeleton className="h-4 w-32" />
-              </div>
-              <Skeleton className="h-6 w-20" />
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-16" />
-                <Skeleton className="h-4 w-24" />
-              </div>
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-20" />
-              </div>
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-24" />
-                <Skeleton className="h-4 w-16" />
-              </div>
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-4 w-16" />
-              </div>
-            </div>
-            <div className="flex space-x-2">
-              <Skeleton className="h-8 w-20" />
-              <Skeleton className="h-8 w-24" />
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
-  </div>
-);
+import { useTripsQuery } from '@/hooks/trips/useTripsQuery';
+import { RefreshButton } from '@/components/ui/refresh-button';
+import TripHistoryHeader from './trip-history/TripHistoryHeader';
+import TripHistoryFilters from './trip-history/TripHistoryFilters';
+import TripHistoryStats from './trip-history/TripHistoryStats';
+import TripHistoryList from './trip-history/TripHistoryList';
+import TripHistoryOptimizedSkeleton from './trip-history/TripHistoryOptimizedSkeleton';
+import TripDetailsDialog from './TripDetailsDialog';
+import TripEndDialog from './trip-history/TripEndDialog';
+import TripDeleteDialog from './trip-history/TripDeleteDialog';
 
 const TripHistoryOptimized = () => {
-  const [page, setPage] = useState(1);
+  // State management
+  const [selectedTrip, setSelectedTrip] = useState(null);
+  const [tripToEnd, setTripToEnd] = useState(null);
+  const [tripToDelete, setTripToDelete] = useState(null);
+  const [activeTab, setActiveTab] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const { data, isLoading, error, refetch } = useTrips(page, 20);
-  const { deleteTrip } = useTripMutations();
+  const [sortBy, setSortBy] = useState('start_date');
+  const [sortOrder, setSortOrder] = useState('desc');
+
+  // Data fetching
+  const { data: trips = [], isLoading, error, refetch } = useTripsQuery();
+
+  // Refresh data when component mounts (user enters the page)
+  useEffect(() => {
+    console.log('🗂️ TripHistoryOptimized component mounted, refreshing data');
+    refetch();
+  }, [refetch]);
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
+
+  // Handlers for dialogs
+  const handleOpenTripDetails = (trip) => setSelectedTrip(trip);
+  const handleCloseTripDetails = () => setSelectedTrip(null);
+  const handleOpenTripEndDialog = (trip) => setTripToEnd(trip);
+  const handleCloseTripEndDialog = () => setTripToEnd(null);
+  const handleOpenTripDeleteDialog = (trip) => setTripToDelete(trip);
+  const handleCloseTripDeleteDialog = () => setTripToDelete(null);
+
+  // Filtering trips based on search term and active tab
+  const filteredTrips = React.useMemo(() => {
+    return trips.filter((trip) => {
+      const searchTermLower = searchTerm.toLowerCase();
+      const matchesSearchTerm =
+        trip.name.toLowerCase().includes(searchTermLower) ||
+        trip.start_location.toLowerCase().includes(searchTermLower) ||
+        trip.end_location.toLowerCase().includes(searchTermLower);
+
+      const matchesTab =
+        activeTab === 'all' ||
+        (activeTab === 'active' && !trip.end_date) ||
+        (activeTab === 'completed' && trip.end_date);
+
+      return matchesSearchTerm && matchesTab;
+    });
+  }, [trips, searchTerm, activeTab]);
+
+  // Sorting trips
+  const sortedTrips = React.useMemo(() => {
+    const sorted = [...filteredTrips].sort((a, b) => {
+      const aValue = a[sortBy];
+      const bValue = b[sortBy];
+
+      if (aValue == null && bValue == null) return 0;
+      if (aValue == null) return sortOrder === 'asc' ? -1 : 1;
+      if (bValue == null) return sortOrder === 'asc' ? 1 : -1;
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortOrder === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+      } else if (aValue instanceof Date && bValue instanceof Date) {
+        return sortOrder === 'asc'
+          ? aValue.getTime() - bValue.getTime()
+          : bValue.getTime() - aValue.getTime();
+      } else {
+        // If types are mixed or not handled, attempt a simple comparison
+        return sortOrder === 'asc' ? String(aValue).localeCompare(String(bValue)) : String(bValue).localeCompare(String(aValue));
+      }
+    });
+    return sorted;
+  }, [filteredTrips, sortBy, sortOrder]);
+
+  const totalDistance = React.useMemo(() => {
+    return trips.reduce((sum, trip) => sum + (trip.distance || 0), 0);
+  }, [trips]);
+
+  const totalTrips = trips.length;
+  const activeTripsCount = trips.filter(trip => !trip.end_date).length;
+  const completedTripsCount = trips.filter(trip => trip.end_date).length;
 
   if (isLoading) {
-    return <TripHistoryLoadingSkeleton />;
+    return <TripHistoryOptimizedSkeleton />;
   }
 
   if (error) {
@@ -86,139 +107,62 @@ const TripHistoryOptimized = () => {
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
           <p className="text-gray-600 mb-4">Impossible de charger l'historique des voyages</p>
-          <button 
-            onClick={() => refetch()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Réessayer
-          </button>
+          <Button onClick={handleRefresh}>Réessayer</Button>
         </div>
       </div>
     );
   }
 
-  const trips = data?.trips || [];
-  const total = data?.total || 0;
-
-  const filteredTrips = useMemo(() => {
-    let filtered = trips.filter(trip => {
-      const matchesSearch = trip.destination.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           trip.van.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      if (statusFilter === 'active') {
-        return matchesSearch && !trip.end_date;
-      } else if (statusFilter === 'completed') {
-        return matchesSearch && trip.end_date;
-      }
-      
-      return matchesSearch;
-    });
-    
-    return filtered;
-  }, [trips, searchTerm, statusFilter]);
-
-  const getStatusColor = (trip: any) => {
-    return trip.end_date 
-      ? 'bg-green-100 text-green-800' 
-      : 'bg-blue-100 text-blue-800';
-  };
-
-  const getStatusText = (trip: any) => {
-    return trip.end_date ? 'Terminé' : 'En cours';
-  };
-
-  const virtualizedData = {
-    trips: filteredTrips,
-    getStatusColor,
-    getStatusText
-  };
-
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Historique des Voyages</h1>
-        <Button className="mt-4 md:mt-0">
+      <TripHistoryHeader>
+        <Button>
           <Plus className="h-4 w-4 mr-2" />
-          Nouveau Voyage
+          Ajouter un voyage
         </Button>
-      </div>
+      </TripHistoryHeader>
 
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Rechercher par destination ou camionnette..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Filtrer par statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les voyages</SelectItem>
-                <SelectItem value="active">En cours</SelectItem>
-                <SelectItem value="completed">Terminés</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <TripHistoryFilters
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+        sortOrder={sortOrder}
+        setSortOrder={setSortOrder}
+      />
 
-      {filteredTrips.length === 0 ? (
-        <Card>
-          <CardContent className="text-center py-12">
-            <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Aucun voyage trouvé</h3>
-            <p className="text-gray-600 mb-4">
-              {searchTerm || statusFilter !== 'all' 
-                ? "Essayez d'ajuster votre recherche ou vos filtres" 
-                : "Commencez par créer votre premier voyage"
-              }
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <VirtualizedList
-          height={600}
-          itemCount={filteredTrips.length}
-          itemSize={280}
-          itemData={virtualizedData}
-          className="border rounded-lg"
-        >
-          {VirtualizedTripCard}
-        </VirtualizedList>
-      )}
+      <TripHistoryStats
+        totalDistance={totalDistance}
+        totalTrips={totalTrips}
+        activeTripsCount={activeTripsCount}
+        completedTripsCount={completedTripsCount}
+      />
 
-      {total > 20 && (
-        <div className="flex justify-center">
-          <div className="flex space-x-2">
-            <Button
-              variant="outline"
-              onClick={() => setPage(p => Math.max(1, p - 1))}
-              disabled={page === 1}
-            >
-              Précédent
-            </Button>
-            <span className="flex items-center px-4 py-2 text-sm text-gray-700">
-              Page {page} sur {Math.ceil(total / 20)}
-            </span>
-            <Button
-              variant="outline"
-              onClick={() => setPage(p => p + 1)}
-              disabled={page >= Math.ceil(total / 20)}
-            >
-              Suivant
-            </Button>
-          </div>
-        </div>
-      )}
+      <TripHistoryList
+        trips={sortedTrips}
+        onOpenTripDetails={handleOpenTripDetails}
+        onOpenTripEndDialog={handleOpenTripEndDialog}
+        onOpenTripDeleteDialog={handleOpenTripDeleteDialog}
+      />
+
+      <TripDetailsDialog
+        trip={selectedTrip}
+        onClose={handleCloseTripDetails}
+      />
+
+      <TripEndDialog
+        trip={tripToEnd}
+        onClose={handleCloseTripEndDialog}
+        onSuccess={handleRefresh}
+      />
+
+      <TripDeleteDialog
+        trip={tripToDelete}
+        onClose={handleCloseTripDeleteDialog}
+        onSuccess={handleRefresh}
+      />
     </div>
   );
 };

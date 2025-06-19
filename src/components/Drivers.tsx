@@ -75,16 +75,17 @@ const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
-  const { users, loading, refetch: refetchUsers } = useRBAC();
+  const { users, loading } = useRBAC();
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
     console.log('🚗 Drivers component mounted, refreshing data');
-    refetchUsers?.();
-  }, [refetchUsers]);
+    // Note: useRBAC doesn't have a refetch method, data is managed internally
+  }, []);
 
   const handleRefresh = () => {
-    refetchUsers?.();
+    // Force a page refresh to get fresh data since useRBAC doesn't expose refetch
+    window.location.reload();
   };
 
   if (loading) {

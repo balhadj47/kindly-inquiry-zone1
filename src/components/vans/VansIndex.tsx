@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -50,34 +49,31 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [localVans, setLocalVans] = useState<Van[]>([]);
-  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Get vans data and control functions using optimized pattern
   const { data: serverVans = [], refetch, isLoading } = useAllVans();
   const { invalidateVans } = useVanMutations();
 
-  // Auto-refresh and selective update when server data changes
+  // Direct update when server data changes
   useEffect(() => {
-    console.log('🚐 VansIndex: Server data changed, checking for updates...');
-    console.log('Server vans:', serverVans.length);
-    console.log('Local vans:', localVans.length);
-    console.log('Has initialized:', hasInitialized);
-
-    if (shouldRefreshVans(localVans, serverVans)) {
-      console.log('🚐 VansIndex: Updating vans with selective field updates...');
-      updateVanFields(localVans, serverVans, setLocalVans);
-      if (!hasInitialized) {
-        setHasInitialized(true);
-      }
+    console.log('🚐 VansIndex: Server data changed, updating directly...');
+    if (serverVans && Array.isArray(serverVans)) {
+      setLocalVans(serverVans);
     }
-  }, [serverVans.length, hasInitialized]); // Remove localVans from dependency to avoid circular updates
+  }, [serverVans]);
 
-  // Auto-refresh when component mounts (entering the page)
+  // Refresh when component mounts
   useEffect(() => {
     console.log('🚐 VansIndex: Page entered, refreshing data...');
-    setHasInitialized(false); // Reset initialization flag
-    refetch();
-  }, [refetch]);
+    const refreshData = async () => {
+      try {
+        await refetch();
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      }
+    };
+    refreshData();
+  }, []);
 
   // Create a setter function that works with the existing hook
   const setVans = () => {

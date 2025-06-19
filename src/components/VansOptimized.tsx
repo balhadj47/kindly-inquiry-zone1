@@ -49,7 +49,6 @@ const VansOptimized = () => {
   const { data: serverVans = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
   const [localVans, setLocalVans] = useState<Van[]>([]);
-  const [hasInitialized, setHasInitialized] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
@@ -58,25 +57,27 @@ const VansOptimized = () => {
   const [selectedVan, setSelectedVan] = useState(null);
   const { refreshPage } = useCacheRefresh();
 
-  // Auto-refresh and selective update when server data changes
+  // Direct update when server data changes
   useEffect(() => {
-    console.log('🚐 VansOptimized: Server data changed, checking for updates...');
-    if (shouldRefreshVans(localVans, serverVans)) {
-      console.log('🚐 VansOptimized: Updating vans with selective field updates...');
-      updateVanFields(localVans, serverVans, setLocalVans);
-      if (!hasInitialized) {
-        setHasInitialized(true);
-      }
+    console.log('🚐 VansOptimized: Server data changed, updating directly...');
+    if (serverVans && Array.isArray(serverVans)) {
+      setLocalVans(serverVans);
     }
-  }, [serverVans.length, hasInitialized]); // Remove localVans from dependency
+  }, [serverVans]);
 
-  // Clear cache and refresh data when component mounts
+  // Refresh when component mounts
   useEffect(() => {
     console.log('🚐 VansOptimized: Page entered, refreshing data...');
-    setHasInitialized(false); // Reset initialization flag
-    refreshPage(['vans']);
-    refetch();
-  }, [refreshPage, refetch]);
+    const refreshData = async () => {
+      try {
+        refreshPage(['vans']);
+        await refetch();
+      } catch (error) {
+        console.error('Error refreshing data:', error);
+      }
+    };
+    refreshData();
+  }, []);
 
   const handleRefresh = async () => {
     refreshPage(['vans']);

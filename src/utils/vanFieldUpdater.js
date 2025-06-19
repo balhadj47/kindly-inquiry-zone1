@@ -8,16 +8,16 @@ export const updateVanFields = (currentVans, newVans, setVans) => {
   console.log('Current vans:', currentVans?.length || 0);
   console.log('New vans:', newVans?.length || 0);
 
+  // If no new data, keep current
+  if (!newVans || newVans.length === 0) {
+    console.log('🔄 updateVanFields: No new data, keeping current');
+    return;
+  }
+
   // If no current data, just set the new data
   if (!currentVans || currentVans.length === 0) {
     console.log('🔄 updateVanFields: No current data, setting new data');
     setVans(newVans || []);
-    return;
-  }
-
-  // If no new data, keep current
-  if (!newVans || newVans.length === 0) {
-    console.log('🔄 updateVanFields: No new data, keeping current');
     return;
   }
 
@@ -90,8 +90,8 @@ export const updateVanFields = (currentVans, newVans, setVans) => {
     hasChanges = true;
   });
 
-  // Only update state if there are actual changes
-  if (hasChanges) {
+  // Always update state if there are changes OR if this is initial load
+  if (hasChanges || currentVans.length === 0) {
     console.log('✅ updateVanFields: Changes detected, updating state');
     setVans(updatedVans);
   } else {
@@ -106,7 +106,7 @@ export const shouldRefreshVans = (currentVans, serverVans) => {
   }
 
   // Always refresh if server data is available
-  if (serverVans && serverVans.length > 0) {
+  if (serverVans && serverVans.length >= 0) {
     return true;
   }
 

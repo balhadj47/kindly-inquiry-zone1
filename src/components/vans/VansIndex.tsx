@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -49,6 +50,7 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [localVans, setLocalVans] = useState<Van[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
   
   // Get vans data and control functions using optimized pattern
   const { data: serverVans = [], refetch, isLoading } = useAllVans();
@@ -56,15 +58,24 @@ const VansIndex = () => {
 
   // Auto-refresh and selective update when server data changes
   useEffect(() => {
+    console.log('🚐 VansIndex: Server data changed, checking for updates...');
+    console.log('Server vans:', serverVans.length);
+    console.log('Local vans:', localVans.length);
+    console.log('Has initialized:', hasInitialized);
+
     if (shouldRefreshVans(localVans, serverVans)) {
       console.log('🚐 VansIndex: Updating vans with selective field updates...');
       updateVanFields(localVans, serverVans, setLocalVans);
+      if (!hasInitialized) {
+        setHasInitialized(true);
+      }
     }
-  }, [serverVans, localVans]);
+  }, [serverVans.length, hasInitialized]); // Remove localVans from dependency to avoid circular updates
 
   // Auto-refresh when component mounts (entering the page)
   useEffect(() => {
     console.log('🚐 VansIndex: Page entered, refreshing data...');
+    setHasInitialized(false); // Reset initialization flag
     refetch();
   }, [refetch]);
 

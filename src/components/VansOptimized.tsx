@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { updateVanFields, shouldRefreshVans } from '@/utils/vanFieldUpdater';
@@ -48,6 +49,7 @@ const VansOptimized = () => {
   const { data: serverVans = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
   const [localVans, setLocalVans] = useState<Van[]>([]);
+  const [hasInitialized, setHasInitialized] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
@@ -58,15 +60,20 @@ const VansOptimized = () => {
 
   // Auto-refresh and selective update when server data changes
   useEffect(() => {
+    console.log('🚐 VansOptimized: Server data changed, checking for updates...');
     if (shouldRefreshVans(localVans, serverVans)) {
       console.log('🚐 VansOptimized: Updating vans with selective field updates...');
       updateVanFields(localVans, serverVans, setLocalVans);
+      if (!hasInitialized) {
+        setHasInitialized(true);
+      }
     }
-  }, [serverVans, localVans]);
+  }, [serverVans.length, hasInitialized]); // Remove localVans from dependency
 
   // Clear cache and refresh data when component mounts
   useEffect(() => {
     console.log('🚐 VansOptimized: Page entered, refreshing data...');
+    setHasInitialized(false); // Reset initialization flag
     refreshPage(['vans']);
     refetch();
   }, [refreshPage, refetch]);

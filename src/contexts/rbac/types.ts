@@ -11,14 +11,14 @@ export interface RBACState {
   currentUser: User | null;
   users: User[];
   roles: SystemGroup[];
-  permissions: Permission[];
+  permissions: string[]; // Changed from Permission[] to string[]
   loading: boolean;
 }
 
 export interface RBACActions {
   setUsers: React.Dispatch<React.SetStateAction<User[]>>;
   setRoles: React.Dispatch<React.SetStateAction<SystemGroup[]>>;
-  setPermissions: React.Dispatch<React.SetStateAction<Permission[]>>;
+  setPermissions: React.Dispatch<React.SetStateAction<string[]>>; // Changed from Permission[] to string[]
   setCurrentUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
 }
@@ -28,7 +28,7 @@ export interface RBACContextType {
   currentUser: User | null;
   users: User[];
   roles: SystemGroup[];
-  permissions: Permission[];
+  permissions: string[]; // Changed from Permission[] to string[]
   loading: boolean;
   
   // User operations

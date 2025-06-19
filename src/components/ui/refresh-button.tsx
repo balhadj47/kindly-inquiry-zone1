@@ -28,12 +28,14 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
     setIsRefreshing(true);
     
     try {
-      // Clear cache immediately for faster updates
+      // Clear ALL caches immediately for faster updates
       if (typeof window !== 'undefined') {
         (window as any).globalVansCache = null;
         (window as any).globalFetchPromise = null;
+        console.log('🔄 RefreshButton: Cleared global caches');
       }
       
+      // Call the refresh function which should force fresh data
       await onRefresh();
       console.log('✅ RefreshButton: Refresh completed');
     } catch (error) {
@@ -42,7 +44,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       // Shorter animation time for better responsiveness
       setTimeout(() => {
         setIsRefreshing(false);
-      }, 300);
+      }, 200);
     }
   };
 

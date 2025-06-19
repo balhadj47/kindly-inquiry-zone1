@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -69,9 +70,17 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(setVans);
 
-  // Simplified refresh handler - just use the refetch function
+  // Force refresh with cache clearing
   const handleRefresh = async () => {
-    console.log('🔄 VansIndex: Manual refresh triggered');
+    console.log('🔄 VansIndex: Force refresh triggered');
+    
+    // Clear global cache first
+    if (typeof window !== 'undefined') {
+      (window as any).globalVansCache = null;
+      (window as any).globalFetchPromise = null;
+    }
+    
+    // Force fresh fetch
     await refetch();
   };
 

@@ -27,15 +27,11 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, onCheckCha
           <RefreshButton
             onRefresh={onCheckChanges}
             variant="outline"
-            size="sm"
-            className="flex items-center gap-2 px-3"
+            size="icon"
           >
             <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Vérifier les changements</span>
           </RefreshButton>
         )}
-        
-        <RefreshButton onRefresh={onRefresh} />
         
         <Button 
           onClick={onAddVan}

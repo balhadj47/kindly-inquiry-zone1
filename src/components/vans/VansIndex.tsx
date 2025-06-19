@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
 import VanFilters from './VanFilters';
@@ -52,10 +52,6 @@ const VansIndex = () => {
   
   const { vans, refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
-  
-  const setVans = () => {
-    refetch();
-  };
 
   const {
     isModalOpen,
@@ -68,24 +64,16 @@ const VansIndex = () => {
     handleEditVan,
     handleDeleteVan,
     handleConfirmDelete
-  } = useVansState(setVans);
+  } = useVansState(refetch);
+
+  // Simple manual refresh
+  const handleRefresh = useCallback(async () => {
+    console.log('🔄 VansIndex: Manual refresh triggered');
+    await refetch();
+  }, [refetch]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
-
-  // Manual refresh with immediate cache clearing
-  const handleRefresh = async () => {
-    console.log('🔄 VansIndex: Manual refresh triggered - clearing cache immediately');
-    
-    // Clear global cache immediately
-    if (typeof window !== 'undefined') {
-      (window as any).globalVansCache = null;
-      (window as any).globalFetchPromise = null;
-    }
-    
-    // Force fresh data fetch
-    await refetch();
-  };
 
   // Log content changes when they occur
   React.useEffect(() => {

@@ -4,13 +4,17 @@ import { CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from '@/types/rbac';
-import { getStatusColor, getRoleColor, getUserInitials } from '@/utils/userDisplayUtils';
+import { getStatusColor, getUserInitials } from '@/utils/userDisplayUtils';
+import { getRoleNameFromId, getRoleColorFromId } from '@/utils/roleUtils';
 
 interface UserCardHeaderProps {
   user: User;
 }
 
 const UserCardHeader: React.FC<UserCardHeaderProps> = ({ user }) => {
+  const roleName = getRoleNameFromId(user.role_id);
+  const roleColor = getRoleColorFromId(user.role_id);
+
   return (
     <CardHeader className="pb-4 space-y-0">
       <div className="flex items-start justify-between">
@@ -31,9 +35,10 @@ const UserCardHeader: React.FC<UserCardHeaderProps> = ({ user }) => {
             <div className="flex flex-wrap items-center gap-2 mt-2">
               <Badge 
                 variant="outline" 
-                className={`text-xs font-medium ${getRoleColor(user.systemGroup)}`}
+                className="text-xs font-medium"
+                style={{ color: roleColor, borderColor: roleColor }}
               >
-                {user.systemGroup}
+                {roleName}
               </Badge>
               <Badge 
                 variant="outline"

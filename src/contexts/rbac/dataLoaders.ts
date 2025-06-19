@@ -26,7 +26,7 @@ export const loadUsers = async (): Promise<User[]> => {
     role_id: user.role_id || 3, // Default to Employee role_id
     status: user.status as User['status'] || 'Active',
     createdAt: user.created_at,
-    licenseNumber: user.auth_user_id || undefined,
+    licenseNumber: user.driver_license || undefined,
     totalTrips: user.total_trips || 0,
     lastTrip: user.last_trip || undefined,
     profileImage: user.profile_image || undefined,

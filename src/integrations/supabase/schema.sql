@@ -34,10 +34,13 @@ CREATE TABLE IF NOT EXISTS user_groups (
   color VARCHAR DEFAULT '#3b82f6'
 );
 
--- Drop the old role column if it exists and recreate users table with correct structure
+-- Drop any existing foreign key constraints and dependent views
+DROP VIEW IF EXISTS user_permissions_view CASCADE;
+DROP INDEX IF EXISTS idx_users_group_id CASCADE;
+
+-- Recreate users table with only role_id (no role or group_id columns)
 DROP TABLE IF EXISTS users CASCADE;
 
--- Users table with only role_id (no role column)
 CREATE TABLE users (
   id SERIAL PRIMARY KEY,
   name VARCHAR NOT NULL,

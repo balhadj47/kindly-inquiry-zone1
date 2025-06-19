@@ -5,7 +5,6 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
-import { SystemGroupName } from '@/types/systemGroups';
 import UserFormFields from './UserFormFields';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -20,7 +19,7 @@ interface FormData {
   name: string;
   email?: string;
   phone: string;
-  systemGroup: SystemGroupName;
+  role_id: number;
   status: UserStatus;
   profileImage?: string;
   badgeNumber?: string;
@@ -43,7 +42,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      systemGroup: user?.systemGroup || 'Employee',
+      role_id: user?.role_id || 3,
       status: user?.status || 'Active',
       profileImage: user?.profileImage || '',
       badgeNumber: user?.badgeNumber || '',
@@ -54,7 +53,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
     },
   });
 
-  const watchedRole = form.watch('systemGroup');
+  const watchedRoleId = form.watch('role_id');
   const watchedEmail = form.watch('email') || '';
 
   const handleSubmit = async (data: FormData) => {
@@ -83,7 +82,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
         <UserFormFields
           control={form.control}
           isSubmitting={isSubmitting}
-          watchedRole={watchedRole}
+          watchedRoleId={watchedRoleId}
           watchedEmail={watchedEmail}
           onEmailValidationChange={setIsEmailValid}
           userId={user?.id}

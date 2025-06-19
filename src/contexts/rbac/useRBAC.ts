@@ -16,7 +16,7 @@ export const useRBAC = () => {
   const hasPermission = (permission: string): boolean => {
     try {
       console.log('🔐 RBAC hasPermission called with:', permission);
-      console.log('🔐 Current user:', currentUser?.id, currentUser?.systemGroup);
+      console.log('🔐 Current user:', currentUser?.id, currentUser?.role_id);
 
       if (!currentUser) {
         console.log('🚫 No current user for permission check:', permission);
@@ -24,7 +24,7 @@ export const useRBAC = () => {
       }
 
       // Special handling for admin temporary user - always grant access
-      if (currentUser.id === 'admin-temp' || currentUser.systemGroup === 'Administrator') {
+      if (currentUser.id === 'admin-temp' || currentUser.role_id === 1) {
         console.log('🔓 Admin user detected - granting all permissions:', permission);
         return true;
       }
@@ -44,7 +44,7 @@ export const useRBAC = () => {
       console.error('❌ CRITICAL ERROR in permission check:', error);
       
       // Fallback for administrators in case of errors
-      if (currentUser?.systemGroup === 'Administrator' || currentUser?.id === 'admin-temp') {
+      if (currentUser?.role_id === 1 || currentUser?.id === 'admin-temp') {
         console.log('🔧 Fallback: granting admin access due to error');
         return true;
       }

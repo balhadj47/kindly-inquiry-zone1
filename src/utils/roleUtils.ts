@@ -1,9 +1,14 @@
 
-import { getRoleDisplayNameById } from './rolePermissions';
+import { getRoleDisplayNameById, getRoleColorById } from './rolePermissions';
 
 // Convert role_id to role display name
 export const getRoleNameFromId = (roleId: number): string => {
   return getRoleDisplayNameById(roleId);
+};
+
+// Get role color from role_id
+export const getRoleColorFromId = (roleId: number): string => {
+  return getRoleColorById(roleId);
 };
 
 // Convert role_id to system group name for backward compatibility

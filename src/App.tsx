@@ -52,7 +52,12 @@ const App = () => {
   
   React.useEffect(() => {
     console.log('🚀 App: useEffect working correctly');
-    setIsReady(true);
+    // Small delay to ensure React is fully initialized
+    const timer = setTimeout(() => {
+      setIsReady(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, []);
   
   if (!isReady) {

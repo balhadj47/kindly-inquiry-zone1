@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +15,7 @@ import { RefreshButton } from '@/components/ui/refresh-button';
 const TripHistory = () => {
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [activeTab, setActiveTab] = useState('all');
-  const { trips, loading, error, refreshTrips } = useTrip();
+  const { trips, isLoading, error, refreshTrips } = useTrip();
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
@@ -34,7 +35,7 @@ const TripHistory = () => {
     if (activeTab !== 'all') {
       filtered = filtered.filter(trip => {
         const now = new Date();
-        const endDate = trip.end_date ? new Date(trip.end_date) : null;
+        const endDate = trip.endDate ? new Date(trip.endDate) : null;
 
         if (activeTab === 'active') {
           return !endDate; // Active trips have no end date
@@ -57,7 +58,7 @@ const TripHistory = () => {
     setSelectedTrip(null);
   };
 
-  if (loading) {
+  if (isLoading) {
     return <TripHistoryLoadingSkeleton />;
   }
 
@@ -102,8 +103,8 @@ const TripHistory = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredTrips.map((trip) => {
-                const startDate = new Date(trip.start_date);
-                const endDate = trip.end_date ? new Date(trip.end_date) : null;
+                const startDate = new Date(trip.startDate || trip.timestamp);
+                const endDate = trip.endDate ? new Date(trip.endDate) : null;
                 const timeAgo = formatDistanceToNow(startDate, { addSuffix: true, locale: fr });
                 const formattedStartDate = format(startDate, 'dd MMMM yyyy', { locale: fr });
                 const formattedStartTime = format(startDate, 'HH:mm');
@@ -115,7 +116,7 @@ const TripHistory = () => {
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg font-medium">{trip.name}</CardTitle>
+                          <CardTitle className="text-lg font-medium">{trip.company || trip.destination}</CardTitle>
                           <p className="text-sm text-gray-600"><Calendar className="h-4 w-4 mr-1 inline-block" /> {formattedStartDate}</p>
                         </div>
                         <Badge variant="secondary">
@@ -125,11 +126,10 @@ const TripHistory = () => {
                     </CardHeader>
                     <CardContent className="space-y-3">
                       <div className="text-sm text-gray-600">
-                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Départ: {trip.start_location}</p>
-                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Arrivée: {trip.end_location}</p>
+                        <p><MapPin className="h-4 w-4 mr-1 inline-block" /> Destination: {trip.destination}</p>
                         <p><Clock className="h-4 w-4 mr-1 inline-block" /> Début: {formattedStartTime}</p>
                         {endDate && <p><Clock className="h-4 w-4 mr-1 inline-block" /> Fin: {formattedEndTime}</p>}
-                        <p><Users className="h-4 w-4 mr-1 inline-block" /> Passagers: {trip.passengers}</p>
+                        <p><Users className="h-4 w-4 mr-1 inline-block" /> Utilisateurs: {trip.userIds?.length || 0}</p>
                         <p>
                           <Truck className="h-4 w-4 mr-1 inline-block" />
                           Créé il y a {timeAgo}
@@ -144,7 +144,11 @@ const TripHistory = () => {
         </TabsContent>
       </Tabs>
 
-      <TripDetailsDialog trip={selectedTrip} onClose={handleCloseDialog} />
+      <TripDetailsDialog 
+        trip={selectedTrip} 
+        isOpen={!!selectedTrip}
+        onClose={handleCloseDialog} 
+      />
     </div>
   );
 };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,8 @@ const TripHistoryOptimized = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Data fetching
-  const { data: trips = [], isLoading, error, refetch } = useTripsQuery();
+  const { data: tripsData, isLoading, error, refetch } = useTripsQuery();
+  const trips = tripsData?.trips || [];
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
@@ -48,9 +50,8 @@ const TripHistoryOptimized = () => {
     return trips.filter((trip) => {
       const searchTermLower = searchTerm.toLowerCase();
       const matchesSearchTerm =
-        trip.name.toLowerCase().includes(searchTermLower) ||
-        trip.start_location.toLowerCase().includes(searchTermLower) ||
-        trip.end_location.toLowerCase().includes(searchTermLower);
+        (trip.company || '').toLowerCase().includes(searchTermLower) ||
+        (trip.destination || '').toLowerCase().includes(searchTermLower);
 
       const matchesTab =
         activeTab === 'all' ||
@@ -123,6 +124,7 @@ const TripHistoryOptimized = () => {
       </TripHistoryHeader>
 
       <TripHistoryFilters
+        trips={sortedTrips}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         searchTerm={searchTerm}
@@ -134,6 +136,7 @@ const TripHistoryOptimized = () => {
       />
 
       <TripHistoryStats
+        trips={sortedTrips}
         totalDistance={totalDistance}
         totalTrips={totalTrips}
         activeTripsCount={activeTripsCount}
@@ -142,6 +145,7 @@ const TripHistoryOptimized = () => {
 
       <TripHistoryList
         trips={sortedTrips}
+        onTripClick={handleOpenTripDetails}
         onOpenTripDetails={handleOpenTripDetails}
         onOpenTripEndDialog={handleOpenTripEndDialog}
         onOpenTripDeleteDialog={handleOpenTripDeleteDialog}
@@ -149,19 +153,26 @@ const TripHistoryOptimized = () => {
 
       <TripDetailsDialog
         trip={selectedTrip}
+        isOpen={!!selectedTrip}
         onClose={handleCloseTripDetails}
       />
 
       <TripEndDialog
         trip={tripToEnd}
+        isOpen={!!tripToEnd}
         onClose={handleCloseTripEndDialog}
-        onSuccess={handleRefresh}
       />
 
       <TripDeleteDialog
         trip={tripToDelete}
+        isOpen={!!tripToDelete}
         onClose={handleCloseTripDeleteDialog}
-        onSuccess={handleRefresh}
+        onConfirm={() => {
+          // Handle delete confirmation
+          console.log('Deleting trip:', tripToDelete);
+          handleCloseTripDeleteDialog();
+          handleRefresh();
+        }}
       />
     </div>
   );

@@ -1,14 +1,13 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Trip } from '@/types/trip';
 import { transformDatabaseToTrip } from '@/utils/tripTransformers';
 
-export const useTrips = (page = 1, limit = 20) => {
+export const useTripsQuery = (page = 1, limit = 20) => {
   return useQuery({
     queryKey: ['trips', page, limit],
     queryFn: async (): Promise<{ trips: Trip[]; total: number }> => {
-      console.log('🚗 useTrips: Fetching trips page', page);
+      console.log('🚗 useTripsQuery: Fetching trips page', page);
       const startTime = performance.now();
       
       const offset = (page - 1) * limit;
@@ -24,12 +23,12 @@ export const useTrips = (page = 1, limit = 20) => {
         .range(offset, offset + limit - 1);
 
       if (error) {
-        console.error('🚗 useTrips: Error:', error);
+        console.error('🚗 useTripsQuery: Error:', error);
         throw error;
       }
 
       const endTime = performance.now();
-      console.log('🚗 useTrips: Fetched in:', endTime - startTime, 'ms');
+      console.log('🚗 useTripsQuery: Fetched in:', endTime - startTime, 'ms');
       
       const transformedTrips: Trip[] = (data || []).map(transformDatabaseToTrip);
       
@@ -42,3 +41,6 @@ export const useTrips = (page = 1, limit = 20) => {
     gcTime: 5 * 60 * 1000,
   });
 };
+
+// Keep the old export for backward compatibility
+export const useTrips = useTripsQuery;

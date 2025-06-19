@@ -13,8 +13,6 @@ import { useVansState } from '@/hooks/useVansState';
 import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useSelectiveUpdate } from '@/hooks/useSelectiveUpdate';
-import { supabase } from '@/integrations/supabase/client';
 
 const VansLoadingSkeleton = () => (
   <div className="space-y-4 sm:space-y-6">
@@ -55,7 +53,6 @@ const VansIndex = () => {
   
   const { vans, refetch, refreshChanges, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
-  const { compareAndEditData } = useSelectiveUpdate();
 
   const {
     isModalOpen,
@@ -70,9 +67,9 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // Full refresh for manual refresh button
+  // Simplified refresh that always forces a complete reload
   const handleRefresh = useCallback(async () => {
-    console.log('🔄 VansIndex: Manual refresh triggered');
+    console.log('🔄 VansIndex: Manual refresh triggered - forcing complete reload');
     await refetch();
   }, [refetch]);
 
@@ -81,56 +78,6 @@ const VansIndex = () => {
     console.log('🔍 VansIndex: Checking for changes...');
     await refreshChanges();
   }, [refreshChanges]);
-
-  // Fixed compare and edit function that fetches fresh data and compares properly
-  const handleCompareAndEdit = useCallback(async () => {
-    console.log('🔍 VansIndex: Compare and edit triggered');
-    try {
-      // First get the current data for comparison
-      const currentData = [...vans];
-      
-      // Fetch fresh data from database without updating state yet
-      console.log('📊 Fetching fresh data for comparison...');
-      const { data: freshVansData, error } = await supabase
-        .from('vans')
-        .select(`
-          id,
-          license_plate,
-          model,
-          reference_code,
-          driver_id,
-          status,
-          created_at,
-          insurer,
-          insurance_date,
-          control_date,
-          notes
-        `)
-        .order('license_plate');
-
-      if (error) throw error;
-
-      const freshData = (freshVansData || []).map(van => ({
-        ...van,
-        updated_at: van.created_at
-      }));
-
-      // Use compareAndEditData to detect and apply only the changes
-      const result = await compareAndEditData(currentData, freshData, () => {
-        console.log('📝 Selective updates detected and applied');
-        // Force a refresh to update the UI with the new data
-        refetch();
-      });
-      
-      if (result.hasChanges) {
-        console.log(`✅ Compare and edit completed: ${result.updatedCount} items updated`);
-      } else {
-        console.log('📊 No changes found during comparison');
-      }
-    } catch (error) {
-      console.error('❌ Compare and edit failed:', error);
-    }
-  }, [vans, compareAndEditData, refetch]);
 
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
@@ -246,7 +193,6 @@ const VansIndex = () => {
         onAddVan={handleAddVan} 
         onRefresh={handleRefresh}
         onCheckChanges={handleCheckChanges}
-        onCompareAndEdit={handleCompareAndEdit}
       />
       
       <Card>

@@ -9,8 +9,7 @@ import VanDeleteDialog from './VanDeleteDialog';
 import { useVans } from '@/hooks/useVans';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansState } from '@/hooks/useVansState';
-import { useSmartContentUpdate } from '@/hooks/useSmartContentUpdate';
-import { useInPlaceUpdate } from '@/hooks/useInPlaceUpdate';
+import { useGranularRefresh } from '@/hooks/useGranularRefresh';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -51,9 +50,10 @@ const VansIndex = () => {
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
-  const { vans, refetch, refreshChanges, isLoading } = useVans();
+  const [vans, setVans] = useState<any[]>([]);
+  const { refetch, isLoading } = useVans();
   const { deleteVan } = useVanDelete(() => refetch());
-  const { updateInPlace } = useInPlaceUpdate();
+  const { refreshGranular, isRefreshing } = useGranularRefresh();
 
   const {
     isModalOpen,
@@ -68,49 +68,23 @@ const VansIndex = () => {
     handleConfirmDelete
   } = useVansState(refetch);
 
-  // True real-time refresh that preserves individual van card states
-  const handleTrueRealTimeRefresh = useCallback(async () => {
-    console.log('🔄 VansIndex: True real-time refresh - preserving individual van states...');
+  // Modern granular refresh - only updates changed items
+  const handleModernRefresh = useCallback(async () => {
+    console.log('🚀 Modern refresh initiated...');
     
-    try {
-      // Get fresh data from database
-      const freshData = await refetch();
-      
-      // Use in-place update to preserve unchanged van object references
-      // This ensures React doesn't re-render van cards that haven't changed
-      const { hasChanges } = updateInPlace(vans, freshData, (updatedVans) => {
-        // This callback is only called if there are actual changes
-        console.log('✅ Van data updated with preserved references');
-      });
-      
-      if (!hasChanges) {
-        console.log('📊 No van changes detected - UI completely preserved');
-      }
-      
-    } catch (error) {
-      console.error('❌ True real-time refresh failed:', error);
-    }
-  }, [vans, refetch, updateInPlace]);
+    await refreshGranular(
+      vans,
+      refetch,
+      setVans
+    );
+  }, [vans, refetch, refreshGranular]);
 
-  // Smart content update tracking
-  const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
-
-  // Log content changes when they occur
+  // Initialize vans data on mount
   React.useEffect(() => {
-    if (hasChanges) {
-      console.log('📊 VansIndex: Real-time update detected changes:', {
-        updated: updatedItems.length,
-        new: newItems.length,
-        total: vans.length
-      });
-    }
-  }, [hasChanges, updatedItems.length, newItems.length, vans.length]);
-
-  // Use selective refresh when navigating back to the page
-  React.useEffect(() => {
-    console.log('🔄 VansIndex: Component mounted - triggering initial selective refresh');
-    refreshChanges();
-  }, [refreshChanges]);
+    refetch().then(freshVans => {
+      setVans(freshVans || []);
+    });
+  }, [refetch]);
 
   const filteredAndSortedVans = useMemo(() => {
     console.log('Filtering vans:', { vans: vans.length, statusFilter, searchTerm });
@@ -188,8 +162,8 @@ const VansIndex = () => {
   }, [vans, searchTerm, statusFilter, sortField, sortDirection]);
 
   const handleModalSuccess = () => {
-    // Use true real-time refresh after modal success
-    handleTrueRealTimeRefresh();
+    // Use modern refresh after modal success
+    handleModernRefresh();
   };
 
   const handleQuickAction = (van: any) => {
@@ -205,7 +179,7 @@ const VansIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <VansHeader 
         onAddVan={handleAddVan} 
-        onRefresh={handleTrueRealTimeRefresh}
+        onRefresh={handleModernRefresh}
       />
       
       <Card>

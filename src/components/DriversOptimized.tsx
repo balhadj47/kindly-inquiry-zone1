@@ -1,5 +1,4 @@
-
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,6 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Phone, Mail, Plus } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useDrivers } from '@/hooks/useDriversOptimized';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { RefreshButton } from '@/components/ui/refresh-button';
 
 const DriversLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -70,6 +71,17 @@ const DriversOptimized = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const { data: drivers = [], isLoading, error, refetch } = useDrivers();
+  const { refreshPage } = useCacheRefresh();
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['drivers']);
+  }, [refreshPage]);
+
+  const handleRefresh = async () => {
+    refreshPage(['drivers']);
+    await refetch();
+  };
 
   if (isLoading) {
     return <DriversLoadingSkeleton />;
@@ -125,10 +137,13 @@ const DriversOptimized = () => {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Gestion des Chauffeurs</h1>
-        <Button onClick={handleAddDriver} className="mt-4 md:mt-0">
-          <Plus className="h-4 w-4 mr-2" />
-          Ajouter Nouveau Chauffeur
-        </Button>
+        <div className="flex items-center gap-2 mt-4 md:mt-0">
+          <RefreshButton onRefresh={handleRefresh} />
+          <Button onClick={handleAddDriver}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter Nouveau Chauffeur
+          </Button>
+        </div>
       </div>
 
       <Card>

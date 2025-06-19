@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import UsersHeader from './users/UsersHeader';
@@ -8,6 +8,8 @@ import UsersTab from './users/UsersTab';
 import UsersModals from './users/UsersModals';
 import { LoadingState, ErrorState } from './users/UsersStates';
 import { useUserActionHandlers } from './users/UserActionHandlers';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { RefreshButton } from '@/components/ui/refresh-button';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +18,7 @@ const Users = () => {
   
   const { users, hasPermission, loading, currentUser } = useRBAC();
   const { user: authUser } = useAuth();
+  const { refreshPage } = useCacheRefresh();
 
   console.log('Users component render state:', {
     usersCount: users?.length || 0,
@@ -36,6 +39,15 @@ const Users = () => {
     handleChangePassword,
     handleDeleteUser,
   } = useUserActionHandlers();
+
+  // Clear cache and refresh data when component mounts
+  useEffect(() => {
+    refreshPage(['users', 'user_groups']);
+  }, [refreshPage]);
+
+  const handleRefresh = () => {
+    refreshPage(['users', 'user_groups']);
+  };
 
   // Debug permissions
   console.log('Users component - Permission checks:', {
@@ -102,7 +114,10 @@ const Users = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-      <UsersHeader onAddUser={handleAddUser} />
+      <div className="flex items-center justify-between">
+        <UsersHeader onAddUser={handleAddUser} />
+        <RefreshButton onRefresh={handleRefresh} />
+      </div>
 
       <UsersNavigation canManageGroups={canManageGroups}>
         <UsersTab

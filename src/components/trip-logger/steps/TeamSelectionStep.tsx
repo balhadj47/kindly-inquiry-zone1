@@ -33,7 +33,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         setUserSearchQuery={setUserSearchQuery}
         selectedUsersWithRoles={selectedUsersWithRoles}
         onUserRoleSelection={onUserRoleSelection}
-        filterByRole="Employee"
+        filterByRoleId={3}
       />
     </div>
   );

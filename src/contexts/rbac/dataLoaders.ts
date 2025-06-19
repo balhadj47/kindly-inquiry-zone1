@@ -3,6 +3,26 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
 import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
+// Define the expected database user structure
+interface DbUser {
+  id: number;
+  auth_user_id: string | null;
+  name: string;
+  email: string | null;
+  phone: string;
+  role_id: number;
+  status: string;
+  created_at: string;
+  driver_license: string | null;
+  total_trips: number;
+  last_trip: string | null;
+  profile_image: string | null;
+  badge_number: string | null;
+  date_of_birth: string | null;
+  place_of_birth: string | null;
+  address: string | null;
+}
+
 export const loadUsers = async (): Promise<User[]> => {
   console.log('📊 Loading users from database...');
   
@@ -24,7 +44,7 @@ export const loadUsers = async (): Promise<User[]> => {
       return [];
     }
 
-    const transformedUsers = data.map(user => {
+    const transformedUsers = data.map((user: DbUser) => {
       console.log('🔄 Transforming user:', user.id, user);
       
       return {
@@ -87,7 +107,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
     }));
 
   } catch (error) {
-    console.error('❌ CRITICAL ERROR loading roles:', error);
+    console.error('❌ CRITICAL ERROR loading roles:', error);  
     return [];
   }
 };

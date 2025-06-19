@@ -5,9 +5,14 @@ import App from './App.tsx';
 import './index.css';
 import { registerServiceWorker } from './utils/serviceWorker';
 
+// Ensure React is available globally for debugging
+import * as React from 'react';
+(window as any).React = React;
+
 // Only log in development
 if (import.meta.env.DEV) {
-  console.log('🌟 Main: Starting application...');
+  console.log('🌟 Main: Starting application with React version:', React.version);
+  console.log('🌟 Main: React hooks available:', !!React.useState, !!React.useContext);
 }
 
 const rootElement = document.getElementById("root");

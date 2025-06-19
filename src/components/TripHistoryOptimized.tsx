@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTrip } from '@/contexts/TripContext';
-import { RefreshButton } from '@/components/ui/refresh-button';
 import TripHistoryHeader from './trip-history/TripHistoryHeader';
 import TripHistoryFilters from './trip-history/TripHistoryFilters';
 import TripHistoryStats from './trip-history/TripHistoryStats';
@@ -23,11 +22,7 @@ const TripHistoryOptimized = () => {
   const [sortOrder, setSortOrder] = useState('desc');
 
   // Data fetching from context
-  const { trips, isLoading, error, refreshTrips } = useTrip();
-
-  const handleRefresh = async () => {
-    await refreshTrips();
-  };
+  const { trips, isLoading, error } = useTrip();
 
   // Handlers for dialogs
   const handleOpenTripDetails = (trip) => setSelectedTrip(trip);
@@ -104,7 +99,6 @@ const TripHistoryOptimized = () => {
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
           <p className="text-gray-600 mb-4">Impossible de charger l'historique des voyages</p>
-          <Button onClick={handleRefresh}>Réessayer</Button>
         </div>
       </div>
     );
@@ -184,10 +178,8 @@ const TripHistoryOptimized = () => {
         isOpen={!!tripToDelete}
         onClose={handleCloseTripDeleteDialog}
         onConfirm={() => {
-          // Handle delete confirmation
           console.log('Deleting trip:', tripToDelete);
           handleCloseTripDeleteDialog();
-          handleRefresh();
         }}
       />
     </div>

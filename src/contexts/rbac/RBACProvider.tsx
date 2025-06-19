@@ -55,16 +55,18 @@ export const RBACProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   console.log('✅ RBACProvider: Rendering context with operations');
 
+  const contextValue = {
+    currentUser,
+    users,
+    roles,
+    permissions,
+    loading,
+    setUser,
+    ...operations,
+  };
+
   return (
-    <RBACContext.Provider value={{
-      currentUser,
-      users,
-      roles,
-      permissions,
-      loading,
-      setUser,
-      ...operations,
-    }}>
+    <RBACContext.Provider value={contextValue}>
       {children}
     </RBACContext.Provider>
   );

@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -73,12 +72,6 @@ const VansIndex = () => {
     await refetch();
   }, [refetch]);
 
-  // Selective refresh for checking changes
-  const handleCheckChanges = useCallback(async () => {
-    console.log('🔍 VansIndex: Checking for changes...');
-    await refreshChanges();
-  }, [refreshChanges]);
-
   // Smart content update tracking
   const { hasChanges, updatedItems, newItems } = useSmartContentUpdate(vans, 'id');
 
@@ -95,7 +88,7 @@ const VansIndex = () => {
   // Use selective refresh when navigating back to the page
   React.useEffect(() => {
     console.log('🔄 VansIndex: Component mounted - triggering selective refresh');
-    handleCheckChanges();
+    refreshChanges();
   }, []); // Only run on mount
 
   const filteredAndSortedVans = useMemo(() => {
@@ -192,7 +185,6 @@ const VansIndex = () => {
       <VansHeader 
         onAddVan={handleAddVan} 
         onRefresh={handleRefresh}
-        onCheckChanges={handleCheckChanges}
       />
       
       <Card>

@@ -6,13 +6,11 @@ import { Plus, RefreshCw } from 'lucide-react';
 interface VansHeaderProps {
   onAddVan: () => void;
   onRefresh: () => void;
-  onCheckChanges?: () => void;
 }
 
 const VansHeader: React.FC<VansHeaderProps> = ({ 
   onAddVan, 
-  onRefresh, 
-  onCheckChanges
+  onRefresh
 }) => {
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -26,18 +24,6 @@ const VansHeader: React.FC<VansHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2 mt-4 lg:mt-0">
-        {onCheckChanges && (
-          <Button
-            onClick={onCheckChanges}
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2 px-3"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span className="hidden sm:inline">Vérifier les changements</span>
-          </Button>
-        )}
-
         <Button
           onClick={onRefresh}
           variant="outline"

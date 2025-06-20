@@ -89,10 +89,16 @@ const MissionsPage = () => {
     console.log('🚗 MissionsPage: Current URL before dialog:', window.location.pathname);
     console.log('🚗 MissionsPage: Current dialog state before change:', isNewMissionDialogOpen);
     console.log('🚗 MissionsPage: Has create permission:', hasPermission('missions:create'));
+    console.log('🚗 MissionsPage: About to call setIsNewMissionDialogOpen(true)');
     
     setIsNewMissionDialogOpen(true);
     
-    console.log('🚗 MissionsPage: Dialog state should now be true');
+    console.log('🚗 MissionsPage: setIsNewMissionDialogOpen(true) called');
+    
+    // Force a re-render check
+    setTimeout(() => {
+      console.log('🚗 MissionsPage: Dialog state after timeout:', isNewMissionDialogOpen);
+    }, 100);
   };
 
   const handleCloseDialog = () => {
@@ -104,6 +110,7 @@ const MissionsPage = () => {
   // Add permission check for the button
   const canCreateMissions = hasPermission('missions:create');
   console.log('🚗 MissionsPage: Can create missions:', canCreateMissions);
+  console.log('🚗 MissionsPage: Button disabled state:', !canCreateMissions);
 
   if (isLoading) {
     console.log('🚗 MissionsPage: Rendering loading state');
@@ -152,15 +159,20 @@ const MissionsPage = () => {
             </div>
           </div>
           
-          <Button
-            onClick={handleNewMissionClick}
-            size="lg"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
-            disabled={!canCreateMissions}
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Nouvelle Mission
-          </Button>
+          <div className="flex flex-col gap-2">
+            <Button
+              onClick={handleNewMissionClick}
+              size="lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
+              disabled={!canCreateMissions}
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Nouvelle Mission
+            </Button>
+            <div className="text-xs text-gray-500">
+              Permission: {canCreateMissions ? 'Granted' : 'Denied'}
+            </div>
+          </div>
         </div>
 
         {/* Quick Stats Cards */}
@@ -173,6 +185,15 @@ const MissionsPage = () => {
         getVanDisplayName={getVanDisplayName}
         onNewMissionClick={handleNewMissionClick}
       />
+
+      {/* Debug info */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm">
+        <h3 className="font-semibold mb-2">Debug Info:</h3>
+        <p>Dialog Open: {isNewMissionDialogOpen ? 'true' : 'false'}</p>
+        <p>Can Create: {canCreateMissions ? 'true' : 'false'}</p>
+        <p>Current User: {currentUser?.id || 'null'}</p>
+        <p>RBAC Loading: {rbacLoading ? 'true' : 'false'}</p>
+      </div>
 
       {/* New Mission Dialog */}
       <NewTripDialog

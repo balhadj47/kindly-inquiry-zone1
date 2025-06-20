@@ -17,6 +17,7 @@ interface NewTripDialogProps {
 const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
   console.log('🚀 NewTripDialog: Rendering with isOpen:', isOpen);
   console.log('🚀 NewTripDialog: onClose function:', typeof onClose);
+  console.log('🚀 NewTripDialog: Props received:', { isOpen, onClose: typeof onClose });
   
   const handleClose = () => {
     console.log('🚀 NewTripDialog: Handling close');
@@ -32,24 +33,30 @@ const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
     }
   };
   
-  console.log('🚀 NewTripDialog: About to render Dialog component');
+  console.log('🚀 NewTripDialog: About to render Dialog component with open:', isOpen);
   
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center mb-4">
-            Créer une Nouvelle Mission
-          </DialogTitle>
-        </DialogHeader>
-        
-        <TripFormProviderDialog onSuccess={handleClose}>
-          <div className="p-2">
-            <TripFormWizard />
-          </div>
-        </TripFormProviderDialog>
-      </DialogContent>
-    </Dialog>
+    <>
+      <div className="fixed top-4 left-4 bg-red-100 border border-red-300 rounded p-2 text-xs z-50">
+        Dialog Debug: {isOpen ? 'OPEN' : 'CLOSED'}
+      </div>
+      
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center mb-4">
+              Créer une Nouvelle Mission
+            </DialogTitle>
+          </DialogHeader>
+          
+          <TripFormProviderDialog onSuccess={handleClose}>
+            <div className="p-2">
+              <TripFormWizard />
+            </div>
+          </TripFormProviderDialog>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

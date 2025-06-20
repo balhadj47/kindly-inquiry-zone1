@@ -17,6 +17,8 @@ const MissionsPage = () => {
 
   console.log('🚗 MissionsPage: Dialog state:', isNewMissionDialogOpen);
   console.log('🚗 MissionsPage: Trips data:', trips);
+  console.log('🚗 MissionsPage: Loading state:', isLoading);
+  console.log('🚗 MissionsPage: Error state:', error);
 
   // Calculate real stats from database
   const today = new Date();
@@ -40,6 +42,7 @@ const MissionsPage = () => {
     todayMissions,
     thisWeekMissions,
     totalVisitedCompanies,
+    totalTrips: trips.length,
   });
 
   const getVanDisplayName = (vanId: string) => {
@@ -75,6 +78,7 @@ const MissionsPage = () => {
   ];
 
   if (isLoading) {
+    console.log('🚗 MissionsPage: Rendering loading state');
     return (
       <div className="space-y-6">
         <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
@@ -88,6 +92,7 @@ const MissionsPage = () => {
   }
 
   if (error) {
+    console.log('🚗 MissionsPage: Rendering error state:', error);
     return (
       <div className="space-y-6">
         <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
@@ -99,6 +104,8 @@ const MissionsPage = () => {
       </div>
     );
   }
+
+  console.log('🚗 MissionsPage: Rendering main content with', trips.length, 'trips');
 
   return (
     <div className="space-y-6">
@@ -152,7 +159,7 @@ const MissionsPage = () => {
       <div className="bg-white border rounded-lg shadow-sm">
         <div className="p-6 border-b">
           <h2 className="text-xl font-semibold text-gray-900">Missions Récentes</h2>
-          <p className="text-gray-600 mt-1">Liste de toutes les missions</p>
+          <p className="text-gray-600 mt-1">Liste de toutes les missions ({trips.length} total)</p>
         </div>
         
         {trips.length === 0 ? (

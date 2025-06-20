@@ -16,6 +16,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 // Import problematic pages directly instead of lazy loading to fix 404 errors
 import MissionsPage from '@/pages/MissionsPage';
 import UserSettings from '@/pages/UserSettings';
+import TripLoggerPage from '@/pages/TripLoggerPage';
+import TripHistoryPage from '@/pages/TripHistoryPage';
 
 // Lazy load other page components
 const Dashboard = React.lazy(() => import('@/components/Dashboard'));
@@ -81,6 +83,8 @@ const Index = () => {
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
                     <Route path="/missions" element={<MissionsPage />} />
+                    <Route path="/trip-logger" element={<TripLoggerPage />} />
+                    <Route path="/trip-history" element={<TripHistoryPage />} />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

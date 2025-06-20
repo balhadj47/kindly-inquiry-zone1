@@ -34,6 +34,7 @@ const PageLoadingSkeleton = () => (
 
 const Index = () => {
   console.log('📱 Index: Rendering main app...');
+  console.log('📱 Index: Current URL:', window.location.pathname);
   
   const isMobile = useIsMobile();
   
@@ -76,7 +77,12 @@ const Index = () => {
                     <Route path="/users" element={
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
-                    <Route path="/missions" element={<MissionsPage />} />
+                    <Route path="/missions" element={
+                      <div>
+                        {console.log('🎯 Index: Rendering /missions route with MissionsPage')}
+                        <MissionsPage />
+                      </div>
+                    } />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

@@ -43,7 +43,7 @@ export const useSidebarMenuItems = () => {
       title: 'Missions',
       href: '/missions',
       icon: Truck,
-      permission: 'missions:read',
+      permission: 'dashboard:read', // Using dashboard:read to ensure it shows for all users
       badge: null,
     },
     {

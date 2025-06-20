@@ -11,6 +11,7 @@ import NewTripDialog from '@/components/NewTripDialog';
 
 const MissionsPage = () => {
   console.log('🚗 MissionsPage: Component rendering...');
+  console.log('🚗 MissionsPage: Current URL:', window.location.pathname);
   
   const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
   const { trips, isLoading, error } = useTrip();
@@ -80,11 +81,13 @@ const MissionsPage = () => {
 
   const handleNewMissionClick = () => {
     console.log('🚗 MissionsPage: Opening new mission dialog...');
+    console.log('🚗 MissionsPage: Current URL before dialog:', window.location.pathname);
     setIsNewMissionDialogOpen(true);
   };
 
   const handleCloseDialog = () => {
     console.log('🚗 MissionsPage: Closing new mission dialog...');
+    console.log('🚗 MissionsPage: Current URL after close:', window.location.pathname);
     setIsNewMissionDialogOpen(false);
   };
 
@@ -120,6 +123,8 @@ const MissionsPage = () => {
 
   return (
     <div className="space-y-6">
+      {console.log('🚗 MissionsPage: About to render JSX content')}
+      
       {/* Header Section with integrated Mission Stats */}
       <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">

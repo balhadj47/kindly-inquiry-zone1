@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useTripFormContext } from './TripFormProviderDialog';
+import { useTripFormContext } from './TripFormProvider';
 import VanSelectionStep from './steps/VanSelectionStep';
 import CompanySelectionStep from './steps/CompanySelectionStep';
 import TeamSelectionStep from './steps/TeamSelectionStep';

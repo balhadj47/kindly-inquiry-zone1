@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useTripFormContext } from './TripFormProviderDialog';
+import { useTripFormContext } from './TripFormProvider';
 import WizardProgress from './WizardProgress';
 import WizardNavigation from './WizardNavigation';
 import { TripFormSteps } from './TripFormSteps';

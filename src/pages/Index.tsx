@@ -13,12 +13,14 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Lazy load all page components
+// Import MissionsPage directly instead of lazy loading to fix the 404 error
+import MissionsPage from '@/pages/MissionsPage';
+
+// Lazy load other page components
 const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const Companies = React.lazy(() => import('@/components/Companies'));
 const Vans = React.lazy(() => import('@/components/Vans'));
 const Users = React.lazy(() => import('@/components/Users'));
-const MissionsPage = React.lazy(() => import('@/pages/MissionsPage'));
 const TripLoggerPage = React.lazy(() => import('@/pages/TripLoggerPage'));
 const TripHistoryPage = React.lazy(() => import('@/pages/TripHistoryPage'));
 const UserSettings = React.lazy(() => import('@/pages/UserSettings'));

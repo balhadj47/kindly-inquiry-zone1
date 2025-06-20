@@ -52,7 +52,7 @@ const Index = () => {
   }
 
   console.log('📱 Index: isMobile:', isMobile);
-  console.log('📱 Index: Checking permissions for trip-logger route...');
+  console.log('📱 Index: Checking permissions and routes...');
 
   return (
     <>

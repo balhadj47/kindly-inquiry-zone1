@@ -7,6 +7,9 @@ import { useTrip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
 
 const MissionsPage = () => {
+  console.log('🎯 MissionsPage: Component is rendering');
+  console.log('🎯 MissionsPage: Current URL:', window.location.pathname);
+  
   const { trips } = useTrip();
   const { hasPermission } = useRBAC();
   const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
@@ -16,6 +19,9 @@ const MissionsPage = () => {
   };
 
   const canCreateMissions = hasPermission('missions:create');
+
+  console.log('🎯 MissionsPage: Trips loaded:', trips?.length || 0);
+  console.log('🎯 MissionsPage: Can create missions:', canCreateMissions);
 
   return (
     <MissionsLayout>

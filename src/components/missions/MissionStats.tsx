@@ -1,14 +1,14 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Calendar, Clock, Building2 } from 'lucide-react';
+import { LucideIcon } from 'lucide-react';
 
 interface QuickStat {
   title: string;
   value: number;
-  icon: any;
+  icon: LucideIcon;
   color: string;
   bgColor: string;
+  borderColor?: string;
 }
 
 interface MissionStatsProps {
@@ -18,21 +18,29 @@ interface MissionStatsProps {
 const MissionStats: React.FC<MissionStatsProps> = ({ quickStats }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      {quickStats.map((stat, index) => (
-        <Card key={index} className="border-2 shadow-md hover:shadow-lg transition-shadow">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                <stat.icon className={`w-8 h-8 ${stat.color}`} />
+      {quickStats.map((stat, index) => {
+        const Icon = stat.icon;
+        return (
+          <div
+            key={index}
+            className={`p-6 rounded-xl border-2 ${stat.borderColor || 'border-gray-200'} ${stat.bgColor} transition-all duration-200 hover:shadow-md hover:scale-105`}
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600 mb-1">
+                  {stat.title}
+                </p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {stat.value}
+                </p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
+              <div className={`p-3 rounded-full ${stat.bgColor} border ${stat.borderColor || 'border-gray-200'}`}>
+                <Icon className={`h-6 w-6 ${stat.color}`} />
               </div>
             </div>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+        );
+      })}
     </div>
   );
 };

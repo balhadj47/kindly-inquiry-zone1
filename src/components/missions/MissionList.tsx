@@ -9,23 +9,31 @@ interface MissionListProps {
   trips: Trip[];
   getVanDisplayName: (vanId: string) => string;
   onNewMissionClick: () => void;
+  onViewDetails: (trip: Trip) => void;
+  onDelete: (trip: Trip) => void;
+  onTerminate: (trip: Trip) => void;
 }
 
 const MissionList: React.FC<MissionListProps> = ({ 
   trips, 
   getVanDisplayName, 
-  onNewMissionClick 
+  onNewMissionClick,
+  onViewDetails,
+  onDelete,
+  onTerminate
 }) => {
   return (
-    <div className="bg-white border rounded-lg shadow-sm">
-      <div className="p-6 border-b">
-        <h2 className="text-xl font-semibold text-gray-900">Missions Récentes</h2>
+    <div className="bg-white border rounded-xl shadow-sm">
+      <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-white">
+        <h2 className="text-xl font-bold text-gray-900">Missions Récentes</h2>
         <p className="text-gray-600 mt-1">Liste de toutes les missions ({trips.length} total)</p>
       </div>
       
       {trips.length === 0 ? (
-        <div className="text-center py-12">
-          <Truck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+        <div className="text-center py-16">
+          <div className="bg-blue-50 rounded-full p-4 w-20 h-20 mx-auto mb-4 flex items-center justify-center">
+            <Truck className="h-10 w-10 text-blue-500" />
+          </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucune Mission</h3>
           <p className="text-gray-600 mb-6">
             Aucune mission n'a été enregistrée pour le moment.
@@ -40,19 +48,22 @@ const MissionList: React.FC<MissionListProps> = ({
         </div>
       ) : (
         <div className="p-6">
-          <div className="space-y-4">
+          <div className="grid gap-6">
             {trips.slice(0, 10).map((trip) => (
               <MissionCard 
                 key={trip.id}
                 trip={trip}
                 getVanDisplayName={getVanDisplayName}
+                onViewDetails={onViewDetails}
+                onDelete={onDelete}
+                onTerminate={onTerminate}
               />
             ))}
           </div>
           
           {trips.length > 10 && (
             <div className="mt-6 text-center">
-              <Button variant="outline">
+              <Button variant="outline" className="border-blue-200 text-blue-600 hover:bg-blue-50">
                 Voir plus de missions
               </Button>
             </div>

@@ -34,6 +34,7 @@ const MissionsQuickStats: React.FC<MissionsQuickStatsProps> = ({ trips }) => {
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
+      borderColor: 'border-blue-200',
     },
     {
       title: 'Cette Semaine',
@@ -41,6 +42,7 @@ const MissionsQuickStats: React.FC<MissionsQuickStatsProps> = ({ trips }) => {
       icon: Clock,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
+      borderColor: 'border-green-200',
     },
     {
       title: 'Entreprises Visitées',
@@ -48,6 +50,7 @@ const MissionsQuickStats: React.FC<MissionsQuickStatsProps> = ({ trips }) => {
       icon: Building2,
       color: 'text-purple-600',
       bgColor: 'bg-purple-50',
+      borderColor: 'border-purple-200',
     },
   ];
 

@@ -7,6 +7,7 @@ import { useVans } from '@/hooks/useVans';
 import { Calendar, Clock, Building2 } from 'lucide-react';
 import MissionStats from '@/components/missions/MissionStats';
 import MissionList from '@/components/missions/MissionList';
+import NewTripDialog from '@/components/NewTripDialog';
 
 const MissionsPage = () => {
   console.log('🚗 MissionsPage: Component rendering...');
@@ -153,23 +154,11 @@ const MissionsPage = () => {
         onNewMissionClick={handleNewMissionClick}
       />
 
-      {/* Simple dialog placeholder */}
-      {isNewMissionDialogOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <h2 className="text-xl font-bold mb-4">Nouvelle Mission</h2>
-            <p className="text-gray-600 mb-6">
-              Fonctionnalité en cours de développement...
-            </p>
-            <Button
-              onClick={handleCloseDialog}
-              className="w-full"
-            >
-              Fermer
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* New Mission Dialog */}
+      <NewTripDialog
+        isOpen={isNewMissionDialogOpen}
+        onClose={handleCloseDialog}
+      />
     </div>
   );
 };

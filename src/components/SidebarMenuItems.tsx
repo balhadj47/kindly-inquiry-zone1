@@ -73,11 +73,18 @@ export const useSidebarMenuItems = () => {
 
   // Filter menu items based on permissions
   const filteredMenuItems = useMemo(() => {
-    console.log('=== Menu Items Filtering Debug ===');
+    console.log('=== SIDEBAR MENU DEBUG ===');
     console.log('Loading state:', loading);
     console.log('Current user:', currentUser?.id, currentUser?.role_id);
     console.log('Roles loaded:', roles.length);
     console.log('Available roles:', roles.map(r => ({ name: r.name, permissions: r.permissions })));
+    
+    // Add detailed permission checking for each menu item
+    console.log('=== PERMISSION CHECKS ===');
+    menuItems.forEach(item => {
+      const hasAccess = hasPermission(item.permission);
+      console.log(`Menu: "${item.title}" (${item.permission}) = ${hasAccess}`);
+    });
     
     // If still loading, show limited items to avoid confusion
     if (loading || !currentUser) {
@@ -94,12 +101,12 @@ export const useSidebarMenuItems = () => {
     // Filter items based on permissions
     const filtered = menuItems.filter(item => {
       const hasPermissionForItem = hasPermission(item.permission);
-      console.log(`Menu item "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
+      console.log(`Final filter: "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
       return hasPermissionForItem;
     });
 
-    console.log('Final filtered menu items:', filtered.map(item => item.title));
-    console.log('=== End Menu Items Filtering ===');
+    console.log('Final filtered menu items:', filtered.map(item => `${item.title} (${item.href})`));
+    console.log('=== END SIDEBAR MENU DEBUG ===');
     
     return filtered;
   }, [menuItems, hasPermission, currentUser, roles, loading]);

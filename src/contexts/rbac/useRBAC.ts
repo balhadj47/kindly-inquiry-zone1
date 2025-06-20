@@ -17,6 +17,8 @@ export const useRBAC = () => {
     try {
       console.log('🔐 RBAC hasPermission called with:', permission);
       console.log('🔐 Current user:', currentUser?.id, currentUser?.role_id);
+      console.log('🔐 Loading state:', loading);
+      console.log('🔐 Roles available:', roles.length);
 
       if (!currentUser) {
         console.log('🚫 No current user for permission check:', permission);
@@ -42,6 +44,9 @@ export const useRBAC = () => {
 
     } catch (error) {
       console.error('❌ CRITICAL ERROR in permission check:', error);
+      console.error('❌ Permission:', permission);
+      console.error('❌ Current user:', currentUser);
+      console.error('❌ Roles:', roles);
       
       // Fallback for administrators in case of errors
       if (currentUser?.role_id === 1 || currentUser?.id === 'admin-temp') {

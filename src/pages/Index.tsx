@@ -13,7 +13,7 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Import problematic pages directly instead of lazy loading to fix 404 errors
+// Import all pages directly instead of lazy loading to fix 404 errors
 import MissionsPage from '@/pages/MissionsPage';
 import UserSettings from '@/pages/UserSettings';
 import TripLoggerPage from '@/pages/TripLoggerPage';

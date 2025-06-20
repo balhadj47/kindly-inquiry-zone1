@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { 
   Calendar, 
@@ -7,6 +8,7 @@ import {
   Map as MapIcon,
   Car,
   Users,
+  Truck,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -50,6 +52,13 @@ export const useSidebarMenuItems = () => {
       title: t.tripHistory,
       href: '/trip-history',
       icon: List,
+      permission: 'trips:read',
+      badge: null,
+    },
+    {
+      title: 'Voyages',
+      href: '/trips',
+      icon: Truck,
       permission: 'trips:read',
       badge: null,
     },

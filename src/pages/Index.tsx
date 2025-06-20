@@ -52,6 +52,7 @@ const Index = () => {
   }
 
   console.log('📱 Index: isMobile:', isMobile);
+  console.log('📱 Index: Checking permissions for trip-logger route...');
 
   return (
     <>
@@ -80,12 +81,8 @@ const Index = () => {
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
                     <Route path="/missions" element={<MissionsPage />} />
-                    <Route path="/trip-logger" element={
-                      hasPermission('trips:create') ? <TripLoggerPage /> : <div>Access Denied</div>
-                    } />
-                    <Route path="/trip-history" element={
-                      hasPermission('trips:read') ? <TripHistoryPage /> : <div>Access Denied</div>
-                    } />
+                    <Route path="/trip-logger" element={<TripLoggerPage />} />
+                    <Route path="/trip-history" element={<TripHistoryPage />} />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

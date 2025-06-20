@@ -9,18 +9,20 @@ interface MissionListProps {
   trips: Trip[];
   getVanDisplayName: (vanId: string) => string;
   onNewMissionClick: () => void;
-  onViewDetails: (trip: Trip) => void;
-  onDelete: (trip: Trip) => void;
-  onTerminate: (trip: Trip) => void;
+  onTripClick: (trip: Trip) => void;
+  onDeleteTrip: (trip: Trip) => void;
+  onTerminateTrip: (trip: Trip) => void;
+  deletingTripId: number | null;
 }
 
 const MissionList: React.FC<MissionListProps> = ({ 
   trips, 
   getVanDisplayName, 
   onNewMissionClick,
-  onViewDetails,
-  onDelete,
-  onTerminate
+  onTripClick,
+  onDeleteTrip,
+  onTerminateTrip,
+  deletingTripId
 }) => {
   return (
     <div className="bg-white border rounded-xl shadow-sm">
@@ -53,9 +55,10 @@ const MissionList: React.FC<MissionListProps> = ({
                 key={trip.id}
                 trip={trip}
                 getVanDisplayName={getVanDisplayName}
-                onViewDetails={onViewDetails}
-                onDelete={onDelete}
-                onTerminate={onTerminate}
+                onTripClick={onTripClick}
+                onDeleteTrip={onDeleteTrip}
+                onTerminateTrip={onTerminateTrip}
+                deletingTripId={deletingTripId}
               />
             ))}
           </div>

@@ -1,10 +1,8 @@
-
 import React, { useState, useMemo } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import TripHistoryOptimizedSkeleton from './TripHistoryOptimizedSkeleton';
-import TripHistoryHeader from './TripHistoryHeader';
 import TripHistoryStats from './TripHistoryStats';
 import TripHistoryFilters from './TripHistoryFilters';
 import TripHistoryList from './TripHistoryList';
@@ -151,11 +149,6 @@ const TripHistoryContainer = () => {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-700 text-white rounded-2xl p-8 shadow-xl">
-        <TripHistoryHeader />
-      </div>
-
       {/* Statistics */}
       <TripHistoryStats trips={processedTrips} />
 

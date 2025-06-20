@@ -18,7 +18,7 @@ const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const Companies = React.lazy(() => import('@/components/Companies'));
 const Vans = React.lazy(() => import('@/components/Vans'));
 const Users = React.lazy(() => import('@/components/Users'));
-const TripsPage = React.lazy(() => import('@/pages/TripsPage'));
+const MissionsPage = React.lazy(() => import('@/pages/MissionsPage'));
 const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
 
 const PageLoadingSkeleton = () => (
@@ -76,8 +76,8 @@ const Index = () => {
                     <Route path="/users" element={
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
-                    <Route path="/trips" element={
-                      hasPermission('trips:read') ? <TripsPage /> : <div>Access Denied</div>
+                    <Route path="/missions" element={
+                      hasPermission('missions:read') ? <MissionsPage /> : <div>Access Denied</div>
                     } />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />

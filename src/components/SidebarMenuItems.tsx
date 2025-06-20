@@ -40,10 +40,10 @@ export const useSidebarMenuItems = () => {
       badge: null,
     },
     {
-      title: 'Voyages',
-      href: '/trips',
+      title: 'Missions',
+      href: '/missions',
       icon: Truck,
-      permission: 'trips:read',
+      permission: 'missions:read',
       badge: null,
     },
     {

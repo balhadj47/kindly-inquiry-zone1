@@ -24,9 +24,8 @@ const MissionList: React.FC<MissionListProps> = ({
 }) => {
   return (
     <div className="bg-white border rounded-xl shadow-sm">
-      <div className="p-6 border-b bg-gradient-to-r from-blue-50 to-white">
-        <h2 className="text-xl font-bold text-gray-900">Missions Récentes</h2>
-        <p className="text-gray-600 mt-1">Liste de toutes les missions ({trips.length} total)</p>
+      <div className="p-6 border-b">
+        <h2 className="text-xl font-bold text-gray-900">Historique des Voyages ({trips.length})</h2>
       </div>
       
       {trips.length === 0 ? (
@@ -48,7 +47,7 @@ const MissionList: React.FC<MissionListProps> = ({
         </div>
       ) : (
         <div className="p-6">
-          <div className="grid gap-6">
+          <div className="space-y-4">
             {trips.slice(0, 10).map((trip) => (
               <MissionCard 
                 key={trip.id}

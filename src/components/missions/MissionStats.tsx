@@ -17,24 +17,24 @@ interface MissionStatsProps {
 
 const MissionStats: React.FC<MissionStatsProps> = ({ quickStats }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
       {quickStats.map((stat, index) => {
         const Icon = stat.icon;
         return (
           <div
             key={index}
-            className={`p-6 rounded-xl border-2 ${stat.borderColor || 'border-gray-200'} ${stat.bgColor} transition-all duration-200 hover:shadow-md hover:scale-105`}
+            className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-all duration-200"
           >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600 mb-1">
                   {stat.title}
                 </p>
-                <p className="text-3xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {stat.value}
                 </p>
               </div>
-              <div className={`p-3 rounded-full ${stat.bgColor} border ${stat.borderColor || 'border-gray-200'}`}>
+              <div className={`p-3 rounded-lg ${stat.bgColor}`}>
                 <Icon className={`h-6 w-6 ${stat.color}`} />
               </div>
             </div>

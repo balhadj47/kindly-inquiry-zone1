@@ -15,12 +15,14 @@ interface NewTripDialogProps {
 }
 
 const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
+  console.log('🚀 NewTripDialog: Rendering with isOpen:', isOpen);
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-4">
-            Créer un Nouveau Voyage
+            Créer une Nouvelle Mission
           </DialogTitle>
         </DialogHeader>
         

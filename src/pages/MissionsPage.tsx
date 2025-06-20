@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Plus, Calendar, Clock, Building2, Truck, Users, MapPin, FileText } from 'lucide-react';
+import { Plus, Truck } from 'lucide-react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
-import { Badge } from '@/components/ui/badge';
-import { formatDateOnly } from '@/utils/dateUtils';
+import { Calendar, Clock, Building2 } from 'lucide-react';
+import MissionStats from '@/components/missions/MissionStats';
+import MissionList from '@/components/missions/MissionList';
 
 const MissionsPage = () => {
   console.log('🚗 MissionsPage: Component rendering...');
@@ -77,6 +77,16 @@ const MissionsPage = () => {
     },
   ];
 
+  const handleNewMissionClick = () => {
+    console.log('🚗 MissionsPage: Opening new mission dialog...');
+    setIsNewMissionDialogOpen(true);
+  };
+
+  const handleCloseDialog = () => {
+    console.log('🚗 MissionsPage: Closing new mission dialog...');
+    setIsNewMissionDialogOpen(false);
+  };
+
   if (isLoading) {
     console.log('🚗 MissionsPage: Rendering loading state');
     return (
@@ -123,10 +133,7 @@ const MissionsPage = () => {
           </div>
           
           <Button
-            onClick={() => {
-              console.log('🚗 MissionsPage: Opening new mission dialog...');
-              setIsNewMissionDialogOpen(true);
-            }}
+            onClick={handleNewMissionClick}
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
           >
@@ -136,111 +143,15 @@ const MissionsPage = () => {
         </div>
 
         {/* Quick Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {quickStats.map((stat, index) => (
-            <Card key={index} className="border-2 shadow-md hover:shadow-lg transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className={`p-3 rounded-lg ${stat.bgColor}`}>
-                    <stat.icon className={`w-8 h-8 ${stat.color}`} />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-gray-600 mb-1">{stat.title}</p>
-                    <p className="text-3xl font-bold text-gray-900">{stat.value}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <MissionStats quickStats={quickStats} />
       </div>
 
       {/* Mission List */}
-      <div className="bg-white border rounded-lg shadow-sm">
-        <div className="p-6 border-b">
-          <h2 className="text-xl font-semibold text-gray-900">Missions Récentes</h2>
-          <p className="text-gray-600 mt-1">Liste de toutes les missions ({trips.length} total)</p>
-        </div>
-        
-        {trips.length === 0 ? (
-          <div className="text-center py-12">
-            <Truck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">Aucune Mission</h3>
-            <p className="text-gray-600 mb-6">
-              Aucune mission n'a été enregistrée pour le moment.
-            </p>
-            <Button
-              onClick={() => setIsNewMissionDialogOpen(true)}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Créer une Mission
-            </Button>
-          </div>
-        ) : (
-          <div className="p-6">
-            <div className="space-y-4">
-              {trips.slice(0, 10).map((trip) => (
-                <Card key={trip.id} className="hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-lg text-gray-900 mb-1">
-                          {trip.company} - {trip.branch}
-                        </h3>
-                        <p className="text-sm text-gray-600">{trip.driver}</p>
-                      </div>
-                      <Badge 
-                        variant={trip.status === 'active' ? 'default' : 'secondary'}
-                        className={trip.status === 'active' 
-                          ? 'bg-green-100 text-green-800 border-green-200' 
-                          : 'bg-gray-100 text-gray-600 border-gray-200'
-                        }
-                      >
-                        {trip.status === 'active' ? 'En Mission' : 'Terminé'}
-                      </Badge>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Truck className="h-4 w-4 text-gray-500" />
-                        <span>{getVanDisplayName(trip.van)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-gray-500" />
-                        <span>{formatDateOnly(trip.timestamp)}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Users className="h-4 w-4 text-gray-500" />
-                        <span>{trip.userIds?.length || 0} utilisateurs</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <span>{trip.startKm} km</span>
-                      </div>
-                    </div>
-
-                    {trip.notes && (
-                      <div className="flex items-start gap-2 p-3 bg-gray-50 rounded-lg">
-                        <FileText className="h-4 w-4 text-gray-500 mt-0.5 flex-shrink-0" />
-                        <p className="text-sm text-gray-700">{trip.notes}</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-            
-            {trips.length > 10 && (
-              <div className="mt-6 text-center">
-                <Button variant="outline">
-                  Voir plus de missions
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <MissionList 
+        trips={trips}
+        getVanDisplayName={getVanDisplayName}
+        onNewMissionClick={handleNewMissionClick}
+      />
 
       {/* Simple dialog placeholder */}
       {isNewMissionDialogOpen && (
@@ -251,10 +162,7 @@ const MissionsPage = () => {
               Fonctionnalité en cours de développement...
             </p>
             <Button
-              onClick={() => {
-                console.log('🚗 MissionsPage: Closing new mission dialog...');
-                setIsNewMissionDialogOpen(false);
-              }}
+              onClick={handleCloseDialog}
               className="w-full"
             >
               Fermer

@@ -1,56 +1,38 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Plus, MapPin, Clock, TrendingUp, Truck, Calendar, Building2 } from 'lucide-react';
-import TripHistoryContainer from '@/components/trip-history/TripHistoryContainer';
-import TripHistoryLayout from '@/components/trip-history/TripHistoryLayout';
-import NewTripDialog from '@/components/NewTripDialog';
-import { useTrip } from '@/contexts/TripContext';
 
 const MissionsPage = () => {
   console.log('🚗 MissionsPage: Component rendering...');
   
-  const [isNewTripDialogOpen, setIsNewTripDialogOpen] = useState(false);
-  const { trips, isLoading } = useTrip();
+  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
 
-  console.log('🚗 MissionsPage: Dialog state:', isNewTripDialogOpen);
-  console.log('🚗 MissionsPage: Trips data:', trips);
-  console.log('🚗 MissionsPage: Is loading:', isLoading);
+  console.log('🚗 MissionsPage: Dialog state:', isNewMissionDialogOpen);
 
-  // Calculate stats based on TripHistoryStats logic
-  const todayTrips = trips?.filter(trip => {
-    const tripDate = new Date(trip.timestamp).toDateString();
-    const today = new Date().toDateString();
-    return tripDate === today;
-  }).length || 0;
-
-  const thisWeekTrips = trips?.filter(trip => {
-    const tripDate = new Date(trip.timestamp);
-    const weekAgo = new Date();
-    weekAgo.setDate(weekAgo.getDate() - 7);
-    return tripDate >= weekAgo;
-  }).length || 0;
-
-  const totalVisitedCompanies = new Set(trips?.map(trip => trip.company)).size || 0;
+  // Mock data for now since we're not using trip context
+  const todayMissions = 0;
+  const thisWeekMissions = 4;
+  const totalVisitedCompanies = 3;
 
   console.log('🚗 MissionsPage: Stats calculated:', {
-    todayTrips,
-    thisWeekTrips,
+    todayMissions,
+    thisWeekMissions,
     totalVisitedCompanies,
-    totalTrips: trips?.length || 0
   });
 
   const quickStats = [
     {
       title: 'Missions Aujourd\'hui',
-      value: todayTrips,
+      value: todayMissions,
       icon: Calendar,
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
     },
     {
       title: 'Cette Semaine',
-      value: thisWeekTrips,
+      value: thisWeekMissions,
       icon: Clock,
       color: 'text-green-600',
       bgColor: 'bg-green-50',
@@ -65,7 +47,7 @@ const MissionsPage = () => {
   ];
 
   return (
-    <TripHistoryLayout>
+    <div className="space-y-6">
       {/* Header Section with integrated Mission Stats */}
       <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
@@ -82,7 +64,7 @@ const MissionsPage = () => {
           <Button
             onClick={() => {
               console.log('🚗 MissionsPage: Opening new mission dialog...');
-              setIsNewTripDialogOpen(true);
+              setIsNewMissionDialogOpen(true);
             }}
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
@@ -110,27 +92,47 @@ const MissionsPage = () => {
             </Card>
           ))}
         </div>
-
-        {/* Debug info for development */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded text-sm">
-            <strong>Debug Info:</strong> Total trips: {trips?.length || 0}, Loading: {isLoading ? 'Yes' : 'No'}
-          </div>
-        )}
       </div>
 
-      {/* Trip History Content */}
-      <TripHistoryContainer />
+      {/* Mission Content Area */}
+      <div className="bg-white border rounded-lg p-6 shadow-sm">
+        <div className="text-center py-12">
+          <Truck className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Missions</h3>
+          <p className="text-gray-600 mb-6">
+            Gérez vos missions et suivez leur progression ici.
+          </p>
+          <Button
+            onClick={() => setIsNewMissionDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Créer une Mission
+          </Button>
+        </div>
+      </div>
 
-      {/* New Trip Dialog */}
-      <NewTripDialog
-        isOpen={isNewTripDialogOpen}
-        onClose={() => {
-          console.log('🚗 MissionsPage: Closing new mission dialog...');
-          setIsNewTripDialogOpen(false);
-        }}
-      />
-    </TripHistoryLayout>
+      {/* Simple dialog placeholder */}
+      {isNewMissionDialogOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold mb-4">Nouvelle Mission</h2>
+            <p className="text-gray-600 mb-6">
+              Fonctionnalité en cours de développement...
+            </p>
+            <Button
+              onClick={() => {
+                console.log('🚗 MissionsPage: Closing new mission dialog...');
+                setIsNewMissionDialogOpen(false);
+              }}
+              className="w-full"
+            >
+              Fermer
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 };
 

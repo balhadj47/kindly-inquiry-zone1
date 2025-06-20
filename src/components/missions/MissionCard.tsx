@@ -19,23 +19,25 @@ import { Trip } from '@/contexts/TripContext';
 interface MissionCardProps {
   trip: Trip;
   getVanDisplayName: (vanId: string) => string;
-  onViewDetails: (trip: Trip) => void;
-  onDelete: (trip: Trip) => void;
-  onTerminate: (trip: Trip) => void;
+  onTripClick: (trip: Trip) => void;
+  onDeleteTrip: (trip: Trip) => void;
+  onTerminateTrip: (trip: Trip) => void;
+  deletingTripId: number | null;
 }
 
 const MissionCard: React.FC<MissionCardProps> = ({ 
   trip, 
   getVanDisplayName, 
-  onViewDetails,
-  onDelete,
-  onTerminate
+  onTripClick,
+  onDeleteTrip,
+  onTerminateTrip,
+  deletingTripId
 }) => {
   const isActive = trip.status === 'active';
 
   return (
     <Card className="hover:shadow-md transition-all duration-200 border border-gray-200 cursor-pointer"
-          onClick={() => onViewDetails(trip)}>
+          onClick={() => onTripClick(trip)}>
       <CardContent className="p-6">
         {/* Header with company info and status */}
         <div className="flex items-start justify-between mb-4">
@@ -124,7 +126,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
               size="sm"
               onClick={(e) => {
                 e.stopPropagation();
-                onTerminate(trip);
+                onTerminateTrip(trip);
               }}
               className="flex items-center gap-2 text-gray-600 border-gray-300 hover:bg-gray-50"
             >
@@ -138,9 +140,10 @@ const MissionCard: React.FC<MissionCardProps> = ({
             size="sm"
             onClick={(e) => {
               e.stopPropagation();
-              onDelete(trip);
+              onDeleteTrip(trip);
             }}
             className="flex items-center gap-2 text-red-600 border-red-200 hover:bg-red-50"
+            disabled={deletingTripId === trip.id}
           >
             <Trash2 className="h-4 w-4" />
           </Button>

@@ -1,4 +1,3 @@
-
 import { useMemo } from 'react';
 import { 
   Calendar, 
@@ -6,7 +5,6 @@ import {
   Database, 
   Car,
   Users,
-  Truck,
   PlusCircle,
   History,
 } from 'lucide-react';
@@ -60,13 +58,6 @@ export const useSidebarMenuItems = () => {
       href: '/trip-history',
       icon: History,
       permission: 'trips:read',
-      badge: null,
-    },
-    {
-      title: 'Missions',
-      href: '/missions',
-      icon: Truck,
-      permission: 'missions:read',
       badge: null,
     },
   ], [t]);

@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -14,7 +13,6 @@ import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Import all pages directly instead of lazy loading to fix 404 errors
-import MissionsPage from '@/pages/MissionsPage';
 import UserSettings from '@/pages/UserSettings';
 import TripLoggerPage from '@/pages/TripLoggerPage';
 import TripHistoryPage from '@/pages/TripHistoryPage';
@@ -80,7 +78,6 @@ const Index = () => {
                     <Route path="/users" element={
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
-                    <Route path="/missions" element={<MissionsPage />} />
                     <Route path="/trip-logger" element={<TripLoggerPage />} />
                     <Route path="/trip-history" element={<TripHistoryPage />} />
                     <Route path="/settings" element={<UserSettings />} />

@@ -7,6 +7,8 @@ import {
   Car,
   Users,
   Truck,
+  PlusCircle,
+  History,
 } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -40,17 +42,31 @@ export const useSidebarMenuItems = () => {
       badge: null,
     },
     {
-      title: 'Missions',
-      href: '/missions',
-      icon: Truck,
-      permission: 'missions:read',
-      badge: null,
-    },
-    {
       title: t.users,
       href: '/users',
       icon: Users,
       permission: 'users:read',
+      badge: null,
+    },
+    {
+      title: 'Enregistrer une Mission',
+      href: '/trip-logger',
+      icon: PlusCircle,
+      permission: 'trips:create',
+      badge: null,
+    },
+    {
+      title: 'Historique des Missions',
+      href: '/trip-history',
+      icon: History,
+      permission: 'trips:read',
+      badge: null,
+    },
+    {
+      title: 'Missions',
+      href: '/missions',
+      icon: Truck,
+      permission: 'missions:read',
       badge: null,
     },
   ], [t]);

@@ -20,7 +20,7 @@ export const useSidebarMenuItems = () => {
   const menuItems = useMemo(() => [
     {
       title: t.dashboard,
-      href: '/',
+      href: '/dashboard',
       icon: Database,
       permission: 'dashboard:read',
       badge: null,

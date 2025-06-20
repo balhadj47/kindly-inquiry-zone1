@@ -21,9 +21,9 @@ const SidebarMenuContent = () => {
     <SidebarMenu>
       {menuItems.map((item) => {
         const isActive = location.pathname === item.href || 
-          (item.href === '/' && location.pathname === '/');
+          (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
         
-        console.log(`🔍 Rendering menu item: ${item.title}, active: ${isActive}`);
+        console.log(`🔍 Rendering menu item: ${item.title}, href: ${item.href}, active: ${isActive}`);
         
         return (
           <SidebarMenuItem key={item.title}>

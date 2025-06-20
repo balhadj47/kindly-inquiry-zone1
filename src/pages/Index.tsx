@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -13,8 +12,9 @@ import MobileBottomNav from '@/components/MobileBottomNav';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Import MissionsPage directly instead of lazy loading to fix the 404 error
+// Import problematic pages directly instead of lazy loading to fix 404 errors
 import MissionsPage from '@/pages/MissionsPage';
+import UserSettings from '@/pages/UserSettings';
 
 // Lazy load other page components
 const Dashboard = React.lazy(() => import('@/components/Dashboard'));
@@ -23,7 +23,6 @@ const Vans = React.lazy(() => import('@/components/Vans'));
 const Users = React.lazy(() => import('@/components/Users'));
 const TripLoggerPage = React.lazy(() => import('@/pages/TripLoggerPage'));
 const TripHistoryPage = React.lazy(() => import('@/pages/TripHistoryPage'));
-const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">

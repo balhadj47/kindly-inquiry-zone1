@@ -18,12 +18,10 @@ import MissionsPage from '@/pages/MissionsPage';
 import UserSettings from '@/pages/UserSettings';
 import TripLoggerPage from '@/pages/TripLoggerPage';
 import TripHistoryPage from '@/pages/TripHistoryPage';
-
-// Lazy load other page components
-const Dashboard = React.lazy(() => import('@/components/Dashboard'));
-const Companies = React.lazy(() => import('@/components/Companies'));
-const Vans = React.lazy(() => import('@/components/Vans'));
-const Users = React.lazy(() => import('@/components/Users'));
+import Dashboard from '@/components/Dashboard';
+import Companies from '@/components/Companies';
+import Vans from '@/components/Vans';
+import Users from '@/components/Users';
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">

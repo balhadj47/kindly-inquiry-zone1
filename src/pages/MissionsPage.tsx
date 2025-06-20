@@ -135,6 +135,7 @@ const MissionsPage = () => {
 
   console.log('🚗 MissionsPage: Rendering main content with', trips.length, 'trips');
   console.log('🚗 MissionsPage: About to render JSX content');
+  console.log('🚗 MissionsPage: Rendering NewTripDialog with isOpen:', isNewMissionDialogOpen);
 
   return (
     <div className="space-y-6">
@@ -174,7 +175,6 @@ const MissionsPage = () => {
       />
 
       {/* New Mission Dialog */}
-      {console.log('🚗 MissionsPage: Rendering NewTripDialog with isOpen:', isNewMissionDialogOpen)}
       <NewTripDialog
         isOpen={isNewMissionDialogOpen}
         onClose={handleCloseDialog}

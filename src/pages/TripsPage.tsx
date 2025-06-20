@@ -41,7 +41,7 @@ const TripsPage = () => {
 
   return (
     <TripHistoryLayout>
-      {/* Header Section with Quick Stats Cards inside */}
+      {/* Header Section with integrated Quick Stats Cards */}
       <div className="bg-white border rounded-lg p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
           <div className="flex items-center gap-4">
@@ -67,7 +67,7 @@ const TripsPage = () => {
           </Button>
         </div>
 
-        {/* Quick Stats Cards moved inside Header Section */}
+        {/* Quick Stats Cards integrated in the same container */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickStats.map((stat, index) => (
             <div key={index} className="bg-gray-50 rounded-lg p-4">

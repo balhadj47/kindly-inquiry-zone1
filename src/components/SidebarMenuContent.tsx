@@ -14,6 +14,7 @@ import {
   Truck,
   MapPin,
   History,
+  Calendar,
   Settings,
 } from 'lucide-react';
 
@@ -39,6 +40,7 @@ const SidebarMenuContent = () => {
       users: 'Users',
       logTrip: 'Log Trip',
       tripHistory: 'Trip History',
+      trips: 'Trips',
       settings: 'Settings'
     };
   }
@@ -73,6 +75,11 @@ const SidebarMenuContent = () => {
       title: t.tripHistory || 'Trip History',
       url: '/trip-history',
       icon: History,
+    },
+    {
+      title: 'Voyages',
+      url: '/trips',
+      icon: Calendar,
     },
     {
       title: t.settings || 'Settings',

@@ -7,7 +7,11 @@ import TripHistoryLayout from '@/components/trip-history/TripHistoryLayout';
 import NewTripDialog from '@/components/NewTripDialog';
 
 const TripsPage = () => {
+  console.log('🚗 TripsPage: Component rendering...');
+  
   const [isNewTripDialogOpen, setIsNewTripDialogOpen] = useState(false);
+
+  console.log('🚗 TripsPage: Dialog state:', isNewTripDialogOpen);
 
   return (
     <TripHistoryLayout>
@@ -21,7 +25,10 @@ const TripsPage = () => {
             </p>
           </div>
           <Button
-            onClick={() => setIsNewTripDialogOpen(true)}
+            onClick={() => {
+              console.log('🚗 TripsPage: Opening new trip dialog...');
+              setIsNewTripDialogOpen(true);
+            }}
             className="bg-white text-blue-700 hover:bg-blue-50 font-semibold px-6 py-3 h-auto shadow-lg hover:shadow-xl transition-all duration-200"
           >
             <Plus className="w-5 h-5 mr-2" />
@@ -36,7 +43,10 @@ const TripsPage = () => {
       {/* New Trip Dialog */}
       <NewTripDialog
         isOpen={isNewTripDialogOpen}
-        onClose={() => setIsNewTripDialogOpen(false)}
+        onClose={() => {
+          console.log('🚗 TripsPage: Closing new trip dialog...');
+          setIsNewTripDialogOpen(false);
+        }}
       />
     </TripHistoryLayout>
   );

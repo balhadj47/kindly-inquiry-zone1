@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -21,8 +22,6 @@ const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const Companies = React.lazy(() => import('@/components/Companies'));
 const Vans = React.lazy(() => import('@/components/Vans'));
 const Users = React.lazy(() => import('@/components/Users'));
-const TripLoggerPage = React.lazy(() => import('@/pages/TripLoggerPage'));
-const TripHistoryPage = React.lazy(() => import('@/pages/TripHistoryPage'));
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">
@@ -82,8 +81,6 @@ const Index = () => {
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
                     <Route path="/missions" element={<MissionsPage />} />
-                    <Route path="/trip-logger" element={<TripLoggerPage />} />
-                    <Route path="/trip-history" element={<TripHistoryPage />} />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

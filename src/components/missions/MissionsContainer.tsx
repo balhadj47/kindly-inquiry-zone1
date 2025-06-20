@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
@@ -229,8 +228,6 @@ const MissionsContainer = () => {
         companies={companies}
         vans={vans}
         onClearFilters={handleClearFilters}
-        onNewMissionClick={handleNewMissionClick}
-        canCreateMissions={canCreateMissions}
       />
 
       {/* Mission List */}

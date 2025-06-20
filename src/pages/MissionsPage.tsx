@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Truck } from 'lucide-react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
+import { useRBAC } from '@/contexts/RBACContext';
 import { Calendar, Clock, Building2 } from 'lucide-react';
 import MissionStats from '@/components/missions/MissionStats';
 import MissionList from '@/components/missions/MissionList';
@@ -16,11 +17,15 @@ const MissionsPage = () => {
   const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
   const { trips, isLoading, error } = useTrip();
   const { vans } = useVans();
+  const { hasPermission, currentUser, loading: rbacLoading } = useRBAC();
 
   console.log('🚗 MissionsPage: Dialog state:', isNewMissionDialogOpen);
   console.log('🚗 MissionsPage: Trips data:', trips);
   console.log('🚗 MissionsPage: Loading state:', isLoading);
   console.log('🚗 MissionsPage: Error state:', error);
+  console.log('🚗 MissionsPage: RBAC loading:', rbacLoading);
+  console.log('🚗 MissionsPage: Current user:', currentUser);
+  console.log('🚗 MissionsPage: Has missions:create permission:', hasPermission('missions:create'));
 
   // Calculate real stats from database
   const today = new Date();
@@ -80,9 +85,14 @@ const MissionsPage = () => {
   ];
 
   const handleNewMissionClick = () => {
-    console.log('🚗 MissionsPage: Opening new mission dialog...');
+    console.log('🚗 MissionsPage: New Mission button clicked!');
     console.log('🚗 MissionsPage: Current URL before dialog:', window.location.pathname);
+    console.log('🚗 MissionsPage: Current dialog state before change:', isNewMissionDialogOpen);
+    console.log('🚗 MissionsPage: Has create permission:', hasPermission('missions:create'));
+    
     setIsNewMissionDialogOpen(true);
+    
+    console.log('🚗 MissionsPage: Dialog state should now be true');
   };
 
   const handleCloseDialog = () => {
@@ -90,6 +100,10 @@ const MissionsPage = () => {
     console.log('🚗 MissionsPage: Current URL after close:', window.location.pathname);
     setIsNewMissionDialogOpen(false);
   };
+
+  // Add permission check for the button
+  const canCreateMissions = hasPermission('missions:create');
+  console.log('🚗 MissionsPage: Can create missions:', canCreateMissions);
 
   if (isLoading) {
     console.log('🚗 MissionsPage: Rendering loading state');
@@ -141,6 +155,7 @@ const MissionsPage = () => {
             onClick={handleNewMissionClick}
             size="lg"
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3"
+            disabled={!canCreateMissions}
           >
             <Plus className="w-5 h-5 mr-2" />
             Nouvelle Mission
@@ -159,6 +174,7 @@ const MissionsPage = () => {
       />
 
       {/* New Mission Dialog */}
+      {console.log('🚗 MissionsPage: Rendering NewTripDialog with isOpen:', isNewMissionDialogOpen)}
       <NewTripDialog
         isOpen={isNewMissionDialogOpen}
         onClose={handleCloseDialog}

@@ -16,14 +16,26 @@ interface NewTripDialogProps {
 
 const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
   console.log('🚀 NewTripDialog: Rendering with isOpen:', isOpen);
+  console.log('🚀 NewTripDialog: onClose function:', typeof onClose);
   
   const handleClose = () => {
     console.log('🚀 NewTripDialog: Handling close');
+    console.log('🚀 NewTripDialog: Calling onClose...');
     onClose();
   };
+
+  const handleOpenChange = (open: boolean) => {
+    console.log('🚀 NewTripDialog: onOpenChange called with:', open);
+    if (!open) {
+      console.log('🚀 NewTripDialog: Dialog being closed via onOpenChange');
+      handleClose();
+    }
+  };
+  
+  console.log('🚀 NewTripDialog: About to render Dialog component');
   
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-4">

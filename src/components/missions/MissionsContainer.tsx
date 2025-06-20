@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
@@ -12,7 +13,15 @@ import MissionDetailsDialog from './MissionDetailsDialog';
 import MissionActionDialog from './MissionActionDialog';
 import NewTripDialog from '@/components/NewTripDialog';
 
-const MissionsContainer = () => {
+interface MissionsContainerProps {
+  isNewMissionDialogOpen: boolean;
+  setIsNewMissionDialogOpen: (open: boolean) => void;
+}
+
+const MissionsContainer: React.FC<MissionsContainerProps> = ({
+  isNewMissionDialogOpen,
+  setIsNewMissionDialogOpen
+}) => {
   console.log('🚀 MissionsContainer: Component rendering...');
 
   // State management
@@ -22,7 +31,6 @@ const MissionsContainer = () => {
   const [vanFilter, setVanFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
-  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
   const [currentAction, setCurrentAction] = useState<'delete' | 'terminate' | null>(null);
@@ -190,10 +198,6 @@ const MissionsContainer = () => {
     setCompanyFilter('all');
     setVanFilter('all');
     setStatusFilter('all');
-  };
-
-  const handleNewMissionClick = () => {
-    setIsNewMissionDialogOpen(true);
   };
 
   const canCreateMissions = hasPermission('missions:create');

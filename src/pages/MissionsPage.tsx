@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import MissionsLayout from '@/components/missions/MissionsLayout';
 import MissionsHeader from '@/components/missions/MissionsHeader';
 import MissionsContainer from '@/components/missions/MissionsContainer';
@@ -9,9 +9,10 @@ import { useRBAC } from '@/contexts/RBACContext';
 const MissionsPage = () => {
   const { trips } = useTrip();
   const { hasPermission } = useRBAC();
+  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
 
   const handleNewMissionClick = () => {
-    // This will be handled by the MissionsContainer
+    setIsNewMissionDialogOpen(true);
   };
 
   const canCreateMissions = hasPermission('missions:create');
@@ -23,7 +24,10 @@ const MissionsPage = () => {
         onNewMissionClick={handleNewMissionClick}
         canCreateMissions={canCreateMissions}
       />
-      <MissionsContainer />
+      <MissionsContainer 
+        isNewMissionDialogOpen={isNewMissionDialogOpen}
+        setIsNewMissionDialogOpen={setIsNewMissionDialogOpen}
+      />
     </MissionsLayout>
   );
 };

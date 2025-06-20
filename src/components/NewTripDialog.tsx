@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { TripFormProviderDialog } from './trip-logger/TripFormProviderDialog';
+import { TripFormProvider } from './trip-logger/TripFormProvider';
 import { TripFormWizard } from './trip-logger/TripFormWizard';
 
 interface NewTripDialogProps {
@@ -34,11 +34,11 @@ const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
           </DialogTitle>
         </DialogHeader>
         
-        <TripFormProviderDialog onSuccess={handleClose}>
+        <TripFormProvider>
           <div className="p-2">
             <TripFormWizard />
           </div>
-        </TripFormProviderDialog>
+        </TripFormProvider>
       </DialogContent>
     </Dialog>
   );

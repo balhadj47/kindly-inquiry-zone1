@@ -11,21 +11,10 @@ import MissionList from '@/components/missions/MissionList';
 import NewTripDialog from '@/components/NewTripDialog';
 
 const MissionsPage = () => {
-  console.log('🚗 MissionsPage: Component rendering...');
-  console.log('🚗 MissionsPage: Current URL:', window.location.pathname);
-  
   const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
   const { trips, isLoading, error } = useTrip();
   const { vans } = useVans();
   const { hasPermission, currentUser, loading: rbacLoading } = useRBAC();
-
-  console.log('🚗 MissionsPage: Dialog state:', isNewMissionDialogOpen);
-  console.log('🚗 MissionsPage: Trips data:', trips);
-  console.log('🚗 MissionsPage: Loading state:', isLoading);
-  console.log('🚗 MissionsPage: Error state:', error);
-  console.log('🚗 MissionsPage: RBAC loading:', rbacLoading);
-  console.log('🚗 MissionsPage: Current user:', currentUser);
-  console.log('🚗 MissionsPage: Has missions:create permission:', hasPermission('missions:create'));
 
   // Calculate real stats from database
   const today = new Date();
@@ -44,13 +33,6 @@ const MissionsPage = () => {
   }).length;
 
   const totalVisitedCompanies = new Set(trips.map(trip => trip.company)).size;
-
-  console.log('🚗 MissionsPage: Stats calculated:', {
-    todayMissions,
-    thisWeekMissions,
-    totalVisitedCompanies,
-    totalTrips: trips.length,
-  });
 
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId);
@@ -85,35 +67,16 @@ const MissionsPage = () => {
   ];
 
   const handleNewMissionClick = () => {
-    console.log('🚗 MissionsPage: New Mission button clicked!');
-    console.log('🚗 MissionsPage: Current URL before dialog:', window.location.pathname);
-    console.log('🚗 MissionsPage: Current dialog state before change:', isNewMissionDialogOpen);
-    console.log('🚗 MissionsPage: Has create permission:', hasPermission('missions:create'));
-    console.log('🚗 MissionsPage: About to call setIsNewMissionDialogOpen(true)');
-    
     setIsNewMissionDialogOpen(true);
-    
-    console.log('🚗 MissionsPage: setIsNewMissionDialogOpen(true) called');
-    
-    // Force a re-render check
-    setTimeout(() => {
-      console.log('🚗 MissionsPage: Dialog state after timeout:', isNewMissionDialogOpen);
-    }, 100);
   };
 
   const handleCloseDialog = () => {
-    console.log('🚗 MissionsPage: Closing new mission dialog...');
-    console.log('🚗 MissionsPage: Current URL after close:', window.location.pathname);
     setIsNewMissionDialogOpen(false);
   };
 
-  // Add permission check for the button
   const canCreateMissions = hasPermission('missions:create');
-  console.log('🚗 MissionsPage: Can create missions:', canCreateMissions);
-  console.log('🚗 MissionsPage: Button disabled state:', !canCreateMissions);
 
   if (isLoading) {
-    console.log('🚗 MissionsPage: Rendering loading state');
     return (
       <div className="space-y-6">
         <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
@@ -127,7 +90,6 @@ const MissionsPage = () => {
   }
 
   if (error) {
-    console.log('🚗 MissionsPage: Rendering error state:', error);
     return (
       <div className="space-y-6">
         <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
@@ -139,10 +101,6 @@ const MissionsPage = () => {
       </div>
     );
   }
-
-  console.log('🚗 MissionsPage: Rendering main content with', trips.length, 'trips');
-  console.log('🚗 MissionsPage: About to render JSX content');
-  console.log('🚗 MissionsPage: Rendering NewTripDialog with isOpen:', isNewMissionDialogOpen);
 
   return (
     <div className="space-y-6">
@@ -169,9 +127,6 @@ const MissionsPage = () => {
               <Plus className="w-5 h-5 mr-2" />
               Nouvelle Mission
             </Button>
-            <div className="text-xs text-gray-500">
-              Permission: {canCreateMissions ? 'Granted' : 'Denied'}
-            </div>
           </div>
         </div>
 
@@ -185,15 +140,6 @@ const MissionsPage = () => {
         getVanDisplayName={getVanDisplayName}
         onNewMissionClick={handleNewMissionClick}
       />
-
-      {/* Debug info */}
-      <div className="bg-yellow-50 border border-yellow-200 rounded p-4 text-sm">
-        <h3 className="font-semibold mb-2">Debug Info:</h3>
-        <p>Dialog Open: {isNewMissionDialogOpen ? 'true' : 'false'}</p>
-        <p>Can Create: {canCreateMissions ? 'true' : 'false'}</p>
-        <p>Current User: {currentUser?.id || 'null'}</p>
-        <p>RBAC Loading: {rbacLoading ? 'true' : 'false'}</p>
-      </div>
 
       {/* New Mission Dialog */}
       <NewTripDialog

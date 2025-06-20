@@ -17,8 +17,13 @@ interface NewTripDialogProps {
 const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
   console.log('🚀 NewTripDialog: Rendering with isOpen:', isOpen);
   
+  const handleClose = () => {
+    console.log('🚀 NewTripDialog: Handling close');
+    onClose();
+  };
+  
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center mb-4">
@@ -26,7 +31,7 @@ const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
           </DialogTitle>
         </DialogHeader>
         
-        <TripFormProviderDialog onSuccess={onClose}>
+        <TripFormProviderDialog onSuccess={handleClose}>
           <div className="p-2">
             <TripFormWizard />
           </div>

@@ -9,7 +9,8 @@ let systemGroupsData: SystemGroup[] = [];
 export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
   console.log('🔧 Creating permission utils with:', { 
     usersCount: users.length, 
-    systemGroupsCount: systemGroups.length 
+    systemGroupsCount: systemGroups.length,
+    systemGroups: systemGroups.map(g => ({ name: g.name, permissions: g.permissions }))
   });
   
   if (users.length === 0 || systemGroups.length === 0) {
@@ -28,10 +29,14 @@ export const hasPermission = (userId: string, permission: string): boolean => {
   
   // Check cache first
   if (permissionCache.has(cacheKey)) {
-    return permissionCache.get(cacheKey)!;
+    const result = permissionCache.get(cacheKey)!;
+    console.log(`🔐 Cache hit: ${permission} = ${result} for user ${userId}`);
+    return result;
   }
 
   try {
+    console.log(`🔐 Checking permission: ${permission} for user ${userId}`);
+    
     // Special handling for admin temp user
     if (userId === 'admin-temp') {
       console.log('🔓 Admin temp user detected, granting permission:', permission);
@@ -47,6 +52,8 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return false;
     }
 
+    console.log(`👤 Found user: ${user.id} with role_id: ${user.role_id}`);
+
     // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {
       // Map role_id to system group names
@@ -60,9 +67,12 @@ export const hasPermission = (userId: string, permission: string): boolean => {
 
     if (!userRole) {
       console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
+      console.log('Available roles:', systemGroupsData.map(r => r.name));
       permissionCache.set(cacheKey, false);
       return false;
     }
+
+    console.log(`🎯 Found user role: ${userRole.name} with permissions:`, userRole.permissions);
 
     // Check if the role has the required permission
     const hasAccess = userRole.permissions.includes(permission);

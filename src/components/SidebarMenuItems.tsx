@@ -61,17 +61,18 @@ export const useSidebarMenuItems = () => {
     console.log('Loading state:', loading);
     console.log('Current user:', currentUser?.id, currentUser?.role_id);
     console.log('Roles loaded:', roles.length);
+    console.log('Available roles:', roles.map(r => ({ name: r.name, permissions: r.permissions })));
     
-    // If still loading, show all items for now to avoid empty menu
+    // If still loading, show limited items to avoid confusion
     if (loading || !currentUser) {
-      console.log('Still loading or no user, showing all menu items temporarily');
-      return menuItems;
+      console.log('Still loading or no user, showing dashboard only');
+      return menuItems.filter(item => item.permission === 'dashboard:read');
     }
 
-    // If no roles loaded yet, show all items temporarily
+    // If no roles loaded yet, show limited items
     if (roles.length === 0) {
-      console.log('No roles loaded yet, showing all menu items temporarily');
-      return menuItems;
+      console.log('No roles loaded yet, showing dashboard only');
+      return menuItems.filter(item => item.permission === 'dashboard:read');
     }
 
     // Filter items based on permissions

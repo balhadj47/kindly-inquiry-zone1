@@ -18,8 +18,6 @@ const Dashboard = React.lazy(() => import('@/components/Dashboard'));
 const Companies = React.lazy(() => import('@/components/Companies'));
 const Vans = React.lazy(() => import('@/components/Vans'));
 const Users = React.lazy(() => import('@/components/Users'));
-const TripLogger = React.lazy(() => import('@/components/TripLogger'));
-const TripHistory = React.lazy(() => import('@/components/TripHistory'));
 const TripsPage = React.lazy(() => import('@/pages/TripsPage'));
 const UserSettings = React.lazy(() => import('@/pages/UserSettings'));
 
@@ -77,12 +75,6 @@ const Index = () => {
                     <Route path="/vans/*" element={<Vans />} />
                     <Route path="/users" element={
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
-                    } />
-                    <Route path="/trip-logger" element={
-                      hasPermission('trips:create') ? <TripLogger /> : <div>Access Denied</div>
-                    } />
-                    <Route path="/trip-history" element={
-                      hasPermission('trips:read') ? <TripHistory /> : <div>Access Denied</div>
                     } />
                     <Route path="/trips" element={
                       hasPermission('trips:read') ? <TripsPage /> : <div>Access Denied</div>

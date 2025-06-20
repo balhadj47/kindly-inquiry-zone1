@@ -11,11 +11,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRBAC } from '@/contexts/RBACContext';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 import { Link } from 'react-router-dom';
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
+  const { currentUser } = useRBAC();
 
   const handleSignOut = async () => {
     console.log('UserProfile: Attempting to sign out...');
@@ -35,6 +38,7 @@ const UserProfile = () => {
   };
 
   console.log('UserProfile: Rendering with user:', user?.email);
+  console.log('UserProfile: Current RBAC user:', currentUser);
   console.log('UserProfile: Current language context:', { 
     signOut: t.signOut, 
     settings: t.settings 
@@ -62,7 +66,15 @@ const UserProfile = () => {
     );
   }
 
-  const userInitials = user.email
+  // Get user name and role information
+  const userName = currentUser?.name || user.email?.split('@')[0] || 'User';
+  const userRole = currentUser?.role_id ? getRoleNameFromId(currentUser.role_id) : 'Employee';
+  
+  const userInitials = userName
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase() || user.email
     ?.split('@')[0]
     .split('.')
     .map(n => n[0])
@@ -75,17 +87,17 @@ const UserProfile = () => {
         <DropdownMenuTrigger asChild>
           <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.email}`} />
+              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
               <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
               <p className="text-sm font-medium text-sidebar-foreground truncate">
-                {user.email}
+                {userName}
               </p>
               <p className="text-xs text-muted-foreground truncate">
-                Authenticated User
+                {userRole}
               </p>
             </div>
           </div>

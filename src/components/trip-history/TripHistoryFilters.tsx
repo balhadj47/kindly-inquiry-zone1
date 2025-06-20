@@ -1,8 +1,9 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, X } from 'lucide-react';
+import { Search, X, Download } from 'lucide-react';
 import { Van } from '@/types/van';
 
 export interface TripHistoryFiltersProps {
@@ -76,6 +77,16 @@ const TripHistoryFilters: React.FC<TripHistoryFiltersProps> = ({
             ))}
           </SelectContent>
         </Select>
+
+        {/* Export Button */}
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 px-4"
+          disabled={disabled}
+        >
+          <Download className="h-4 w-4" />
+          <span className="hidden sm:inline">Exporter</span>
+        </Button>
 
         {/* Clear Filters Button */}
         {hasActiveFilters && (

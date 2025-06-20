@@ -1,9 +1,9 @@
+
 import React, { useState, useMemo } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import TripHistoryOptimizedSkeleton from './TripHistoryOptimizedSkeleton';
-import TripHistoryStats from './TripHistoryStats';
 import TripHistoryFilters from './TripHistoryFilters';
 import TripHistoryList from './TripHistoryList';
 import TripDetailsDialog from '../TripDetailsDialog';
@@ -149,9 +149,6 @@ const TripHistoryContainer = () => {
 
   return (
     <>
-      {/* Statistics */}
-      <TripHistoryStats trips={processedTrips} />
-
       {/* Filters */}
       <TripHistoryFilters
         searchTerm={searchTerm}

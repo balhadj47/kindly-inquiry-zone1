@@ -1,7 +1,6 @@
 
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
-import { getPermissionsForRoleId } from '@/utils/rolePermissions';
 
 let permissionCache = new Map<string, boolean>();
 let usersData: User[] = [];
@@ -48,19 +47,28 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return false;
     }
 
-    // Special handling for Administrator role_id (1)
-    if (user.role_id === 1) {
-      console.log('🔓 Administrator user detected, granting permission:', permission);
-      permissionCache.set(cacheKey, true);
-      return true;
+    // Find the user's role/group by role_id
+    const userRole = systemGroupsData.find(role => {
+      // Map role_id to system group names
+      const roleIdMapping: { [key: number]: string } = {
+        1: 'Administrator',
+        2: 'Supervisor', 
+        3: 'Employee'
+      };
+      return role.name === roleIdMapping[user.role_id];
+    });
+
+    if (!userRole) {
+      console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
+      permissionCache.set(cacheKey, false);
+      return false;
     }
 
-    // Get permissions for the user's role_id
-    const userPermissions = getPermissionsForRoleId(user.role_id);
-    const hasAccess = userPermissions.includes(permission);
+    // Check if the role has the required permission
+    const hasAccess = userRole.permissions.includes(permission);
     
     permissionCache.set(cacheKey, hasAccess);
-    console.log(`🔐 Permission check result: ${permission} = ${hasAccess} for user ${userId} (role_id: ${user.role_id})`);
+    console.log(`🔐 Permission check result: ${permission} = ${hasAccess} for user ${userId} (role: ${userRole.name})`);
     
     return hasAccess;
   } catch (error) {
@@ -80,7 +88,17 @@ export const getUserPermissions = (userId: string): string[] => {
     const user = usersData.find(u => u.id.toString() === userId.toString());
     if (!user) return [];
 
-    return getPermissionsForRoleId(user.role_id);
+    // Find the user's role/group by role_id
+    const userRole = systemGroupsData.find(role => {
+      const roleIdMapping: { [key: number]: string } = {
+        1: 'Administrator',
+        2: 'Supervisor',
+        3: 'Employee'
+      };
+      return role.name === roleIdMapping[user.role_id];
+    });
+
+    return userRole?.permissions || [];
   } catch (error) {
     console.error('❌ Error getting user permissions:', error);
     return [];

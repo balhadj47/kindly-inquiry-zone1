@@ -32,11 +32,11 @@ create table if not exists user_groups (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Insert default system groups
+-- Insert default system groups with missions permissions
 insert into user_groups (id, name, description, permissions, color) values 
-(1, 'Administrator', 'Full system access', '["users:read", "users:create", "users:update", "users:delete", "vans:read", "vans:create", "vans:update", "vans:delete", "trips:read", "trips:create", "trips:update", "trips:delete", "companies:read", "companies:create", "companies:update", "companies:delete", "groups:read", "groups:manage", "dashboard:read", "settings:read", "settings:update"]'::jsonb, '#dc2626'),
-(2, 'Supervisor', 'Supervisory access', '["users:read", "users:update", "vans:read", "vans:update", "trips:read", "trips:create", "trips:update", "companies:read", "groups:read", "dashboard:read"]'::jsonb, '#ea580c'),
-(3, 'Employee', 'Basic employee access', '["dashboard:read", "trips:read", "trips:create", "companies:read", "vans:read"]'::jsonb, '#3b82f6')
+(1, 'Administrator', 'Full system access', '["users:read", "users:create", "users:update", "users:delete", "vans:read", "vans:create", "vans:update", "vans:delete", "trips:read", "trips:create", "trips:update", "trips:delete", "companies:read", "companies:create", "companies:update", "companies:delete", "missions:read", "missions:create", "missions:update", "missions:delete", "groups:read", "groups:manage", "dashboard:read", "settings:read", "settings:update"]'::jsonb, '#dc2626'),
+(2, 'Supervisor', 'Supervisory access', '["users:read", "users:update", "vans:read", "vans:update", "trips:read", "trips:create", "trips:update", "missions:read", "missions:create", "missions:update", "companies:read", "groups:read", "dashboard:read"]'::jsonb, '#ea580c'),
+(3, 'Employee', 'Basic employee access', '["dashboard:read", "trips:read", "trips:create", "missions:read", "missions:create", "companies:read", "vans:read"]'::jsonb, '#3b82f6')
 on conflict (id) do update set
   name = excluded.name,
   description = excluded.description,

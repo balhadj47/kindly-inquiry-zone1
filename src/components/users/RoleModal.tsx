@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -42,6 +41,10 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'trips:create', name: 'Créer voyages', category: 'Voyages' },
   { id: 'trips:update', name: 'Modifier voyages', category: 'Voyages' },
   { id: 'trips:delete', name: 'Supprimer voyages', category: 'Voyages' },
+  { id: 'missions:read', name: 'Voir missions', category: 'Missions' },
+  { id: 'missions:create', name: 'Créer missions', category: 'Missions' },
+  { id: 'missions:update', name: 'Modifier missions', category: 'Missions' },
+  { id: 'missions:delete', name: 'Supprimer missions', category: 'Missions' },
   { id: 'groups:read', name: 'Voir groupes', category: 'Groupes' },
   { id: 'groups:manage', name: 'Gérer groupes', category: 'Groupes' },
   { id: 'settings:read', name: 'Voir paramètres', category: 'Paramètres' },

@@ -29,6 +29,7 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
       'vans:read', 'vans:create', 'vans:update', 'vans:delete',
       'trips:read', 'trips:create', 'trips:update', 'trips:delete',
       'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+      'missions:read', 'missions:create', 'missions:update', 'missions:delete',
       'groups:read', 'groups:manage',
       'dashboard:read', 'settings:read', 'settings:update'
     ],
@@ -43,6 +44,7 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
       'users:read', 'users:update',
       'vans:read', 'vans:update',
       'trips:read', 'trips:create', 'trips:update',
+      'missions:read', 'missions:create', 'missions:update',
       'companies:read',
       'groups:read',
       'dashboard:read'
@@ -57,6 +59,7 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
     permissions: [
       'dashboard:read',
       'trips:read', 'trips:create',
+      'missions:read', 'missions:create',
       'companies:read',
       'vans:read'
     ],

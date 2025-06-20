@@ -77,12 +77,10 @@ const Index = () => {
                     <Route path="/users" element={
                       hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
                     } />
-                    <Route path="/missions" element={
-                      <div>
-                        {console.log('🎯 Index: Rendering /missions route with MissionsPage')}
-                        <MissionsPage />
-                      </div>
-                    } />
+                    <Route path="/missions" element={(() => {
+                      console.log('🎯 Index: Rendering /missions route with MissionsPage');
+                      return <MissionsPage />;
+                    })()} />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

@@ -120,11 +120,10 @@ const MissionsPage = () => {
   }
 
   console.log('🚗 MissionsPage: Rendering main content with', trips.length, 'trips');
+  console.log('🚗 MissionsPage: About to render JSX content');
 
   return (
     <div className="space-y-6">
-      {console.log('🚗 MissionsPage: About to render JSX content')}
-      
       {/* Header Section with integrated Mission Stats */}
       <div className="bg-white border rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">

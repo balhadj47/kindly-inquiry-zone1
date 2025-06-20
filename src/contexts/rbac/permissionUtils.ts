@@ -54,20 +54,22 @@ export const hasPermission = (userId: string, permission: string): boolean => {
 
     console.log(`👤 Found user: ${user.id} with role_id: ${user.role_id}`);
 
-    // Find the user's role/group by role_id
+    // For role_id 1 (Administrator), grant all permissions
+    if (user.role_id === 1) {
+      console.log('🔓 Administrator user detected, granting all permissions:', permission);
+      permissionCache.set(cacheKey, true);
+      return true;
+    }
+
+    // Find the user's role/group by role_id - use the systemGroups from database
     const userRole = systemGroupsData.find(role => {
-      // Map role_id to system group names
-      const roleIdMapping: { [key: number]: string } = {
-        1: 'Administrator',
-        2: 'Supervisor', 
-        3: 'Employee'
-      };
-      return role.name === roleIdMapping[user.role_id];
+      // Convert role.id to number for comparison with user.role_id
+      return parseInt(role.id) === user.role_id;
     });
 
     if (!userRole) {
       console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
-      console.log('Available roles:', systemGroupsData.map(r => r.name));
+      console.log('Available roles:', systemGroupsData.map(r => ({ id: r.id, name: r.name })));
       permissionCache.set(cacheKey, false);
       return false;
     }
@@ -100,12 +102,7 @@ export const getUserPermissions = (userId: string): string[] => {
 
     // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {
-      const roleIdMapping: { [key: number]: string } = {
-        1: 'Administrator',
-        2: 'Supervisor',
-        3: 'Employee'
-      };
-      return role.name === roleIdMapping[user.role_id];
+      return parseInt(role.id) === user.role_id;
     });
 
     return userRole?.permissions || [];

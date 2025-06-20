@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, MapPin, Clock, TrendingUp, Truck } from 'lucide-react';
+import { Plus, MapPin, Clock, TrendingUp, Truck, Calendar, Building2 } from 'lucide-react';
 import TripHistoryContainer from '@/components/trip-history/TripHistoryContainer';
 import TripHistoryLayout from '@/components/trip-history/TripHistoryLayout';
 import NewTripDialog from '@/components/NewTripDialog';
@@ -16,32 +16,46 @@ const TripsPage = () => {
 
   console.log('🚗 TripsPage: Dialog state:', isNewTripDialogOpen);
 
-  // Calculate quick stats
-  const activeTrips = trips?.filter(trip => trip.status === 'active')?.length || 0;
-  const completedTrips = trips?.filter(trip => trip.status === 'completed')?.length || 0;
-  const totalTrips = trips?.length || 0;
+  // Calculate stats based on TripHistoryStats logic
+  const todayTrips = trips?.filter(trip => {
+    const tripDate = new Date(trip.timestamp).toDateString();
+    const today = new Date().toDateString();
+    return tripDate === today;
+  }).length || 0;
+
+  const thisWeekTrips = trips?.filter(trip => {
+    const tripDate = new Date(trip.timestamp);
+    const weekAgo = new Date();
+    weekAgo.setDate(weekAgo.getDate() - 7);
+    return tripDate >= weekAgo;
+  }).length || 0;
+
+  const totalVisitedCompanies = new Set(trips?.map(trip => trip.company)).size || 0;
 
   const quickStats = [
     {
-      title: 'Voyages Actifs',
-      value: activeTrips,
-      icon: TrendingUp,
+      title: 'Missions Aujourd\'hui',
+      value: todayTrips,
+      icon: Calendar,
+      color: 'text-blue-600',
     },
     {
-      title: 'Voyages Terminés',
-      value: completedTrips,
+      title: 'Cette Semaine',
+      value: thisWeekTrips,
       icon: Clock,
+      color: 'text-green-600',
     },
     {
-      title: 'Total Voyages',
-      value: totalTrips,
-      icon: MapPin,
+      title: 'Entreprises Visitées',
+      value: totalVisitedCompanies,
+      icon: Building2,
+      color: 'text-purple-600',
     },
   ];
 
   return (
     <TripHistoryLayout>
-      {/* Header Section with integrated Quick Stats Cards */}
+      {/* Header Section with integrated Mission Stats */}
       <div className="bg-white border rounded-lg p-6 mb-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
           <div className="flex items-center gap-4">
@@ -67,12 +81,12 @@ const TripsPage = () => {
           </Button>
         </div>
 
-        {/* Quick Stats Cards integrated in the same container */}
+        {/* Mission Stats integrated in the header */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {quickStats.map((stat, index) => (
             <div key={index} className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <stat.icon className="w-6 h-6 text-gray-600" />
+                <stat.icon className={`w-6 h-6 ${stat.color}`} />
                 <div>
                   <p className="text-gray-600 text-sm">{stat.title}</p>
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>

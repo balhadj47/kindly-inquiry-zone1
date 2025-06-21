@@ -48,9 +48,9 @@ const UserProfile = () => {
     return (
       <div className="space-y-3">
         <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
-          <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6">
+          <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8">
             <AvatarFallback>
-              <User className="h-4 w-4 group-data-[collapsible=icon]:h-3 group-data-[collapsible=icon]:w-3" />
+              <User className="h-4 w-4 group-data-[collapsible=icon]:h-4 group-data-[collapsible=icon]:w-4" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
@@ -85,10 +85,10 @@ const UserProfile = () => {
     <div className="space-y-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/50 hover:bg-sidebar-accent transition-all duration-200 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 hover:shadow-sm">
-            <Avatar className="h-8 w-8 ring-2 ring-white/20 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 transition-all duration-200">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/50 hover:bg-sidebar-accent transition-all duration-300 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 hover:shadow-sm group-data-[collapsible=icon]:hover:bg-blue-50 group-data-[collapsible=icon]:hover:scale-105">
+            <Avatar className="h-8 w-8 ring-2 ring-white/20 group-data-[collapsible=icon]:h-8 group-data-[collapsible=icon]:w-8 group-data-[collapsible=icon]:ring-2 group-data-[collapsible=icon]:ring-blue-200 transition-all duration-300">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-medium group-data-[collapsible=icon]:text-[10px]">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-medium group-data-[collapsible=icon]:text-xs group-data-[collapsible=icon]:bg-gradient-to-br group-data-[collapsible=icon]:from-blue-500 group-data-[collapsible=icon]:to-blue-600">
                 {userInitials}
               </AvatarFallback>
             </Avatar>

@@ -45,8 +45,8 @@ const AppSidebar = () => {
     >
       <SidebarHeader />
       
-      <SidebarContent className="flex flex-col h-full bg-white">
-        <div className="flex-1 py-2 overflow-y-auto group-data-[collapsible=icon]:py-1">
+      <SidebarContent className="flex flex-col h-full bg-white px-3 group-data-[collapsible=icon]:px-2">
+        <div className="flex-1 py-4 overflow-y-auto">
           <SidebarGroup>
             <SidebarGroupContent>
               <SidebarMenuContent />
@@ -54,7 +54,7 @@ const AppSidebar = () => {
           </SidebarGroup>
         </div>
         
-        <SidebarFooter className="border-t border-gray-200 p-3 group-data-[collapsible=icon]:p-2">
+        <SidebarFooter className="border-t border-gray-100 p-3 group-data-[collapsible=icon]:p-2">
           <UserProfile />
         </SidebarFooter>
       </SidebarContent>

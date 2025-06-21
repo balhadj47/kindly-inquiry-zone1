@@ -4,7 +4,6 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   SidebarMenu,
   SidebarMenuItem,
-  SidebarMenuButton,
 } from '@/components/ui/sidebar';
 import { useSidebarMenuItems } from './SidebarMenuItems';
 
@@ -18,7 +17,7 @@ const SidebarMenuContent = () => {
   console.log('🔍 Menu items from useSidebarMenuItems:', menuItems.length);
 
   return (
-    <SidebarMenu>
+    <SidebarMenu className="space-y-1">
       {menuItems.map((item) => {
         const isActive = location.pathname === item.href || 
           (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
@@ -27,15 +26,32 @@ const SidebarMenuContent = () => {
         
         return (
           <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton asChild isActive={isActive}>
-              <NavLink
-                to={item.href}
-                className="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors hover:bg-accent hover:text-accent-foreground"
-              >
+            <NavLink 
+              to={item.href}
+              className={({ isActive: navIsActive }) => {
+                const activeState = navIsActive || isActive;
+                return `flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 w-full group ${
+                  activeState 
+                    ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25' 
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                }`;
+              }}
+              onClick={(e) => {
+                console.log('🔍 NavLink clicked:', item.href);
+                console.log('🔍 Current pathname before navigation:', location.pathname);
+                console.log('🔍 Event details:', e.type, e.currentTarget);
+              }}
+            >
+              <div className={`p-1 rounded-lg transition-colors ${
+                location.pathname === item.href || 
+                (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'))
+                  ? 'bg-white/20' 
+                  : 'group-hover:bg-gray-100'
+              }`}>
                 <item.icon className="h-4 w-4 flex-shrink-0" />
-                <span className="truncate">{item.title}</span>
-              </NavLink>
-            </SidebarMenuButton>
+              </div>
+              <span className="truncate font-medium text-sm">{item.title}</span>
+            </NavLink>
           </SidebarMenuItem>
         );
       })}

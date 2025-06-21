@@ -20,7 +20,7 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
   }
 });
 
-// Helper function to check if user is authenticated
+// Helper function to check if user is authenticated - NOW EXPORTED
 export const requireAuth = async () => {
   const { data: { session }, error } = await supabase.auth.getSession();
   

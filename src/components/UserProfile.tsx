@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { User, LogOut, Settings } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -47,8 +46,8 @@ const UserProfile = () => {
   if (!user) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 group-data-[collapsible=icon]:justify-center">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-50 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-1">
+          <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
             <AvatarFallback>
               <User className="h-4 w-4" />
             </AvatarFallback>
@@ -57,7 +56,7 @@ const UserProfile = () => {
             <p className="text-sm text-gray-500">Not logged in</p>
           </div>
         </div>
-        <div className="px-3 group-data-[collapsible=icon]:hidden">
+        <div className="px-2 group-data-[collapsible=icon]:hidden">
           <p className="text-xs text-gray-500 text-center">
             © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
           </p>
@@ -85,8 +84,8 @@ const UserProfile = () => {
     <div className="space-y-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
-            <Avatar className="h-8 w-8">
+          <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-1 relative group">
+            <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
               <AvatarFallback className="bg-blue-600 text-white text-xs font-medium">
                 {userInitials}
@@ -99,6 +98,10 @@ const UserProfile = () => {
               <p className="text-xs text-gray-500 truncate">
                 {userRole}
               </p>
+            </div>
+            {/* Tooltip for collapsed state */}
+            <div className="hidden group-data-[collapsible=icon]:block absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+              {userName}
             </div>
           </div>
         </DropdownMenuTrigger>
@@ -120,7 +123,7 @@ const UserProfile = () => {
         </DropdownMenuContent>
       </DropdownMenu>
       
-      <div className="px-3 group-data-[collapsible=icon]:hidden">
+      <div className="px-2 group-data-[collapsible=icon]:hidden">
         <p className="text-xs text-gray-500 text-center">
           © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:underline">asdar.net</a>
         </p>

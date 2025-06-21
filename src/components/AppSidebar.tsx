@@ -24,7 +24,7 @@ const AppSidebar = () => {
     return (
       <Sidebar 
         collapsible="icon" 
-        className={`fixed left-0 top-0 h-screen z-50 bg-white ${isMobile ? 'w-80' : ''}`}
+        className="fixed left-0 top-0 h-screen z-50 bg-white border-r border-gray-100 shadow-sm transition-all duration-300"
       >
         <SidebarContent className="bg-white">
           <div className="flex items-center justify-center p-6">
@@ -41,22 +41,20 @@ const AppSidebar = () => {
   return (
     <Sidebar 
       collapsible="icon" 
-      className={`fixed left-0 top-0 h-screen z-50 border-r border-gray-100 bg-white shadow-sm ${
-        isMobile ? 'w-80' : ''
-      }`}
+      className="fixed left-0 top-0 h-screen z-50 border-r border-gray-100 bg-white shadow-sm transition-all duration-300 group-data-[collapsible=icon]:shadow-lg"
     >
       <SidebarHeader />
       
       <SidebarContent className="flex flex-col h-full bg-white">
-        <div className="flex-1 py-6 overflow-y-auto">
+        <div className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
           <SidebarGroup>
-            <SidebarGroupContent className={`px-4 ${isMobile ? 'px-6' : ''}`}>
+            <SidebarGroupContent>
               <SidebarMenuContent />
             </SidebarGroupContent>
           </SidebarGroup>
         </div>
         
-        <SidebarFooter className="border-t border-gray-100 p-4 flex-shrink-0 bg-gray-50/50">
+        <SidebarFooter className="border-t border-gray-100 p-3 flex-shrink-0 bg-gray-50/30 group-data-[collapsible=icon]:p-2">
           <UserProfile />
         </SidebarFooter>
       </SidebarContent>

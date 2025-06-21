@@ -47,10 +47,10 @@ const UserProfile = () => {
   if (!user) {
     return (
       <div className="space-y-3">
-        <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-          <Avatar className="h-8 w-8">
+        <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/50 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2">
+          <Avatar className="h-8 w-8 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6">
             <AvatarFallback>
-              <User className="h-4 w-4" />
+              <User className="h-4 w-4 group-data-[collapsible=icon]:h-3 group-data-[collapsible=icon]:w-3" />
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0 group-data-[collapsible=icon]:hidden">
@@ -85,10 +85,10 @@ const UserProfile = () => {
     <div className="space-y-3">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center">
-            <Avatar className="h-8 w-8">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-sidebar-accent/50 hover:bg-sidebar-accent transition-all duration-200 cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 hover:shadow-sm">
+            <Avatar className="h-8 w-8 ring-2 ring-white/20 group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 transition-all duration-200">
               <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs font-medium">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white text-xs font-medium group-data-[collapsible=icon]:text-[10px]">
                 {userInitials}
               </AvatarFallback>
             </Avatar>

@@ -10,7 +10,7 @@ const SidebarBranding = () => {
       </div>
       <div className="group-data-[collapsible=icon]:hidden min-w-0">
         <h1 className="text-lg font-bold text-gray-900">SSB</h1>
-        <p className="text-xs text-gray-500 font-medium">Système de Suivi</p>
+        <p className="text-xs text-gray-500 font-medium">Fonds & Escorte</p>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -5,8 +6,6 @@ import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useTrip } from '@/contexts/TripContext';
-import { useVanMutations } from '@/hooks/useVansOptimized';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
@@ -56,29 +55,29 @@ const DashboardLoadingSkeleton = () => {
 
 const Dashboard = () => {
   const { users } = useRBAC();
-  const { vans, refetch: refetchVans } = useVans();
-  const { companies, refetch: refetchCompanies } = useCompanies();
+  const { vans, isLoading: vansLoading, refetch: refetchVans } = useVans();
+  const { companies, isLoading: companiesLoading, refetch: refetchCompanies } = useCompanies();
   const { trips } = useTrip();
-  const { refreshVans } = useVanMutations();
-  const { refreshPage } = useCacheRefresh();
 
-  // Refresh data when component mounts (user enters the page)
+  // Single refresh effect - only run once when component mounts
   useEffect(() => {
-    console.log('📊 Dashboard component mounted, refreshing data');
-    refreshVans();
-    refetchVans?.();
-    refetchCompanies?.();
-    refreshPage(['users', 'vans', 'companies', 'trips']);
-  }, [refreshVans, refetchVans, refetchCompanies, refreshPage]);
+    console.log('📊 Dashboard component mounted, initial data load');
+    // Let React Query handle the initial fetch - no manual refresh needed
+  }, []); // Empty dependency array - only run once
 
   const handleRefresh = async () => {
-    refreshPage(['users', 'vans', 'companies', 'trips']);
-    refreshVans();
+    console.log('📊 Manual refresh triggered');
     await Promise.all([
       refetchVans?.(),
       refetchCompanies?.()
     ]);
   };
+
+  const isLoading = vansLoading || companiesLoading;
+
+  if (isLoading) {
+    return <DashboardLoadingSkeleton />;
+  }
 
   const stats = calculateDashboardStats(users, vans, companies, trips);
   const chartData = createChartData(companies, trips);

@@ -14,7 +14,12 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
 
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-      <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
+        <p className="text-gray-600 mt-1">
+          Gérez vos entreprises et leurs succursales
+        </p>
+      </div>
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>

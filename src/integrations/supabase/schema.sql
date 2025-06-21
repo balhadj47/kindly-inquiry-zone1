@@ -32,7 +32,7 @@ create table if not exists user_groups (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Insert default system groups with missions permissions
+-- Insert only essential system groups without demo permissions
 insert into user_groups (id, name, description, permissions, color) values 
 (1, 'Administrator', 'Full system access', '["users:read", "users:create", "users:update", "users:delete", "vans:read", "vans:create", "vans:update", "vans:delete", "trips:read", "trips:create", "trips:update", "trips:delete", "companies:read", "companies:create", "companies:update", "companies:delete", "missions:read", "missions:create", "missions:update", "missions:delete", "groups:read", "groups:manage", "dashboard:read", "settings:read", "settings:update"]'::jsonb, '#dc2626'),
 (2, 'Supervisor', 'Supervisory access', '["users:read", "users:update", "vans:read", "vans:update", "trips:read", "trips:create", "trips:update", "missions:read", "missions:create", "missions:update", "companies:read", "groups:read", "dashboard:read"]'::jsonb, '#ea580c'),
@@ -42,6 +42,31 @@ on conflict (id) do update set
   description = excluded.description,
   permissions = excluded.permissions,
   color = excluded.color;
+
+-- System settings table for configurable branding
+create table if not exists system_settings (
+  id serial primary key,
+  setting_key text not null unique,
+  setting_value text not null,
+  setting_type text not null default 'string',
+  description text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Insert default system settings
+insert into system_settings (setting_key, setting_value, setting_type, description) values 
+('app_name', 'SSB', 'string', 'Application name displayed in header'),
+('app_slogan', 'Fonds & Escorte', 'string', 'Application slogan/tagline'),
+('primary_color', '#3b82f6', 'color', 'Primary brand color'),
+('secondary_color', '#1e40af', 'color', 'Secondary brand color'),
+('footer_text', '© 2025 asdar it', 'string', 'Footer copyright text'),
+('footer_link', 'https://asdar.net', 'url', 'Footer link URL'),
+('default_language', 'fr', 'string', 'Default application language')
+on conflict (setting_key) do update set
+  setting_value = excluded.setting_value,
+  description = excluded.description,
+  updated_at = timezone('utc'::text, now());
 
 -- Companies table
 create table if not exists companies (
@@ -107,7 +132,7 @@ create table if not exists mission_roles (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Insert default mission roles
+-- Insert only essential mission roles
 insert into mission_roles (name, description, permissions, color) values 
 ('Driver', 'Vehicle operator', '["trips:create", "trips:update", "vans:read"]'::jsonb, '#10b981'),
 ('Assistant', 'Mission assistant', '["trips:read", "companies:read"]'::jsonb, '#8b5cf6'),
@@ -125,6 +150,7 @@ alter table vans enable row level security;
 alter table trips enable row level security;
 alter table user_groups enable row level security;
 alter table mission_roles enable row level security;
+alter table system_settings enable row level security;
 
 -- Allow all operations for authenticated users (simplified for development)
 create policy "Allow all for authenticated users" on users for all using (auth.role() = 'authenticated');
@@ -134,3 +160,4 @@ create policy "Allow all for authenticated users" on vans for all using (auth.ro
 create policy "Allow all for authenticated users" on trips for all using (auth.role() = 'authenticated');
 create policy "Allow all for authenticated users" on user_groups for all using (auth.role() = 'authenticated');
 create policy "Allow all for authenticated users" on mission_roles for all using (auth.role() = 'authenticated');
+create policy "Allow all for authenticated users" on system_settings for all using (auth.role() = 'authenticated');

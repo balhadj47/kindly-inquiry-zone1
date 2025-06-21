@@ -12,6 +12,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { getRoleNameFromId } from '@/utils/roleUtils';
 import { Link } from 'react-router-dom';
 
@@ -19,6 +20,7 @@ const UserProfile = () => {
   const { user, signOut } = useAuth();
   const { t } = useLanguage();
   const { currentUser } = useRBAC();
+  const { getSetting } = useSystemSettings();
 
   const handleSignOut = async () => {
     console.log('UserProfile: Attempting to sign out...');
@@ -36,6 +38,9 @@ const UserProfile = () => {
       console.error('UserProfile: Unexpected error during sign out:', error);
     }
   };
+
+  const footerText = getSetting('footer_text', '© 2025 asdar it');
+  const footerLink = getSetting('footer_link', 'https://asdar.net');
 
   console.log('UserProfile: Rendering with user:', user?.email);
   console.log('UserProfile: Current RBAC user:', currentUser);
@@ -59,7 +64,7 @@ const UserProfile = () => {
         </div>
         <div className="px-2 group-data-[collapsible=icon]:hidden">
           <p className="text-xs text-gray-400 text-center font-medium">
-            © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">asdar.net</a>
+            {footerText} | <a href={footerLink} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">asdar.net</a>
           </p>
         </div>
       </div>
@@ -127,7 +132,7 @@ const UserProfile = () => {
       
       <div className="px-2 group-data-[collapsible=icon]:hidden">
         <p className="text-xs text-gray-400 text-center font-medium">
-          © 2025 asdar it | <a href="https://asdar.net" target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">asdar.net</a>
+          {footerText} | <a href={footerLink} target="_blank" rel="noopener noreferrer" className="hover:text-blue-600 transition-colors">asdar.net</a>
         </p>
       </div>
     </div>

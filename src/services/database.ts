@@ -28,7 +28,7 @@ export class DatabaseService {
 
   static async createCompany(company: Tables['companies']['Insert']) {
     await requireAuth();
-    const { data, error } = await supabase
+    const { data, error }= await supabase
       .from('companies')
       .insert(company)
       .select()
@@ -163,6 +163,18 @@ export class DatabaseService {
       .from('user_groups')
       .select('*')
       .order('name');
+    
+    if (error) throw error;
+    return data;
+  }
+
+  // System Settings
+  static async getSystemSettings() {
+    await requireAuth();
+    const { data, error } = await supabase
+      .from('system_settings')
+      .select('*')
+      .order('setting_key');
     
     if (error) throw error;
     return data;

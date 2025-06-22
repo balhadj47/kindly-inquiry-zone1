@@ -12,9 +12,9 @@ import { User, UserStatus } from '@/types/rbac';
 
 const employeeSchema = z.object({
   name: z.string().min(1, 'Le nom est requis'),
+  badgeNumber: z.string().min(1, 'Le numéro de badge est requis'),
   email: z.string().email('Email invalide').optional().or(z.literal('')),
-  phone: z.string().min(1, 'Le téléphone est requis'),
-  badgeNumber: z.string().optional(),
+  phone: z.string().optional(),
   dateOfBirth: z.string().optional(),
   placeOfBirth: z.string().optional(),
   address: z.string().optional(),
@@ -47,9 +47,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
       name: employee?.name || '',
+      badgeNumber: employee?.badgeNumber || '',
       email: employee?.email || '',
       phone: employee?.phone || '',
-      badgeNumber: employee?.badgeNumber || '',
       dateOfBirth: employee?.dateOfBirth || '',
       placeOfBirth: employee?.placeOfBirth || '',
       address: employee?.address || '',
@@ -64,6 +64,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     onSubmit({
       ...data,
       email: data.email || undefined,
+      phone: data.phone || undefined,
       role_id: 4, // Always employee
     });
   };
@@ -84,16 +85,17 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="badgeNumber">Numéro de badge</Label>
+          <Label htmlFor="badgeNumber">Numéro de badge *</Label>
           <Input
             id="badgeNumber"
             {...register('badgeNumber')}
             placeholder="Ex: EMP001"
           />
+          {errors.badgeNumber && <p className="text-sm text-red-600">{errors.badgeNumber.message}</p>}
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="phone">Téléphone *</Label>
+          <Label htmlFor="phone">Téléphone</Label>
           <Input
             id="phone"
             type="tel"

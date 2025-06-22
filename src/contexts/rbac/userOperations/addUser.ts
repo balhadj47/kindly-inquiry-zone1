@@ -8,7 +8,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
     console.log('Adding user to database:', userData);
     
     try {
-      // Clean up email - convert empty string to null
+      // Clean up email - convert empty string to null for database
       const cleanEmail = userData.email && userData.email.trim() !== '' ? userData.email.trim() : null;
       
       // Optimistic update - add to UI immediately for better UX
@@ -81,7 +81,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           const insertData = {
             name: userData.name,
             phone: userData.phone || '',
-            email: cleanEmail,
+            email: cleanEmail, // Will be the cleaned email or null
             role_id: userData.role_id || 2,
             status: userData.status || 'Active',
             profile_image: userData.profileImage || null,

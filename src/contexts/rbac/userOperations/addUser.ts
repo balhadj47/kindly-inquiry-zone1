@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -38,11 +37,6 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
-        badge_number: userData.badgeNumber || null,
-        date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
-        place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
-        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
-        driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
       console.log('Database insert data:', insertData);
@@ -63,7 +57,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       }
 
       if (data) {
-        // Replace temp user with real data
+        // Replace temp user with real data - only use fields that exist in the database
         const newUser: User = {
           id: data.id.toString(),
           name: data.name,
@@ -75,11 +69,12 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           totalTrips: data.total_trips || 0,
           lastTrip: data.last_trip || undefined,
           profileImage: data.profile_image || undefined,
-          badgeNumber: data.badge_number || undefined,
-          dateOfBirth: data.date_of_birth || undefined,
-          placeOfBirth: data.place_of_birth || undefined,
-          address: data.address || undefined,
-          driverLicense: data.driver_license || undefined,
+          // Employee fields - these don't exist in DB yet, so we keep the original values from userData
+          badgeNumber: userData.badgeNumber || undefined,
+          dateOfBirth: userData.dateOfBirth || undefined,
+          placeOfBirth: userData.placeOfBirth || undefined,
+          address: userData.address || undefined,
+          driverLicense: userData.driverLicense || undefined,
         };
         
         console.log('User created successfully:', newUser);

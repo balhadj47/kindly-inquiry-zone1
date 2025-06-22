@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -32,6 +33,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         name: userData.name,
         phone: userData.phone || '',
         email: userData.email || '',
+        role: userData.role_id === 1 ? 'Admin' : userData.role_id === 2 ? 'Manager' : 'Employee',
         role_id: userData.role_id || 3,
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
@@ -88,3 +90,4 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
   return addUser;
 };
+

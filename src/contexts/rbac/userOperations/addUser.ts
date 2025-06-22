@@ -80,32 +80,49 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
 
-        // Try to send invitation email but don't fail if it doesn't work
+        // Create auth account with default password if email is provided
         if (userData.email && userData.email.trim() !== '') {
-          console.log('User created successfully. Email invitation temporarily disabled due to CORS issues.');
-          console.log('You can manually send invitation to:', userData.email);
-          
-          // TODO: Re-enable when Supabase Edge Function CORS is properly configured
-          /*
           try {
-            console.log('Attempting to send invitation email to:', userData.email);
-            const { error: inviteError } = await supabase.functions.invoke('send-user-invite', {
-              body: {
-                email: userData.email,
+            console.log('Creating auth account for user:', userData.email);
+            
+            // Generate a default password (user should change this on first login)
+            const defaultPassword = 'TempPass123!'; // You can customize this
+            
+            const { data: authData, error: createError } = await supabase.auth.admin.createUser({
+              email: userData.email,
+              password: defaultPassword,
+              email_confirm: true,
+              user_metadata: {
                 name: userData.name,
-                userId: data.id
+                user_id: data.id
               }
             });
-            
-            if (inviteError) {
-              console.warn('Failed to send invitation email:', inviteError);
+
+            if (createError) {
+              console.error('Error creating auth user:', createError);
+              console.log('User was created in database but auth account creation failed');
             } else {
-              console.log('Invitation email sent successfully to:', userData.email);
+              console.log('Auth account created successfully');
+              
+              // Update user record with auth_user_id
+              if (authData.user) {
+                const { error: updateError } = await supabase
+                  .from('users')
+                  .update({ auth_user_id: authData.user.id })
+                  .eq('id', data.id);
+
+                if (updateError) {
+                  console.error('Error updating user with auth_user_id:', updateError);
+                } else {
+                  console.log(`User account created successfully! Email: ${userData.email}, Password: ${defaultPassword}`);
+                  alert(`Utilisateur créé avec succès!\n\nEmail: ${userData.email}\nMot de passe temporaire: ${defaultPassword}\n\nL'utilisateur devra changer ce mot de passe lors de sa première connexion.`);
+                }
+              }
             }
-          } catch (inviteErr) {
-            console.warn('Error sending invitation email:', inviteErr);
+          } catch (authError) {
+            console.error('Error in auth account creation:', authError);
+            console.log('User was created in database but auth account creation failed');
           }
-          */
         }
       }
     } catch (error) {

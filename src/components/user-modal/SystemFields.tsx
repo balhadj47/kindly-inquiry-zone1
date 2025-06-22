@@ -8,11 +8,19 @@ import { getRoleDisplayNameById } from '@/utils/rolePermissions';
 interface SystemFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
+  watchedRoleId: number;
+  watchedEmail: string;
+  onEmailValidationChange: (isValid: boolean) => void;
+  userId?: string;
 }
 
 const SystemFields: React.FC<SystemFieldsProps> = ({
   control,
   isSubmitting,
+  watchedRoleId,
+  watchedEmail,
+  onEmailValidationChange,
+  userId,
 }) => {
   // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
   const availableRoles = [

@@ -1,6 +1,7 @@
+
 import React from 'react';
 import { useFormContext, Controller, Control } from 'react-hook-form';
-import { FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 
 interface BasicInfoFieldsProps {

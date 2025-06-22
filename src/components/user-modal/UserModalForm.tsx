@@ -5,8 +5,6 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Info } from 'lucide-react';
 import UserFormFields from './UserFormFields';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -80,16 +78,6 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           onImageChange={(url) => form.setValue('profileImage', url)}
           isSubmitting={isSubmitting}
         />
-
-        {!user && (
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription>
-              <strong>Création d'un nouveau compte:</strong> Un mot de passe temporaire sera généré automatiquement. 
-              Vous devrez le partager avec l'utilisateur après la création du compte.
-            </AlertDescription>
-          </Alert>
-        )}
 
         <UserFormFields
           control={form.control}

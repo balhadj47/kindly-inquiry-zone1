@@ -23,7 +23,6 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       const updateData: any = {
         name: userData.name,
         phone: userData.phone || null,
-        role: userData.role_id ? (userData.role_id === 1 ? 'Administrator' : userData.role_id === 2 ? 'Supervisor' : 'Employee') : undefined,
         role_id: userData.role_id || 3,
         status: userData.status,
         profile_image: userData.profileImage || null,

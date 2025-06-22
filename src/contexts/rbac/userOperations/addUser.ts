@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -40,9 +41,10 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
       console.log('Database insert data:', insertData);
 
+      // Use type assertion to work around outdated TypeScript types
       const { data, error } = await supabase
         .from('users')
-        .insert(insertData)
+        .insert(insertData as any)
         .select()
         .single();
 

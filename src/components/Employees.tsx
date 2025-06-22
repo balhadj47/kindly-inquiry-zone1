@@ -13,7 +13,26 @@ import { RefreshButton } from '@/components/ui/refresh-button';
 import { useToast } from '@/hooks/use-toast';
 import { useUsersByRoleId, useUserMutations } from '@/hooks/useUsersOptimized';
 import { useModernRefresh } from '@/hooks/useModernRefresh';
-import { hasPermission } from '@/utils/rolePermissions';
+import { roleIdHasPermission } from '@/utils/rolePermissions';
+
+// Helper function to transform optimized user data to RBAC User type
+const transformOptimizedUser = (user: any): User => ({
+  id: user.id,
+  name: user.name,
+  email: user.email,
+  phone: user.phone,
+  role_id: user.role_id,
+  status: user.status,
+  createdAt: user.created_at, // Transform created_at to createdAt
+  totalTrips: user.total_trips,
+  lastTrip: user.last_trip,
+  profileImage: user.profile_image,
+  badgeNumber: user.badge_number,
+  dateOfBirth: user.date_of_birth,
+  placeOfBirth: user.place_of_birth,
+  address: user.address,
+  driverLicense: user.driver_license,
+});
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,9 +45,12 @@ const Employees = () => {
   const { toast } = useToast();
   
   // Use the optimized hook for employees (role_id: 3)
-  const { data: employees = [], isLoading: loading, refetch } = useUsersByRoleId(3);
+  const { data: rawEmployees = [], isLoading: loading, refetch } = useUsersByRoleId(3);
   const { deleteUser } = useUserMutations();
   const { modernRefresh, isRefreshing } = useModernRefresh<User>();
+
+  // Transform the raw employees data to match RBAC User type
+  const employees: User[] = rawEmployees.map(transformOptimizedUser);
 
   // Refresh data when component mounts
   useEffect(() => {
@@ -42,7 +64,7 @@ const Employees = () => {
       employees,
       async () => {
         const result = await refetch();
-        return result.data || [];
+        return (result.data || []).map(transformOptimizedUser);
       },
       () => {}, // No need to update state, React Query handles it
       { showToast: true }
@@ -89,10 +111,10 @@ const Employees = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions
-  const canCreateUsers = authUser ? hasPermission(authUser, 'users:create') : false;
-  const canEditUsers = authUser ? hasPermission(authUser, 'users:update') : false;
-  const canDeleteUsers = authUser ? hasPermission(authUser, 'users:delete') : false;
+  // Check permissions using role_id
+  const canCreateUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:create') : false;
+  const canEditUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:update') : false;
+  const canDeleteUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:delete') : false;
 
   if (loading) {
     return (
@@ -112,7 +134,7 @@ const Employees = () => {
   }
 
   const isKnownAdmin = authUser.email === 'gb47@msn.com';
-  const hasUsersReadPermission = hasPermission(authUser, 'users:read') || isKnownAdmin;
+  const hasUsersReadPermission = roleIdHasPermission(authUser.role_id, 'users:read') || isKnownAdmin;
 
   if (!hasUsersReadPermission) {
     return (

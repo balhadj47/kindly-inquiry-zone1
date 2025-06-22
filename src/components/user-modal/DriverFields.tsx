@@ -8,10 +8,20 @@ import { useLanguage } from '@/contexts/LanguageContext';
 interface DriverFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
+  hideDriverSpecificFields?: boolean; // New prop to hide driver-specific fields
 }
 
-const DriverFields: React.FC<DriverFieldsProps> = ({ control, isSubmitting }) => {
+const DriverFields: React.FC<DriverFieldsProps> = ({ 
+  control, 
+  isSubmitting, 
+  hideDriverSpecificFields = false 
+}) => {
   const { t } = useLanguage();
+
+  // If hideDriverSpecificFields is true, don't render anything
+  if (hideDriverSpecificFields) {
+    return null;
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

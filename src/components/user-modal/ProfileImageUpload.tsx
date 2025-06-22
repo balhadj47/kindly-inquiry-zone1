@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Camera, Upload, Loader2 } from 'lucide-react';
 import { getUserInitials } from '@/utils/userModalUtils';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface ProfileImageUploadProps {
   profileImage: string;
@@ -21,23 +22,61 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const { toast } = useToast();
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez sélectionner un fichier image valide.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Erreur',
+        description: 'L\'image ne doit pas dépasser 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setUploading(true);
     
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
 
       console.log('Uploading file:', filePath);
 
+      // First, try to create the bucket if it doesn't exist
+      const { data: buckets } = await supabase.storage.listBuckets();
+      const avatarBucket = buckets?.find(bucket => bucket.name === 'avatars');
+      
+      if (!avatarBucket) {
+        console.log('Creating avatars bucket...');
+        const { error: bucketError } = await supabase.storage.createBucket('avatars', {
+          public: true
+        });
+        if (bucketError) {
+          console.error('Error creating bucket:', bucketError);
+        }
+      }
+
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
         console.error('Error uploading file:', uploadError);
@@ -50,10 +89,24 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 
       console.log('File uploaded successfully, URL:', data.publicUrl);
       onImageChange(data.publicUrl);
-    } catch (error) {
+      
+      toast({
+        title: 'Succès',
+        description: 'Image téléchargée avec succès.',
+      });
+    } catch (error: any) {
       console.error('Error uploading image:', error);
+      toast({
+        title: 'Erreur',
+        description: error.message || 'Erreur lors du téléchargement de l\'image.',
+        variant: 'destructive',
+      });
     } finally {
       setUploading(false);
+      // Clear the input so the same file can be selected again if needed
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 

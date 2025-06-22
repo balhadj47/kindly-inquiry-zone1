@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Control } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
@@ -28,8 +29,6 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
   userId,
   isEmailRequired = false, // Default to false for backward compatibility
 }) => {
-  // Validation hooks and other logic
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <BasicInfoFields 
@@ -51,7 +50,12 @@ const UserFormFields: React.FC<UserFormFieldsProps> = ({
       {watchedRoleId === 3 ? (
         <EmployeeFields control={control} isSubmitting={isSubmitting} />
       ) : (
-        <DriverFields control={control} isSubmitting={isSubmitting} />
+        // Hide driver-specific fields in user creation (only show for actual drivers)
+        <DriverFields 
+          control={control} 
+          isSubmitting={isSubmitting} 
+          hideDriverSpecificFields={true}
+        />
       )}
     </div>
   );

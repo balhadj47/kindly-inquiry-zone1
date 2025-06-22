@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -8,25 +7,39 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
     console.log('Adding user to database:', userData);
     
     try {
-      // Streamlined insert data preparation
+      // Optimistic update - add to UI immediately for better UX
+      const tempUser: User = {
+        id: `temp-${Date.now()}`,
+        name: userData.name,
+        email: userData.email || undefined,
+        phone: userData.phone || 'N/A',
+        role_id: userData.role_id || 3,
+        status: userData.status || 'Active',
+        createdAt: new Date().toISOString(),
+        totalTrips: 0,
+        badgeNumber: userData.badgeNumber,
+        dateOfBirth: userData.dateOfBirth,
+        placeOfBirth: userData.placeOfBirth,
+        address: userData.address,
+        driverLicense: userData.driverLicense,
+      };
+      
+      setUsers(prev => [...prev, tempUser]);
+
+      // Prepare data matching the actual database schema
       const insertData = {
         name: userData.name,
-        phone: userData.phone || null,
-        email: userData.email?.trim() || null,
+        phone: userData.phone || '',
+        email: userData.email || '',
+        role: userData.role_id === 1 ? 'Admin' : userData.role_id === 2 ? 'Manager' : 'Employee',
         role_id: userData.role_id || 3,
-        group_id: userData.group_id || 3,
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
-        badge_number: userData.badgeNumber?.trim() || null,
-        date_of_birth: userData.dateOfBirth?.trim() || null,
-        place_of_birth: userData.placeOfBirth?.trim() || null,
-        address: userData.address?.trim() || null,
-        driver_license: userData.driverLicense?.trim() || null,
       };
 
-      console.log('Streamlined insert data:', insertData);
+      console.log('Database insert data:', insertData);
 
       const { data, error } = await supabase
         .from('users')
@@ -36,11 +49,13 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
       if (error) {
         console.error('Supabase error adding user:', error);
+        // Revert optimistic update
+        setUsers(prev => prev.filter(user => user.id !== tempUser.id));
         throw new Error(`Failed to add user: ${error.message}`);
       }
 
       if (data) {
-        // Quick user object creation
+        // Replace temp user with real data
         const newUser: User = {
           id: data.id.toString(),
           name: data.name,
@@ -52,18 +67,21 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           totalTrips: data.total_trips || 0,
           lastTrip: data.last_trip || undefined,
           profileImage: data.profile_image || undefined,
-          badgeNumber: data.badge_number || undefined,
-          dateOfBirth: data.date_of_birth || undefined,
-          placeOfBirth: data.place_of_birth || undefined,
-          address: data.address || undefined,
-          driverLicense: data.driver_license || undefined,
+          // Keep employee fields from original data since they're not in DB yet
+          badgeNumber: userData.badgeNumber,
+          dateOfBirth: userData.dateOfBirth,
+          placeOfBirth: userData.placeOfBirth,
+          address: userData.address,
+          driverLicense: userData.driverLicense,
         };
         
         console.log('User created successfully:', newUser);
-        setUsers(prev => [...prev, newUser]);
+        setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
       }
     } catch (error) {
       console.error('Error in addUser operation:', error);
+      // Make sure to revert optimistic update on any error
+      setUsers(prev => prev.filter(user => !user.id.startsWith('temp-')));
       throw error;
     }
   };

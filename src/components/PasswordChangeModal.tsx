@@ -46,7 +46,7 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
     
     try {
       const result = await changeUserPassword(user.email, ''); // Password not used for reset email
-      if (result && result.success) {
+      if (result.success) {
         setEmailSent(true);
         setSuccess(true);
         setTimeout(() => {

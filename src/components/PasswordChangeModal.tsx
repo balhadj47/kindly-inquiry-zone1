@@ -8,7 +8,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useRBAC } from '@/contexts/RBACContext';
 import { User } from '@/types/rbac';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Mail } from 'lucide-react';
 
 interface PasswordChangeModalProps {
   isOpen: boolean;
@@ -26,8 +26,7 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const form = useForm<PasswordFormData>({
     defaultValues: {
@@ -36,16 +35,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
     }
   });
 
-  const handleSubmit = async (data: PasswordFormData) => {
-    if (!user) return;
-
-    if (data.newPassword !== data.confirmPassword) {
-      setError('Les mots de passe ne correspondent pas');
-      return;
-    }
-
-    if (data.newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+  const handleSendResetEmail = async () => {
+    if (!user || !user.email) {
+      setError('Adresse email manquante pour cet utilisateur');
       return;
     }
 
@@ -53,16 +45,19 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
     setError('');
     
     try {
-      await changeUserPassword(user.email, data.newPassword);
-      setSuccess(true);
-      form.reset();
-      setTimeout(() => {
-        setSuccess(false);
-        onClose();
-      }, 2000);
+      const result = await changeUserPassword(user.email, ''); // Password not used for reset email
+      if (result && result.success) {
+        setEmailSent(true);
+        setSuccess(true);
+        setTimeout(() => {
+          setEmailSent(false);
+          setSuccess(false);
+          onClose();
+        }, 3000);
+      }
     } catch (error: any) {
-      console.error('Erreur lors du changement de mot de passe:', error);
-      setError(error.message || 'Erreur lors du changement de mot de passe');
+      console.error('Erreur lors de l\'envoi de l\'email:', error);
+      setError(error.message || 'Erreur lors de l\'envoi de l\'email de réinitialisation');
     } finally {
       setIsSubmitting(false);
     }
@@ -72,112 +67,56 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
     form.reset();
     setError('');
     setSuccess(false);
+    setEmailSent(false);
     onClose();
   };
+
+  if (!user || !user.email) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Impossible de Changer le Mot de Passe</DialogTitle>
+          </DialogHeader>
+          <Alert variant="destructive">
+            <AlertDescription>
+              Cet utilisateur n'a pas d'adresse email associée. Impossible d'envoyer un email de réinitialisation.
+            </AlertDescription>
+          </Alert>
+          <div className="flex justify-end pt-4">
+            <Button onClick={handleClose}>Fermer</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
-            Changer le Mot de Passe
+            Réinitialiser le Mot de Passe
           </DialogTitle>
-          {user && (
-            <p className="text-sm text-muted-foreground">
-              Utilisateur: {user.name} ({user.email})
-            </p>
-          )}
+          <p className="text-sm text-muted-foreground">
+            Utilisateur: {user.name} ({user.email})
+          </p>
         </DialogHeader>
         
-        {success && (
+        {success && emailSent && (
           <Alert className="border-green-200 bg-green-50">
+            <Mail className="h-4 w-4" />
             <AlertDescription className="text-green-800">
-              Mot de passe changé avec succès!
+              Email de réinitialisation envoyé avec succès à {user.email}
             </AlertDescription>
           </Alert>
         )}
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="newPassword"
-              rules={{ 
-                required: 'Le nouveau mot de passe est requis',
-                minLength: {
-                  value: 6,
-                  message: 'Le mot de passe doit contenir au moins 6 caractères'
-                }
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nouveau Mot de Passe</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type={showPassword ? 'text' : 'password'}
-                        placeholder="Nouveau mot de passe"
-                        disabled={isSubmitting}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowPassword(!showPassword)}
-                        disabled={isSubmitting}
-                      >
-                        {showPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              rules={{ 
-                required: 'La confirmation du mot de passe est requise'
-              }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirmer le Mot de Passe</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <Input
-                        {...field}
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        placeholder="Confirmer le mot de passe"
-                        disabled={isSubmitting}
-                      />
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        disabled={isSubmitting}
-                      >
-                        {showConfirmPassword ? (
-                          <EyeOff className="h-4 w-4" />
-                        ) : (
-                          <Eye className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {!emailSent && (
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">
+              Un email de réinitialisation sera envoyé à l'utilisateur avec des instructions pour créer un nouveau mot de passe.
+            </div>
 
             {error && (
               <Alert variant="destructive">
@@ -189,12 +128,12 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
               <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={isSubmitting || success}>
-                {isSubmitting ? 'Changement...' : 'Changer le Mot de Passe'}
+              <Button onClick={handleSendResetEmail} disabled={isSubmitting || success}>
+                {isSubmitting ? 'Envoi...' : 'Envoyer Email de Réinitialisation'}
               </Button>
             </div>
-          </form>
-        </Form>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

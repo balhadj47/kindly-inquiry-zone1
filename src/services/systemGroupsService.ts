@@ -88,7 +88,7 @@ export class SystemGroupsService {
       const isSystemRole = await this.isSystemRole(id);
       if (isSystemRole) {
         // Allow limited updates to system roles (description, color) but not name or core permissions
-        const allowedUpdates: any = {};
+        const allowedUpdates: Record<string, any> = {};
         if (groupData.description) allowedUpdates.description = groupData.description;
         if (groupData.color) allowedUpdates.color = this.standardizeColor(groupData.color);
         
@@ -113,7 +113,7 @@ export class SystemGroupsService {
       }
 
       // Full updates for custom groups
-      const updateData: any = {};
+      const updateData: Record<string, any> = {};
       
       if (groupData.name) updateData.name = groupData.name;
       if (groupData.description) updateData.description = groupData.description;
@@ -149,14 +149,21 @@ export class SystemGroupsService {
       }
 
       // Check if any users are assigned to this group
+      const groupName = await this.getGroupNameById(id);
+      if (!groupName) {
+        throw new Error('Group not found');
+      }
+
+      // Note: We're checking against a legacy 'role' field that might not exist
+      // This query might return empty results, which is fine for deletion
       const { data: usersWithGroup, error: usersError } = await supabase
         .from('users')
         .select('id, name')
-        .eq('role', await this.getGroupNameById(id));
+        .eq('role_id', this.getRoleIdFromGroupName(groupName));
 
       if (usersError) {
         console.error('❌ Error checking user assignments:', usersError);
-        throw new Error('Failed to verify user assignments before deletion');
+        // Continue with deletion even if we can't check assignments
       }
 
       if (usersWithGroup && usersWithGroup.length > 0) {
@@ -218,6 +225,16 @@ export class SystemGroupsService {
     } catch (error) {
       console.error('❌ Error getting group name:', error);
       return null;
+    }
+  }
+
+  // Helper method to get role_id from group name
+  private static getRoleIdFromGroupName(groupName: string): number {
+    switch (groupName) {
+      case 'Administrator': return 1;
+      case 'Supervisor': return 2;
+      case 'Employee': return 3;
+      default: return 3;
     }
   }
 

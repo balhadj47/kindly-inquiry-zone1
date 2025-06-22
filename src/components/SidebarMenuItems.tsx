@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { 
   Calendar, 
@@ -5,6 +6,7 @@ import {
   Database, 
   Car,
   Users,
+  UserCheck,
   PlusCircle,
   History,
 } from 'lucide-react';
@@ -40,9 +42,17 @@ export const useSidebarMenuItems = () => {
       badge: null,
     },
     {
-      title: t.users,
+      title: 'Utilisateurs',
       href: '/users',
       icon: Users,
+      permission: 'users:read',
+      restrictToAdmin: true, // Only admin can see system users
+      badge: null,
+    },
+    {
+      title: 'Employés',
+      href: '/employees',
+      icon: UserCheck,
       permission: 'users:read',
       badge: null,
     },
@@ -68,14 +78,6 @@ export const useSidebarMenuItems = () => {
     console.log('Loading state:', loading);
     console.log('Current user:', currentUser?.id, currentUser?.role_id);
     console.log('Roles loaded:', roles.length);
-    console.log('Available roles:', roles.map(r => ({ name: r.name, permissions: r.permissions })));
-    
-    // Add detailed permission checking for each menu item
-    console.log('=== PERMISSION CHECKS ===');
-    menuItems.forEach(item => {
-      const hasAccess = hasPermission(item.permission);
-      console.log(`Menu: "${item.title}" (${item.permission}) = ${hasAccess}`);
-    });
     
     // If still loading, show limited items to avoid confusion
     if (loading || !currentUser) {
@@ -92,7 +94,14 @@ export const useSidebarMenuItems = () => {
     // Filter items based on permissions
     const filtered = menuItems.filter(item => {
       const hasPermissionForItem = hasPermission(item.permission);
-      console.log(`Final filter: "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
+      
+      // Special check for Users page - only admin (role_id: 1) can see it
+      if (item.restrictToAdmin && currentUser.role_id !== 1) {
+        console.log(`Restricting "${item.title}" to admin only - current role: ${currentUser.role_id}`);
+        return false;
+      }
+      
+      console.log(`Permission check: "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
       return hasPermissionForItem;
     });
 

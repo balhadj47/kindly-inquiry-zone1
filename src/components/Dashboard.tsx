@@ -56,7 +56,7 @@ const DashboardLoadingSkeleton = () => {
 const Dashboard = () => {
   const { users } = useRBAC();
   const { vans, isLoading: vansLoading, refetch: refetchVans } = useVans();
-  const { companies, isLoading: companiesLoading, refetch: refetchCompanies } = useCompanies();
+  const { companies, refetch: refetchCompanies } = useCompanies();
   const { trips } = useTrip();
 
   // Single refresh effect - only run once when component mounts
@@ -73,7 +73,7 @@ const Dashboard = () => {
     ]);
   };
 
-  const isLoading = vansLoading || companiesLoading;
+  const isLoading = vansLoading;
 
   if (isLoading) {
     return <DashboardLoadingSkeleton />;

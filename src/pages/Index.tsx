@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -20,6 +21,7 @@ import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
 import Users from '@/components/Users';
+import Employees from '@/components/Employees';
 
 const PageLoadingSkeleton = () => (
   <div className="space-y-6 p-6">
@@ -40,9 +42,11 @@ const Index = () => {
   
   // Safely access RBAC context
   let hasPermission: (permission: string) => boolean = () => true; // Default to true to avoid blocking
+  let currentUser: any = null;
   try {
     const rbacContext = useRBAC();
     hasPermission = rbacContext.hasPermission || (() => true);
+    currentUser = rbacContext.currentUser;
     console.log('📱 Index: RBAC context loaded successfully');
   } catch (error) {
     console.error('📱 Index: Error accessing RBAC context:', error);
@@ -76,7 +80,10 @@ const Index = () => {
                     } />
                     <Route path="/vans/*" element={<Vans />} />
                     <Route path="/users" element={
-                      hasPermission('users:read') ? <Users /> : <div>Access Denied</div>
+                      (hasPermission('users:read') && currentUser?.role_id === 1) ? <Users /> : <div>Access Denied</div>
+                    } />
+                    <Route path="/employees" element={
+                      hasPermission('users:read') ? <Employees /> : <div>Access Denied</div>
                     } />
                     <Route path="/trip-logger" element={<TripLoggerPage />} />
                     <Route path="/trip-history" element={<TripHistoryPage />} />

@@ -167,16 +167,4 @@ export class DatabaseService {
     if (error) throw error;
     return data;
   }
-
-  // System Settings
-  static async getSystemSettings() {
-    await requireAuth();
-    const { data, error } = await supabase
-      .from('system_settings')
-      .select('*')
-      .order('setting_key');
-    
-    if (error) throw error;
-    return data;
-  }
 }

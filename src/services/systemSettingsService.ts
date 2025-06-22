@@ -11,62 +11,44 @@ export interface SystemSetting {
   updated_at: string;
 }
 
+// Simple in-memory settings for now until system_settings table is created
+const DEFAULT_SETTINGS: Record<string, string> = {
+  'app_name': 'SSB',
+  'app_slogan': 'Fonds & Escorte',
+  'footer_text': '© 2025 asdar it',
+  'footer_link': 'https://asdar.net'
+};
+
 export class SystemSettingsService {
   static async getSettings(): Promise<SystemSetting[]> {
     await requireAuth();
-    const { data, error } = await supabase
-      .from('system_settings')
-      .select('*')
-      .order('setting_key');
     
-    if (error) throw error;
-    return data || [];
+    // Return default settings as SystemSetting objects
+    return Object.entries(DEFAULT_SETTINGS).map(([key, value], index) => ({
+      id: index + 1,
+      setting_key: key,
+      setting_value: value,
+      setting_type: 'string',
+      description: `Default ${key}`,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }));
   }
 
   static async getSetting(key: string): Promise<string | null> {
     await requireAuth();
-    const { data, error } = await supabase
-      .from('system_settings')
-      .select('setting_value')
-      .eq('setting_key', key)
-      .single();
-    
-    if (error) return null;
-    return data?.setting_value || null;
+    return DEFAULT_SETTINGS[key] || null;
   }
 
   static async updateSetting(key: string, value: string): Promise<void> {
     await requireAuth();
-    const { error } = await supabase
-      .from('system_settings')
-      .update({ 
-        setting_value: value,
-        updated_at: new Date().toISOString()
-      })
-      .eq('setting_key', key);
-    
-    if (error) throw error;
+    // For now, just update the in-memory settings
+    DEFAULT_SETTINGS[key] = value;
   }
 
   static async updateSettings(settings: Record<string, string>): Promise<void> {
     await requireAuth();
-    
-    const updates = Object.entries(settings).map(([key, value]) => ({
-      setting_key: key,
-      setting_value: value,
-      updated_at: new Date().toISOString()
-    }));
-
-    for (const update of updates) {
-      const { error } = await supabase
-        .from('system_settings')
-        .update({
-          setting_value: update.setting_value,
-          updated_at: update.updated_at
-        })
-        .eq('setting_key', update.setting_key);
-      
-      if (error) throw error;
-    }
+    // For now, just update the in-memory settings
+    Object.assign(DEFAULT_SETTINGS, settings);
   }
 }

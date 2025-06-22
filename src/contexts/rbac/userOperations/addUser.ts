@@ -66,8 +66,8 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           console.log('User created successfully with auth account:', newUser);
           setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
 
-          // Show success message with temporary password
-          alert(`✅ Utilisateur créé avec succès!\n\n📧 Email: ${userData.email}\n🔑 Mot de passe temporaire: ${tempPassword}\n\n⚠️ IMPORTANT: Partagez ce mot de passe avec l'utilisateur. Il pourra le changer après sa première connexion.`);
+          // Remove alert - just log success
+          console.log('✅ User created successfully with auth account');
           
         } catch (authError) {
           console.error('Error creating user with auth:', authError);
@@ -117,7 +117,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
             };
             
             setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
-            alert(`⚠️ Utilisateur créé dans la base de données seulement.\n\nErreur lors de la création du compte d'authentification: ${authError instanceof Error ? authError.message : 'Erreur inconnue'}\n\nL'utilisateur pourra s'inscrire manuellement avec l'email: ${userData.email}`);
+            console.log('⚠️ User created in database only - auth account creation failed');
           }
         }
       } else {
@@ -166,7 +166,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           };
           
           setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
-          alert(`✅ Utilisateur créé avec succès dans la base de données!\n\n📝 Note: Aucun email fourni, donc aucun compte d'authentification n'a été créé.`);
+          console.log('✅ User created successfully in database');
         }
       }
     } catch (error) {

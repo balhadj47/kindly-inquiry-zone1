@@ -74,6 +74,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      {/* Hidden input for group_id */}
+      <input type="hidden" name="group_id" value="3" />
+      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nom complet *</Label>

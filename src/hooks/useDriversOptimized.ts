@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getRoleDisplayNameById } from '@/utils/rolePermissions';
 
 export interface Driver {
   id: string;
@@ -28,7 +29,7 @@ export const useDrivers = () => {
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .not('role', 'is', null)
+        .not('role_id', 'is', null)
         .order('name');
 
       if (error) {
@@ -45,9 +46,9 @@ export const useDrivers = () => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        licenseNumber: '', // Will be populated from user profile if available
+        licenseNumber: user.driver_license || '', // Use driver_license from database
         status: user.status || 'Active',
-        systemGroup: user.role || '',
+        systemGroup: getRoleDisplayNameById(user.role_id || 3), // Use role_id and convert to display name
         totalTrips: user.total_trips || 0,
         lastTrip: user.last_trip || null,
         created_at: user.created_at,
@@ -70,7 +71,7 @@ export const useAvailableDrivers = () => {
       const { data: allDrivers, error: driversError } = await supabase
         .from('users')
         .select('*')
-        .not('role', 'is', null)
+        .not('role_id', 'is', null)
         .eq('status', 'Active')
         .order('name');
 
@@ -98,9 +99,9 @@ export const useAvailableDrivers = () => {
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        licenseNumber: '', // Will be populated from user profile if available
+        licenseNumber: user.driver_license || '',
         status: user.status || 'Active',
-        systemGroup: user.role || '',
+        systemGroup: getRoleDisplayNameById(user.role_id || 3),
         totalTrips: user.total_trips || 0,
         lastTrip: user.last_trip || null,
       }));
@@ -143,9 +144,9 @@ export const useDriverWithStats = (driverId: string | null) => {
         name: driver.name || '',
         email: driver.email || '',
         phone: driver.phone || '',
-        licenseNumber: '', // Will be populated from user profile if available
+        licenseNumber: driver.driver_license || '',
         status: driver.status || 'Active',
-        systemGroup: driver.role || '',
+        systemGroup: getRoleDisplayNameById(driver.role_id || 3),
         totalTrips: driver.total_trips || 0,
         lastTrip: driver.last_trip || null,
       };
@@ -177,7 +178,8 @@ export const useDriverMutations = () => {
           email: driverData.email,
           phone: driverData.phone,
           status: driverData.status,
-          role: driverData.systemGroup,
+          role_id: driverData.systemGroup === 'Administrator' ? 1 : 
+                   driverData.systemGroup === 'Supervisor' ? 2 : 3,
         })
         .eq('id', numericId)
         .select()

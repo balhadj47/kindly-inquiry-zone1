@@ -8,7 +8,7 @@ create table if not exists users (
   auth_user_id uuid references auth.users(id) on delete cascade,
   name text not null,
   email text,
-  phone text not null default '',
+  phone text, -- Removed 'not null' constraint and default value
   role_id integer not null default 3,
   status text not null default 'Active',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,

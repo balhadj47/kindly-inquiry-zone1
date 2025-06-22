@@ -1,5 +1,3 @@
-
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 
@@ -8,25 +6,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Adding user to database:', userData);
     
     try {
-      // Helper function to safely handle phone field
-      const getPhoneValue = (phone: any): string => {
-        if (!phone || phone === '' || phone === undefined || phone === null) {
-          return 'N/A';
-        }
-        // Handle case where phone is an object with _type and value
-        if (typeof phone === 'object' && phone._type === 'undefined') {
-          return 'N/A';
-        }
-        // Handle regular string values
-        if (typeof phone === 'string' && phone.trim() !== '') {
-          return phone.trim();
-        }
-        return 'N/A';
-      };
-
       const insertData: any = {
         name: userData.name,
-        phone: getPhoneValue(userData.phone),
+        phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3, // Default to Employee
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
@@ -60,7 +42,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           id: dbUser.id.toString(),
           name: dbUser.name,
           email: dbUser.email || undefined,
-          phone: dbUser.phone,
+          phone: dbUser.phone || 'N/A', // Display 'N/A' for null phone values
           role_id: dbUser.role_id || 3,
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
@@ -99,25 +81,9 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw new Error(`Failed to fetch current user: ${fetchError.message}`);
       }
 
-      // Helper function to safely handle phone field
-      const getPhoneValue = (phone: any): string => {
-        if (!phone || phone === '' || phone === undefined || phone === null) {
-          return 'N/A';
-        }
-        // Handle case where phone is an object with _type and value
-        if (typeof phone === 'object' && phone._type === 'undefined') {
-          return 'N/A';
-        }
-        // Handle regular string values
-        if (typeof phone === 'string' && phone.trim() !== '') {
-          return phone.trim();
-        }
-        return 'N/A';
-      };
-
       const updateData: any = {
         name: userData.name,
-        phone: getPhoneValue(userData.phone),
+        phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3,
         status: userData.status,
         profile_image: userData.profileImage || null,
@@ -177,7 +143,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
           id: dbUser.id.toString(),
           name: dbUser.name,
           email: dbUser.email || undefined,
-          phone: dbUser.phone,
+          phone: dbUser.phone || 'N/A', // Display 'N/A' for null phone values
           role_id: dbUser.role_id || 3,
           status: dbUser.status as UserStatus,
           createdAt: dbUser.created_at,
@@ -366,4 +332,3 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
   return { addUser, updateUser, deleteUser, changeUserPassword };
 };
-

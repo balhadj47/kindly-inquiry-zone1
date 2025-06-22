@@ -22,9 +22,8 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   onEmailValidationChange,
   userId,
 }) => {
-  const emailValidation = useEmailValidation(watchedEmail, userId);
-  const { isValid, error: emailError } = emailValidation;
-  const isValidating = emailValidation.isValidating || false;
+  const emailValidation = useEmailValidation(watchedEmail, true, userId);
+  const { isValid, error: emailError, isChecking } = emailValidation;
 
   useEffect(() => {
     onEmailValidationChange(isValid);
@@ -64,7 +63,7 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
                 disabled={isSubmitting}
               />
             </FormControl>
-            {isValidating && (
+            {isChecking && (
               <p className="text-sm text-blue-600">Vérification de l'email...</p>
             )}
             {emailError && (

@@ -26,13 +26,12 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       setUsers(prev => [...prev, tempUser]);
 
-      // Prepare data for database insert - match the database schema
+      // Prepare data for database insert - only use role_id
       const insertData = {
         name: userData.name,
         phone: userData.phone || '',
         email: userData.email || '',
-        role: userData.role_id === 1 ? 'Administrator' : userData.role_id === 2 ? 'Supervisor' : 'Employee', // Map role_id to role string
-        role_id: userData.role_id || 2, // Default to Supervisor (2)
+        role_id: userData.role_id || 2, // Only use role_id
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,

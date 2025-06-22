@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -7,7 +8,7 @@ export interface User {
   name: string;
   email?: string;
   phone: string;
-  role: string;
+  role_id: number; // Changed from role to role_id
   status: string;
   created_at: string;
   auth_user_id?: string;
@@ -59,7 +60,7 @@ export const useUsers = (page = 1, limit = 20) => {
             name: dbUser.name || '',
             email: dbUser.email || undefined,
             phone: dbUser.phone || '',
-            role: dbUser.role || '',
+            role_id: dbUser.role_id || 2, // Use role_id instead of role
             status: dbUser.status || 'Active',
             created_at: dbUser.created_at,
             auth_user_id: dbUser.auth_user_id || '',
@@ -81,20 +82,20 @@ export const useUsers = (page = 1, limit = 20) => {
   });
 };
 
-// Hook for users by role
-export const useUsersByRole = (role: string | null) => {
+// Hook for users by role_id
+export const useUsersByRoleId = (roleId: number | null) => {
   return useQuery({
-    queryKey: ['users', 'role', role],
+    queryKey: ['users', 'role_id', roleId],
     queryFn: async (): Promise<User[]> => {
-      if (!role) return [];
+      if (!roleId) return [];
       
-      console.log('👥 useUsersOptimized: Fetching users by role:', role);
+      console.log('👥 useUsersOptimized: Fetching users by role_id:', roleId);
       const startTime = performance.now();
       
       const { data, error } = await supabase
         .from('users')
         .select('*')
-        .eq('role', role)
+        .eq('role_id', roleId)
         .eq('status', 'Active')
         .order('name');
 
@@ -104,7 +105,7 @@ export const useUsersByRole = (role: string | null) => {
       }
 
       const endTime = performance.now();
-      console.log('👥 useUsersOptimized: Fetched users by role in:', endTime - startTime, 'ms');
+      console.log('👥 useUsersOptimized: Fetched users by role_id in:', endTime - startTime, 'ms');
       
       return (data || []).map(user => {
         const dbUser = user as any; // Safe casting to access new fields
@@ -113,7 +114,7 @@ export const useUsersByRole = (role: string | null) => {
           name: dbUser.name || '',
           email: dbUser.email || undefined,
           phone: dbUser.phone || '',
-          role: dbUser.role || '',
+          role_id: dbUser.role_id || 2, // Use role_id instead of role
           status: dbUser.status || 'Active',
           created_at: dbUser.created_at,
           auth_user_id: dbUser.auth_user_id || '',
@@ -128,7 +129,7 @@ export const useUsersByRole = (role: string | null) => {
         };
       });
     },
-    enabled: !!role,
+    enabled: !!roleId,
     staleTime: 3 * 60 * 1000, // 3 minutes
     gcTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -165,7 +166,7 @@ export const useUser = (userId: string | null) => {
         name: dbUser.name || '',
         email: dbUser.email || undefined,
         phone: dbUser.phone || '',
-        role: dbUser.role || '',
+        role_id: dbUser.role_id || 2, // Use role_id instead of role
         status: dbUser.status || 'Active',
         created_at: dbUser.created_at,
         auth_user_id: dbUser.auth_user_id || '',
@@ -200,7 +201,7 @@ export const useUserMutations = () => {
       const updateData: any = {
         name: userData.name,
         phone: userData.phone,
-        role: userData.role,
+        role_id: userData.role_id, // Use role_id instead of role
         status: userData.status,
         badge_number: userData.badge_number || null,
         date_of_birth: userData.date_of_birth && userData.date_of_birth.trim() !== '' ? userData.date_of_birth : null,

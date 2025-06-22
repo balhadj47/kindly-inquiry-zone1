@@ -80,13 +80,22 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
 
-        // Create auth account with default password if email is provided
+        // Only attempt to create auth account if email is provided and we have proper permissions
         if (userData.email && userData.email.trim() !== '') {
           try {
-            console.log('Creating auth account for user:', userData.email);
+            console.log('Attempting to create auth account for user:', userData.email);
             
+            // Check if we can create auth users by trying to get the current session
+            const { data: { session } } = await supabase.auth.getSession();
+            
+            if (!session) {
+              console.log('No active session, skipping auth user creation');
+              alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Aucun compte d'authentification n'a été créé car aucune session admin active n'a été trouvée.\n\nL'utilisateur devra s'inscrire manuellement ou un administrateur avec les permissions appropriées devra créer le compte.`);
+              return;
+            }
+
             // Generate a default password (user should change this on first login)
-            const defaultPassword = 'TempPass123!'; // You can customize this
+            const defaultPassword = 'TempPass123!';
             
             const { data: authData, error: createError } = await supabase.auth.admin.createUser({
               email: userData.email,
@@ -100,7 +109,13 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
             if (createError) {
               console.error('Error creating auth user:', createError);
-              console.log('User was created in database but auth account creation failed');
+              
+              // Provide user-friendly error message based on error type
+              if (createError.message.includes('not allowed') || createError.message.includes('403')) {
+                alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Le compte d'authentification n'a pas pu être créé car vous n'avez pas les permissions d'administrateur nécessaires.\n\nVeuillez contacter un super-administrateur pour créer le compte d'authentification pour: ${userData.email}`);
+              } else {
+                alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Erreur lors de la création du compte d'authentification: ${createError.message}\n\nL'utilisateur peut s'inscrire manuellement avec l'email: ${userData.email}`);
+              }
             } else {
               console.log('Auth account created successfully');
               
@@ -121,8 +136,11 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
             }
           } catch (authError) {
             console.error('Error in auth account creation:', authError);
-            console.log('User was created in database but auth account creation failed');
+            alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Erreur lors de la création du compte d'authentification.\n\nL'utilisateur peut s'inscrire manuellement avec l'email: ${userData.email}`);
           }
+        } else {
+          // No email provided, just show success for database user creation
+          alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Aucun email fourni, donc aucun compte d'authentification n'a été créé.`);
         }
       }
     } catch (error) {

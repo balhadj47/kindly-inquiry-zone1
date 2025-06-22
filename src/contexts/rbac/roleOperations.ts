@@ -16,7 +16,7 @@ export const createRoleOperations = (setRoles: React.Dispatch<React.SetStateActi
     }
   };
 
-  const updateRole = async (id: string, roleData: Partial<SystemGroup>) => {
+  const updateRole = async (id: string, roleData: Partial<SystemGroup>): Promise<SystemGroup> => {
     console.log('Updating system group:', id, roleData);
     
     try {
@@ -25,6 +25,7 @@ export const createRoleOperations = (setRoles: React.Dispatch<React.SetStateActi
         role.id === id ? updatedGroup : role
       ));
       console.log('✅ System group updated successfully');
+      return updatedGroup;
     } catch (error) {
       console.error('❌ Error in updateRole operation:', error);
       throw error;

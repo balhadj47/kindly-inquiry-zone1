@@ -38,10 +38,10 @@ export interface RBACContextType {
   deleteUser: (id: string) => Promise<void>;
   changeUserPassword: (userEmail: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   
-  // Role management
+  // Role management - Fixed to use string IDs and proper return types
   addRole: (roleData: Partial<SystemGroup>) => Promise<void>;
-  updateRole: (id: number, roleData: Partial<SystemGroup>) => Promise<SystemGroup>;
-  deleteRole: (id: number) => Promise<void>;
+  updateRole: (id: string, roleData: Partial<SystemGroup>) => Promise<SystemGroup>;
+  deleteRole: (id: string) => Promise<void>;
   
   // Permission checking
   hasPermission: (permission: string) => boolean;

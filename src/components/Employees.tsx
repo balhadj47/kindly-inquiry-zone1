@@ -1,6 +1,5 @@
 
 import React, { useState, useEffect } from 'react';
-import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
@@ -10,9 +9,11 @@ import EmployeesFilters from './employees/EmployeesFilters';
 import EmployeesList from './employees/EmployeesList';
 import EmployeeModal from './employees/EmployeeModal';
 import EmployeeDeleteDialog from './employees/EmployeeDeleteDialog';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { useToast } from '@/hooks/use-toast';
+import { useUsersByRoleId, useUserMutations } from '@/hooks/useUsersOptimized';
+import { useModernRefresh } from '@/hooks/useModernRefresh';
+import { hasPermission } from '@/utils/rolePermissions';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,36 +22,31 @@ const Employees = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   
-  const { users, hasPermission, loading, currentUser, deleteUser } = useRBAC();
   const { user: authUser } = useAuth();
-  const { refreshPage } = useCacheRefresh();
   const { toast } = useToast();
-
-  // Filter users to show only employees (role_id: 3)
-  const employees = users?.filter(user => user.role_id === 3) || [];
+  
+  // Use the optimized hook for employees (role_id: 3)
+  const { data: employees = [], isLoading: loading, refetch } = useUsersByRoleId(3);
+  const { deleteUser } = useUserMutations();
+  const { modernRefresh, isRefreshing } = useModernRefresh<User>();
 
   // Refresh data when component mounts
   useEffect(() => {
     console.log('👥 Employees component mounted, refreshing data');
-    refreshPage(['users', 'user_groups']);
-  }, [refreshPage]);
+    refetch();
+  }, [refetch]);
 
   const handleRefresh = async () => {
     console.log('🔄 Employees: Manual refresh triggered');
-    try {
-      await refreshPage(['users', 'user_groups']);
-      toast({
-        title: 'Succès',
-        description: 'Liste des employés actualisée.',
-      });
-    } catch (error) {
-      console.error('Error refreshing employees:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de l\'actualisation.',
-        variant: 'destructive',
-      });
-    }
+    await modernRefresh(
+      employees,
+      async () => {
+        const result = await refetch();
+        return result.data || [];
+      },
+      () => {}, // No need to update state, React Query handles it
+      { showToast: true }
+    );
   };
 
   const handleAddEmployee = () => {
@@ -73,25 +69,13 @@ const Employees = () => {
     
     try {
       console.log('Deleting employee:', selectedEmployee);
-      await deleteUser(selectedEmployee.id);
-      
-      toast({
-        title: 'Succès',
-        description: `Employé ${selectedEmployee.name} supprimé avec succès.`,
-      });
+      await deleteUser.mutateAsync(selectedEmployee.id);
       
       setIsDeleteDialogOpen(false);
       setSelectedEmployee(null);
       
-      // Refresh the data after deletion
-      await refreshPage(['users', 'user_groups']);
     } catch (error) {
       console.error('Error deleting employee:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression de l\'employé.',
-        variant: 'destructive',
-      });
     }
   };
 
@@ -106,9 +90,9 @@ const Employees = () => {
   };
 
   // Check permissions
-  const canCreateUsers = hasPermission('users:create');
-  const canEditUsers = hasPermission('users:update');
-  const canDeleteUsers = hasPermission('users:delete');
+  const canCreateUsers = authUser ? hasPermission(authUser, 'users:create') : false;
+  const canEditUsers = authUser ? hasPermission(authUser, 'users:update') : false;
+  const canDeleteUsers = authUser ? hasPermission(authUser, 'users:delete') : false;
 
   if (loading) {
     return (
@@ -128,7 +112,7 @@ const Employees = () => {
   }
 
   const isKnownAdmin = authUser.email === 'gb47@msn.com';
-  const hasUsersReadPermission = hasPermission('users:read') || isKnownAdmin;
+  const hasUsersReadPermission = hasPermission(authUser, 'users:read') || isKnownAdmin;
 
   if (!hasUsersReadPermission) {
     return (
@@ -149,7 +133,7 @@ const Employees = () => {
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          <RefreshButton onRefresh={handleRefresh} />
+          <RefreshButton onRefresh={handleRefresh} disabled={isRefreshing} />
         </div>
       </div>
 

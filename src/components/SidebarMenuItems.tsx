@@ -26,6 +26,7 @@ export const useSidebarMenuItems = () => {
       icon: Database,
       permission: 'dashboard:read',
       badge: null,
+      alwaysShow: true, // Always show dashboard
     },
     {
       title: t.companies,
@@ -79,20 +80,36 @@ export const useSidebarMenuItems = () => {
     console.log('Current user:', currentUser?.id, currentUser?.role_id);
     console.log('Roles loaded:', roles.length);
     
-    // If still loading, show limited items to avoid confusion
+    // Always show items that are marked as alwaysShow (like dashboard)
+    const alwaysShowItems = menuItems.filter(item => item.alwaysShow);
+    
+    // If still loading, show dashboard and basic items
     if (loading || !currentUser) {
-      console.log('Still loading or no user, showing dashboard only');
-      return menuItems.filter(item => item.permission === 'dashboard:read');
+      console.log('Still loading or no user, showing basic items');
+      const basicItems = menuItems.filter(item => 
+        item.alwaysShow || 
+        ['companies:read', 'vans:read'].includes(item.permission)
+      );
+      return basicItems;
     }
 
-    // If no roles loaded yet, show limited items
+    // If no roles loaded yet, show basic items for logged in user
     if (roles.length === 0) {
-      console.log('No roles loaded yet, showing dashboard only');
-      return menuItems.filter(item => item.permission === 'dashboard:read');
+      console.log('No roles loaded yet, showing basic items');
+      const basicItems = menuItems.filter(item => 
+        item.alwaysShow || 
+        ['companies:read', 'vans:read', 'trips:read'].includes(item.permission)
+      );
+      return basicItems;
     }
 
     // Filter items based on permissions
     const filtered = menuItems.filter(item => {
+      // Always show items marked as alwaysShow
+      if (item.alwaysShow) {
+        return true;
+      }
+
       const hasPermissionForItem = hasPermission(item.permission);
       
       // Special check for Users page - only admin (role_id: 1) can see it

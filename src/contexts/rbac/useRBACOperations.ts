@@ -46,6 +46,25 @@ export const useRBACOperations = ({
     }
   };
 
+  const getUserRole = (userId: string): SystemGroup | null => {
+    if (!currentUser || currentUser.id !== userId) {
+      return null;
+    }
+    
+    // Find role by role_id
+    const role = roles.find(r => parseInt(r.id) === currentUser.role_id);
+    return role || null;
+  };
+
+  const canUserPerformAction = (userId: string, action: string): boolean => {
+    const userRole = getUserRole(userId);
+    if (!userRole) {
+      return false;
+    }
+    
+    return userRole.permissions.includes(action);
+  };
+
   const getMenuItemPermissions = () => {
     return {
       dashboard: hasPermission('dashboard:read'),
@@ -71,6 +90,8 @@ export const useRBACOperations = ({
     
     // Permission operations
     hasPermission,
+    getUserRole,
+    canUserPerformAction,
     getMenuItemPermissions,
   };
 };

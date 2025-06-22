@@ -19,3 +19,68 @@ export const requireAuth = async () => {
   }
   return user;
 };
+
+// Admin-only function to create new users (both auth and database)
+export const createUserAsAdmin = async (userData: {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+  role_id: number;
+  status?: string;
+}) => {
+  try {
+    console.log('Admin creating new user:', userData.email);
+    
+    // Create auth user without automatic login
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email: userData.email,
+      password: userData.password,
+      options: {
+        data: {
+          name: userData.name,
+          phone: userData.phone || '',
+        }
+      }
+    });
+
+    if (authError) {
+      console.error('Error creating auth user:', authError);
+      throw new Error(`Failed to create auth account: ${authError.message}`);
+    }
+
+    if (!authData.user) {
+      throw new Error('Failed to create auth user - no user returned');
+    }
+
+    // Create database user record
+    const { data: dbUser, error: dbError } = await supabase
+      .from('users')
+      .insert({
+        auth_user_id: authData.user.id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone || '',
+        role_id: userData.role_id,
+        status: userData.status || 'Active',
+      })
+      .select()
+      .single();
+
+    if (dbError) {
+      console.error('Error creating database user:', dbError);
+      // If database user creation fails, we should clean up the auth user
+      // Note: This requires service role permissions in production
+      throw new Error(`Failed to create user record: ${dbError.message}`);
+    }
+
+    console.log('Successfully created user:', dbUser);
+    return {
+      authUser: authData.user,
+      dbUser: dbUser,
+    };
+  } catch (error) {
+    console.error('Error in createUserAsAdmin:', error);
+    throw error;
+  }
+};

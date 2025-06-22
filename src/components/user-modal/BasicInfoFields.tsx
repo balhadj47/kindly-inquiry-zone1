@@ -1,47 +1,33 @@
-
-import React, { useEffect } from 'react';
-import { Control } from 'react-hook-form';
-import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import React from 'react';
+import { useFormContext, Controller, Control } from 'react-hook-form';
+import { FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useEmailValidation } from '@/hooks/useEmailValidation';
 
 interface BasicInfoFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
-  isEmployee?: boolean;
-  watchedEmail: string;
-  onEmailValidationChange: (isValid: boolean) => void;
-  userId?: string;
+  isEmailRequired?: boolean;
 }
 
-const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
-  control,
+const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({ 
+  control, 
   isSubmitting,
-  isEmployee = false,
-  watchedEmail,
-  onEmailValidationChange,
-  userId,
+  isEmailRequired = false
 }) => {
-  const emailValidation = useEmailValidation(watchedEmail, true, userId);
-  const { isValid, error: emailError, isChecking } = emailValidation;
-
-  useEffect(() => {
-    onEmailValidationChange(isValid);
-  }, [isValid, onEmailValidationChange]);
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <>
       <FormField
         control={control}
         name="name"
+        rules={{ required: 'Le nom est requis' }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Nom complet *</FormLabel>
             <FormControl>
               <Input
-                {...field}
                 placeholder="Nom et prénom"
                 disabled={isSubmitting}
+                {...field}
               />
             </FormControl>
             <FormMessage />
@@ -52,23 +38,35 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
       <FormField
         control={control}
         name="email"
+        rules={isEmailRequired ? {
+          required: 'L\'email est requis pour créer un compte d\'authentification',
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: 'Format d\'email invalide'
+          }
+        } : {
+          pattern: {
+            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+            message: 'Format d\'email invalide'
+          }
+        }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Email *</FormLabel>
+            <FormLabel>
+              Email {isEmailRequired && '*'}
+              {isEmailRequired && (
+                <span className="text-xs text-gray-500 ml-1">(requis pour l'authentification)</span>
+              )}
+            </FormLabel>
             <FormControl>
               <Input
-                {...field}
                 type="email"
-                placeholder="exemple@email.com"
+                placeholder="utilisateur@exemple.com"
                 disabled={isSubmitting}
+                {...field}
+                value={field.value || ''}
               />
             </FormControl>
-            {isChecking && (
-              <p className="text-sm text-blue-600">Vérification de l'email...</p>
-            )}
-            {emailError && (
-              <p className="text-sm text-red-600">{emailError}</p>
-            )}
             <FormMessage />
           </FormItem>
         )}
@@ -82,17 +80,18 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
             <FormLabel>Téléphone</FormLabel>
             <FormControl>
               <Input
-                {...field}
                 type="tel"
                 placeholder="+33 6 12 34 56 78"
                 disabled={isSubmitting}
+                {...field}
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />
           </FormItem>
         )}
       />
-    </div>
+    </>
   );
 };
 

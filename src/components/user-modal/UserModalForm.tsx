@@ -5,6 +5,8 @@ import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 import UserFormFields from './UserFormFields';
 import ProfileImageUpload from './ProfileImageUpload';
 
@@ -17,7 +19,7 @@ interface UserModalFormProps {
 
 interface FormData {
   name: string;
-  email: string; // Required for admin users
+  email: string; // Required for creating auth accounts
   phone?: string; // Optional
   role_id: number;
   status: UserStatus;
@@ -79,6 +81,16 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           isSubmitting={isSubmitting}
         />
 
+        {!user && (
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Création d'un nouveau compte:</strong> Un mot de passe temporaire sera généré automatiquement. 
+              Vous devrez le partager avec l'utilisateur après la création du compte.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <UserFormFields
           control={form.control}
           isSubmitting={isSubmitting}
@@ -86,6 +98,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
           watchedEmail={watchedEmail}
           onEmailValidationChange={setIsEmailValid}
           userId={user?.id}
+          isEmailRequired={!user} // Email is required for new users
         />
 
         <DialogFooter>

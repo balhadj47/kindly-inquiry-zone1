@@ -65,7 +65,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       ...data,
       email: data.email || undefined,
       phone: data.phone || undefined,
-      role_id: 4, // Always employee
+      role_id: 3, // Always set to 3 for employees
     });
   };
 

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -21,8 +20,8 @@ const Employees = () => {
   const { user: authUser } = useAuth();
   const { refreshPage } = useCacheRefresh();
 
-  // Filter only employees (role_id: 4)
-  const employees = users.filter(user => user.role_id === 4);
+  // Filter only employees (role_id: 3) - keeping it consistent
+  const employees = users.filter(user => user.role_id === 3);
 
   // Check permissions
   const canCreateEmployees = hasPermission('users:create');

@@ -43,9 +43,12 @@ const UsersTab: React.FC<UsersTabProps> = ({
   
   const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
 
-  // Use our custom filtering hook
+  // Filter out employees (role_id: 3) from the Users tab - show only admins and supervisors
+  const nonEmployeeUsers = users.filter(user => user.role_id !== 3);
+
+  // Use our custom filtering hook with non-employee users
   const { safeUsers, filteredUsers, uniqueStatuses, uniqueRoles } = useUsersFiltering({
-    users,
+    users: nonEmployeeUsers,
     searchTerm,
     statusFilter,
     roleFilter,

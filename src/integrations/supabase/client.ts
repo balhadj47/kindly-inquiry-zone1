@@ -6,7 +6,7 @@ import type { Database } from './types';
 const SUPABASE_URL = "https://upaxlykqpbpvwsprcrtu.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwYXhseWtxcGJwdndzcHJjcnR1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkwNjY5NzAsImV4cCI6MjA2NDY0Mjk3MH0.PJWg_lEj_3JaYJ4LYypJ0e8_RWWSF2eFCrQdlDfpQX8";
 
-// Create Supabase client with strict authorization requirements
+// Create Supabase client - secure configuration for frontend use
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
     autoRefreshToken: true,

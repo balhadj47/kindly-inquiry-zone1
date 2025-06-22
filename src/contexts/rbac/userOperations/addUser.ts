@@ -27,45 +27,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       setUsers(prev => [...prev, tempUser]);
 
-      // Create auth user first if email is provided
-      let authUserId = null;
-      if (userData.email && userData.email.trim() !== '') {
-        console.log('Creating auth user for:', userData.email);
-        
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email: userData.email,
-          email_confirm: true, // Auto-confirm email
-        });
-
-        if (authError) {
-          console.error('Error creating auth user:', authError);
-          // Revert optimistic update
-          setUsers(prev => prev.filter(user => user.id !== tempUser.id));
-          throw new Error(`Failed to create auth user: ${authError.message}`);
-        }
-
-        if (authData?.user) {
-          authUserId = authData.user.id;
-          console.log('Auth user created with ID:', authUserId);
-
-          // Send password reset email
-          try {
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(userData.email, {
-              redirectTo: `${window.location.origin}/reset-password`
-            });
-            
-            if (resetError) {
-              console.warn('Password reset email failed:', resetError);
-            } else {
-              console.log('Password reset email sent to:', userData.email);
-            }
-          } catch (resetErr) {
-            console.warn('Error sending password reset email:', resetErr);
-          }
-        }
-      }
-
-      // Prepare data for database insert
+      // Prepare data for database insert - no auth user creation in frontend
       const insertData = {
         name: userData.name,
         phone: userData.phone || '',
@@ -75,7 +37,6 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
-        auth_user_id: authUserId,
         badge_number: userData.badgeNumber || null,
         date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
         place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
@@ -85,25 +46,15 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
       console.log('Database insert data:', insertData);
 
-      // Insert user into database
+      // Insert user into database - RLS policies will handle authorization
       const { data, error } = await supabase
         .from('users')
-        .insert(insertData as any)
+        .insert(insertData)
         .select()
         .single();
 
       if (error) {
         console.error('Supabase error adding user:', error);
-        
-        // If auth user was created but database insert failed, clean up auth user
-        if (authUserId) {
-          try {
-            await supabase.auth.admin.deleteUser(authUserId);
-            console.log('Cleaned up auth user after database error');
-          } catch (cleanupError) {
-            console.error('Failed to clean up auth user:', cleanupError);
-          }
-        }
         
         // Revert optimistic update
         setUsers(prev => prev.filter(user => user.id !== tempUser.id));
@@ -111,7 +62,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       }
 
       if (data) {
-        // Replace temp user with real data - using safe property access
+        // Replace temp user with real data
         const newUser: User = {
           id: data.id.toString(),
           name: data.name,
@@ -123,15 +74,36 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           totalTrips: data.total_trips || 0,
           lastTrip: data.last_trip || undefined,
           profileImage: data.profile_image || undefined,
-          badgeNumber: (data as any).badge_number || undefined,
-          dateOfBirth: (data as any).date_of_birth || undefined,
-          placeOfBirth: (data as any).place_of_birth || undefined,
-          address: (data as any).address || undefined,
-          driverLicense: (data as any).driver_license || undefined,
+          badgeNumber: data.badge_number || undefined,
+          dateOfBirth: data.date_of_birth || undefined,
+          placeOfBirth: data.place_of_birth || undefined,
+          address: data.address || undefined,
+          driverLicense: data.driver_license || undefined,
         };
         
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
+
+        // Send invitation email via Supabase Edge Function (if email provided)
+        if (userData.email && userData.email.trim() !== '') {
+          try {
+            const { error: inviteError } = await supabase.functions.invoke('send-user-invite', {
+              body: {
+                email: userData.email,
+                name: userData.name,
+                userId: data.id
+              }
+            });
+            
+            if (inviteError) {
+              console.warn('Failed to send invitation email:', inviteError);
+            } else {
+              console.log('Invitation email sent to:', userData.email);
+            }
+          } catch (inviteErr) {
+            console.warn('Error sending invitation email:', inviteErr);
+          }
+        }
       }
     } catch (error) {
       console.error('Error in addUser operation:', error);

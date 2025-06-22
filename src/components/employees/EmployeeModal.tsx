@@ -20,8 +20,8 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
   const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
     try {
-      // Ensure role_id is 3 for employees (not 4)
-      const employeeData = { ...userData, role_id: 3 };
+      // Ensure role_id is 3 for employees and group_id is 3
+      const employeeData = { ...userData, role_id: 3, group_id: 3 };
       
       if (employee) {
         await updateUser(employee.id, employeeData);

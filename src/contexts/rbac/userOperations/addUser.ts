@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -79,27 +78,6 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
-
-        // Send invitation email via Supabase Edge Function (if email provided)
-        if (userData.email && userData.email.trim() !== '') {
-          try {
-            const { error: inviteError } = await supabase.functions.invoke('send-user-invite', {
-              body: {
-                email: userData.email,
-                name: userData.name,
-                userId: data.id
-              }
-            });
-            
-            if (inviteError) {
-              console.warn('Failed to send invitation email:', inviteError);
-            } else {
-              console.log('Invitation email sent to:', userData.email);
-            }
-          } catch (inviteErr) {
-            console.warn('Error sending invitation email:', inviteErr);
-          }
-        }
       }
     } catch (error) {
       console.error('Error in addUser operation:', error);

@@ -1,4 +1,5 @@
 
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 
@@ -7,9 +8,25 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     console.log('Adding user to database:', userData);
     
     try {
+      // Helper function to safely handle phone field
+      const getPhoneValue = (phone: any): string => {
+        if (!phone || phone === '' || phone === undefined || phone === null) {
+          return 'N/A';
+        }
+        // Handle case where phone is an object with _type and value
+        if (typeof phone === 'object' && phone._type === 'undefined') {
+          return 'N/A';
+        }
+        // Handle regular string values
+        if (typeof phone === 'string' && phone.trim() !== '') {
+          return phone.trim();
+        }
+        return 'N/A';
+      };
+
       const insertData: any = {
         name: userData.name,
-        phone: userData.phone && userData.phone.trim() !== '' ? userData.phone : 'N/A', // Provide default for empty phone
+        phone: getPhoneValue(userData.phone),
         role_id: userData.role_id || 3, // Default to Employee
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
@@ -82,9 +99,25 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         throw new Error(`Failed to fetch current user: ${fetchError.message}`);
       }
 
+      // Helper function to safely handle phone field
+      const getPhoneValue = (phone: any): string => {
+        if (!phone || phone === '' || phone === undefined || phone === null) {
+          return 'N/A';
+        }
+        // Handle case where phone is an object with _type and value
+        if (typeof phone === 'object' && phone._type === 'undefined') {
+          return 'N/A';
+        }
+        // Handle regular string values
+        if (typeof phone === 'string' && phone.trim() !== '') {
+          return phone.trim();
+        }
+        return 'N/A';
+      };
+
       const updateData: any = {
         name: userData.name,
-        phone: userData.phone && userData.phone.trim() !== '' ? userData.phone : 'N/A', // Provide default for empty phone
+        phone: getPhoneValue(userData.phone),
         role_id: userData.role_id || 3,
         status: userData.status,
         profile_image: userData.profileImage || null,
@@ -333,3 +366,4 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
   return { addUser, updateUser, deleteUser, changeUserPassword };
 };
+

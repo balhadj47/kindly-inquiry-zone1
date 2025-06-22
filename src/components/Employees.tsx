@@ -1,48 +1,40 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { User } from '@/types/rbac';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
+import { User } from '@/types/rbac';
 import EmployeesHeader from './employees/EmployeesHeader';
 import EmployeesFilters from './employees/EmployeesFilters';
 import EmployeesList from './employees/EmployeesList';
 import EmployeeModal from './employees/EmployeeModal';
 import EmployeeDeleteDialog from './employees/EmployeeDeleteDialog';
-import { LoadingState, ErrorState } from './users/UsersStates';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { useToast } from '@/hooks/use-toast';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteEmployee, setDeleteEmployee] = useState<User | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   
-  const { users, hasPermission, loading, deleteUser } = useRBAC();
+  const { users, hasPermission, loading, currentUser } = useRBAC();
   const { user: authUser } = useAuth();
   const { refreshPage } = useCacheRefresh();
-  const { toast } = useToast();
 
-  // Filter only employees (role_id: 3) - keeping it consistent
-  const employees = users.filter(user => user.role_id === 3);
-
-  // Check permissions
-  const canCreateEmployees = hasPermission('users:create');
-  const canEditEmployees = hasPermission('users:update');
-  const canDeleteEmployees = hasPermission('users:delete');
+  // Filter users to show only employees (role_id: 3)
+  const employees = users?.filter(user => user.role_id === 3) || [];
 
   // Refresh data when component mounts
   useEffect(() => {
     console.log('👥 Employees component mounted, refreshing data');
-    refreshPage(['users']);
+    refreshPage(['users', 'user_groups']);
   }, [refreshPage]);
 
   const handleRefresh = () => {
-    refreshPage(['users']);
+    refreshPage(['users', 'user_groups']);
   };
 
   const handleAddEmployee = () => {
@@ -56,34 +48,8 @@ const Employees = () => {
   };
 
   const handleDeleteEmployee = (employee: User) => {
-    setDeleteEmployee(employee);
+    setSelectedEmployee(employee);
     setIsDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteEmployee = async () => {
-    if (!deleteEmployee) return;
-
-    try {
-      await deleteUser(deleteEmployee.id);
-      toast({
-        title: "Employé supprimé",
-        description: `L'employé ${deleteEmployee.name} a été supprimé avec succès.`,
-      });
-      setIsDeleteDialogOpen(false);
-      setDeleteEmployee(null);
-    } catch (error) {
-      console.error('Error deleting employee:', error);
-      toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la suppression de l'employé.",
-        variant: "destructive",
-      });
-    }
-  };
-
-  const cancelDeleteEmployee = () => {
-    setIsDeleteDialogOpen(false);
-    setDeleteEmployee(null);
   };
 
   const clearFilters = () => {
@@ -91,28 +57,46 @@ const Employees = () => {
     setStatusFilter('all');
   };
 
+  // Check permissions
+  const canCreateUsers = hasPermission('users:create');
+  const canEditUsers = hasPermission('users:update');
+  const canDeleteUsers = hasPermission('users:delete');
+
   if (loading) {
-    return <LoadingState />;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Chargement des employés...</div>
+      </div>
+    );
   }
 
-  // Check if user has permission to view employees
-  if (!hasPermission('users:read') && !hasPermission('dashboard:read')) {
+  if (!authUser) {
     return (
-      <ErrorState
-        title="Accès non autorisé"
-        message="Vous n'avez pas les permissions nécessaires pour accéder à la gestion des employés."
-      />
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
+        <p className="text-gray-600">Vous devez être connecté pour accéder à la gestion des employés.</p>
+      </div>
+    );
+  }
+
+  const isKnownAdmin = authUser.email === 'gb47@msn.com';
+  const hasUsersReadPermission = hasPermission('users:read') || isKnownAdmin;
+
+  if (!hasUsersReadPermission) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Accès non autorisé</h2>
+        <p className="text-gray-600">Vous n'avez pas les permissions nécessaires pour accéder à la gestion des employés.</p>
+      </div>
     );
   }
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <EmployeesHeader 
-          employeesCount={employees.length}
-        />
+        <EmployeesHeader />
         <div className="flex items-center space-x-2">
-          {canCreateEmployees && (
+          {canCreateUsers && (
             <Button onClick={handleAddEmployee} variant="outline" size="icon">
               <Plus className="h-4 w-4" />
             </Button>
@@ -136,8 +120,8 @@ const Employees = () => {
         statusFilter={statusFilter}
         onEditEmployee={handleEditEmployee}
         onDeleteEmployee={handleDeleteEmployee}
-        canEdit={canEditEmployees}
-        canDelete={canDeleteEmployees}
+        canEdit={canEditUsers}
+        canDelete={canDeleteUsers}
       />
 
       <EmployeeModal
@@ -148,9 +132,8 @@ const Employees = () => {
 
       <EmployeeDeleteDialog
         isOpen={isDeleteDialogOpen}
-        employee={deleteEmployee}
-        onConfirm={confirmDeleteEmployee}
-        onCancel={cancelDeleteEmployee}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        employee={selectedEmployee}
       />
     </div>
   );

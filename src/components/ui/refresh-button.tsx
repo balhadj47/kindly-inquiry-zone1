@@ -30,7 +30,10 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
     setIsRefreshing(true);
     
     try {
-      await onRefresh();
+      const result = onRefresh();
+      if (result instanceof Promise) {
+        await result;
+      }
       console.log('✅ RefreshButton: Refresh completed');
     } catch (error) {
       console.error('❌ RefreshButton: Refresh failed:', error);
@@ -38,7 +41,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       // Short delay to show the animation
       setTimeout(() => {
         setIsRefreshing(false);
-      }, 300);
+      }, 500);
     }
   };
 

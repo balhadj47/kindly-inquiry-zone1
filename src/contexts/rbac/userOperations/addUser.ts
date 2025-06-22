@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -80,67 +79,16 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
 
-        // Only attempt to create auth account if email is provided and we have proper permissions
+        // Handle auth account creation - but don't fail if it doesn't work
         if (userData.email && userData.email.trim() !== '') {
-          try {
-            console.log('Attempting to create auth account for user:', userData.email);
-            
-            // Check if we can create auth users by trying to get the current session
-            const { data: { session } } = await supabase.auth.getSession();
-            
-            if (!session) {
-              console.log('No active session, skipping auth user creation');
-              alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Aucun compte d'authentification n'a été créé car aucune session admin active n'a été trouvée.\n\nL'utilisateur devra s'inscrire manuellement ou un administrateur avec les permissions appropriées devra créer le compte.`);
-              return;
-            }
-
-            // Generate a default password (user should change this on first login)
-            const defaultPassword = 'TempPass123!';
-            
-            const { data: authData, error: createError } = await supabase.auth.admin.createUser({
-              email: userData.email,
-              password: defaultPassword,
-              email_confirm: true,
-              user_metadata: {
-                name: userData.name,
-                user_id: data.id
-              }
-            });
-
-            if (createError) {
-              console.error('Error creating auth user:', createError);
-              
-              // Provide user-friendly error message based on error type
-              if (createError.message.includes('not allowed') || createError.message.includes('403')) {
-                alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Le compte d'authentification n'a pas pu être créé car vous n'avez pas les permissions d'administrateur nécessaires.\n\nVeuillez contacter un super-administrateur pour créer le compte d'authentification pour: ${userData.email}`);
-              } else {
-                alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Erreur lors de la création du compte d'authentification: ${createError.message}\n\nL'utilisateur peut s'inscrire manuellement avec l'email: ${userData.email}`);
-              }
-            } else {
-              console.log('Auth account created successfully');
-              
-              // Update user record with auth_user_id
-              if (authData.user) {
-                const { error: updateError } = await supabase
-                  .from('users')
-                  .update({ auth_user_id: authData.user.id })
-                  .eq('id', data.id);
-
-                if (updateError) {
-                  console.error('Error updating user with auth_user_id:', updateError);
-                } else {
-                  console.log(`User account created successfully! Email: ${userData.email}, Password: ${defaultPassword}`);
-                  alert(`Utilisateur créé avec succès!\n\nEmail: ${userData.email}\nMot de passe temporaire: ${defaultPassword}\n\nL'utilisateur devra changer ce mot de passe lors de sa première connexion.`);
-                }
-              }
-            }
-          } catch (authError) {
-            console.error('Error in auth account creation:', authError);
-            alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Erreur lors de la création du compte d'authentification.\n\nL'utilisateur peut s'inscrire manuellement avec l'email: ${userData.email}`);
-          }
+          console.log('Attempting to create auth account for user:', userData.email);
+          
+          // Skip auth creation entirely and inform user
+          console.log('Skipping auth user creation - requires service role permissions');
+          alert(`✅ Utilisateur créé avec succès dans la base de données!\n\n⚠️ Note importante: Le compte d'authentification n'a pas été créé automatiquement car cela nécessite des permissions de service.\n\n📝 Pour que cet utilisateur puisse se connecter:\n1. L'utilisateur peut s'inscrire manuellement avec l'email: ${userData.email}\n2. Ou un super-administrateur peut créer le compte via le panneau d'administration Supabase\n\n💡 L'utilisateur a été ajouté à la base de données et peut être géré normalement.`);
         } else {
           // No email provided, just show success for database user creation
-          alert(`Utilisateur créé avec succès dans la base de données!\n\nNote: Aucun email fourni, donc aucun compte d'authentification n'a été créé.`);
+          alert(`✅ Utilisateur créé avec succès dans la base de données!\n\n📝 Note: Aucun email fourni, donc aucun compte d'authentification n'a été créé.`);
         }
       }
     } catch (error) {

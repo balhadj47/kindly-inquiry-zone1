@@ -22,7 +22,9 @@ const BasicInfoFields: React.FC<BasicInfoFieldsProps> = ({
   onEmailValidationChange,
   userId,
 }) => {
-  const { isValidating, isValid, error: emailError } = useEmailValidation(watchedEmail, userId);
+  const emailValidation = useEmailValidation(watchedEmail, userId);
+  const { isValid, error: emailError } = emailValidation;
+  const isValidating = emailValidation.isValidating || false;
 
   useEffect(() => {
     onEmailValidationChange(isValid);

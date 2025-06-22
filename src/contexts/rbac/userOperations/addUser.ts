@@ -111,7 +111,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       }
 
       if (data) {
-        // Replace temp user with real data
+        // Replace temp user with real data - using safe property access
         const newUser: User = {
           id: data.id.toString(),
           name: data.name,
@@ -123,11 +123,11 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           totalTrips: data.total_trips || 0,
           lastTrip: data.last_trip || undefined,
           profileImage: data.profile_image || undefined,
-          badgeNumber: data.badge_number || undefined,
-          dateOfBirth: data.date_of_birth || undefined,
-          placeOfBirth: data.place_of_birth || undefined,
-          address: data.address || undefined,
-          driverLicense: data.driver_license || undefined,
+          badgeNumber: (data as any).badge_number || undefined,
+          dateOfBirth: (data as any).date_of_birth || undefined,
+          placeOfBirth: (data as any).place_of_birth || undefined,
+          address: (data as any).address || undefined,
+          driverLicense: (data as any).driver_license || undefined,
         };
         
         console.log('User created successfully:', newUser);

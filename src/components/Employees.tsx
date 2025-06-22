@@ -12,6 +12,7 @@ import EmployeeModal from './employees/EmployeeModal';
 import EmployeeDeleteDialog from './employees/EmployeeDeleteDialog';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
+import { useToast } from '@/hooks/use-toast';
 
 const Employees = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,9 +21,10 @@ const Employees = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   
-  const { users, hasPermission, loading, currentUser } = useRBAC();
+  const { users, hasPermission, loading, currentUser, deleteUser } = useRBAC();
   const { user: authUser } = useAuth();
   const { refreshPage } = useCacheRefresh();
+  const { toast } = useToast();
 
   // Filter users to show only employees (role_id: 3)
   const employees = users?.filter(user => user.role_id === 3) || [];
@@ -33,9 +35,22 @@ const Employees = () => {
     refreshPage(['users', 'user_groups']);
   }, [refreshPage]);
 
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     console.log('🔄 Employees: Manual refresh triggered');
-    refreshPage(['users', 'user_groups']);
+    try {
+      await refreshPage(['users', 'user_groups']);
+      toast({
+        title: 'Succès',
+        description: 'Liste des employés actualisée.',
+      });
+    } catch (error) {
+      console.error('Error refreshing employees:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de l\'actualisation.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleAddEmployee = () => {
@@ -53,11 +68,31 @@ const Employees = () => {
     setIsDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
-    // TODO: Implement delete functionality
-    console.log('Deleting employee:', selectedEmployee);
-    setIsDeleteDialogOpen(false);
-    setSelectedEmployee(null);
+  const handleConfirmDelete = async () => {
+    if (!selectedEmployee) return;
+    
+    try {
+      console.log('Deleting employee:', selectedEmployee);
+      await deleteUser(selectedEmployee.id);
+      
+      toast({
+        title: 'Succès',
+        description: `Employé ${selectedEmployee.name} supprimé avec succès.`,
+      });
+      
+      setIsDeleteDialogOpen(false);
+      setSelectedEmployee(null);
+      
+      // Refresh the data after deletion
+      await refreshPage(['users', 'user_groups']);
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression de l\'employé.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleCancelDelete = () => {

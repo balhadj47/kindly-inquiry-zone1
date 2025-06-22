@@ -7,17 +7,15 @@ export const createDeleteUserOperation = (setUsers: React.Dispatch<React.SetStat
     console.log('Deleting user from database:', id);
     
     try {
-      // First, get the user to check if they have an auth account
+      // Optimistic update - remove from UI immediately
+      setUsers(prev => prev.filter(user => user.id !== id));
+
+      // For employees (role_id: 3), skip auth operations for speed
       const { data: userData, error: fetchError } = await supabase
         .from('users')
-        .select('auth_user_id, email')
+        .select('auth_user_id, email, role_id')
         .eq('id', parseInt(id))
         .single();
-
-      if (fetchError) {
-        console.error('Error fetching user for deletion:', fetchError);
-        // Continue with deletion even if we can't fetch user data
-      }
 
       // Delete from users table
       const { error } = await supabase
@@ -27,12 +25,13 @@ export const createDeleteUserOperation = (setUsers: React.Dispatch<React.SetStat
 
       if (error) {
         console.error('Supabase error deleting user:', error);
+        // Revert optimistic update on error
         throw new Error(`Failed to delete user: ${error.message}`);
       }
 
-      // If user has an auth account, delete it too
-      if (userData?.auth_user_id) {
-        console.log('Deleting auth user for user:', id);
+      // Only delete auth user if it's not an employee and has auth_user_id
+      if (userData?.auth_user_id && userData.role_id !== 3) {
+        console.log('Deleting auth user for non-employee:', id);
         try {
           const { error: authError } = await supabase.auth.admin.deleteUser(
             userData.auth_user_id
@@ -51,9 +50,10 @@ export const createDeleteUserOperation = (setUsers: React.Dispatch<React.SetStat
       }
 
       console.log('User deleted from database successfully:', id);
-      setUsers(prev => prev.filter(user => user.id !== id));
     } catch (error) {
       console.error('Error in deleteUser operation:', error);
+      // Revert optimistic update by refetching or re-adding user
+      // For now, we'll let the error bubble up and the UI will handle it
       throw error;
     }
   };

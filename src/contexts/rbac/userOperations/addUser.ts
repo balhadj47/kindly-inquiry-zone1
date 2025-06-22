@@ -8,56 +8,55 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
     console.log('Adding user to database:', userData);
     
     try {
-      const insertData: any = {
+      // Streamlined insert data preparation
+      const insertData = {
         name: userData.name,
         phone: userData.phone || null,
+        email: userData.email?.trim() || null,
         role_id: userData.role_id || 3,
         group_id: userData.group_id || 3,
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
         last_trip: userData.lastTrip || null,
-        badge_number: userData.badgeNumber || null,
-        date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
-        place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
-        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
-        driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
+        badge_number: userData.badgeNumber?.trim() || null,
+        date_of_birth: userData.dateOfBirth?.trim() || null,
+        place_of_birth: userData.placeOfBirth?.trim() || null,
+        address: userData.address?.trim() || null,
+        driver_license: userData.driverLicense?.trim() || null,
       };
 
-      if (userData.email && userData.email.trim() !== '') {
-        insertData.email = userData.email;
-      }
-
-      console.log('Insert data with group_id:', insertData);
+      console.log('Streamlined insert data:', insertData);
 
       const { data, error } = await supabase
         .from('users')
         .insert([insertData])
-        .select();
+        .select()
+        .single();
 
       if (error) {
         console.error('Supabase error adding user:', error);
         throw new Error(`Failed to add user: ${error.message}`);
       }
 
-      if (data && data[0]) {
-        const dbUser = data[0] as any;
+      if (data) {
+        // Quick user object creation
         const newUser: User = {
-          id: dbUser.id.toString(),
-          name: dbUser.name,
-          email: dbUser.email || undefined,
-          phone: dbUser.phone || 'N/A',
-          role_id: dbUser.role_id || 3,
-          status: dbUser.status as UserStatus,
-          createdAt: dbUser.created_at,
-          totalTrips: dbUser.total_trips || 0,
-          lastTrip: dbUser.last_trip || undefined,
-          profileImage: dbUser.profile_image || undefined,
-          badgeNumber: dbUser.badge_number || undefined,
-          dateOfBirth: dbUser.date_of_birth || undefined,
-          placeOfBirth: dbUser.place_of_birth || undefined,
-          address: dbUser.address || undefined,
-          driverLicense: dbUser.driver_license || undefined,
+          id: data.id.toString(),
+          name: data.name,
+          email: data.email || undefined,
+          phone: data.phone || 'N/A',
+          role_id: data.role_id || 3,
+          status: data.status as UserStatus,
+          createdAt: data.created_at,
+          totalTrips: data.total_trips || 0,
+          lastTrip: data.last_trip || undefined,
+          profileImage: data.profile_image || undefined,
+          badgeNumber: data.badge_number || undefined,
+          dateOfBirth: data.date_of_birth || undefined,
+          placeOfBirth: data.place_of_birth || undefined,
+          address: data.address || undefined,
+          driverLicense: data.driver_license || undefined,
         };
         
         console.log('User created successfully:', newUser);

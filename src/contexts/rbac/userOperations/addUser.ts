@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -40,10 +41,10 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
       console.log('Database insert data:', insertData);
 
-      // Insert user into database - RLS policies will handle authorization
+      // Insert user into database - cast to any to bypass outdated type definitions
       const { data, error } = await supabase
         .from('users')
-        .insert(insertData)
+        .insert(insertData as any)
         .select()
         .single();
 

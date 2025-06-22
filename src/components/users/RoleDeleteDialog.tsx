@@ -28,7 +28,7 @@ const RoleDeleteDialog: React.FC<RoleDeleteDialogProps> = ({ isOpen, onClose, ro
     
     setLoading(true);
     try {
-      await deleteRole(parseInt(role.id));
+      await deleteRole(role.id);
       onClose();
     } catch (error) {
       console.error('Error deleting system group:', error);

@@ -94,7 +94,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
 
     try {
       if (role) {
-        await updateRole(parseInt(role.id), {
+        await updateRole(role.id, {
           name: formData.name as SystemGroupName,
           description: formData.description,
           color: formData.color,

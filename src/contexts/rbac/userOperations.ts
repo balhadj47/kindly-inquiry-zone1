@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 
@@ -11,7 +10,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3, // Default to Employee
-        group_id: userData.role_id || 3, // Add group_id field - same as role_id for now
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
@@ -87,7 +85,6 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3,
-        group_id: userData.role_id || 3, // Add group_id field for updates too
         status: userData.status,
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,

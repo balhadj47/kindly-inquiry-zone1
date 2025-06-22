@@ -26,7 +26,7 @@ type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 interface EmployeeModalFormProps {
   employee: User | null;
-  onSubmit: (data: Partial<User>) => void;
+  onSubmit: (data: Partial<User> & { group_id?: number }) => void;
   isSubmitting: boolean;
   onCancel: () => void;
 }

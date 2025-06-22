@@ -21,6 +21,12 @@ if (!React || !React.useState || !React.useEffect || !React.useContext) {
   throw new Error('React hooks not available - React not properly loaded');
 }
 
+// Additional validation for useContext specifically
+if (!React.useContext) {
+  console.error('❌ CRITICAL: React.useContext not available');
+  throw new Error('React.useContext not available');
+}
+
 console.log('✅ React validation passed:', {
   version: React.version,
   hasUseState: !!React.useState,
@@ -57,6 +63,10 @@ const ErrorFallback = () => {
 // Wrap the App with error handling
 const SafeApp = () => {
   try {
+    // Additional runtime check for React context
+    if (!React.useContext) {
+      throw new Error('React.useContext is not available at runtime');
+    }
     return <App />;
   } catch (error) {
     console.error('❌ App render error:', error);

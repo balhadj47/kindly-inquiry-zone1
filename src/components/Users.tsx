@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import UsersHeader from './users/UsersHeader';
 import UsersNavigation from './users/UsersNavigation';
 import UsersTab from './users/UsersTab';
@@ -59,8 +61,9 @@ const Users = () => {
     currentUserRoleId: currentUser?.role_id
   });
 
-  // Check if user can manage groups
+  // Check if user can manage groups and create users
   const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.role_id === 1;
+  const canCreateUsers = hasPermission('users:create');
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -116,8 +119,15 @@ const Users = () => {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <UsersHeader onAddUser={handleAddUser} />
-        <RefreshButton onRefresh={handleRefresh} />
+        <UsersHeader />
+        <div className="flex items-center space-x-2">
+          {canCreateUsers && (
+            <Button onClick={handleAddUser} variant="outline" size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
+          <RefreshButton onRefresh={handleRefresh} />
+        </div>
       </div>
 
       <UsersNavigation canManageGroups={canManageGroups}>

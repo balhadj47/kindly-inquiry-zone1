@@ -8,11 +8,14 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
     console.log('Adding user to database:', userData);
     
     try {
+      // Clean up email - convert empty string to null
+      const cleanEmail = userData.email && userData.email.trim() !== '' ? userData.email.trim() : null;
+      
       // Optimistic update - add to UI immediately for better UX
       const tempUser: User = {
         id: `temp-${Date.now()}`,
         name: userData.name,
-        email: userData.email || undefined,
+        email: cleanEmail || undefined,
         phone: userData.phone || '',
         role_id: userData.role_id || 2, // Default to Supervisor (2)
         status: userData.status || 'Active',
@@ -28,7 +31,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       setUsers(prev => [...prev, tempUser]);
 
       // Check if email is provided for auth account creation
-      if (userData.email && userData.email.trim() !== '') {
+      if (cleanEmail) {
         console.log('Creating user with auth account via admin method');
         
         // Generate a temporary password (admin should share this with the user)
@@ -36,7 +39,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         
         try {
           const result = await createUserAsAdmin({
-            email: userData.email,
+            email: cleanEmail,
             password: tempPassword,
             name: userData.name,
             phone: userData.phone || '',
@@ -78,7 +81,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           const insertData = {
             name: userData.name,
             phone: userData.phone || '',
-            email: userData.email || '',
+            email: cleanEmail,
             role_id: userData.role_id || 2,
             status: userData.status || 'Active',
             profile_image: userData.profileImage || null,
@@ -127,7 +130,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         const insertData = {
           name: userData.name,
           phone: userData.phone || '',
-          email: userData.email || '',
+          email: null, // Explicitly set to null for empty emails
           role_id: userData.role_id || 2,
           status: userData.status || 'Active',
           profile_image: userData.profileImage || null,

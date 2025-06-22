@@ -62,12 +62,17 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
 
   const handleFormSubmit = (data: EmployeeFormData) => {
     console.log('Form submission - using role_id only:', data);
-    onSubmit({
+    
+    // Clean up the email field - convert empty string to undefined
+    const cleanedData = {
       ...data,
-      email: data.email || undefined,
+      email: data.email && data.email.trim() !== '' ? data.email.trim() : undefined,
       phone: data.phone || undefined,
       role_id: 3, // Always set to 3 for employees
-    });
+    };
+    
+    console.log('Cleaned form data:', cleanedData);
+    onSubmit(cleanedData);
   };
 
   const statuses: UserStatus[] = ['Active', 'Inactive', 'Suspended', 'Récupération', 'Congé', 'Congé maladie'];
@@ -107,12 +112,12 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
+          <Label htmlFor="email">Email (optionnel)</Label>
           <Input
             id="email"
             type="email"
             {...register('email')}
-            placeholder="exemple@email.com"
+            placeholder="exemple@email.com (optionnel)"
           />
           {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
         </div>

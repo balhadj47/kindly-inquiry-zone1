@@ -4,12 +4,13 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Phone, Mail, MapPin, Calendar, CreditCard } from 'lucide-react';
+import { Edit, Phone, Mail, MapPin, Calendar, CreditCard, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
 
 interface EmployeeCardProps {
   employee: User;
   onEdit: (employee: User) => void;
+  onDelete: (employee: User) => void;
   canEdit: boolean;
   canDelete: boolean;
 }
@@ -17,7 +18,9 @@ interface EmployeeCardProps {
 const EmployeeCard: React.FC<EmployeeCardProps> = ({
   employee,
   onEdit,
+  onDelete,
   canEdit,
+  canDelete,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -55,15 +58,27 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
               </Badge>
             </div>
           </div>
-          {canEdit && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onEdit(employee)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-          )}
+          <div className="flex items-center space-x-1">
+            {canEdit && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onEdit(employee)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onDelete(employee)}
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       

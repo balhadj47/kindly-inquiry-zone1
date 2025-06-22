@@ -9,6 +9,7 @@ interface EmployeesListProps {
   searchTerm: string;
   statusFilter: string;
   onEditEmployee: (employee: User) => void;
+  onDeleteEmployee: (employee: User) => void;
   canEdit: boolean;
   canDelete: boolean;
 }
@@ -18,6 +19,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
   searchTerm,
   statusFilter,
   onEditEmployee,
+  onDeleteEmployee,
   canEdit,
   canDelete,
 }) => {
@@ -58,6 +60,7 @@ const EmployeesList: React.FC<EmployeesListProps> = ({
           key={employee.id}
           employee={employee}
           onEdit={onEditEmployee}
+          onDelete={onDeleteEmployee}
           canEdit={canEdit}
           canDelete={canDelete}
         />

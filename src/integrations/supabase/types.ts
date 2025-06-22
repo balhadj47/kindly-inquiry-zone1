@@ -74,6 +74,60 @@ export type Database = {
         }
         Relationships: []
       }
+      mission_roles: {
+        Row: {
+          color: string
+          created_at: string
+          description: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      system_settings: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: number
+          setting_key: string
+          setting_type: string
+          setting_value: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          setting_key: string
+          setting_type?: string
+          setting_value: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: number
+          setting_key?: string
+          setting_type?: string
+          setting_value?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       trips: {
         Row: {
           branch: string
@@ -83,6 +137,8 @@ export type Database = {
           end_km: number | null
           id: number
           notes: string | null
+          planned_end_date: string | null
+          planned_start_date: string | null
           start_km: number | null
           status: string | null
           user_ids: string[] | null
@@ -97,6 +153,8 @@ export type Database = {
           end_km?: number | null
           id?: number
           notes?: string | null
+          planned_end_date?: string | null
+          planned_start_date?: string | null
           start_km?: number | null
           status?: string | null
           user_ids?: string[] | null
@@ -111,6 +169,8 @@ export type Database = {
           end_km?: number | null
           id?: number
           notes?: string | null
+          planned_end_date?: string | null
+          planned_start_date?: string | null
           start_km?: number | null
           status?: string | null
           user_ids?: string[] | null
@@ -146,45 +206,93 @@ export type Database = {
         }
         Relationships: []
       }
+      user_mission_roles: {
+        Row: {
+          assigned_at: string
+          id: string
+          mission_role_id: string
+          user_id: number
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          mission_role_id: string
+          user_id: number
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          mission_role_id?: string
+          user_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mission_roles_mission_role_id_fkey"
+            columns: ["mission_role_id"]
+            isOneToOne: false
+            referencedRelation: "mission_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_mission_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
+          address: string | null
           auth_user_id: string | null
+          badge_number: string | null
           created_at: string
-          email: string
+          date_of_birth: string | null
+          driver_license: string | null
+          email: string | null
           id: number
           last_trip: string | null
           name: string
-          phone: string
+          phone: string | null
+          place_of_birth: string | null
           profile_image: string | null
-          role: string
           role_id: number | null
           status: string
           total_trips: number | null
         }
         Insert: {
+          address?: string | null
           auth_user_id?: string | null
+          badge_number?: string | null
           created_at?: string
-          email: string
+          date_of_birth?: string | null
+          driver_license?: string | null
+          email?: string | null
           id?: number
           last_trip?: string | null
           name: string
-          phone: string
+          phone?: string | null
+          place_of_birth?: string | null
           profile_image?: string | null
-          role: string
           role_id?: number | null
           status: string
           total_trips?: number | null
         }
         Update: {
+          address?: string | null
           auth_user_id?: string | null
+          badge_number?: string | null
           created_at?: string
-          email?: string
+          date_of_birth?: string | null
+          driver_license?: string | null
+          email?: string | null
           id?: number
           last_trip?: string | null
           name?: string
-          phone?: string
+          phone?: string | null
+          place_of_birth?: string | null
           profile_image?: string | null
-          role?: string
           role_id?: number | null
           status?: string
           total_trips?: number | null
@@ -241,15 +349,19 @@ export type Database = {
       get_current_user_rbac: {
         Args: Record<PropertyKey, never>
         Returns: {
+          address: string | null
           auth_user_id: string | null
+          badge_number: string | null
           created_at: string
-          email: string
+          date_of_birth: string | null
+          driver_license: string | null
+          email: string | null
           id: number
           last_trip: string | null
           name: string
-          phone: string
+          phone: string | null
+          place_of_birth: string | null
           profile_image: string | null
-          role: string
           role_id: number | null
           status: string
           total_trips: number | null

@@ -80,8 +80,13 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         console.log('User created successfully:', newUser);
         setUsers(prev => prev.map(user => user.id === tempUser.id ? newUser : user));
 
-        // Send invitation email via Supabase Edge Function (if email provided)
+        // Try to send invitation email but don't fail if it doesn't work
         if (userData.email && userData.email.trim() !== '') {
+          console.log('User created successfully. Email invitation temporarily disabled due to CORS issues.');
+          console.log('You can manually send invitation to:', userData.email);
+          
+          // TODO: Re-enable when Supabase Edge Function CORS is properly configured
+          /*
           try {
             console.log('Attempting to send invitation email to:', userData.email);
             const { error: inviteError } = await supabase.functions.invoke('send-user-invite', {
@@ -94,14 +99,13 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
             
             if (inviteError) {
               console.warn('Failed to send invitation email:', inviteError);
-              // Don't throw here - user creation was successful, email is just a bonus
             } else {
               console.log('Invitation email sent successfully to:', userData.email);
             }
           } catch (inviteErr) {
             console.warn('Error sending invitation email:', inviteErr);
-            // Don't throw here - user creation was successful, email is just a bonus
           }
+          */
         }
       }
     } catch (error) {

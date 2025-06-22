@@ -1,8 +1,9 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 
 export const createUserOperations = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
-  const addUser = async (userData: Partial<User>) => {
+  const addUser = async (userData: Partial<User> & { group_id?: number }) => {
     console.log('Adding user to database:', userData);
     
     try {
@@ -10,6 +11,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3, // Default to Employee
+        group_id: userData.group_id || 3, // Include group_id field
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
@@ -25,6 +27,8 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
       if (userData.email && userData.email.trim() !== '') {
         insertData.email = userData.email;
       }
+
+      console.log('Insert data with group_id:', insertData);
 
       const { data, error } = await supabase
         .from('users')
@@ -65,7 +69,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     }
   };
 
-  const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
+  const updateUser = async (id: string, userData: Partial<User> & { group_id?: number }): Promise<User> => {
     console.log('Updating user in database:', id, userData);
     
     try {
@@ -85,6 +89,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
         name: userData.name,
         phone: userData.phone || null, // Allow null for phone
         role_id: userData.role_id || 3,
+        group_id: userData.group_id || 3, // Include group_id field for updates too
         status: userData.status,
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,

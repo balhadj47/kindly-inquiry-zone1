@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 
@@ -8,7 +9,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
     try {
       const insertData: any = {
         name: userData.name,
-        phone: userData.phone,
+        phone: userData.phone && userData.phone.trim() !== '' ? userData.phone : 'N/A', // Provide default for empty phone
         role_id: userData.role_id || 3, // Default to Employee
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
@@ -83,7 +84,7 @@ export const createUserOperations = (setUsers: React.Dispatch<React.SetStateActi
 
       const updateData: any = {
         name: userData.name,
-        phone: userData.phone,
+        phone: userData.phone && userData.phone.trim() !== '' ? userData.phone : 'N/A', // Provide default for empty phone
         role_id: userData.role_id || 3,
         status: userData.status,
         profile_image: userData.profileImage || null,

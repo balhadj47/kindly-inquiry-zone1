@@ -34,6 +34,7 @@ const Employees = () => {
   }, [refreshPage]);
 
   const handleRefresh = () => {
+    console.log('🔄 Employees: Manual refresh triggered');
     refreshPage(['users', 'user_groups']);
   };
 
@@ -50,6 +51,18 @@ const Employees = () => {
   const handleDeleteEmployee = (employee: User) => {
     setSelectedEmployee(employee);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    // TODO: Implement delete functionality
+    console.log('Deleting employee:', selectedEmployee);
+    setIsDeleteDialogOpen(false);
+    setSelectedEmployee(null);
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteDialogOpen(false);
+    setSelectedEmployee(null);
   };
 
   const clearFilters = () => {
@@ -94,7 +107,7 @@ const Employees = () => {
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <EmployeesHeader />
+        <EmployeesHeader employeesCount={employees.length} />
         <div className="flex items-center space-x-2">
           {canCreateUsers && (
             <Button onClick={handleAddEmployee} variant="outline" size="icon">
@@ -132,8 +145,9 @@ const Employees = () => {
 
       <EmployeeDeleteDialog
         isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
         employee={selectedEmployee}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
     </div>
   );

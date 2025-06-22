@@ -26,7 +26,7 @@ type EmployeeFormData = z.infer<typeof employeeSchema>;
 
 interface EmployeeModalFormProps {
   employee: User | null;
-  onSubmit: (data: Partial<User> & { group_id?: number }) => void;
+  onSubmit: (data: Partial<User>) => void;
   isSubmitting: boolean;
   onCancel: () => void;
 }
@@ -61,13 +61,12 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   const statusValue = watch('status');
 
   const handleFormSubmit = (data: EmployeeFormData) => {
-    console.log('Form submission with group_id = 3:', data);
+    console.log('Form submission - using role_id only:', data);
     onSubmit({
       ...data,
       email: data.email || undefined,
       phone: data.phone || undefined,
       role_id: 3, // Always set to 3 for employees
-      group_id: 3, // Always set to 3 for employees - THIS IS THE KEY ADDITION
     });
   };
 
@@ -75,9 +74,6 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      {/* Hidden input for group_id - for form visibility */}
-      <input type="hidden" name="group_id" value="3" />
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="name">Nom complet *</Label>

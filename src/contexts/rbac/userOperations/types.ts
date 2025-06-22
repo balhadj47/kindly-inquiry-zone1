@@ -2,7 +2,7 @@
 import { User } from '@/types/rbac';
 
 export interface UserOperationData extends Partial<User> {
-  group_id?: number;
+  // Remove group_id reference - only use role_id
 }
 
 export interface UserOperations {

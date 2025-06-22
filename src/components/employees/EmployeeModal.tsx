@@ -17,16 +17,15 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
   const { addUser, updateUser } = useRBAC();
   const { toast } = useToast();
 
-  const handleSubmit = async (userData: Partial<User> & { group_id?: number }) => {
+  const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
     try {
-      console.log('EmployeeModal - Submitting with group_id:', userData.group_id);
+      console.log('EmployeeModal - Submitting employee data:', userData);
       
-      // Ensure role_id is 3 for employees and group_id is 3
+      // Ensure role_id is 3 for employees - remove group_id references
       const employeeData = { 
         ...userData, 
-        role_id: 3, 
-        group_id: 3  // Explicitly set group_id to 3
+        role_id: 3
       };
       
       console.log('EmployeeModal - Final employee data:', employeeData);

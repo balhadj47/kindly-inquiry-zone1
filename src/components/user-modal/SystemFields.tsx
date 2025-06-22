@@ -1,43 +1,36 @@
 
 import React from 'react';
 import { Control } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { getRoleDisplayNameById } from '@/utils/rolePermissions';
 
 interface SystemFieldsProps {
   control: Control<any>;
   isSubmitting: boolean;
 }
 
-const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
+const SystemFields: React.FC<SystemFieldsProps> = ({
   control,
   isSubmitting,
 }) => {
-  const roleOptions = React.useMemo(() => [
-    { value: 1, label: "Administrateur" },
-    { value: 2, label: "Superviseur" },
-    { value: 3, label: "Employé" }
-  ], []);
-
-  const statusOptions = React.useMemo(() => [
-    { value: "Active", label: "Actif" },
-    { value: "Récupération", label: "Récupération" },
-    { value: "Congé", label: "Congé" },
-    { value: "Congé maladie", label: "Congé maladie" }
-  ], []);
+  // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
+  const availableRoles = [
+    { id: 1, name: getRoleDisplayNameById(1) }, // Administrator
+    { id: 2, name: getRoleDisplayNameById(2) }, // Supervisor
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4">
       <FormField
         control={control}
         name="role_id"
-        rules={{ required: 'Le rôle est requis' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Rôle</FormLabel>
+            <FormLabel>Rôle *</FormLabel>
             <Select 
               onValueChange={(value) => field.onChange(parseInt(value))} 
-              value={field.value?.toString()} 
+              value={field.value?.toString() || '2'} // Default to Supervisor (2)
               disabled={isSubmitting}
             >
               <FormControl>
@@ -46,9 +39,9 @@ const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {roleOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value.toString()}>
-                    {option.label}
+                {availableRoles.map((role) => (
+                  <SelectItem key={role.id} value={role.id.toString()}>
+                    {role.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -61,22 +54,23 @@ const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
       <FormField
         control={control}
         name="status"
-        rules={{ required: 'Le statut est requis' }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Statut</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
+            <FormLabel>Statut *</FormLabel>
+            <Select 
+              onValueChange={field.onChange} 
+              value={field.value || 'Active'}
+              disabled={isSubmitting}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Sélectionner un statut" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
-                {statusOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
-                    {option.label}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Active">Actif</SelectItem>
+                <SelectItem value="Inactive">Inactif</SelectItem>
+                <SelectItem value="Suspended">Suspendu</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -85,8 +79,6 @@ const SystemFields: React.FC<SystemFieldsProps> = React.memo(({
       />
     </div>
   );
-});
-
-SystemFields.displayName = 'SystemFields';
+};
 
 export default SystemFields;

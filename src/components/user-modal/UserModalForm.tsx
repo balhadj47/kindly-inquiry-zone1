@@ -17,8 +17,8 @@ interface UserModalFormProps {
 
 interface FormData {
   name: string;
-  email?: string;
-  phone: string;
+  email: string; // Required for admin users
+  phone?: string; // Optional
   role_id: number;
   status: UserStatus;
   profileImage?: string;
@@ -42,7 +42,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      role_id: user?.role_id || 3,
+      role_id: user?.role_id || 2, // Default to Supervisor (2)
       status: user?.status || 'Active',
       profileImage: user?.profileImage || '',
       badgeNumber: user?.badgeNumber || '',
@@ -67,7 +67,7 @@ const UserModalForm: React.FC<UserModalFormProps> = ({
     }
   };
 
-  const canSubmit = isEmailValid && !isSubmitting;
+  const canSubmit = isEmailValid && !isSubmitting && form.watch('email')?.trim();
 
   return (
     <Form {...form}>

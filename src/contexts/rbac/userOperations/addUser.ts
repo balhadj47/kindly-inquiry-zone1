@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -26,11 +27,12 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       setUsers(prev => [...prev, tempUser]);
 
-      // Prepare data matching the actual database schema - only use role_id
+      // Prepare data matching the actual database schema - include both role and role_id for compatibility
       const insertData = {
         name: userData.name,
         phone: userData.phone || '',
         email: userData.email || '',
+        role: userData.role_id === 1 ? 'Administrator' : userData.role_id === 2 ? 'Supervisor' : 'Employee',
         role_id: userData.role_id || 3,
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,

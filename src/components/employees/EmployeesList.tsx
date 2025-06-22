@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Users } from 'lucide-react';
 import { User } from '@/types/rbac';
 import EmployeeCard from './EmployeeCard';
 

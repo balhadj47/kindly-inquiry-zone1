@@ -38,9 +38,9 @@ if (typeof window !== 'undefined') {
   (globalThis as any).React = React;
 }
 
-// Simplified React validation - only check React object existence
+// Simplified React validation - check for React object existence
 const validateReact = () => {
-  if (!React) {
+  if (!React || typeof React !== 'object') {
     console.error('❌ CRITICAL: React not available');
     throw new Error('React not available - React not properly loaded');
   }
@@ -138,8 +138,8 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Simple React availability check
-    if (!React) {
+    // Check React is properly available as an object
+    if (!React || typeof React !== 'object') {
       throw new Error('React is not available at runtime');
     }
     return <App />;

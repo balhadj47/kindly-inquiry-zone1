@@ -83,10 +83,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <FormField
             control={form.control}
             name="phone"
-            rules={{ required: 'Le téléphone est requis' }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Téléphone *</FormLabel>
+                <FormLabel>Téléphone</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -102,10 +101,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <FormField
             control={form.control}
             name="badgeNumber"
-            rules={{ required: 'Le numéro de badge est requis' }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Numéro de Badge *</FormLabel>
+                <FormLabel>Numéro de Badge</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -123,7 +121,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Statut *</FormLabel>
+                <FormLabel>Statut</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
@@ -151,10 +149,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <FormField
             control={form.control}
             name="dateOfBirth"
-            rules={{ required: 'La date de naissance est requise' }}
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date de Naissance *</FormLabel>
+                <FormLabel>Date de Naissance</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -172,7 +169,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="driverLicense"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Permis de Conduire (optionnel)</FormLabel>
+                <FormLabel>Permis de Conduire</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -189,10 +186,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         <FormField
           control={form.control}
           name="placeOfBirth"
-          rules={{ required: 'Le lieu de naissance est requis' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Lieu de Naissance *</FormLabel>
+              <FormLabel>Lieu de Naissance</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -208,10 +204,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         <FormField
           control={form.control}
           name="address"
-          rules={{ required: 'L\'adresse est requise' }}
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse *</FormLabel>
+              <FormLabel>Adresse</FormLabel>
               <FormControl>
                 <Input
                   {...field}

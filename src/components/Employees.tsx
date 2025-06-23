@@ -140,7 +140,8 @@ const Employees = () => {
   // Special handling for known admin user
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
   
-  const canCreateUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:create') : false);
+  // Allow all authenticated users to create employees, but restrict edit/delete based on permissions
+  const canCreateUsers = !!authUser; // All authenticated users can add employees
   const canEditUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:update') : false);
   const canDeleteUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false);
   

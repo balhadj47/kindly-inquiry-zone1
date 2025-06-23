@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import AuthUserDeleteDialog from '@/components/auth-users/AuthUserDeleteDialog';
 
 interface AuthUser {
   id: string;
@@ -26,47 +27,101 @@ const AuthUsers = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showAdminError, setShowAdminError] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; user: AuthUser | null }>({
+    isOpen: false,
+    user: null
+  });
   const { toast } = useToast();
 
-  const checkAdminAccess = async () => {
+  const fetchAuthUsers = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Checking admin access for auth users...');
+      setShowAdminError(false);
+      console.log('🔍 Fetching auth users via Edge Function...');
       
-      // Try to get auth users via admin API
-      const { data: { users }, error } = await supabase.auth.admin.listUsers();
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
       
-      if (error) {
-        console.error('Admin API error:', error);
-        setShowAdminError(true);
-        setLoading(false);
-        return;
+      if (!session) {
+        throw new Error('No session found');
       }
 
-      // If we get here, we have admin access
-      const formattedUsers: AuthUser[] = users.map(user => ({
-        id: user.id,
-        email: user.email || '',
-        created_at: user.created_at,
-        last_sign_in_at: user.last_sign_in_at,
-        email_confirmed_at: user.email_confirmed_at,
-        phone: user.phone,
-        role: user.role || 'authenticated',
-        user_metadata: user.user_metadata || {},
-      }));
+      // Call our Edge Function
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth-users`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
 
-      setAuthUsers(formattedUsers);
-      console.log('✅ Auth users loaded:', formattedUsers.length);
+      if (!response.ok) {
+        if (response.status === 403) {
+          setShowAdminError(true);
+          return;
+        }
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setAuthUsers(data.users || []);
+      console.log('✅ Auth users loaded:', data.users?.length || 0);
     } catch (error) {
-      console.error('Error checking admin access:', error);
+      console.error('Error fetching auth users:', error);
       setShowAdminError(true);
+      toast({
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors du chargement des utilisateurs',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
   };
 
+  const handleDeleteUser = async (userId: string) => {
+    try {
+      console.log('🗑️ Deleting auth user:', userId);
+      
+      // Get current session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('No session found');
+      }
+
+      // Call our Edge Function to delete the user
+      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth-users?userId=${userId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur d\'authentification supprimé avec succès',
+      });
+
+      // Refresh the list
+      await fetchAuthUsers();
+    } catch (error) {
+      console.error('Error deleting auth user:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la suppression de l\'utilisateur',
+        variant: 'destructive',
+      });
+    }
+  };
+
   useEffect(() => {
-    checkAdminAccess();
+    fetchAuthUsers();
   }, []);
 
   const filteredUsers = authUsers.filter(user =>
@@ -104,15 +159,8 @@ const AuthUsers = () => {
           <AlertDescription className="text-amber-800">
             <strong>Permissions insuffisantes</strong>
             <br />
-            Cette fonctionnalité nécessite des permissions d'administrateur service (service_role) 
-            qui ne sont pas disponibles depuis l'interface utilisateur pour des raisons de sécurité.
-            <br /><br />
-            Pour accéder à cette fonctionnalité, vous pouvez :
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Utiliser le tableau de bord Supabase directement</li>
-              <li>Configurer une fonction Edge avec les permissions service_role</li>
-              <li>Demander à un administrateur système d'activer ces permissions</li>
-            </ul>
+            Vous n'avez pas les permissions nécessaires pour accéder à cette fonctionnalité.
+            Seuls les administrateurs peuvent gérer les utilisateurs d'authentification.
           </AlertDescription>
         </Alert>
 
@@ -147,14 +195,13 @@ const AuthUsers = () => {
           <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
           <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
         </div>
-        <RefreshButton onRefresh={checkAdminAccess} />
+        <RefreshButton onRefresh={fetchAuthUsers} />
       </div>
 
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Cette page affiche les utilisateurs d'authentification Supabase. 
-          Les fonctionnalités de modification nécessitent des permissions d'administrateur service.
+          Cette page affiche les utilisateurs d'authentification Supabase avec gestion complète via Edge Functions.
         </AlertDescription>
       </Alert>
 
@@ -185,6 +232,14 @@ const AuthUsers = () => {
                   </CardTitle>
                   <div className="flex items-center space-x-2">
                     {getStatusBadge(user)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteDialog({ isOpen: true, user })}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -230,12 +285,24 @@ const AuthUsers = () => {
           ))}
         </div>
 
-        {filteredUsers.length === 0 && !loading && !showAdminError && (
+        {filteredUsers.length === 0 && (
           <div className="text-center py-8">
             <p className="text-gray-600">Aucun utilisateur trouvé</p>
           </div>
         )}
       </div>
+
+      <AuthUserDeleteDialog
+        isOpen={deleteDialog.isOpen}
+        user={deleteDialog.user}
+        onConfirm={() => {
+          if (deleteDialog.user) {
+            handleDeleteUser(deleteDialog.user.id);
+          }
+          setDeleteDialog({ isOpen: false, user: null });
+        }}
+        onCancel={() => setDeleteDialog({ isOpen: false, user: null })}
+      />
     </div>
   );
 };

@@ -1,132 +1,95 @@
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { Dashboard, Users, Truck, Factory, Settings, Clock, Shield } from 'lucide-react';
 
-import { useMemo } from 'react';
-import { 
-  Calendar, 
-  Building2, 
-  Database, 
-  Car,
-  Users,
-  UserCheck,
-  PlusCircle,
-  History,
-} from 'lucide-react';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useRBAC } from '@/contexts/RBACContext';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { SidebarMenuItem } from "@/components/ui/sidebar-menu-item"
+import { SidebarMenuButton } from "@/components/ui/sidebar-menu-button"
 
-export const useSidebarMenuItems = () => {
-  const { t } = useLanguage();
-  const { hasPermission, currentUser, roles, loading } = useRBAC();
+const SidebarMenuItems: React.FC = () => {
+  const location = useLocation();
 
-  // Memoize menu items definition
-  const menuItems = useMemo(() => [
-    {
-      title: t.dashboard,
-      href: '/dashboard',
-      icon: Database,
-      permission: 'dashboard:read',
-      badge: null,
-      alwaysShow: true, // Always show dashboard
-    },
-    {
-      title: t.companies,
-      href: '/companies',
-      icon: Building2,
-      permission: 'companies:read',
-      badge: null,
-    },
-    {
-      title: 'Camionnettes',
-      href: '/vans',
-      icon: Car,
-      permission: 'vans:read',
-      badge: null,
-    },
-    {
-      title: 'Utilisateurs',
-      href: '/users',
-      icon: Users,
-      permission: 'users:read',
-      restrictToAdmin: true, // Only admin can see system users
-      badge: null,
-    },
-    {
-      title: 'Employés',
-      href: '/employees',
-      icon: UserCheck,
-      permission: 'users:read',
-      badge: null,
-    },
-    {
-      title: 'Enregistrer une Mission',
-      href: '/trip-logger',
-      icon: PlusCircle,
-      permission: 'trips:create',
-      badge: null,
-    },
-    {
-      title: 'Historique des Missions',
-      href: '/trip-history',
-      icon: History,
-      permission: 'trips:read',
-      badge: null,
-    },
-  ], [t]);
+  const getNavClass = ({ isActive }: { isActive: boolean }) => {
+    return isActive
+      ? "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=open]:bg-secondary hover:bg-secondary/80 p-2 bg-secondary text-secondary-foreground"
+      : "inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[state=open]:bg-secondary hover:bg-secondary/80 p-2";
+  };
 
-  // Filter menu items based on permissions
-  const filteredMenuItems = useMemo(() => {
-    console.log('=== SIDEBAR MENU DEBUG ===');
-    console.log('Loading state:', loading);
-    console.log('Current user:', currentUser?.id, currentUser?.role_id);
-    console.log('Roles loaded:', roles.length);
-    
-    // Always show items that are marked as alwaysShow (like dashboard)
-    const alwaysShowItems = menuItems.filter(item => item.alwaysShow);
-    
-    // If still loading, show dashboard and basic items
-    if (loading || !currentUser) {
-      console.log('Still loading or no user, showing basic items');
-      const basicItems = menuItems.filter(item => 
-        item.alwaysShow || 
-        ['companies:read', 'vans:read'].includes(item.permission)
-      );
-      return basicItems;
-    }
+  return (
+    <>
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/" className={getNavClass}>
+            <Dashboard className="mr-2 h-4 w-4" />
+            Dashboard
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-    // If no roles loaded yet, show basic items for logged in user
-    if (roles.length === 0) {
-      console.log('No roles loaded yet, showing basic items');
-      const basicItems = menuItems.filter(item => 
-        item.alwaysShow || 
-        ['companies:read', 'vans:read', 'trips:read'].includes(item.permission)
-      );
-      return basicItems;
-    }
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/companies" className={getNavClass}>
+            <Factory className="mr-2 h-4 w-4" />
+            Companies
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-    // Filter items based on permissions
-    const filtered = menuItems.filter(item => {
-      // Always show items marked as alwaysShow
-      if (item.alwaysShow) {
-        return true;
-      }
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/vans-drivers" className={getNavClass}>
+            <Truck className="mr-2 h-4 w-4" />
+            Vans & Drivers
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-      const hasPermissionForItem = hasPermission(item.permission);
-      
-      // Special check for Users page - only admin (role_id: 1) can see it
-      if (item.restrictToAdmin && currentUser.role_id !== 1) {
-        console.log(`Restricting "${item.title}" to admin only - current role: ${currentUser.role_id}`);
-        return false;
-      }
-      
-      console.log(`Permission check: "${item.title}" (${item.permission}): ${hasPermissionForItem}`);
-      return hasPermissionForItem;
-    });
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/users" className={getNavClass}>
+            <Users className="mr-2 h-4 w-4" />
+            Users
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-    console.log('Final filtered menu items:', filtered.map(item => `${item.title} (${item.href})`));
-    console.log('=== END SIDEBAR MENU DEBUG ===');
-    
-    return filtered;
-  }, [menuItems, hasPermission, currentUser, roles, loading]);
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/auth-users" className={getNavClass}>
+            <Shield className="mr-2 h-4 w-4" />
+            Auth Users
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
 
-  return filteredMenuItems;
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/log-trip" className={getNavClass}>
+            <Clock className="mr-2 h-4 w-4" />
+            Log Mission
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/trip-history" className={getNavClass}>
+            <Clock className="mr-2 h-4 w-4" />
+            Mission History
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+
+      <SidebarMenuItem>
+        <SidebarMenuButton asChild>
+          <NavLink to="/settings" className={getNavClass}>
+            <Settings className="mr-2 h-4 w-4" />
+            Settings
+          </NavLink>
+        </SidebarMenuButton>
+      </SidebarMenuItem>
+    </>
+  );
 };
+
+export default SidebarMenuItems;

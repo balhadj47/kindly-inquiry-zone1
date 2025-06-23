@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -78,6 +77,7 @@ const Index = () => {
                     <Route path="/companies/*" element={
                       hasPermission('companies:read') ? <Companies /> : <div>Access Denied</div>
                     } />
+                    <Route path="/vans-drivers" element={<Vans />} />
                     <Route path="/vans/*" element={<Vans />} />
                     <Route path="/users" element={
                       (hasPermission('users:read') && currentUser?.role_id === 1) ? <Users /> : <div>Access Denied</div>
@@ -85,6 +85,7 @@ const Index = () => {
                     <Route path="/employees" element={
                       hasPermission('users:read') ? <Employees /> : <div>Access Denied</div>
                     } />
+                    <Route path="/log-trip" element={<TripLoggerPage />} />
                     <Route path="/trip-logger" element={<TripLoggerPage />} />
                     <Route path="/trip-history" element={<TripHistoryPage />} />
                     <Route path="/settings" element={<UserSettings />} />

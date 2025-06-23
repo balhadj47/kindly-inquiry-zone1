@@ -6,7 +6,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useSidebarMenuItems } from './SidebarMenuItems';
-import { Home, Settings } from 'lucide-react';
+import { Home } from 'lucide-react';
 
 // Absolute fallback menu items if everything else fails
 const emergencyFallbackItems = [
@@ -14,11 +14,6 @@ const emergencyFallbackItems = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: Home,
-  },
-  {
-    title: 'Settings',
-    href: '/settings',
-    icon: Settings,
   },
 ];
 

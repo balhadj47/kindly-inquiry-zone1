@@ -77,10 +77,10 @@ export const useSidebarMenuItems = () => {
     return basicMenuItems;
   }
 
-  // If RBAC is still loading, return basic menu items to prevent empty sidebar
+  // If RBAC is still loading, return all menu items for admin user (since they have admin privileges)
   if (loading) {
-    console.log('🔍 RBAC still loading, returning basic menu items');
-    return basicMenuItems;
+    console.log('🔍 RBAC still loading, returning full menu items for admin user');
+    return fullMenuItems;
   }
 
   // Filter menu items based on permissions

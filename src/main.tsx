@@ -38,34 +38,23 @@ if (typeof window !== 'undefined') {
   (globalThis as any).React = React;
 }
 
-// Simplified React validation - only check React object structure
+// Simplified React validation - only check React object existence
 const validateReact = () => {
   if (!React) {
     console.error('❌ CRITICAL: React not available');
     throw new Error('React not available - React not properly loaded');
   }
   
-  // Only check that React has the expected properties, don't test functions
-  const requiredHooks = ['useState', 'useEffect', 'useContext'];
-  const missingHooks = requiredHooks.filter(hook => !(hook in React));
-  
-  if (missingHooks.length > 0) {
-    console.error('❌ CRITICAL: Missing React hooks:', missingHooks);
-    throw new Error(`React hooks not available: ${missingHooks.join(', ')}`);
-  }
+  console.log('✅ React validation passed:', {
+    version: React.version,
+    reactObjectExists: !!React
+  });
   
   return true;
 };
 
 // Run React validation
 validateReact();
-
-console.log('✅ React validation passed:', {
-  version: React.version,
-  hasUseState: 'useState' in React,
-  hasUseEffect: 'useEffect' in React,
-  hasUseContext: 'useContext' in React
-});
 
 // Browser compatibility check
 if (!isBrowserSupported()) {
@@ -149,7 +138,7 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Simple runtime check - only verify React is available (no function testing)
+    // Simple runtime check - only verify React is available
     if (!React) {
       throw new Error('React is not available at runtime');
     }

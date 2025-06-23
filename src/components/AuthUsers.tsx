@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -45,6 +44,10 @@ const AuthUsers = () => {
   // Use the new caching hook
   const { data: authUsers = [], isLoading: loading, error, refetch } = useAuthUsers();
   const { deleteAuthUser, updateAuthUser, createAuthUser } = useAuthUserMutations();
+
+  const handleRefresh = async () => {
+    await refetch();
+  };
 
   const handleDeleteUser = async (userId: string) => {
     if (!userId) return;
@@ -172,7 +175,7 @@ const AuthUsers = () => {
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          <RefreshButton onRefresh={() => refetch()} />
+          <RefreshButton onRefresh={handleRefresh} />
         </div>
       </div>
 

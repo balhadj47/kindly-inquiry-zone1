@@ -16,11 +16,28 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, userData?: { name?: string; role_id?: number }) => Promise<{ error: any }>;
   signOut: () => Promise<{ error: any }>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Known admin emails - these will always get Administrator privileges (role_id: 1)
+const ADMIN_EMAILS = [
+  'gb47@msn.com',
+  'admin@example.com'
+];
+
+const isAdminEmail = (email: string): boolean => {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+};
+
+const getRoleIdForEmail = (email: string): number => {
+  if (isAdminEmail(email)) {
+    return 1; // Administrator
+  }
+  return 2; // Default to Supervisor for non-admin auth users
+};
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   console.log('🔧 AuthProvider: Starting initialization...');
@@ -85,15 +102,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return { error };
     };
 
-    const signUp = async (email: string, password: string) => {
+    const signUp = async (email: string, password: string, userData?: { name?: string; role_id?: number }) => {
       const redirectUrl = `${window.location.origin}/`;
       console.log("Attempting sign up for:", email);
+      
+      // Determine role_id based on email or provided userData
+      const roleId = userData?.role_id || getRoleIdForEmail(email);
+      const name = userData?.name || email.split('@')[0];
+      
+      console.log("Setting up user with role_id:", roleId);
       
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            name: name,
+            role_id: roleId
+          }
         }
       });
       console.log("Sign up result:", { data, error });

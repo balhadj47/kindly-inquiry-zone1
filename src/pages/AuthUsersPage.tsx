@@ -7,10 +7,18 @@ import { roleIdHasPermission } from '@/utils/rolePermissions';
 const AuthUsersPage = () => {
   const { user: authUser } = useAuth();
   
-  // Check if user has admin permissions or is the known admin
-  const userRoleId = (authUser as any)?.role_id || 0;
+  // Check if user has admin permissions
+  const userRoleId = authUser?.user_metadata?.role_id || 0;
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
   const hasAdminPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
+
+  console.log('🔍 AuthUsersPage permissions check:', {
+    email: authUser?.email,
+    userRoleId,
+    isKnownAdmin,
+    hasAdminPermission,
+    metadata: authUser?.user_metadata
+  });
 
   if (!authUser) {
     return (
@@ -27,6 +35,9 @@ const AuthUsersPage = () => {
         <h2 className="text-xl font-semibold mb-2">Accès restreint</h2>
         <p className="text-gray-600">
           Cette fonctionnalité nécessite des permissions d'administrateur.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Rôle actuel: {userRoleId === 1 ? 'Administrateur' : userRoleId === 2 ? 'Superviseur' : 'Employé'}
         </p>
       </div>
     );

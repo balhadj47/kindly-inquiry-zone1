@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
@@ -21,18 +22,21 @@ const isAdminEmail = (email: string): boolean => {
 
 // Helper function to get role_id from auth user
 const getRoleIdFromAuthUser = (authUser: any): number => {
-  // First check user metadata for role_id
+  // First check user metadata for role_id (this should be the primary method now)
   if (authUser.user_metadata?.role_id) {
+    console.log('📋 Found role_id in user_metadata:', authUser.user_metadata.role_id);
     return authUser.user_metadata.role_id;
   }
   
-  // Fallback to email-based admin detection
+  // Fallback to email-based admin detection for existing users without metadata
   if (isAdminEmail(authUser.email || '')) {
+    console.log('📋 Admin email detected, assigning role_id: 1');
     return 1; // Administrator
   }
   
-  // Default to employee
-  return 3; // Employee
+  // Default to supervisor for auth users (not employees)
+  console.log('📋 Defaulting to supervisor role_id: 2');
+  return 2; // Supervisor
 };
 
 export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
@@ -61,6 +65,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
 
     const initializeRBAC = async () => {
       console.log('🚀 Starting auth-first RBAC initialization for user:', authUser?.email);
+      console.log('🔍 Auth user metadata:', authUser?.user_metadata);
       initializationRef.current = true;
       actions.setLoading(true);
 
@@ -103,7 +108,9 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
         console.log('✅ Auth-first RBAC initialized with user:', {
           id: currentUser.id,
           email: currentUser.email,
-          role_id: currentUser.role_id
+          role_id: currentUser.role_id,
+          metadata_role_id: authUser.user_metadata?.role_id,
+          fallback_used: !authUser.user_metadata?.role_id
         });
 
       } catch (error) {
@@ -116,7 +123,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     };
 
     initializeRBAC();
-  }, [authUser?.email, authUser?.id, authUser?.user_metadata, authLoading]);
+  }, [authUser?.email, authUser?.id, authUser?.user_metadata?.role_id, authLoading]);
 
   // Reset initialization flag when user changes
   useEffect(() => {

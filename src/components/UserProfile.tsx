@@ -44,10 +44,7 @@ const UserProfile = () => {
 
   console.log('UserProfile: Rendering with user:', user?.email);
   console.log('UserProfile: Current RBAC user:', currentUser);
-  console.log('UserProfile: Current language context:', { 
-    signOut: t.signOut, 
-    settings: t.settings 
-  });
+  console.log('UserProfile: Auth user metadata:', user?.user_metadata);
 
   if (!user) {
     return (
@@ -71,9 +68,10 @@ const UserProfile = () => {
     );
   }
 
-  // Get user name and role information
-  const userName = currentUser?.name || user.email?.split('@')[0] || 'User';
-  const userRole = currentUser?.role_id ? getRoleNameFromId(currentUser.role_id) : 'Employee';
+  // Get user name and role information from auth metadata and RBAC context
+  const userName = user.user_metadata?.name || currentUser?.name || user.email?.split('@')[0] || 'User';
+  const userRoleId = user.user_metadata?.role_id || currentUser?.role_id || 2;
+  const userRole = getRoleNameFromId(userRoleId);
   
   const userInitials = userName
     .split(' ')

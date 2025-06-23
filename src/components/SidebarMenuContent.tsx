@@ -6,15 +6,44 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { useSidebarMenuItems } from './SidebarMenuItems';
+import { Home, Settings } from 'lucide-react';
+
+// Fallback menu items when permissions aren't working
+const fallbackMenuItems = [
+  {
+    title: 'Dashboard',
+    href: '/dashboard',
+    icon: Home,
+  },
+  {
+    title: 'Settings',
+    href: '/settings',
+    icon: Settings,
+  },
+];
 
 const SidebarMenuContent = () => {
   console.log('🔍 SidebarMenuContent: Starting render');
   
   const location = useLocation();
-  const menuItems = useSidebarMenuItems();
+  
+  let menuItems;
+  try {
+    menuItems = useSidebarMenuItems();
+    console.log('🔍 Menu items from useSidebarMenuItems:', menuItems.length);
+  } catch (error) {
+    console.error('🔍 Error getting menu items, using fallback:', error);
+    menuItems = fallbackMenuItems;
+  }
+
+  // If no menu items or very few, use fallback
+  if (!menuItems || menuItems.length < 2) {
+    console.log('🔍 Using fallback menu items due to insufficient items');
+    menuItems = fallbackMenuItems;
+  }
   
   console.log('🔍 Current location:', location.pathname);
-  console.log('🔍 Menu items from useSidebarMenuItems:', menuItems.length);
+  console.log('🔍 Final menu items to render:', menuItems.length);
 
   return (
     <SidebarMenu className="space-y-2">

@@ -45,8 +45,9 @@ const validateReactHooks = () => {
     throw new Error('React hooks not available - React not properly loaded');
   }
   
-  // Check useContext exists as a function
-  if (typeof React.useContext !== 'function') {
+  // Check useContext exists as a function - avoid void expression testing
+  const useContextType = typeof React.useContext;
+  if (useContextType !== 'function') {
     console.error('❌ CRITICAL: React.useContext not available');
     throw new Error('React.useContext not available - React not properly loaded');
   }
@@ -146,8 +147,9 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Additional runtime check for React context - no void expression testing
-    if (typeof React.useContext !== 'function') {
+    // Additional runtime check for React context - use variable to avoid void expression
+    const useContextType = typeof React.useContext;
+    if (useContextType !== 'function') {
       throw new Error('React.useContext is not available at runtime');
     }
     return <App />;

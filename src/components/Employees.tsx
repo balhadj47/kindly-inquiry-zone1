@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -213,6 +212,7 @@ const Employees = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         employee={selectedEmployee}
+        onRefresh={handleRefresh}
       />
 
       <EmployeeDeleteDialog

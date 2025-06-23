@@ -10,9 +10,10 @@ interface EmployeeModalProps {
   isOpen: boolean;
   onClose: () => void;
   employee: User | null;
+  onRefresh?: () => void;
 }
 
-const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee }) => {
+const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee, onRefresh }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addUser, updateUser } = useRBAC();
   const { toast } = useToast();
@@ -43,6 +44,12 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
           description: 'Employé créé avec succès',
         });
       }
+      
+      // Refresh the employees list after successful operation
+      if (onRefresh) {
+        onRefresh();
+      }
+      
       onClose();
     } catch (error) {
       console.error('Error submitting employee:', error);

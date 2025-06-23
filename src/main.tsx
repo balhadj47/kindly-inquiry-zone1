@@ -121,7 +121,10 @@ const ErrorFallback = () => {
             Reload Application
           </button>
           <button 
-            onClick={() => localStorage.clear() || window.location.reload()}
+            onClick={() => {
+              localStorage.clear();
+              window.location.reload();
+            }}
             className="w-full px-6 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition-colors"
           >
             Clear Cache & Reload

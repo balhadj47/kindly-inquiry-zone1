@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -22,6 +21,18 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   canEdit,
   canDelete,
 }) => {
+  console.log('EmployeeCard - Rendering employee:', employee.id, 'canEdit:', canEdit, 'canDelete:', canDelete);
+
+  const handleEdit = () => {
+    console.log('EmployeeCard - Edit button clicked for employee:', employee.id);
+    onEdit(employee);
+  };
+
+  const handleDelete = () => {
+    console.log('EmployeeCard - Delete button clicked for employee:', employee.id);
+    onDelete(employee);
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-800';
@@ -63,7 +74,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onEdit(employee)}
+                onClick={handleEdit}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -72,7 +83,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onDelete(employee)}
+                onClick={handleDelete}
                 className="text-destructive hover:text-destructive"
               >
                 <Trash className="h-4 w-4" />

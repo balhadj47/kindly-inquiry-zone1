@@ -79,6 +79,15 @@ const AuthUsers = () => {
   };
 
   const handleDeleteUser = async (userId: string) => {
+    if (!userId) {
+      toast({
+        title: 'Erreur',
+        description: 'ID utilisateur manquant',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setActionLoading(userId);
       console.log('🗑️ Deleting auth user:', userId);
@@ -90,7 +99,7 @@ const AuthUsers = () => {
 
       if (error) {
         console.error('Delete error:', error);
-        throw error;
+        throw new Error(error.message || 'Erreur lors de la suppression');
       }
 
       console.log('✅ Delete response:', data);
@@ -114,6 +123,24 @@ const AuthUsers = () => {
   };
 
   const handleUpdateUser = async (userId: string, updateData: { email?: string; role_id?: number; name?: string }) => {
+    if (!userId) {
+      toast({
+        title: 'Erreur',
+        description: 'ID utilisateur manquant',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!updateData || Object.keys(updateData).length === 0) {
+      toast({
+        title: 'Erreur',
+        description: 'Aucune donnée à mettre à jour',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     try {
       setActionLoading(userId);
       console.log('📝 Updating auth user:', userId, updateData);
@@ -125,7 +152,7 @@ const AuthUsers = () => {
 
       if (error) {
         console.error('Update error:', error);
-        throw error;
+        throw new Error(error.message || 'Erreur lors de la modification');
       }
 
       console.log('✅ Update response:', data);

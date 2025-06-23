@@ -14,6 +14,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log(`📥 Received ${req.method} request to auth-users`)
+    
     // Create supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -29,6 +31,7 @@ serve(async (req) => {
     // Verify the request is from an authenticated user
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.error('❌ No authorization header')
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { 
@@ -48,7 +51,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
     
     if (authError || !user) {
-      console.error('Auth error:', authError)
+      console.error('❌ Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { 
@@ -63,7 +66,7 @@ serve(async (req) => {
     const userRoleId = user.user_metadata?.role_id || 0
     const isAdmin = userRoleId === 1 || isKnownAdmin
     
-    console.log('User permissions check:', {
+    console.log('🔍 User permissions check:', {
       email: user.email,
       userRoleId,
       isKnownAdmin,
@@ -71,6 +74,7 @@ serve(async (req) => {
     })
     
     if (!isAdmin) {
+      console.error('❌ Insufficient permissions')
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
         { 
@@ -84,12 +88,17 @@ serve(async (req) => {
     if (req.method === 'GET') {
       console.log('📋 Listing all auth users...')
       
-      // List all auth users
       const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers()
       
       if (error) {
-        console.error('Error listing users:', error)
-        throw error
+        console.error('❌ Error listing users:', error)
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
 
       const formattedUsers = users.map(user => ({
@@ -114,13 +123,27 @@ serve(async (req) => {
     }
 
     if (req.method === 'PUT') {
-      const body = await req.json()
+      let body
+      try {
+        body = await req.json()
+      } catch (e) {
+        console.error('❌ Invalid JSON in request body:', e)
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
       const userId = body.userId
       const updateData = body.updateData
       
       console.log('📝 Updating auth user:', userId, updateData)
       
       if (!userId) {
+        console.error('❌ User ID required')
         return new Response(
           JSON.stringify({ error: 'User ID required' }),
           { 
@@ -130,58 +153,106 @@ serve(async (req) => {
         )
       }
 
-      const userUpdatePayload: any = {}
-      
-      // Handle email update
-      if (updateData.email) {
-        userUpdatePayload.email = updateData.email
+      if (!updateData || Object.keys(updateData).length === 0) {
+        console.error('❌ Update data required')
+        return new Response(
+          JSON.stringify({ error: 'Update data required' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
 
-      // Handle user metadata updates (name, role_id)
-      if (updateData.name !== undefined || updateData.role_id !== undefined) {
-        // Get current user metadata
-        const { data: currentUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId)
+      try {
+        const userUpdatePayload: any = {}
         
-        if (getUserError) {
-          console.error('Error getting current user:', getUserError)
-          throw getUserError
+        // Handle email update
+        if (updateData.email) {
+          userUpdatePayload.email = updateData.email
         }
-        
-        const currentMetadata = currentUser.user?.user_metadata || {}
-        
-        userUpdatePayload.user_metadata = {
-          ...currentMetadata,
-          ...(updateData.name !== undefined && { name: updateData.name }),
-          ...(updateData.role_id !== undefined && { role_id: updateData.role_id })
+
+        // Handle user metadata updates (name, role_id)
+        if (updateData.name !== undefined || updateData.role_id !== undefined) {
+          // Get current user metadata
+          const { data: currentUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId)
+          
+          if (getUserError) {
+            console.error('❌ Error getting current user:', getUserError)
+            return new Response(
+              JSON.stringify({ error: `Failed to get current user: ${getUserError.message}` }),
+              { 
+                status: 500, 
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+              }
+            )
+          }
+          
+          const currentMetadata = currentUser.user?.user_metadata || {}
+          
+          userUpdatePayload.user_metadata = {
+            ...currentMetadata,
+            ...(updateData.name !== undefined && { name: updateData.name }),
+            ...(updateData.role_id !== undefined && { role_id: updateData.role_id })
+          }
         }
+
+        console.log('🔄 Update payload:', userUpdatePayload)
+
+        const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
+        
+        if (updateError) {
+          console.error('❌ Error updating user:', updateError)
+          return new Response(
+            JSON.stringify({ error: `Failed to update user: ${updateError.message}` }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        console.log('✅ Successfully updated user:', updatedUser.user?.id)
+
+        return new Response(
+          JSON.stringify({ success: true, user: updatedUser.user }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      } catch (updateError) {
+        console.error('❌ Unexpected error during update:', updateError)
+        return new Response(
+          JSON.stringify({ error: `Unexpected error: ${updateError.message}` }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
       }
-
-      console.log('Update payload:', userUpdatePayload)
-
-      const { data: updatedUser, error } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
-      
-      if (error) {
-        console.error('Error updating user:', error)
-        throw error
-      }
-
-      console.log('✅ Successfully updated user:', updatedUser.user?.id)
-
-      return new Response(
-        JSON.stringify({ success: true, user: updatedUser.user }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
     }
 
     if (req.method === 'DELETE') {
-      const body = await req.json()
+      let body
+      try {
+        body = await req.json()
+      } catch (e) {
+        console.error('❌ Invalid JSON in request body:', e)
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
       const userId = body.userId
       
       console.log('🗑️ Deleting auth user:', userId)
       
       if (!userId) {
+        console.error('❌ User ID required')
         return new Response(
           JSON.stringify({ error: 'User ID required' }),
           { 
@@ -193,6 +264,7 @@ serve(async (req) => {
 
       // Prevent deleting own account
       if (userId === user.id) {
+        console.error('❌ Cannot delete own account')
         return new Response(
           JSON.stringify({ error: 'Cannot delete your own account' }),
           { 
@@ -202,23 +274,41 @@ serve(async (req) => {
         )
       }
 
-      const { data, error } = await supabaseAdmin.auth.admin.deleteUser(userId)
-      
-      if (error) {
-        console.error('Error deleting user:', error)
-        throw error
-      }
-
-      console.log('✅ Successfully deleted user:', userId)
-
-      return new Response(
-        JSON.stringify({ success: true }),
-        { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      try {
+        const { data, error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(userId)
+        
+        if (deleteError) {
+          console.error('❌ Error deleting user:', deleteError)
+          return new Response(
+            JSON.stringify({ error: `Failed to delete user: ${deleteError.message}` }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
-      )
+
+        console.log('✅ Successfully deleted user:', userId)
+
+        return new Response(
+          JSON.stringify({ success: true }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      } catch (deleteError) {
+        console.error('❌ Unexpected error during delete:', deleteError)
+        return new Response(
+          JSON.stringify({ error: `Unexpected error: ${deleteError.message}` }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
     }
 
+    console.error('❌ Method not allowed:', req.method)
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { 
@@ -228,9 +318,9 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error in auth-users function:', error)
+    console.error('❌ Error in auth-users function:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: `Server error: ${error.message}` }),
       { 
         status: 500, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 

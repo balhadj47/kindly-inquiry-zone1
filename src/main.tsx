@@ -39,7 +39,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Validate React is properly loaded
-if (!React || !React.useState || !React.useEffect || !React.useContext) {
+if (!React || !React.useState || !React.useEffect || typeof React.useContext !== 'function') {
   console.error('❌ CRITICAL: React hooks not available');
   throw new Error('React hooks not available - React not properly loaded');
 }
@@ -48,7 +48,7 @@ console.log('✅ React validation passed:', {
   version: React.version,
   hasUseState: !!React.useState,
   hasUseEffect: !!React.useEffect,
-  hasUseContext: !!React.useContext
+  hasUseContext: typeof React.useContext === 'function'
 });
 
 // Browser compatibility check
@@ -134,7 +134,7 @@ const ErrorFallback = () => {
 const SafeApp = () => {
   try {
     // Additional runtime check for React context
-    if (!React.useContext) {
+    if (typeof React.useContext !== 'function') {
       throw new Error('React.useContext is not available at runtime');
     }
     return <App />;

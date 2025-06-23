@@ -57,37 +57,32 @@ const menuItems: MenuItem[] = [
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  // Always return menu items, but safely check permissions
-  let hasPermission: (permission: string) => boolean = () => true; // Default to allow all
-  let currentUser: any = null;
+  const { hasPermission, currentUser, loading } = useRBAC();
+  
+  console.log('🔍 Menu items processing - user:', currentUser?.id, 'loading:', loading);
 
-  try {
-    const rbacContext = useRBAC();
-    if (rbacContext && rbacContext.hasPermission) {
-      hasPermission = rbacContext.hasPermission;
-      currentUser = rbacContext.currentUser;
-    }
-  } catch (error) {
-    console.warn('⚠️ RBAC context not available, showing all menu items:', error);
+  // If still loading, return empty array to avoid flashing unauthorized menu items
+  if (loading) {
+    console.log('🔍 RBAC context still loading, returning empty menu');
+    return [];
   }
 
-  console.log('🔍 Menu items processing - user:', currentUser?.id, 'loading state bypassed');
-
-  // Filter menu items only if we have a working permission function
+  // Filter menu items based on permissions
   const filteredMenuItems = menuItems.filter((item) => {
+    // Always show items without permission requirements (like Dashboard)
     if (!item.permission) {
-      return true; // Always show items without permission requirements
+      return true;
     }
     
-    try {
-      // If no user or permission function fails, show the item (fail open for better UX)
-      return hasPermission(item.permission);
-    } catch (error) {
-      console.warn(`⚠️ Permission check failed for ${item.title}, showing item:`, error);
-      return true; // Fail open - show the item
-    }
+    // Check if user has the required permission
+    const hasAccess = hasPermission(item.permission);
+    console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess}`);
+    
+    return hasAccess;
   });
 
-  console.log('🔍 Final menu items count:', filteredMenuItems.length);
+  console.log('🔍 Final filtered menu items count:', filteredMenuItems.length);
+  console.log('🔍 Filtered menu items:', filteredMenuItems.map(item => item.title));
+  
   return filteredMenuItems;
 };

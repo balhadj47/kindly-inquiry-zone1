@@ -1,34 +1,30 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
-
-const employeeSchema = z.object({
-  name: z.string().min(1, 'Le nom est requis'),
-  badgeNumber: z.string().min(1, 'Le numéro de badge est requis'),
-  email: z.string().email('Email invalide').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  dateOfBirth: z.string().optional(),
-  placeOfBirth: z.string().optional(),
-  address: z.string().optional(),
-  driverLicense: z.string().optional(),
-  status: z.enum(['Active', 'Inactive', 'Suspended', 'Récupération', 'Congé', 'Congé maladie']),
-});
-
-type EmployeeFormData = z.infer<typeof employeeSchema>;
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EmployeeModalFormProps {
-  employee: User | null;
-  onSubmit: (data: Partial<User>) => void;
+  employee?: User | null;
+  onSubmit: (userData: Partial<User>) => Promise<void>;
   isSubmitting: boolean;
   onCancel: () => void;
+}
+
+interface FormData {
+  name: string;
+  phone: string;
+  status: UserStatus;
+  badgeNumber: string;
+  dateOfBirth: string;
+  placeOfBirth: string;
+  address: string;
+  driverLicense?: string;
 }
 
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
@@ -37,154 +33,215 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   isSubmitting,
   onCancel,
 }) => {
-  const {
-    register,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors },
-  } = useForm<EmployeeFormData>({
-    resolver: zodResolver(employeeSchema),
+  const form = useForm<FormData>({
     defaultValues: {
       name: employee?.name || '',
-      badgeNumber: employee?.badgeNumber || '',
-      email: employee?.email || '',
       phone: employee?.phone || '',
+      status: employee?.status || 'Active',
+      badgeNumber: employee?.badgeNumber || '',
       dateOfBirth: employee?.dateOfBirth || '',
       placeOfBirth: employee?.placeOfBirth || '',
       address: employee?.address || '',
       driverLicense: employee?.driverLicense || '',
-      status: employee?.status || 'Active',
     },
   });
 
-  const statusValue = watch('status');
-
-  const handleFormSubmit = (data: EmployeeFormData) => {
-    console.log('Form submission - using role_id only:', data);
-    
-    // Clean up the email field - convert empty string to undefined
-    const cleanedData = {
-      ...data,
-      email: data.email && data.email.trim() !== '' ? data.email.trim() : undefined,
-      phone: data.phone || undefined,
-      role_id: 3, // Always set to 3 for employees
-    };
-    
-    console.log('Cleaned form data:', cleanedData);
-    onSubmit(cleanedData);
+  const handleSubmit = async (data: FormData) => {
+    try {
+      console.log('Submitting employee form with data:', data);
+      await onSubmit(data);
+      console.log('Employee form submitted successfully');
+      form.reset();
+    } catch (error) {
+      console.error('Error submitting employee form:', error);
+    }
   };
 
-  const statuses: UserStatus[] = ['Active', 'Inactive', 'Suspended', 'Récupération', 'Congé', 'Congé maladie'];
-
   return (
-    <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Nom complet *</Label>
-          <Input
-            id="name"
-            {...register('name')}
-            placeholder="Nom et prénom"
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="name"
+            rules={{ required: 'Le nom est requis' }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nom complet *</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: Jean Dupont"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="badgeNumber">Numéro de badge *</Label>
-          <Input
-            id="badgeNumber"
-            {...register('badgeNumber')}
-            placeholder="Ex: EMP001"
+          <FormField
+            control={form.control}
+            name="phone"
+            rules={{ required: 'Le téléphone est requis' }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Téléphone *</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: +33 1 23 45 67 89"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.badgeNumber && <p className="text-sm text-red-600">{errors.badgeNumber.message}</p>}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="phone">Téléphone</Label>
-          <Input
-            id="phone"
-            type="tel"
-            {...register('phone')}
-            placeholder="+33 6 12 34 56 78"
+          <FormField
+            control={form.control}
+            name="badgeNumber"
+            rules={{ required: 'Le numéro de badge est requis' }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Numéro de Badge *</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: EMP001"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="email">Email (optionnel)</Label>
-          <Input
-            id="email"
-            type="email"
-            {...register('email')}
-            placeholder="exemple@email.com (optionnel)"
+          <FormField
+            control={form.control}
+            name="status"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Statut *</FormLabel>
+                <Select 
+                  onValueChange={field.onChange} 
+                  value={field.value}
+                  disabled={isSubmitting}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un statut" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="Active">Actif</SelectItem>
+                    <SelectItem value="Inactive">Inactif</SelectItem>
+                    <SelectItem value="Suspended">Suspendu</SelectItem>
+                    <SelectItem value="Récupération">Récupération</SelectItem>
+                    <SelectItem value="Congé">Congé</SelectItem>
+                    <SelectItem value="Congé maladie">Congé maladie</SelectItem>
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-          {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">Date de naissance</Label>
-          <Input
-            id="dateOfBirth"
-            type="date"
-            {...register('dateOfBirth')}
+          <FormField
+            control={form.control}
+            name="dateOfBirth"
+            rules={{ required: 'La date de naissance est requise' }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Date de Naissance *</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="date"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="driverLicense"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Permis de Conduire (optionnel)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: 123456789"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="placeOfBirth">Lieu de naissance</Label>
-          <Input
-            id="placeOfBirth"
-            {...register('placeOfBirth')}
-            placeholder="Ville, Pays"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="driverLicense">Permis de conduire</Label>
-          <Input
-            id="driverLicense"
-            {...register('driverLicense')}
-            placeholder="Numéro de permis"
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="status">Statut</Label>
-          <Select value={statusValue} onValueChange={(value) => setValue('status', value as UserStatus)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionner un statut" />
-            </SelectTrigger>
-            <SelectContent>
-              {statuses.map(status => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="address">Adresse</Label>
-        <Textarea
-          id="address"
-          {...register('address')}
-          placeholder="Adresse complète"
-          rows={3}
+        <FormField
+          control={form.control}
+          name="placeOfBirth"
+          rules={{ required: 'Le lieu de naissance est requis' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Lieu de Naissance *</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="ex: Paris, France"
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-      </div>
 
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Annuler
-        </Button>
-        <Button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Enregistrement...' : (employee ? 'Modifier' : 'Créer')}
-        </Button>
-      </div>
-    </form>
+        <FormField
+          control={form.control}
+          name="address"
+          rules={{ required: 'L\'adresse est requise' }}
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Adresse *</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="ex: 123 Rue de la Paix, 75001 Paris"
+                  disabled={isSubmitting}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <DialogFooter>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
+            Annuler
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Enregistrement...' : employee ? 'Modifier' : 'Créer'}
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   );
 };
 

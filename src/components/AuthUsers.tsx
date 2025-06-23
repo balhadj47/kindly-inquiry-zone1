@@ -25,36 +25,25 @@ const AuthUsers = () => {
   const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [showAdminError, setShowAdminError] = useState(false);
   const { toast } = useToast();
 
-  const fetchAuthUsers = async () => {
+  const checkAdminAccess = async () => {
     try {
       setLoading(true);
-      setError(null);
-      console.log('🔍 Attempting to fetch auth users...');
+      console.log('🔍 Checking admin access for auth users...');
       
       // Try to get auth users via admin API
       const { data: { users }, error } = await supabase.auth.admin.listUsers();
       
       if (error) {
         console.error('Admin API error:', error);
-        
-        // If admin API fails, show helpful error message
-        if (error.message?.includes('service_role') || error.message?.includes('not_admin')) {
-          setError('admin_permissions');
-        } else {
-          setError('general_error');
-        }
-        
-        toast({
-          title: 'Accès restreint',
-          description: 'Impossible d\'accéder aux utilisateurs d\'authentification avec les permissions actuelles',
-          variant: 'destructive',
-        });
+        setShowAdminError(true);
+        setLoading(false);
         return;
       }
 
+      // If we get here, we have admin access
       const formattedUsers: AuthUser[] = users.map(user => ({
         id: user.id,
         email: user.email || '',
@@ -69,20 +58,15 @@ const AuthUsers = () => {
       setAuthUsers(formattedUsers);
       console.log('✅ Auth users loaded:', formattedUsers.length);
     } catch (error) {
-      console.error('Error in fetchAuthUsers:', error);
-      setError('general_error');
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors du chargement',
-        variant: 'destructive',
-      });
+      console.error('Error checking admin access:', error);
+      setShowAdminError(true);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchAuthUsers();
+    checkAdminAccess();
   }, []);
 
   const filteredUsers = authUsers.filter(user =>
@@ -105,7 +89,7 @@ const AuthUsers = () => {
     );
   }
 
-  if (error === 'admin_permissions') {
+  if (showAdminError) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
@@ -156,28 +140,6 @@ const AuthUsers = () => {
     );
   }
 
-  if (error === 'general_error') {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
-            <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
-          </div>
-          <RefreshButton onRefresh={fetchAuthUsers} />
-        </div>
-
-        <Alert className="border-red-200 bg-red-50">
-          <AlertTriangle className="h-4 w-4 text-red-600" />
-          <AlertDescription className="text-red-800">
-            Une erreur est survenue lors du chargement des utilisateurs d'authentification. 
-            Veuillez réessayer ou contacter l'administrateur.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -185,7 +147,7 @@ const AuthUsers = () => {
           <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
           <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
         </div>
-        <RefreshButton onRefresh={fetchAuthUsers} />
+        <RefreshButton onRefresh={checkAdminAccess} />
       </div>
 
       <Alert>
@@ -268,7 +230,7 @@ const AuthUsers = () => {
           ))}
         </div>
 
-        {filteredUsers.length === 0 && !loading && !error && (
+        {filteredUsers.length === 0 && !loading && !showAdminError && (
           <div className="text-center py-8">
             <p className="text-gray-600">Aucun utilisateur trouvé</p>
           </div>

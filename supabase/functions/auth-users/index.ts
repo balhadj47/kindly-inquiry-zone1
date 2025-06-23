@@ -122,6 +122,79 @@ serve(async (req) => {
       )
     }
 
+    if (req.method === 'POST') {
+      let body
+      try {
+        body = await req.json()
+      } catch (e) {
+        console.error('❌ Invalid JSON in request body:', e)
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      const { email, password, name, role_id } = body
+      
+      console.log('🆕 Creating new auth user:', email)
+      
+      if (!email || !password || !name) {
+        console.error('❌ Missing required fields')
+        return new Response(
+          JSON.stringify({ error: 'Email, password, and name are required' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      try {
+        // Create the auth user
+        const { data: authData, error: createError } = await supabaseAdmin.auth.admin.createUser({
+          email: email,
+          password: password,
+          user_metadata: {
+            name: name,
+            role_id: role_id || 2
+          },
+          email_confirm: true // Auto-confirm the email
+        })
+        
+        if (createError) {
+          console.error('❌ Error creating auth user:', createError)
+          return new Response(
+            JSON.stringify({ error: `Failed to create auth user: ${createError.message}` }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+
+        console.log('✅ Successfully created auth user:', authData.user?.id)
+
+        return new Response(
+          JSON.stringify({ success: true, user: authData.user }),
+          { 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      } catch (createError) {
+        console.error('❌ Unexpected error during user creation:', createError)
+        return new Response(
+          JSON.stringify({ error: `Unexpected error: ${createError.message}` }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+    }
+
     if (req.method === 'PUT') {
       let body
       try {

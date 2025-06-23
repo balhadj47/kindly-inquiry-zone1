@@ -72,36 +72,52 @@ const Employees = () => {
   };
 
   const handleAddEmployee = () => {
+    console.log('Adding new employee');
     setSelectedEmployee(null);
     setIsModalOpen(true);
   };
 
   const handleEditEmployee = (employee: User) => {
+    console.log('Editing employee:', employee.id);
     setSelectedEmployee(employee);
     setIsModalOpen(true);
   };
 
   const handleDeleteEmployee = (employee: User) => {
+    console.log('Preparing to delete employee:', employee.id);
     setSelectedEmployee(employee);
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedEmployee) return;
+    if (!selectedEmployee) {
+      console.error('No employee selected for deletion');
+      return;
+    }
     
     try {
-      console.log('Deleting employee:', selectedEmployee);
+      console.log('Confirming deletion of employee:', selectedEmployee.id);
       await deleteUser.mutateAsync(selectedEmployee.id);
       
+      console.log('Employee deleted successfully:', selectedEmployee.id);
       setIsDeleteDialogOpen(false);
       setSelectedEmployee(null);
       
+      // Refresh the data after successful deletion
+      refetch();
+      
     } catch (error) {
       console.error('Error deleting employee:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer l\'employé. Veuillez réessayer.',
+        variant: 'destructive',
+      });
     }
   };
 
   const handleCancelDelete = () => {
+    console.log('Canceling employee deletion');
     setIsDeleteDialogOpen(false);
     setSelectedEmployee(null);
   };

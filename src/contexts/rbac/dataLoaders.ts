@@ -1,5 +1,6 @@
+
 import { supabase } from '@/integrations/supabase/client';
-import type { User } from '@/types/rbac';
+import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup } from '@/types/systemGroups';
 
 export const loadRoles = async (): Promise<SystemGroup[]> => {
@@ -27,6 +28,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
       permissions: group.permissions || [],
       color: group.color,
       role_id: group.role_id,
+      isSystemRole: true, // Add the missing required property
     }));
   } catch (error) {
     console.error('❌ Failed to load roles:', error);
@@ -59,7 +61,7 @@ export const loadUsers = async (): Promise<User[]> => {
       email: user.email || undefined,
       phone: user.phone || '',
       role_id: user.role_id || 3,
-      status: user.status || 'Active',
+      status: (user.status || 'Active') as UserStatus, // Cast to proper UserStatus type
       createdAt: user.created_at,
       licenseNumber: user.driver_license,
       totalTrips: user.total_trips,

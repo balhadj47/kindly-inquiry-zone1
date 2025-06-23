@@ -112,7 +112,7 @@ const Employees = () => {
   };
 
   // Check permissions using role_id - safely access the property
-  const userRoleId = authUser?.role_id || 0;
+  const userRoleId = (authUser as any)?.role_id || 0;
   const canCreateUsers = authUser ? roleIdHasPermission(userRoleId, 'users:create') : false;
   const canEditUsers = authUser ? roleIdHasPermission(userRoleId, 'users:update') : false;
   const canDeleteUsers = authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false;

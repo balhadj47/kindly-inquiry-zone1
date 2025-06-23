@@ -107,8 +107,8 @@ serve(async (req) => {
 
     if (req.method === 'DELETE') {
       // Delete a user
-      const url = new URL(req.url)
-      const userId = url.searchParams.get('userId')
+      const body = await req.json()
+      const userId = body.userId
       
       if (!userId) {
         return new Response(

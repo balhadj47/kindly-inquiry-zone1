@@ -46,24 +46,19 @@ const AuthUsers = () => {
         throw new Error('No session found');
       }
 
-      // Call our Edge Function
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth-users`, {
+      // Call our Edge Function using the correct URL format
+      const { data, error } = await supabase.functions.invoke('auth-users', {
         method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
       });
 
-      if (!response.ok) {
-        if (response.status === 403) {
+      if (error) {
+        if (error.message.includes('403') || error.message.includes('Insufficient permissions')) {
           setShowAdminError(true);
           return;
         }
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw error;
       }
 
-      const data = await response.json();
       setAuthUsers(data.users || []);
       console.log('✅ Auth users loaded:', data.users?.length || 0);
     } catch (error) {
@@ -83,24 +78,14 @@ const AuthUsers = () => {
     try {
       console.log('🗑️ Deleting auth user:', userId);
       
-      // Get current session
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No session found');
-      }
-
       // Call our Edge Function to delete the user
-      const response = await fetch(`${supabase.supabaseUrl}/functions/v1/auth-users?userId=${userId}`, {
+      const { error } = await supabase.functions.invoke('auth-users', {
         method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${session.access_token}`,
-          'Content-Type': 'application/json',
-        },
+        body: { userId },
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (error) {
+        throw error;
       }
 
       toast({

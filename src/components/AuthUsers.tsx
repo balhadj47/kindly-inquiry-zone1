@@ -6,10 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { Trash, Mail, Clock, Shield, Search } from 'lucide-react';
+import { Mail, Clock, Shield, Search, AlertTriangle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import AuthUserDeleteDialog from './auth-users/AuthUserDeleteDialog';
 
 interface AuthUser {
   id: string;
@@ -26,23 +25,31 @@ const AuthUsers = () => {
   const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<AuthUser | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchAuthUsers = async () => {
     try {
       setLoading(true);
-      console.log('🔍 Fetching auth users...');
+      setError(null);
+      console.log('🔍 Attempting to fetch auth users...');
       
-      // Get auth users via admin API
+      // Try to get auth users via admin API
       const { data: { users }, error } = await supabase.auth.admin.listUsers();
       
       if (error) {
-        console.error('Error fetching auth users:', error);
+        console.error('Admin API error:', error);
+        
+        // If admin API fails, show helpful error message
+        if (error.message?.includes('service_role') || error.message?.includes('not_admin')) {
+          setError('admin_permissions');
+        } else {
+          setError('general_error');
+        }
+        
         toast({
-          title: 'Erreur',
-          description: 'Impossible de charger les utilisateurs d\'authentification',
+          title: 'Accès restreint',
+          description: 'Impossible d\'accéder aux utilisateurs d\'authentification avec les permissions actuelles',
           variant: 'destructive',
         });
         return;
@@ -63,6 +70,7 @@ const AuthUsers = () => {
       console.log('✅ Auth users loaded:', formattedUsers.length);
     } catch (error) {
       console.error('Error in fetchAuthUsers:', error);
+      setError('general_error');
       toast({
         title: 'Erreur',
         description: 'Une erreur est survenue lors du chargement',
@@ -76,49 +84,6 @@ const AuthUsers = () => {
   useEffect(() => {
     fetchAuthUsers();
   }, []);
-
-  const handleDeleteUser = (user: AuthUser) => {
-    setSelectedUser(user);
-    setIsDeleteDialogOpen(true);
-  };
-
-  const handleConfirmDelete = async () => {
-    if (!selectedUser) return;
-
-    try {
-      console.log('🗑️ Deleting auth user:', selectedUser.id);
-      
-      const { error } = await supabase.auth.admin.deleteUser(selectedUser.id);
-      
-      if (error) {
-        console.error('Error deleting auth user:', error);
-        toast({
-          title: 'Erreur',
-          description: 'Impossible de supprimer l\'utilisateur',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      toast({
-        title: 'Succès',
-        description: 'Utilisateur supprimé avec succès',
-      });
-
-      // Refresh the list
-      fetchAuthUsers();
-    } catch (error) {
-      console.error('Error in handleConfirmDelete:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la suppression',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleteDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
 
   const filteredUsers = authUsers.filter(user =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -140,6 +105,78 @@ const AuthUsers = () => {
     );
   }
 
+  if (error === 'admin_permissions') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
+            <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
+          </div>
+        </div>
+
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Permissions insuffisantes</strong>
+            <br />
+            Cette fonctionnalité nécessite des permissions d'administrateur service (service_role) 
+            qui ne sont pas disponibles pour les utilisateurs normaux. 
+            <br /><br />
+            Pour accéder à cette fonctionnalité, vous devez :
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Configurer une fonction Edge avec les permissions service_role</li>
+              <li>Ou utiliser le tableau de bord Supabase directement</li>
+              <li>Ou demander à un administrateur système d'activer ces permissions</li>
+            </ul>
+          </AlertDescription>
+        </Alert>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center space-x-2">
+              <Shield className="h-5 w-5 text-blue-500" />
+              <span>Tableau de bord Supabase</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 mb-4">
+              Vous pouvez gérer les utilisateurs d'authentification directement via le tableau de bord Supabase :
+            </p>
+            <Button 
+              onClick={() => window.open('https://supabase.com/dashboard/project/upaxlykqpbpvwsprcrtu/auth/users', '_blank')}
+              className="w-full"
+            >
+              Ouvrir le tableau de bord Supabase
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (error === 'general_error') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
+            <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
+          </div>
+          <RefreshButton onRefresh={fetchAuthUsers} />
+        </div>
+
+        <Alert className="border-red-200 bg-red-50">
+          <AlertTriangle className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-800">
+            Une erreur est survenue lors du chargement des utilisateurs d'authentification. 
+            Veuillez réessayer ou contacter l'administrateur.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -153,8 +190,8 @@ const AuthUsers = () => {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Cette page permet de gérer les utilisateurs d'authentification Supabase. 
-          Soyez prudent lors de la suppression d'utilisateurs car cette action est irréversible.
+          Cette page permet de visualiser les utilisateurs d'authentification Supabase. 
+          Les fonctionnalités de modification nécessitent des permissions d'administrateur.
         </AlertDescription>
       </Alert>
 
@@ -185,14 +222,6 @@ const AuthUsers = () => {
                   </CardTitle>
                   <div className="flex items-center space-x-2">
                     {getStatusBadge(user)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleDeleteUser(user)}
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
                   </div>
                 </div>
               </CardHeader>
@@ -237,22 +266,12 @@ const AuthUsers = () => {
           ))}
         </div>
 
-        {filteredUsers.length === 0 && !loading && (
+        {filteredUsers.length === 0 && !loading && !error && (
           <div className="text-center py-8">
             <p className="text-gray-600">Aucun utilisateur trouvé</p>
           </div>
         )}
       </div>
-
-      <AuthUserDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        user={selectedUser}
-        onConfirm={handleConfirmDelete}
-        onCancel={() => {
-          setIsDeleteDialogOpen(false);
-          setSelectedUser(null);
-        }}
-      />
     </div>
   );
 };

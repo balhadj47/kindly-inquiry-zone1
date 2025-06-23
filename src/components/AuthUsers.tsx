@@ -255,18 +255,11 @@ const AuthUsers = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
+          <h1 className="text-2xl font-bold">Comptes</h1>
           <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
         </div>
         <RefreshButton onRefresh={fetchAuthUsers} />
       </div>
-
-      <Alert>
-        <Shield className="h-4 w-4" />
-        <AlertDescription>
-          Cette page affiche les utilisateurs d'authentification Supabase avec gestion complète via Edge Functions.
-        </AlertDescription>
-      </Alert>
 
       <div className="space-y-4">
         <div className="flex items-center space-x-4">

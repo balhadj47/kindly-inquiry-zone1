@@ -1,5 +1,5 @@
 
-import { Home, Truck, Factory, Settings, Clock, UserCheck, Shield } from 'lucide-react';
+import { Home, Truck, Factory, Settings, Clock, Users, Shield } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 
 export interface MenuItem {
@@ -33,11 +33,11 @@ export const useSidebarMenuItems = () => {
     {
       title: 'Employees',
       href: '/employees',
-      icon: UserCheck,
+      icon: Users,
       permission: 'users:read',
     },
     {
-      title: 'Auth Users',
+      title: 'Comptes',
       href: '/auth-users',
       icon: Shield,
       permission: 'users:read',

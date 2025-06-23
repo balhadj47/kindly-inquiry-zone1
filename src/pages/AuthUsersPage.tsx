@@ -24,7 +24,7 @@ const AuthUsersPage = () => {
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
-        <p className="text-gray-600">Vous devez être connecté pour accéder à la gestion des utilisateurs d'authentification.</p>
+        <p className="text-gray-600">Vous devez être connecté pour accéder à la gestion des comptes.</p>
       </div>
     );
   }

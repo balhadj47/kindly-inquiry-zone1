@@ -3,7 +3,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { registerServiceWorker } from './utils/serviceWorker';
 
 // Import React and ensure it's globally available
 import * as React from 'react';
@@ -80,11 +79,15 @@ root.render(
   </StrictMode>
 );
 
-// Register service worker after the app is rendered
-registerServiceWorker().then((registration) => {
-  if (registration) {
-    console.log('🔧 Service Worker registered with scope:', registration.scope);
-  }
-}).catch((error) => {
-  console.error('🔧 Service Worker registration error:', error);
-});
+// Register service worker after the app is rendered, only in production
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js', { scope: '/' })
+    .then((registration) => {
+      console.log('🔧 Service Worker registered with scope:', registration.scope);
+    })
+    .catch((error) => {
+      console.error('🔧 Service Worker registration error:', error);
+    });
+} else {
+  console.log('🔧 Service Worker registration skipped (development mode)');
+}

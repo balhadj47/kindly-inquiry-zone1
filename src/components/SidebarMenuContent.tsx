@@ -25,20 +25,20 @@ const SidebarMenuContent = () => {
   let menuItems;
   try {
     menuItems = useSidebarMenuItems();
-    console.log('🔍 Successfully got menu items:', menuItems.length);
+    console.log('🔍 SidebarMenuContent: Successfully got menu items:', menuItems?.length);
   } catch (error) {
-    console.error('🔍 Error getting menu items, using emergency fallback:', error);
+    console.error('🔍 SidebarMenuContent: Error getting menu items, using emergency fallback:', error);
     menuItems = emergencyFallbackItems;
   }
 
   // Ensure we always have at least basic menu items
   if (!menuItems || menuItems.length === 0) {
-    console.log('🔍 No menu items available, using emergency fallback');
+    console.log('🔍 SidebarMenuContent: No menu items available, using emergency fallback');
     menuItems = emergencyFallbackItems;
   }
   
-  console.log('🔍 Current location:', location.pathname);
-  console.log('🔍 Final menu items to render:', menuItems.length);
+  console.log('🔍 SidebarMenuContent: Current location:', location.pathname);
+  console.log('🔍 SidebarMenuContent: Final menu items to render:', menuItems.length);
 
   return (
     <SidebarMenu className="space-y-2">
@@ -46,7 +46,7 @@ const SidebarMenuContent = () => {
         const isActive = location.pathname === item.href || 
           (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
         
-        console.log(`🔍 Rendering menu item: ${item.title}, href: ${item.href}, active: ${isActive}`);
+        console.log(`🔍 SidebarMenuContent: Rendering menu item: ${item.title}, href: ${item.href}, active: ${isActive}`);
         
         return (
           <SidebarMenuItem key={item.title}>
@@ -61,8 +61,8 @@ const SidebarMenuContent = () => {
                 } group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-3 group-data-[collapsible=icon]:py-3`;
               }}
               onClick={(e) => {
-                console.log('🔍 NavLink clicked:', item.href);
-                console.log('🔍 Current pathname before navigation:', location.pathname);
+                console.log('🔍 SidebarMenuContent: NavLink clicked:', item.href);
+                console.log('🔍 SidebarMenuContent: Current pathname before navigation:', location.pathname);
               }}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />

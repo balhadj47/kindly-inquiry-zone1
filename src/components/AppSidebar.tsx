@@ -8,14 +8,28 @@ import {
   SidebarFooter,
 } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useRBAC } from '@/contexts/RBACContext';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
 import UserProfile from './UserProfile';
 
 const AppSidebar = () => {
   const isMobile = useIsMobile();
+  
+  // Get RBAC state for debugging
+  let rbacState = { loading: true, currentUser: null };
+  try {
+    const rbacContext = useRBAC();
+    rbacState = {
+      loading: rbacContext.loading,
+      currentUser: rbacContext.currentUser
+    };
+  } catch (error) {
+    console.error('❌ AppSidebar: Error accessing RBAC context:', error);
+  }
 
-  console.log('AppSidebar render - ensuring sidebar always shows');
+  console.log('🔍 AppSidebar render - RBAC state:', rbacState);
+  console.log('🔍 AppSidebar render - ensuring sidebar always shows menu items');
 
   return (
     <Sidebar 

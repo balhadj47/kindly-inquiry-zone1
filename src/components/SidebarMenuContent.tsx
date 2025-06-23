@@ -8,8 +8,8 @@ import {
 import { useSidebarMenuItems } from './SidebarMenuItems';
 import { Home, Settings } from 'lucide-react';
 
-// Fallback menu items when permissions aren't working
-const fallbackMenuItems = [
+// Absolute fallback menu items if everything else fails
+const emergencyFallbackItems = [
   {
     title: 'Dashboard',
     href: '/dashboard',
@@ -30,16 +30,16 @@ const SidebarMenuContent = () => {
   let menuItems;
   try {
     menuItems = useSidebarMenuItems();
-    console.log('🔍 Menu items from useSidebarMenuItems:', menuItems.length);
+    console.log('🔍 Successfully got menu items:', menuItems.length);
   } catch (error) {
-    console.error('🔍 Error getting menu items, using fallback:', error);
-    menuItems = fallbackMenuItems;
+    console.error('🔍 Error getting menu items, using emergency fallback:', error);
+    menuItems = emergencyFallbackItems;
   }
 
-  // If no menu items or very few, use fallback
-  if (!menuItems || menuItems.length < 2) {
-    console.log('🔍 Using fallback menu items due to insufficient items');
-    menuItems = fallbackMenuItems;
+  // Ensure we always have at least basic menu items
+  if (!menuItems || menuItems.length === 0) {
+    console.log('🔍 No menu items available, using emergency fallback');
+    menuItems = emergencyFallbackItems;
   }
   
   console.log('🔍 Current location:', location.pathname);
@@ -68,7 +68,6 @@ const SidebarMenuContent = () => {
               onClick={(e) => {
                 console.log('🔍 NavLink clicked:', item.href);
                 console.log('🔍 Current pathname before navigation:', location.pathname);
-                console.log('🔍 Event details:', e.type, e.currentTarget);
               }}
             >
               <item.icon className="h-5 w-5 flex-shrink-0" />

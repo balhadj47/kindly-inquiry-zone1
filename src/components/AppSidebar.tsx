@@ -7,36 +7,15 @@ import {
   SidebarGroupContent,
   SidebarFooter,
 } from '@/components/ui/sidebar';
-import { useRBAC } from '@/contexts/RBACContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
 import UserProfile from './UserProfile';
 
 const AppSidebar = () => {
-  const { currentUser, loading } = useRBAC();
   const isMobile = useIsMobile();
 
-  console.log('AppSidebar render - currentUser:', currentUser);
-  console.log('AppSidebar render - loading:', loading);
-
-  if (loading) {
-    return (
-      <Sidebar 
-        collapsible="icon" 
-        className="border-r border-gray-200 bg-white"
-      >
-        <SidebarContent className="bg-white">
-          <div className="flex items-center justify-center p-6">
-            <div className="animate-pulse space-y-2">
-              <div className="h-4 bg-gray-200 rounded w-24"></div>
-              <div className="h-3 bg-gray-200 rounded w-16"></div>
-            </div>
-          </div>
-        </SidebarContent>
-      </Sidebar>
-    );
-  }
+  console.log('AppSidebar render - ensuring sidebar always shows');
 
   return (
     <Sidebar 

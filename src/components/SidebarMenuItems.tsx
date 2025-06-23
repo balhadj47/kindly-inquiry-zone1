@@ -9,17 +9,8 @@ export interface MenuItem {
   permission?: string;
 }
 
-// Basic menu items that are always available (no permission checks)
-const basicMenuItems: MenuItem[] = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
-  },
-];
-
-// Full menu items with permissions
-const fullMenuItems: MenuItem[] = [
+// Full menu items - always available
+const menuItems: MenuItem[] = [
   {
     title: 'Dashboard',
     href: '/dashboard',
@@ -66,54 +57,37 @@ const fullMenuItems: MenuItem[] = [
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  let hasPermission: (permission: string) => boolean;
-  let loading: boolean;
-  let currentUser: any;
+  // Always return menu items, but safely check permissions
+  let hasPermission: (permission: string) => boolean = () => true; // Default to allow all
+  let currentUser: any = null;
 
   try {
     const rbacContext = useRBAC();
-    hasPermission = rbacContext.hasPermission;
-    loading = rbacContext.loading;
-    currentUser = rbacContext.currentUser;
-    
-    console.log('🔍 RBAC context state:', { 
-      loading, 
-      hasCurrentUser: !!currentUser,
-      currentUserId: currentUser?.id,
-      currentUserRoleId: currentUser?.role_id 
-    });
+    if (rbacContext && rbacContext.hasPermission) {
+      hasPermission = rbacContext.hasPermission;
+      currentUser = rbacContext.currentUser;
+    }
   } catch (error) {
-    console.error('❌ Error accessing RBAC context in useSidebarMenuItems:', error);
-    // Fallback: return basic menu items if RBAC context fails
-    return basicMenuItems;
+    console.warn('⚠️ RBAC context not available, showing all menu items:', error);
   }
 
-  // If RBAC is still loading or no current user, return full menu items for now
-  // This ensures the menu is always visible while data loads
-  if (loading || !currentUser) {
-    console.log('🔍 RBAC still loading or no user, returning full menu items');
-    return fullMenuItems;
-  }
+  console.log('🔍 Menu items processing - user:', currentUser?.id, 'loading state bypassed');
 
-  console.log('🔍 RBAC loaded, filtering menu items based on permissions');
-
-  // Filter menu items based on permissions
-  const filteredMenuItems = fullMenuItems.filter((item) => {
+  // Filter menu items only if we have a working permission function
+  const filteredMenuItems = menuItems.filter((item) => {
     if (!item.permission) {
-      console.log('🔍 Item has no permission requirement:', item.title);
-      return true;
+      return true; // Always show items without permission requirements
     }
     
     try {
-      const hasAccess = hasPermission(item.permission);
-      console.log(`🔍 Permission check: ${item.title} (${item.permission}) = ${hasAccess}`);
-      return hasAccess;
+      // If no user or permission function fails, show the item (fail open for better UX)
+      return hasPermission(item.permission);
     } catch (error) {
-      console.error(`❌ Error checking permission for ${item.title}:`, error);
-      return false;
+      console.warn(`⚠️ Permission check failed for ${item.title}, showing item:`, error);
+      return true; // Fail open - show the item
     }
   });
 
-  console.log('🔍 Final filtered menu items count:', filteredMenuItems.length);
+  console.log('🔍 Final menu items count:', filteredMenuItems.length);
   return filteredMenuItems;
 };

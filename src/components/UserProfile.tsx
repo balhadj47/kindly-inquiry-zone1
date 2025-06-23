@@ -1,12 +1,11 @@
 
 import React from 'react';
-import { User, LogOut, Settings } from 'lucide-react';
+import { User, LogOut } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,7 +13,6 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
 import { getRoleNameFromId } from '@/utils/roleUtils';
-import { Link } from 'react-router-dom';
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
@@ -111,13 +109,6 @@ const UserProfile = () => {
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuItem asChild>
-            <Link to="/settings">
-              <Settings className="mr-2 h-4 w-4" />
-              {t.settings}
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
           <DropdownMenuItem 
             className="text-destructive focus:text-destructive cursor-pointer"
             onClick={handleSignOut}

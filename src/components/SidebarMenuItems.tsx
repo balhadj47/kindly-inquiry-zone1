@@ -1,5 +1,5 @@
 
-import { Home, Truck, Factory, Settings, Clock, Users, Shield } from 'lucide-react';
+import { Home, Truck, Factory, Clock, Users, Shield } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 
 export interface MenuItem {
@@ -15,11 +15,6 @@ const basicMenuItems: MenuItem[] = [
     title: 'Dashboard',
     href: '/dashboard',
     icon: Home,
-  },
-  {
-    title: 'Settings',
-    href: '/settings',
-    icon: Settings,
   },
 ];
 
@@ -65,11 +60,6 @@ const fullMenuItems: MenuItem[] = [
     href: '/trip-history',
     icon: Clock,
     permission: 'trips:read',
-  },
-  {
-    title: 'Settings',
-    href: '/settings',
-    icon: Settings,
   },
 ];
 

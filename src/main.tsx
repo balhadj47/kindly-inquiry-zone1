@@ -38,11 +38,24 @@ if (typeof window !== 'undefined') {
   (globalThis as any).React = React;
 }
 
-// Validate React is properly loaded
-if (!React || !React.useState || !React.useEffect || typeof React.useContext !== 'function') {
-  console.error('❌ CRITICAL: React hooks not available');
-  throw new Error('React hooks not available - React not properly loaded');
-}
+// Validate React is properly loaded - fix TypeScript void expression error
+const validateReactHooks = () => {
+  if (!React || !React.useState || !React.useEffect) {
+    console.error('❌ CRITICAL: React hooks not available');
+    throw new Error('React hooks not available - React not properly loaded');
+  }
+  
+  // Check useContext exists as a function
+  if (typeof React.useContext !== 'function') {
+    console.error('❌ CRITICAL: React.useContext not available');
+    throw new Error('React.useContext not available - React not properly loaded');
+  }
+  
+  return true;
+};
+
+// Run React validation
+validateReactHooks();
 
 console.log('✅ React validation passed:', {
   version: React.version,
@@ -133,7 +146,7 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Additional runtime check for React context - check function existence properly
+    // Additional runtime check for React context - no void expression testing
     if (typeof React.useContext !== 'function') {
       throw new Error('React.useContext is not available at runtime');
     }

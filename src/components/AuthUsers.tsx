@@ -1,14 +1,13 @@
 
-import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Plus, ExternalLink, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { useToast } from '@/hooks/use-toast';
 import { roleIdHasPermission } from '@/utils/rolePermissions';
+import { useAuthUsers, useAuthUserMutations } from '@/hooks/useAuthUsers';
 import AuthUsersHeader from './auth-users/AuthUsersHeader';
 import AuthUsersFilters from './auth-users/AuthUsersFilters';
 import AuthUsersList from './auth-users/AuthUsersList';
@@ -28,11 +27,8 @@ interface AuthUser {
 }
 
 const AuthUsers = () => {
-  const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showAdminError, setShowAdminError] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; user: AuthUser | null }>({
     isOpen: false,
     user: null
@@ -44,144 +40,27 @@ const AuthUsers = () => {
   const [createDialog, setCreateDialog] = useState<{ isOpen: boolean }>({
     isOpen: false
   });
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const { toast } = useToast();
   const { user: authUser } = useAuth();
 
-  const fetchAuthUsers = async () => {
-    try {
-      setLoading(true);
-      setShowAdminError(false);
-      console.log('🔍 Fetching auth users via Edge Function...');
-      
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No session found');
-      }
-
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'GET',
-      });
-
-      if (error) {
-        console.error('Function invoke error:', error);
-        if (error.message.includes('403') || error.message.includes('Insufficient permissions')) {
-          setShowAdminError(true);
-          return;
-        }
-        throw error;
-      }
-
-      setAuthUsers(data.users || []);
-      console.log('✅ Auth users loaded:', data.users?.length || 0);
-    } catch (error) {
-      console.error('Error fetching auth users:', error);
-      setShowAdminError(true);
-      toast({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors du chargement des utilisateurs',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Use the new caching hook
+  const { data: authUsers = [], isLoading: loading, error, refetch } = useAuthUsers();
+  const { deleteAuthUser, updateAuthUser, createAuthUser } = useAuthUserMutations();
 
   const handleDeleteUser = async (userId: string) => {
-    if (!userId) {
-      toast({
-        title: 'Erreur',
-        description: 'ID utilisateur manquant',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+    if (!userId) return;
     try {
-      setActionLoading(userId);
-      console.log('🗑️ Deleting auth user:', userId);
-      
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'DELETE',
-        body: { userId },
-      });
-
-      if (error) {
-        console.error('Delete error:', error);
-        throw new Error(error.message || 'Erreur lors de la suppression');
-      }
-
-      console.log('✅ Delete response:', data);
-
-      toast({
-        title: 'Succès',
-        description: 'Utilisateur d\'authentification supprimé avec succès',
-      });
-
-      await fetchAuthUsers();
+      await deleteAuthUser.mutateAsync(userId);
     } catch (error) {
-      console.error('Error deleting auth user:', error);
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la suppression: ${error.message}`,
-        variant: 'destructive',
-      });
-    } finally {
-      setActionLoading(null);
+      // Error handling is done in the mutation
     }
   };
 
   const handleUpdateUser = async (userId: string, updateData: { email?: string; role_id?: number; name?: string }) => {
-    if (!userId) {
-      toast({
-        title: 'Erreur',
-        description: 'ID utilisateur manquant',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (!updateData || Object.keys(updateData).length === 0) {
-      toast({
-        title: 'Erreur',
-        description: 'Aucune donnée à mettre à jour',
-        variant: 'destructive',
-      });
-      return;
-    }
-
+    if (!userId || !updateData || Object.keys(updateData).length === 0) return;
     try {
-      setActionLoading(userId);
-      console.log('📝 Updating auth user:', userId, updateData);
-      
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'PUT',
-        body: { userId, updateData },
-      });
-
-      if (error) {
-        console.error('Update error:', error);
-        throw new Error(error.message || 'Erreur lors de la modification');
-      }
-
-      console.log('✅ Update response:', data);
-
-      toast({
-        title: 'Succès',
-        description: 'Utilisateur d\'authentification modifié avec succès',
-      });
-
-      await fetchAuthUsers();
+      await updateAuthUser.mutateAsync({ userId, updateData });
     } catch (error) {
-      console.error('Error updating auth user:', error);
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la modification: ${error.message}`,
-        variant: 'destructive',
-      });
-    } finally {
-      setActionLoading(null);
+      // Error handling is done in the mutation
     }
   };
 
@@ -202,37 +81,10 @@ const AuthUsers = () => {
 
   const handleCreateUser = async (userData: { email: string; password: string; name: string; role_id: number }) => {
     try {
-      setActionLoading('creating');
-      console.log('🆕 AuthUsers: Creating new user:', userData.email);
-      
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'POST',
-        body: userData,
-      });
-
-      if (error) {
-        console.error('Create error:', error);
-        throw new Error(error.message || 'Erreur lors de la création');
-      }
-
-      console.log('✅ Create response:', data);
-
-      toast({
-        title: 'Succès',
-        description: 'Utilisateur d\'authentification créé avec succès',
-      });
-
-      await fetchAuthUsers();
+      await createAuthUser.mutateAsync(userData);
       setCreateDialog({ isOpen: false });
     } catch (error) {
-      console.error('Error creating auth user:', error);
-      toast({
-        title: 'Erreur',
-        description: `Erreur lors de la création: ${error.message}`,
-        variant: 'destructive',
-      });
-    } finally {
-      setActionLoading(null);
+      // Error handling is done in the mutation
     }
   };
 
@@ -241,10 +93,6 @@ const AuthUsers = () => {
     setStatusFilter('all');
   };
 
-  useEffect(() => {
-    fetchAuthUsers();
-  }, []);
-
   // Check permissions
   const userRoleId = authUser?.user_metadata?.role_id || 0;
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
@@ -252,6 +100,9 @@ const AuthUsers = () => {
   const canCreateUsers = hasAdminPermission;
   const canEditUsers = hasAdminPermission;
   const canDeleteUsers = hasAdminPermission;
+
+  // Handle error states
+  const showAdminError = error?.message.includes('Insufficient permissions');
 
   if (loading) {
     return (
@@ -321,7 +172,7 @@ const AuthUsers = () => {
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          <RefreshButton onRefresh={fetchAuthUsers} />
+          <RefreshButton onRefresh={() => refetch()} />
         </div>
       </div>
 
@@ -342,7 +193,7 @@ const AuthUsers = () => {
         onDeleteUser={handleDeleteUserDialog}
         canEdit={canEditUsers}
         canDelete={canDeleteUsers}
-        actionLoading={actionLoading}
+        actionLoading={deleteAuthUser.isPending || updateAuthUser.isPending || createAuthUser.isPending ? 'loading' : null}
       />
 
       <AuthUserDeleteDialog
@@ -373,7 +224,7 @@ const AuthUsers = () => {
         isOpen={createDialog.isOpen}
         onConfirm={handleCreateUser}
         onCancel={() => setCreateDialog({ isOpen: false })}
-        isLoading={actionLoading === 'creating'}
+        isLoading={createAuthUser.isPending}
       />
     </div>
   );

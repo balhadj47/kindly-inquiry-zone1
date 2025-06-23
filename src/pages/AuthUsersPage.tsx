@@ -21,16 +21,13 @@ const AuthUsersPage = () => {
     );
   }
 
-  // For now, allow access to demonstrate the feature - the component itself will handle permission errors
   if (!hasAdminPermission) {
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Accès restreint</h2>
-        <p className="text-gray-600 mb-4">
-          Cette fonctionnalité nécessite des permissions d'administrateur. 
-          Vous pouvez néanmoins voir la page pour comprendre son fonctionnement.
+        <p className="text-gray-600">
+          Cette fonctionnalité nécessite des permissions d'administrateur.
         </p>
-        <AuthUsers />
       </div>
     );
   }

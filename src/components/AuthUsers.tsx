@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { Mail, Clock, Shield, Search, AlertTriangle } from 'lucide-react';
+import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -121,13 +121,13 @@ const AuthUsers = () => {
             <strong>Permissions insuffisantes</strong>
             <br />
             Cette fonctionnalité nécessite des permissions d'administrateur service (service_role) 
-            qui ne sont pas disponibles pour les utilisateurs normaux. 
+            qui ne sont pas disponibles depuis l'interface utilisateur pour des raisons de sécurité.
             <br /><br />
-            Pour accéder à cette fonctionnalité, vous devez :
+            Pour accéder à cette fonctionnalité, vous pouvez :
             <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Utiliser le tableau de bord Supabase directement</li>
               <li>Configurer une fonction Edge avec les permissions service_role</li>
-              <li>Ou utiliser le tableau de bord Supabase directement</li>
-              <li>Ou demander à un administrateur système d'activer ces permissions</li>
+              <li>Demander à un administrateur système d'activer ces permissions</li>
             </ul>
           </AlertDescription>
         </Alert>
@@ -145,9 +145,10 @@ const AuthUsers = () => {
             </p>
             <Button 
               onClick={() => window.open('https://supabase.com/dashboard/project/upaxlykqpbpvwsprcrtu/auth/users', '_blank')}
-              className="w-full"
+              className="w-full flex items-center space-x-2"
             >
-              Ouvrir le tableau de bord Supabase
+              <ExternalLink className="h-4 w-4" />
+              <span>Ouvrir le tableau de bord Supabase</span>
             </Button>
           </CardContent>
         </Card>
@@ -182,7 +183,7 @@ const AuthUsers = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
-          <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
+          <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
         </div>
         <RefreshButton onRefresh={fetchAuthUsers} />
       </div>
@@ -190,8 +191,8 @@ const AuthUsers = () => {
       <Alert>
         <Shield className="h-4 w-4" />
         <AlertDescription>
-          Cette page permet de visualiser les utilisateurs d'authentification Supabase. 
-          Les fonctionnalités de modification nécessitent des permissions d'administrateur.
+          Cette page affiche les utilisateurs d'authentification Supabase. 
+          Les fonctionnalités de modification nécessitent des permissions d'administrateur service.
         </AlertDescription>
       </Alert>
 
@@ -228,7 +229,8 @@ const AuthUsers = () => {
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <span className="font-medium">ID:</span> {user.id}
+                    <span className="font-medium">ID:</span> 
+                    <span className="text-xs text-gray-500 ml-1">{user.id}</span>
                   </div>
                   <div>
                     <span className="font-medium">Rôle:</span> {user.role}

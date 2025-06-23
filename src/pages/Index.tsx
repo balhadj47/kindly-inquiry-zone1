@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { SidebarProvider } from '@/components/ui/sidebar';
@@ -16,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import UserSettings from '@/pages/UserSettings';
 import TripLoggerPage from '@/pages/TripLoggerPage';
 import TripHistoryPage from '@/pages/TripHistoryPage';
+import AuthUsersPage from '@/pages/AuthUsersPage';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
 import Vans from '@/components/Vans';
@@ -81,6 +83,9 @@ const Index = () => {
                     <Route path="/vans/*" element={<Vans />} />
                     <Route path="/users" element={
                       (hasPermission('users:read') && currentUser?.role_id === 1) ? <Users /> : <div>Access Denied</div>
+                    } />
+                    <Route path="/auth-users" element={
+                      hasPermission('users:read') ? <AuthUsersPage /> : <div>Access Denied</div>
                     } />
                     <Route path="/employees" element={
                       hasPermission('users:read') ? <Employees /> : <div>Access Denied</div>

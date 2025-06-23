@@ -133,8 +133,9 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Additional runtime check for React context
-    if (typeof React.useContext !== 'function') {
+    // Additional runtime check for React context - fix the void expression issue
+    const useContextExists = React.useContext && typeof React.useContext === 'function';
+    if (!useContextExists) {
       throw new Error('React.useContext is not available at runtime');
     }
     return <App />;

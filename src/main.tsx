@@ -1,4 +1,3 @@
-
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
@@ -45,9 +44,8 @@ const validateReactHooks = () => {
     throw new Error('React hooks not available - React not properly loaded');
   }
   
-  // Check useContext exists - completely avoid void expression by checking React object
-  const reactHasUseContext = 'useContext' in React && React.useContext;
-  if (!reactHasUseContext) {
+  // Check useContext exists - only check property existence, not the function itself
+  if (!('useContext' in React)) {
     console.error('❌ CRITICAL: React.useContext not available');
     throw new Error('React.useContext not available - React not properly loaded');
   }
@@ -147,9 +145,8 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Additional runtime check - avoid any void expression by checking React object structure
-    const hasRequiredHooks = React && 'useContext' in React && React.useContext;
-    if (!hasRequiredHooks) {
+    // Additional runtime check - only check property existence, avoid void expression
+    if (!React || !('useContext' in React)) {
       throw new Error('React.useContext is not available at runtime');
     }
     return <App />;

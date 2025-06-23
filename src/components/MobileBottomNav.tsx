@@ -55,7 +55,11 @@ const MobileBottomNav = () => {
   if (loading) {
     console.log('📱 MobileBottomNav: Showing loading state');
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden safe-area-inset-bottom"
+        role="navigation"
+        aria-label="Mobile navigation"
+      >
         <div className="grid h-16 grid-cols-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex flex-col items-center justify-center px-1 py-2">
@@ -88,7 +92,15 @@ const MobileBottomNav = () => {
     const displayItems = filteredItems.length > 0 ? filteredItems.slice(0, 5) : [menuItems[0]];
 
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden"
+        style={{ 
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)',
+          minHeight: '64px'
+        }}
+        role="navigation"
+        aria-label="Mobile navigation"
+      >
         <div className={`grid h-16 ${
           displayItems.length === 1 ? 'grid-cols-1' :
           displayItems.length === 2 ? 'grid-cols-2' :
@@ -104,20 +116,38 @@ const MobileBottomNav = () => {
               <NavLink
                 key={item.title}
                 to={item.url}
-                className={`flex flex-col items-center justify-center px-1 py-2 text-xs transition-colors ${
-                  isActive
+                className={({ isActive: linkActive }) => `
+                  flex flex-col items-center justify-center px-1 py-2 text-xs transition-colors
+                  min-h-[44px] min-w-[44px] relative
+                  focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-inset
+                  ${isActive || linkActive
                     ? 'text-blue-600 bg-blue-50'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50 active:bg-gray-100'
+                  }
+                `}
+                role="tab"
+                aria-selected={isActive}
+                aria-label={`Navigate to ${item.title}`}
+                style={{
+                  WebkitTapHighlightColor: 'transparent',
+                  touchAction: 'manipulation'
+                }}
               >
                 <item.icon 
-                  className={`h-5 w-5 mb-1 ${
+                  className={`h-5 w-5 mb-1 transition-colors ${
                     isActive ? 'text-blue-600' : 'text-gray-600'
-                  }`} 
-                />
-                <span className="truncate text-[10px] font-medium">
+                  }`}
+                  aria-hidden="true"
+                /> 
+                <span className="truncate text-[10px] font-medium leading-tight">
                   {item.title}
                 </span>
+                {isActive && (
+                  <span 
+                    className="absolute top-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 bg-blue-600 rounded-full"
+                    aria-hidden="true"
+                  />
+                )}
               </NavLink>
             );
           })}
@@ -126,15 +156,26 @@ const MobileBottomNav = () => {
     );
   } catch (error) {
     console.error('❌ MobileBottomNav: Critical error:', error);
-    // Fallback to home only
+    // Fallback to home only with enhanced accessibility
     return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden">
+      <nav 
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-gray-200 md:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
+        role="navigation"
+        aria-label="Mobile navigation (fallback)"
+      >
         <div className="grid h-16 grid-cols-1">
           <NavLink
             to="/dashboard"
-            className="flex flex-col items-center justify-center px-1 py-2 text-xs text-gray-600"
+            className="flex flex-col items-center justify-center px-1 py-2 text-xs text-gray-600 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            style={{ 
+              WebkitTapHighlightColor: 'transparent',
+              touchAction: 'manipulation',
+              minHeight: '44px'
+            }}
+            aria-label="Navigate to Home"
           >
-            <Home className="h-5 w-5 mb-1" />
+            <Home className="h-5 w-5 mb-1" aria-hidden="true" />
             <span className="text-[10px] font-medium">Home</span>
           </NavLink>
         </div>

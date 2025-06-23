@@ -47,25 +47,10 @@ serve(async (req) => {
       )
     }
 
-    // Check if user has admin permissions in our database
-    const { data: dbUser, error: dbUserError } = await supabaseAdmin
-      .from('users')
-      .select('role_id, email')
-      .eq('auth_user_id', user.id)
-      .single()
-
-    if (dbUserError || !dbUser) {
-      return new Response(
-        JSON.stringify({ error: 'User not found' }),
-        { 
-          status: 404, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-        }
-      )
-    }
-
-    // Check if user is admin (role_id = 1) or known admin email
-    const isAdmin = dbUser.role_id === 1 || dbUser.email === 'gb47@msn.com'
+    // Check if user has admin permissions
+    const isKnownAdmin = user.email === 'gb47@msn.com'
+    const userRoleId = user.user_metadata?.role_id || 0
+    const isAdmin = userRoleId === 1 || isKnownAdmin
     
     if (!isAdmin) {
       return new Response(
@@ -99,6 +84,56 @@ serve(async (req) => {
 
       return new Response(
         JSON.stringify({ users: formattedUsers }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
+    if (req.method === 'PUT') {
+      // Update a user
+      const body = await req.json()
+      const userId = body.userId
+      const updateData = body.updateData
+      
+      if (!userId) {
+        return new Response(
+          JSON.stringify({ error: 'User ID required' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      const userUpdatePayload: any = {}
+      
+      // Handle email update
+      if (updateData.email) {
+        userUpdatePayload.email = updateData.email
+      }
+
+      // Handle user metadata updates (name, role_id)
+      if (updateData.name !== undefined || updateData.role_id !== undefined) {
+        // Get current user metadata
+        const { data: currentUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+        const currentMetadata = currentUser.user?.user_metadata || {}
+        
+        userUpdatePayload.user_metadata = {
+          ...currentMetadata,
+          ...(updateData.name !== undefined && { name: updateData.name }),
+          ...(updateData.role_id !== undefined && { role_id: updateData.role_id })
+        }
+      }
+
+      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
+      
+      if (error) {
+        throw error
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }

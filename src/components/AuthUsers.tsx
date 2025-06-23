@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2 } from 'lucide-react';
+import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2, Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AuthUserDeleteDialog from '@/components/auth-users/AuthUserDeleteDialog';
+import AuthUserEditDialog from '@/components/auth-users/AuthUserEditDialog';
 
 interface AuthUser {
   id: string;
@@ -31,6 +32,10 @@ const AuthUsers = () => {
     isOpen: false,
     user: null
   });
+  const [editDialog, setEditDialog] = useState<{ isOpen: boolean; user: AuthUser | null }>({
+    isOpen: false,
+    user: null
+  });
   const { toast } = useToast();
 
   const fetchAuthUsers = async () => {
@@ -39,14 +44,12 @@ const AuthUsers = () => {
       setShowAdminError(false);
       console.log('🔍 Fetching auth users via Edge Function...');
       
-      // Get current session
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
         throw new Error('No session found');
       }
 
-      // Call our Edge Function using the correct URL format
       const { data, error } = await supabase.functions.invoke('auth-users', {
         method: 'GET',
       });
@@ -78,7 +81,6 @@ const AuthUsers = () => {
     try {
       console.log('🗑️ Deleting auth user:', userId);
       
-      // Call our Edge Function to delete the user
       const { error } = await supabase.functions.invoke('auth-users', {
         method: 'DELETE',
         body: { userId },
@@ -93,13 +95,41 @@ const AuthUsers = () => {
         description: 'Utilisateur d\'authentification supprimé avec succès',
       });
 
-      // Refresh the list
       await fetchAuthUsers();
     } catch (error) {
       console.error('Error deleting auth user:', error);
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la suppression de l\'utilisateur',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleUpdateUser = async (userId: string, updateData: { email?: string; role_id?: number; name?: string }) => {
+    try {
+      console.log('📝 Updating auth user:', userId, updateData);
+      
+      const { error } = await supabase.functions.invoke('auth-users', {
+        method: 'PUT',
+        body: { userId, updateData },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur d\'authentification modifié avec succès',
+      });
+
+      await fetchAuthUsers();
+    } catch (error) {
+      console.error('Error updating auth user:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la modification de l\'utilisateur',
         variant: 'destructive',
       });
     }
@@ -119,6 +149,14 @@ const AuthUsers = () => {
       return <Badge className="bg-green-100 text-green-800">Confirmé</Badge>;
     }
     return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+  };
+
+  const getRoleBadge = (user: AuthUser) => {
+    const roleId = user.user_metadata?.role_id || 2;
+    if (roleId === 1) {
+      return <Badge className="bg-red-100 text-red-800">Administrateur</Badge>;
+    }
+    return <Badge className="bg-blue-100 text-blue-800">Superviseur</Badge>;
   };
 
   if (loading) {
@@ -217,6 +255,15 @@ const AuthUsers = () => {
                   </CardTitle>
                   <div className="flex items-center space-x-2">
                     {getStatusBadge(user)}
+                    {getRoleBadge(user)}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditDialog({ isOpen: true, user })}
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -235,7 +282,7 @@ const AuthUsers = () => {
                     <span className="text-xs text-gray-500 ml-1">{user.id}</span>
                   </div>
                   <div>
-                    <span className="font-medium">Rôle:</span> {user.role}
+                    <span className="font-medium">Nom:</span> {user.user_metadata?.name || 'Non défini'}
                   </div>
                   <div className="flex items-center space-x-1">
                     <Clock className="h-4 w-4 text-gray-500" />
@@ -287,6 +334,18 @@ const AuthUsers = () => {
           setDeleteDialog({ isOpen: false, user: null });
         }}
         onCancel={() => setDeleteDialog({ isOpen: false, user: null })}
+      />
+
+      <AuthUserEditDialog
+        isOpen={editDialog.isOpen}
+        user={editDialog.user}
+        onConfirm={(updateData) => {
+          if (editDialog.user) {
+            handleUpdateUser(editDialog.user.id, updateData);
+          }
+          setEditDialog({ isOpen: false, user: null });
+        }}
+        onCancel={() => setEditDialog({ isOpen: false, user: null })}
       />
     </div>
   );

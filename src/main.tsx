@@ -138,8 +138,8 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Only verify React is available - removed void expression check
-    if (typeof React === 'undefined') {
+    // Simple React availability check
+    if (!React) {
       throw new Error('React is not available at runtime');
     }
     return <App />;

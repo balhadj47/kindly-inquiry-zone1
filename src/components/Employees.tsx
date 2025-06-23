@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -136,11 +137,15 @@ const Employees = () => {
   console.log('🔐 Employees: Current user role_id:', userRoleId);
   console.log('🔐 Employees: Current user email:', authUser?.email);
   
-  const canCreateUsers = authUser ? roleIdHasPermission(userRoleId, 'users:create') : false;
-  const canEditUsers = authUser ? roleIdHasPermission(userRoleId, 'users:update') : false;
-  const canDeleteUsers = authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false;
+  // Special handling for known admin user
+  const isKnownAdmin = authUser?.email === 'gb47@msn.com';
+  
+  const canCreateUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:create') : false);
+  const canEditUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:update') : false);
+  const canDeleteUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false);
   
   console.log('🔐 Employees: Permissions - Create:', canCreateUsers, 'Edit:', canEditUsers, 'Delete:', canDeleteUsers);
+  console.log('🔐 Employees: Is known admin:', isKnownAdmin);
 
   if (loading) {
     return (
@@ -159,7 +164,6 @@ const Employees = () => {
     );
   }
 
-  const isKnownAdmin = authUser.email === 'gb47@msn.com';
   const hasUsersReadPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
 
   if (!hasUsersReadPermission) {

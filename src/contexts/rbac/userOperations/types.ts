@@ -6,7 +6,7 @@ export interface UserOperationData extends Partial<User> {
 }
 
 export interface UserOperations {
-  addUser: (userData: UserOperationData) => Promise<void>;
+  addUser: (userData: UserOperationData) => Promise<User>; // Changed from Promise<void> to Promise<User>
   updateUser: (id: string, userData: UserOperationData) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   changeUserPassword: (userEmail: string, newPassword: string) => Promise<{ success: boolean; message: string }>;

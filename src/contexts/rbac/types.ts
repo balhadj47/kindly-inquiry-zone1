@@ -1,5 +1,4 @@
 
-
 import { User, Permission } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
@@ -33,7 +32,7 @@ export interface RBACContextType {
   
   // User management
   setUser: (user: User | null) => void;
-  addUser: (userData: Partial<User>) => Promise<void>;
+  addUser: (userData: Partial<User>) => Promise<User>; // Changed from Promise<void> to Promise<User>
   updateUser: (id: string, userData: Partial<User>) => Promise<User>;
   deleteUser: (id: string) => Promise<void>;
   changeUserPassword: (userEmail: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
@@ -52,4 +51,3 @@ export interface RBACContextType {
 export interface RBACProviderProps {
   children: React.ReactNode;
 }
-

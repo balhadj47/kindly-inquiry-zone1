@@ -4,6 +4,7 @@ import type { User } from '@/types/rbac';
 import type { SystemGroup } from '@/types/systemGroups';
 import { createRoleOperations } from './roleOperations';
 import { hasPermission as checkPermission } from './permissionUtils';
+import { createUserOperations } from './userOperations';
 
 interface UseRBACOperationsProps {
   currentUser: User | null;
@@ -18,7 +19,7 @@ export const useRBACOperations = ({
   setUsers, 
   setRoles 
 }: UseRBACOperationsProps) => {
-  console.log('🔧 useRBACOperations: Initializing auth-first operations');
+  console.log('🔧 useRBACOperations: Initializing operations');
 
   if (!React || !React.useState) {
     console.error('❌ CRITICAL: React hooks not available in useRBACOperations');
@@ -27,6 +28,9 @@ export const useRBACOperations = ({
 
   // Create role operations  
   const roleOperations = createRoleOperations(setRoles);
+  
+  // Create user operations
+  const userOperations = createUserOperations(setUsers);
 
   const hasPermission = (permission: string): boolean => {
     if (!currentUser) {
@@ -61,29 +65,12 @@ export const useRBACOperations = ({
     return userRole.permissions.includes(action);
   };
 
-  // Simplified user operations that don't affect auth
-  const addUser = async (userData: Partial<User>): Promise<void> => {
-    throw new Error('User creation should be handled through Supabase Auth signup');
-  };
-
-  const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
-    throw new Error('Auth user updates should be handled through Supabase Auth');
-  };
-
-  const deleteUser = async (id: string): Promise<void> => {
-    throw new Error('Auth user deletion should be handled through Supabase Auth');
-  };
-
-  const changeUserPassword = async (userEmail: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
-    throw new Error('Password changes should be handled through Supabase Auth');
-  };
-
   return {
-    // User operations (disabled for auth-first approach)
-    addUser,
-    updateUser,
-    deleteUser,
-    changeUserPassword,
+    // User operations (now functional for employees)
+    addUser: userOperations.addUser,
+    updateUser: userOperations.updateUser,
+    deleteUser: userOperations.deleteUser,
+    changeUserPassword: userOperations.changeUserPassword,
     
     // Role operations (still functional)
     addRole: roleOperations.addRole,

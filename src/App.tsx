@@ -1,3 +1,4 @@
+
 import React, { Suspense, lazy } from 'react';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -16,7 +17,6 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
-import AuthUsersPage from '@/pages/AuthUsersPage';
 
 // Optimize QueryClient configuration
 const queryClient = new QueryClient({
@@ -61,7 +61,6 @@ const App = () => {
                         <Suspense fallback={<AppLoadingSkeleton />}>
                           <Routes>
                             <Route path="/auth" element={<AuthPage />} />
-                            <Route path="/auth-users" element={<AuthUsersPage />} />
                             <Route path="/*" element={
                               <ProtectedRoute>
                                 <Index />

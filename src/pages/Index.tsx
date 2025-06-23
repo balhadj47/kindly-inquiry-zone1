@@ -84,9 +84,7 @@ const Index = () => {
                     <Route path="/users" element={
                       (hasPermission('users:read') && currentUser?.role_id === 1) ? <Users /> : <div>Access Denied</div>
                     } />
-                    <Route path="/auth-users" element={
-                      hasPermission('users:read') ? <AuthUsersPage /> : <div>Access Denied</div>
-                    } />
+                    <Route path="/auth-users" element={<AuthUsersPage />} />
                     <Route path="/employees" element={
                       hasPermission('users:read') ? <Employees /> : <div>Access Denied</div>
                     } />

@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    // Create supabase client with service role key
+    // Create supabase client with service role key for admin operations
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
@@ -27,7 +27,17 @@ serve(async (req) => {
     )
 
     // Verify the request is from an authenticated user
-    const authHeader = req.headers.get('Authorization')!
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'No authorization header' }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      )
+    }
+
     const token = authHeader.replace('Bearer ', '')
     
     const supabaseClient = createClient(
@@ -38,6 +48,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
     
     if (authError || !user) {
+      console.error('Auth error:', authError)
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { 
@@ -52,6 +63,13 @@ serve(async (req) => {
     const userRoleId = user.user_metadata?.role_id || 0
     const isAdmin = userRoleId === 1 || isKnownAdmin
     
+    console.log('User permissions check:', {
+      email: user.email,
+      userRoleId,
+      isKnownAdmin,
+      isAdmin
+    })
+    
     if (!isAdmin) {
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions' }),
@@ -64,10 +82,13 @@ serve(async (req) => {
 
     // Handle different HTTP methods
     if (req.method === 'GET') {
+      console.log('📋 Listing all auth users...')
+      
       // List all auth users
       const { data: { users }, error } = await supabaseAdmin.auth.admin.listUsers()
       
       if (error) {
+        console.error('Error listing users:', error)
         throw error
       }
 
@@ -82,6 +103,8 @@ serve(async (req) => {
         user_metadata: user.user_metadata || {},
       }))
 
+      console.log('✅ Found', formattedUsers.length, 'auth users')
+
       return new Response(
         JSON.stringify({ users: formattedUsers }),
         { 
@@ -91,10 +114,11 @@ serve(async (req) => {
     }
 
     if (req.method === 'PUT') {
-      // Update a user
       const body = await req.json()
       const userId = body.userId
       const updateData = body.updateData
+      
+      console.log('📝 Updating auth user:', userId, updateData)
       
       if (!userId) {
         return new Response(
@@ -116,7 +140,13 @@ serve(async (req) => {
       // Handle user metadata updates (name, role_id)
       if (updateData.name !== undefined || updateData.role_id !== undefined) {
         // Get current user metadata
-        const { data: currentUser } = await supabaseAdmin.auth.admin.getUserById(userId)
+        const { data: currentUser, error: getUserError } = await supabaseAdmin.auth.admin.getUserById(userId)
+        
+        if (getUserError) {
+          console.error('Error getting current user:', getUserError)
+          throw getUserError
+        }
+        
         const currentMetadata = currentUser.user?.user_metadata || {}
         
         userUpdatePayload.user_metadata = {
@@ -126,14 +156,19 @@ serve(async (req) => {
         }
       }
 
-      const { error } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
+      console.log('Update payload:', userUpdatePayload)
+
+      const { data: updatedUser, error } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
       
       if (error) {
+        console.error('Error updating user:', error)
         throw error
       }
 
+      console.log('✅ Successfully updated user:', updatedUser.user?.id)
+
       return new Response(
-        JSON.stringify({ success: true }),
+        JSON.stringify({ success: true, user: updatedUser.user }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
@@ -141,9 +176,10 @@ serve(async (req) => {
     }
 
     if (req.method === 'DELETE') {
-      // Delete a user
       const body = await req.json()
       const userId = body.userId
+      
+      console.log('🗑️ Deleting auth user:', userId)
       
       if (!userId) {
         return new Response(
@@ -155,11 +191,25 @@ serve(async (req) => {
         )
       }
 
-      const { error } = await supabaseAdmin.auth.admin.deleteUser(userId)
+      // Prevent deleting own account
+      if (userId === user.id) {
+        return new Response(
+          JSON.stringify({ error: 'Cannot delete your own account' }),
+          { 
+            status: 400, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
+
+      const { data, error } = await supabaseAdmin.auth.admin.deleteUser(userId)
       
       if (error) {
+        console.error('Error deleting user:', error)
         throw error
       }
+
+      console.log('✅ Successfully deleted user:', userId)
 
       return new Response(
         JSON.stringify({ success: true }),

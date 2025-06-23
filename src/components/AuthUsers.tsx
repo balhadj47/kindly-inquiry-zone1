@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -36,6 +35,7 @@ const AuthUsers = () => {
     isOpen: false,
     user: null
   });
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
   const fetchAuthUsers = async () => {
@@ -55,6 +55,7 @@ const AuthUsers = () => {
       });
 
       if (error) {
+        console.error('Function invoke error:', error);
         if (error.message.includes('403') || error.message.includes('Insufficient permissions')) {
           setShowAdminError(true);
           return;
@@ -79,16 +80,20 @@ const AuthUsers = () => {
 
   const handleDeleteUser = async (userId: string) => {
     try {
+      setActionLoading(userId);
       console.log('🗑️ Deleting auth user:', userId);
       
-      const { error } = await supabase.functions.invoke('auth-users', {
+      const { data, error } = await supabase.functions.invoke('auth-users', {
         method: 'DELETE',
         body: { userId },
       });
 
       if (error) {
+        console.error('Delete error:', error);
         throw error;
       }
+
+      console.log('✅ Delete response:', data);
 
       toast({
         title: 'Succès',
@@ -100,24 +105,30 @@ const AuthUsers = () => {
       console.error('Error deleting auth user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la suppression de l\'utilisateur',
+        description: `Erreur lors de la suppression: ${error.message}`,
         variant: 'destructive',
       });
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleUpdateUser = async (userId: string, updateData: { email?: string; role_id?: number; name?: string }) => {
     try {
+      setActionLoading(userId);
       console.log('📝 Updating auth user:', userId, updateData);
       
-      const { error } = await supabase.functions.invoke('auth-users', {
+      const { data, error } = await supabase.functions.invoke('auth-users', {
         method: 'PUT',
         body: { userId, updateData },
       });
 
       if (error) {
+        console.error('Update error:', error);
         throw error;
       }
+
+      console.log('✅ Update response:', data);
 
       toast({
         title: 'Succès',
@@ -129,9 +140,11 @@ const AuthUsers = () => {
       console.error('Error updating auth user:', error);
       toast({
         title: 'Erreur',
-        description: 'Erreur lors de la modification de l\'utilisateur',
+        description: `Erreur lors de la modification: ${error.message}`,
         variant: 'destructive',
       });
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -260,6 +273,7 @@ const AuthUsers = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setEditDialog({ isOpen: true, user })}
+                      disabled={actionLoading === user.id}
                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     >
                       <Edit className="h-4 w-4" />
@@ -268,6 +282,7 @@ const AuthUsers = () => {
                       variant="ghost"
                       size="sm"
                       onClick={() => setDeleteDialog({ isOpen: true, user })}
+                      disabled={actionLoading === user.id}
                       className="text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />

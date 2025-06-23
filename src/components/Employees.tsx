@@ -111,10 +111,11 @@ const Employees = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions using role_id
-  const canCreateUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:create') : false;
-  const canEditUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:update') : false;
-  const canDeleteUsers = authUser ? roleIdHasPermission(authUser.role_id, 'users:delete') : false;
+  // Check permissions using role_id - safely access the property
+  const userRoleId = authUser?.role_id || 0;
+  const canCreateUsers = authUser ? roleIdHasPermission(userRoleId, 'users:create') : false;
+  const canEditUsers = authUser ? roleIdHasPermission(userRoleId, 'users:update') : false;
+  const canDeleteUsers = authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false;
 
   if (loading) {
     return (
@@ -134,7 +135,7 @@ const Employees = () => {
   }
 
   const isKnownAdmin = authUser.email === 'gb47@msn.com';
-  const hasUsersReadPermission = roleIdHasPermission(authUser.role_id, 'users:read') || isKnownAdmin;
+  const hasUsersReadPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
 
   if (!hasUsersReadPermission) {
     return (

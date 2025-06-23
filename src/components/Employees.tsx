@@ -72,42 +72,47 @@ const Employees = () => {
   };
 
   const handleAddEmployee = () => {
-    console.log('Adding new employee');
+    console.log('🆕 Employees: Adding new employee');
     setSelectedEmployee(null);
     setIsModalOpen(true);
   };
 
   const handleEditEmployee = (employee: User) => {
-    console.log('Editing employee:', employee.id);
+    console.log('✏️ Employees: Editing employee:', employee.id, employee.name);
     setSelectedEmployee(employee);
     setIsModalOpen(true);
   };
 
   const handleDeleteEmployee = (employee: User) => {
-    console.log('Preparing to delete employee:', employee.id);
+    console.log('🗑️ Employees: Preparing to delete employee:', employee.id, employee.name);
     setSelectedEmployee(employee);
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
     if (!selectedEmployee) {
-      console.error('No employee selected for deletion');
+      console.error('❌ Employees: No employee selected for deletion');
       return;
     }
     
     try {
-      console.log('Confirming deletion of employee:', selectedEmployee.id);
+      console.log('🗑️ Employees: Confirming deletion of employee:', selectedEmployee.id, selectedEmployee.name);
       await deleteUser.mutateAsync(selectedEmployee.id);
       
-      console.log('Employee deleted successfully:', selectedEmployee.id);
+      console.log('✅ Employees: Employee deleted successfully:', selectedEmployee.id);
       setIsDeleteDialogOpen(false);
       setSelectedEmployee(null);
+      
+      toast({
+        title: 'Succès',
+        description: `Employé ${selectedEmployee.name} supprimé avec succès`,
+      });
       
       // Refresh the data after successful deletion
       refetch();
       
     } catch (error) {
-      console.error('Error deleting employee:', error);
+      console.error('❌ Employees: Error deleting employee:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de supprimer l\'employé. Veuillez réessayer.',
@@ -117,7 +122,7 @@ const Employees = () => {
   };
 
   const handleCancelDelete = () => {
-    console.log('Canceling employee deletion');
+    console.log('❌ Employees: Canceling employee deletion');
     setIsDeleteDialogOpen(false);
     setSelectedEmployee(null);
   };
@@ -127,11 +132,16 @@ const Employees = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions using role_id - safely access the property
+  // Check permissions using role_id - safely access the property with detailed logging
   const userRoleId = (authUser as any)?.role_id || 0;
+  console.log('🔐 Employees: Current user role_id:', userRoleId);
+  console.log('🔐 Employees: Current user:', authUser?.email, authUser?.name);
+  
   const canCreateUsers = authUser ? roleIdHasPermission(userRoleId, 'users:create') : false;
   const canEditUsers = authUser ? roleIdHasPermission(userRoleId, 'users:update') : false;
   const canDeleteUsers = authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false;
+  
+  console.log('🔐 Employees: Permissions - Create:', canCreateUsers, 'Edit:', canEditUsers, 'Delete:', canDeleteUsers);
 
   if (loading) {
     return (

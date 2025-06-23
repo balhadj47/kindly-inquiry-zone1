@@ -39,7 +39,10 @@ export const DEFAULT_PERMISSIONS: string[] = ['dashboard:read'];
 
 // Helper function to get permissions for a role_id
 export const getPermissionsForRoleId = (roleId: number): string[] => {
-  return ROLE_ID_PERMISSIONS[roleId] || DEFAULT_PERMISSIONS;
+  console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
+  const permissions = ROLE_ID_PERMISSIONS[roleId] || DEFAULT_PERMISSIONS;
+  console.log('🔐 Permissions for role_id', roleId, ':', permissions);
+  return permissions;
 };
 
 // Helper function to get permissions for a role name (backward compatibility)
@@ -49,8 +52,11 @@ export const getPermissionsForRole = (systemGroup: SystemGroupName): string[] =>
 
 // Check if a role_id has a specific permission
 export const roleIdHasPermission = (roleId: number, permission: string): boolean => {
+  console.log('🔐 roleIdHasPermission called with roleId:', roleId, 'permission:', permission);
   const rolePermissions = getPermissionsForRoleId(roleId);
-  return rolePermissions.includes(permission);
+  const hasPermission = rolePermissions.includes(permission);
+  console.log('🔐 Role', roleId, 'has permission', permission, ':', hasPermission);
+  return hasPermission;
 };
 
 // Check if a role has a specific permission (backward compatibility)

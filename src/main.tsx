@@ -1,3 +1,4 @@
+
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
@@ -37,29 +38,32 @@ if (typeof window !== 'undefined') {
   (globalThis as any).React = React;
 }
 
-// Validate React is properly loaded - fix TypeScript void expression error
-const validateReactHooks = () => {
-  if (!React || !React.useState || !React.useEffect) {
-    console.error('❌ CRITICAL: React hooks not available');
-    throw new Error('React hooks not available - React not properly loaded');
+// Simplified React validation - only check React object structure
+const validateReact = () => {
+  if (!React) {
+    console.error('❌ CRITICAL: React not available');
+    throw new Error('React not available - React not properly loaded');
   }
   
-  // Check useContext exists - only check property existence, not the function itself
-  if (!('useContext' in React)) {
-    console.error('❌ CRITICAL: React.useContext not available');
-    throw new Error('React.useContext not available - React not properly loaded');
+  // Only check that React has the expected properties, don't test functions
+  const requiredHooks = ['useState', 'useEffect', 'useContext'];
+  const missingHooks = requiredHooks.filter(hook => !(hook in React));
+  
+  if (missingHooks.length > 0) {
+    console.error('❌ CRITICAL: Missing React hooks:', missingHooks);
+    throw new Error(`React hooks not available: ${missingHooks.join(', ')}`);
   }
   
   return true;
 };
 
 // Run React validation
-validateReactHooks();
+validateReact();
 
 console.log('✅ React validation passed:', {
   version: React.version,
-  hasUseState: !!React.useState,
-  hasUseEffect: !!React.useEffect,
+  hasUseState: 'useState' in React,
+  hasUseEffect: 'useEffect' in React,
   hasUseContext: 'useContext' in React
 });
 
@@ -145,9 +149,9 @@ const ErrorFallback = () => {
 // Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Additional runtime check - only check property existence, avoid void expression
-    if (!React || !('useContext' in React)) {
-      throw new Error('React.useContext is not available at runtime');
+    // Simple runtime check - only verify React is available
+    if (!React) {
+      throw new Error('React is not available at runtime');
     }
     return <App />;
   } catch (error) {

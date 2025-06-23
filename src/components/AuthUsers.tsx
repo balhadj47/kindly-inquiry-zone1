@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { RefreshButton } from '@/components/ui/refresh-button';
-import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2, Edit } from 'lucide-react';
+import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2, Edit, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AuthUserDeleteDialog from '@/components/auth-users/AuthUserDeleteDialog';
@@ -36,6 +36,7 @@ const AuthUsers = () => {
     user: null
   });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchAuthUsers = async () => {
@@ -175,6 +176,11 @@ const AuthUsers = () => {
     }
   };
 
+  const handleAddUser = () => {
+    console.log('🆕 AuthUsers: Adding new user');
+    setEditDialog({ isOpen: true, user: null });
+  };
+
   useEffect(() => {
     fetchAuthUsers();
   }, []);
@@ -212,7 +218,7 @@ const AuthUsers = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Utilisateurs d'Authentification</h1>
+            <h1 className="text-2xl font-bold">Comptes</h1>
             <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
           </div>
         </div>
@@ -258,7 +264,12 @@ const AuthUsers = () => {
           <h1 className="text-2xl font-bold">Comptes</h1>
           <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
         </div>
-        <RefreshButton onRefresh={fetchAuthUsers} />
+        <div className="flex items-center space-x-2">
+          <Button onClick={handleAddUser} variant="outline" size="icon">
+            <Plus className="h-4 w-4" />
+          </Button>
+          <RefreshButton onRefresh={fetchAuthUsers} />
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -377,6 +388,9 @@ const AuthUsers = () => {
         onConfirm={(updateData) => {
           if (editDialog.user) {
             handleUpdateUser(editDialog.user.id, updateData);
+          } else {
+            // Handle new user creation here
+            console.log('Creating new user:', updateData);
           }
           setEditDialog({ isOpen: false, user: null });
         }}

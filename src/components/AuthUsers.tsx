@@ -1,14 +1,17 @@
 
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
+import { Plus, ExternalLink, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { RefreshButton } from '@/components/ui/refresh-button';
-import { Mail, Clock, Shield, Search, AlertTriangle, ExternalLink, Trash2, Edit, Plus } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { RefreshButton } from '@/components/ui/refresh-button';
+import { useToast } from '@/hooks/use-toast';
+import { roleIdHasPermission } from '@/utils/rolePermissions';
+import AuthUsersHeader from './auth-users/AuthUsersHeader';
+import AuthUsersFilters from './auth-users/AuthUsersFilters';
+import AuthUsersList from './auth-users/AuthUsersList';
 import AuthUserDeleteDialog from '@/components/auth-users/AuthUserDeleteDialog';
 import AuthUserEditDialog from '@/components/auth-users/AuthUserEditDialog';
 import AuthUserCreateDialog from '@/components/auth-users/AuthUserCreateDialog';
@@ -28,6 +31,7 @@ const AuthUsers = () => {
   const [authUsers, setAuthUsers] = useState<AuthUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [showAdminError, setShowAdminError] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; user: AuthUser | null }>({
     isOpen: false,
@@ -42,6 +46,7 @@ const AuthUsers = () => {
   });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const { toast } = useToast();
+  const { user: authUser } = useAuth();
 
   const fetchAuthUsers = async () => {
     try {
@@ -190,6 +195,11 @@ const AuthUsers = () => {
     setEditDialog({ isOpen: true, user });
   };
 
+  const handleDeleteUserDialog = (user: AuthUser) => {
+    console.log('🗑️ AuthUsers: Preparing to delete user:', user.id, user.email);
+    setDeleteDialog({ isOpen: true, user });
+  };
+
   const handleCreateUser = async (userData: { email: string; password: string; name: string; role_id: number }) => {
     try {
       setActionLoading('creating');
@@ -226,46 +236,45 @@ const AuthUsers = () => {
     }
   };
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  };
+
   useEffect(() => {
     fetchAuthUsers();
   }, []);
 
-  const filteredUsers = authUsers.filter(user =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    user.id.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getStatusBadge = (user: AuthUser) => {
-    if (user.email_confirmed_at) {
-      return <Badge className="bg-green-100 text-green-800">Confirmé</Badge>;
-    }
-    return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
-  };
-
-  const getRoleBadge = (user: AuthUser) => {
-    const roleId = user.user_metadata?.role_id || 2;
-    if (roleId === 1) {
-      return <Badge className="bg-red-100 text-red-800">Administrateur</Badge>;
-    }
-    return <Badge className="bg-blue-100 text-blue-800">Superviseur</Badge>;
-  };
+  // Check permissions
+  const userRoleId = authUser?.user_metadata?.role_id || 0;
+  const isKnownAdmin = authUser?.email === 'gb47@msn.com';
+  const hasAdminPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
+  const canCreateUsers = hasAdminPermission;
+  const canEditUsers = hasAdminPermission;
+  const canDeleteUsers = hasAdminPermission;
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des utilisateurs d'authentification...</div>
+        <div className="text-lg">Chargement des comptes d'authentification...</div>
       </div>
     );
   }
 
-  if (showAdminError) {
+  if (!authUser) {
     return (
-      <div className="space-y-6">
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
+        <p className="text-gray-600">Vous devez être connecté pour accéder à la gestion des comptes.</p>
+      </div>
+    );
+  }
+
+  if (showAdminError || !hasAdminPermission) {
+    return (
+      <div className="space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Comptes</h1>
-            <p className="text-gray-600">Gérer les utilisateurs Supabase Auth</p>
-          </div>
+          <AuthUsersHeader authUsersCount={0} />
         </div>
 
         <Alert className="border-amber-200 bg-amber-50">
@@ -281,7 +290,7 @@ const AuthUsers = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-blue-500" />
+              <ExternalLink className="h-5 w-5 text-blue-500" />
               <span>Tableau de bord Supabase</span>
             </CardTitle>
           </CardHeader>
@@ -303,117 +312,38 @@ const AuthUsers = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">Comptes</h1>
-          <p className="text-gray-600">Gérer les utilisateurs Supabase Auth ({authUsers.length} utilisateur{authUsers.length !== 1 ? 's' : ''})</p>
-        </div>
+        <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
-          <Button onClick={handleAddUser} variant="outline" size="icon">
-            <Plus className="h-4 w-4" />
-          </Button>
+          {canCreateUsers && (
+            <Button onClick={handleAddUser} variant="outline" size="icon">
+              <Plus className="h-4 w-4" />
+            </Button>
+          )}
           <RefreshButton onRefresh={fetchAuthUsers} />
         </div>
       </div>
 
-      <div className="space-y-4">
-        <div className="flex items-center space-x-4">
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Rechercher par email ou ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <div className="text-sm text-gray-600">
-            {filteredUsers.length} utilisateur{filteredUsers.length !== 1 ? 's' : ''} trouvé{filteredUsers.length !== 1 ? 's' : ''}
-          </div>
-        </div>
+      <AuthUsersFilters
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        clearFilters={clearFilters}
+        authUsers={authUsers}
+      />
 
-        <div className="grid gap-4">
-          {filteredUsers.map((user) => (
-            <Card key={user.id} className="hover:shadow-md transition-shadow">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg flex items-center space-x-2">
-                    <Mail className="h-5 w-5 text-blue-500" />
-                    <span>{user.email}</span>
-                  </CardTitle>
-                  <div className="flex items-center space-x-2">
-                    {getStatusBadge(user)}
-                    {getRoleBadge(user)}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditUser(user)}
-                      disabled={actionLoading === user.id}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteDialog({ isOpen: true, user })}
-                      disabled={actionLoading === user.id}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="font-medium">ID:</span> 
-                    <span className="text-xs text-gray-500 ml-1">{user.id}</span>
-                  </div>
-                  <div>
-                    <span className="font-medium">Nom:</span> {user.user_metadata?.name || 'Non défini'}
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">Créé:</span> 
-                    <span>{new Date(user.created_at).toLocaleDateString('fr-FR')}</span>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-4 w-4 text-gray-500" />
-                    <span className="font-medium">Dernière connexion:</span> 
-                    <span>
-                      {user.last_sign_in_at 
-                        ? new Date(user.last_sign_in_at).toLocaleDateString('fr-FR')
-                        : 'Jamais'
-                      }
-                    </span>
-                  </div>
-                  {user.phone && (
-                    <div>
-                      <span className="font-medium">Téléphone:</span> {user.phone}
-                    </div>
-                  )}
-                  <div>
-                    <span className="font-medium">Email confirmé:</span> 
-                    {user.email_confirmed_at 
-                      ? new Date(user.email_confirmed_at).toLocaleDateString('fr-FR')
-                      : 'Non'
-                    }
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {filteredUsers.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-600">Aucun utilisateur trouvé</p>
-          </div>
-        )}
-      </div>
+      <AuthUsersList
+        authUsers={authUsers}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onEditUser={handleEditUser}
+        onDeleteUser={handleDeleteUserDialog}
+        canEdit={canEditUsers}
+        canDelete={canDeleteUsers}
+        actionLoading={actionLoading}
+      />
 
       <AuthUserDeleteDialog
         isOpen={deleteDialog.isOpen}

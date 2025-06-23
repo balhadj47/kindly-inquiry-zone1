@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import AuthUserDeleteDialog from '@/components/auth-users/AuthUserDeleteDialog';
 import AuthUserEditDialog from '@/components/auth-users/AuthUserEditDialog';
+import AuthUserCreateDialog from '@/components/auth-users/AuthUserCreateDialog';
 
 interface AuthUser {
   id: string;
@@ -35,8 +37,10 @@ const AuthUsers = () => {
     isOpen: false,
     user: null
   });
+  const [createDialog, setCreateDialog] = useState<{ isOpen: boolean }>({
+    isOpen: false
+  });
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchAuthUsers = async () => {
@@ -178,7 +182,48 @@ const AuthUsers = () => {
 
   const handleAddUser = () => {
     console.log('🆕 AuthUsers: Adding new user');
-    setEditDialog({ isOpen: true, user: null });
+    setCreateDialog({ isOpen: true });
+  };
+
+  const handleEditUser = (user: AuthUser) => {
+    console.log('✏️ AuthUsers: Editing user:', user.id, user.email);
+    setEditDialog({ isOpen: true, user });
+  };
+
+  const handleCreateUser = async (userData: { email: string; password: string; name: string; role_id: number }) => {
+    try {
+      setActionLoading('creating');
+      console.log('🆕 AuthUsers: Creating new user:', userData.email);
+      
+      const { data, error } = await supabase.functions.invoke('auth-users', {
+        method: 'POST',
+        body: userData,
+      });
+
+      if (error) {
+        console.error('Create error:', error);
+        throw new Error(error.message || 'Erreur lors de la création');
+      }
+
+      console.log('✅ Create response:', data);
+
+      toast({
+        title: 'Succès',
+        description: 'Utilisateur d\'authentification créé avec succès',
+      });
+
+      await fetchAuthUsers();
+      setCreateDialog({ isOpen: false });
+    } catch (error) {
+      console.error('Error creating auth user:', error);
+      toast({
+        title: 'Erreur',
+        description: `Erreur lors de la création: ${error.message}`,
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(null);
+    }
   };
 
   useEffect(() => {
@@ -303,7 +348,7 @@ const AuthUsers = () => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setEditDialog({ isOpen: true, user })}
+                      onClick={() => handleEditUser(user)}
                       disabled={actionLoading === user.id}
                       className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                     >
@@ -388,13 +433,17 @@ const AuthUsers = () => {
         onConfirm={(updateData) => {
           if (editDialog.user) {
             handleUpdateUser(editDialog.user.id, updateData);
-          } else {
-            // Handle new user creation here
-            console.log('Creating new user:', updateData);
           }
           setEditDialog({ isOpen: false, user: null });
         }}
         onCancel={() => setEditDialog({ isOpen: false, user: null })}
+      />
+
+      <AuthUserCreateDialog
+        isOpen={createDialog.isOpen}
+        onConfirm={handleCreateUser}
+        onCancel={() => setCreateDialog({ isOpen: false })}
+        isLoading={actionLoading === 'creating'}
       />
     </div>
   );

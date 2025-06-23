@@ -2,7 +2,6 @@
 import React from 'react';
 import type { User } from '@/types/rbac';
 import type { SystemGroup } from '@/types/systemGroups';
-import { createUserOperations } from './userOperations';
 import { createRoleOperations } from './roleOperations';
 import { hasPermission as checkPermission } from './permissionUtils';
 
@@ -19,15 +18,12 @@ export const useRBACOperations = ({
   setUsers, 
   setRoles 
 }: UseRBACOperationsProps) => {
-  console.log('🔧 useRBACOperations: Initializing with React:', !!React);
+  console.log('🔧 useRBACOperations: Initializing auth-first operations');
 
   if (!React || !React.useState) {
     console.error('❌ CRITICAL: React hooks not available in useRBACOperations');
     throw new Error('React hooks not available');
   }
-
-  // Create user operations
-  const userOperations = createUserOperations(setUsers);
 
   // Create role operations  
   const roleOperations = createRoleOperations(setRoles);
@@ -37,7 +33,7 @@ export const useRBACOperations = ({
       return false;
     }
 
-    // Check permission using role_id
+    // Check permission using current auth user
     try {
       return checkPermission(currentUser.id.toString(), permission);
     } catch (error) {
@@ -65,33 +61,38 @@ export const useRBACOperations = ({
     return userRole.permissions.includes(action);
   };
 
-  const getMenuItemPermissions = () => {
-    return {
-      dashboard: hasPermission('dashboard:read'),
-      companies: hasPermission('companies:read'),
-      vans: hasPermission('vans:read'),
-      users: hasPermission('users:read'),
-      tripLogger: hasPermission('trips:create'),
-      tripHistory: hasPermission('trips:read'),
-    };
+  // Simplified user operations that don't affect auth
+  const addUser = async (userData: Partial<User>): Promise<void> => {
+    throw new Error('User creation should be handled through Supabase Auth signup');
+  };
+
+  const updateUser = async (id: string, userData: Partial<User>): Promise<User> => {
+    throw new Error('Auth user updates should be handled through Supabase Auth');
+  };
+
+  const deleteUser = async (id: string): Promise<void> => {
+    throw new Error('Auth user deletion should be handled through Supabase Auth');
+  };
+
+  const changeUserPassword = async (userEmail: string, newPassword: string): Promise<{ success: boolean; message: string }> => {
+    throw new Error('Password changes should be handled through Supabase Auth');
   };
 
   return {
-    // User operations
-    addUser: userOperations.addUser,
-    updateUser: userOperations.updateUser,
-    deleteUser: userOperations.deleteUser,
-    changeUserPassword: userOperations.changeUserPassword,
+    // User operations (disabled for auth-first approach)
+    addUser,
+    updateUser,
+    deleteUser,
+    changeUserPassword,
     
-    // Role operations
+    // Role operations (still functional)
     addRole: roleOperations.addRole,
     updateRole: roleOperations.updateRole,
     deleteRole: roleOperations.deleteRole,
     
-    // Permission operations
+    // Permission operations (using auth user)
     hasPermission,
     getUserRole,
     canUserPerformAction,
-    getMenuItemPermissions,
   };
 };

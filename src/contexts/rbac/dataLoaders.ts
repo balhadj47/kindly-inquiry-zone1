@@ -1,31 +1,44 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types/rbac';
-import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
+import type { User } from '@/types/rbac';
+import type { SystemGroup } from '@/types/systemGroups';
 
-// Define the expected database user structure based on actual schema
-interface DbUser {
-  id: number;
-  auth_user_id: string | null;
-  name: string;
-  email: string | null;
-  phone: string;
-  role_id: number;
-  status: string;
-  created_at: string;
-  driver_license: string | null;
-  total_trips: number;
-  last_trip: string | null;
-  profile_image: string | null;
-  badge_number: string | null;
-  date_of_birth: string | null;
-  place_of_birth: string | null;
-  address: string | null;
-}
+export const loadRoles = async (): Promise<SystemGroup[]> => {
+  console.log('🔄 Loading system groups/roles...');
+  const startTime = performance.now();
 
+  try {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('*')
+      .order('role_id');
+
+    if (error) {
+      console.error('❌ Error loading roles:', error);
+      throw error;
+    }
+
+    const endTime = performance.now();
+    console.log(`✅ Loaded ${data?.length || 0} roles in ${endTime - startTime}ms`);
+
+    return (data || []).map(group => ({
+      id: group.id,
+      name: group.name,
+      description: group.description,
+      permissions: group.permissions || [],
+      color: group.color,
+      role_id: group.role_id,
+    }));
+  } catch (error) {
+    console.error('❌ Failed to load roles:', error);
+    return [];
+  }
+};
+
+// Keep this function for backwards compatibility, but it won't be used for auth
 export const loadUsers = async (): Promise<User[]> => {
-  console.log('📊 Loading users from database...');
-  
+  console.log('🔄 Loading users from database (for employee management only)...');
+  const startTime = performance.now();
+
   try {
     const { data, error } = await supabase
       .from('users')
@@ -37,79 +50,29 @@ export const loadUsers = async (): Promise<User[]> => {
       throw error;
     }
 
-    console.log('✅ Raw users data loaded:', data?.length || 0, data);
+    const endTime = performance.now();
+    console.log(`✅ Loaded ${data?.length || 0} users in ${endTime - startTime}ms`);
 
-    if (!data || data.length === 0) {
-      console.warn('⚠️ No users found in database');
-      return [];
-    }
-
-    const transformedUsers = data.map((rawUser: any) => {
-      // Cast to our expected type to safely access properties
-      const user = rawUser as DbUser;
-      console.log('🔄 Transforming user:', user.id, user);
-      
-      return {
-        id: user.id.toString(),
-        name: user.name || '',
-        email: user.email || undefined,
-        phone: user.phone || '',
-        role_id: user.role_id || 3, // Default to Employee role_id
-        status: user.status as User['status'] || 'Active',
-        createdAt: user.created_at,
-        licenseNumber: user.driver_license || undefined,
-        totalTrips: user.total_trips || 0,
-        lastTrip: user.last_trip || undefined,
-        profileImage: user.profile_image || undefined,
-        badgeNumber: user.badge_number || undefined,
-        dateOfBirth: user.date_of_birth || undefined,
-        placeOfBirth: user.place_of_birth || undefined,
-        address: user.address || undefined,
-        driverLicense: user.driver_license || undefined,
-      };
-    });
-
-    console.log('✅ Transformed users:', transformedUsers.length, transformedUsers);
-    return transformedUsers;
-
-  } catch (error) {
-    console.error('❌ CRITICAL ERROR loading users:', error);
-    return [];
-  }
-};
-
-export const loadRoles = async (): Promise<SystemGroup[]> => {
-  console.log('📊 Loading system groups from database...');
-  
-  try {
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('*')
-      .order('name');
-
-    if (error) {
-      console.error('❌ Error loading system groups:', error);
-      throw error;
-    }
-
-    console.log('✅ Raw system groups data loaded:', data?.length || 0, data);
-
-    if (!data || data.length === 0) {
-      console.warn('⚠️ No system groups found in database');
-      return [];
-    }
-
-    return data.map(group => ({
-      id: group.id,
-      name: group.name as SystemGroupName,
-      description: group.description || '',
-      permissions: group.permissions || [],
-      color: group.color || '#3b82f6',
-      isSystemRole: true,
+    return (data || []).map(user => ({
+      id: user.id.toString(),
+      name: user.name || '',
+      email: user.email || undefined,
+      phone: user.phone || '',
+      role_id: user.role_id || 3,
+      status: user.status || 'Active',
+      createdAt: user.created_at,
+      licenseNumber: user.driver_license,
+      totalTrips: user.total_trips,
+      lastTrip: user.last_trip,
+      profileImage: user.profile_image,
+      badgeNumber: user.badge_number,
+      dateOfBirth: user.date_of_birth,
+      placeOfBirth: user.place_of_birth,
+      address: user.address,
+      driverLicense: user.driver_license,
     }));
-
   } catch (error) {
-    console.error('❌ CRITICAL ERROR loading roles:', error);  
+    console.error('❌ Failed to load users:', error);
     return [];
   }
 };

@@ -3,25 +3,26 @@ import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
 let permissionCache = new Map<string, boolean>();
-let usersData: User[] = [];
+let currentAuthUser: User | null = null;
 let systemGroupsData: SystemGroup[] = [];
 
 export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
-  console.log('🔧 Creating permission utils with:', { 
+  console.log('🔧 Creating auth-first permission utils with:', { 
     usersCount: users.length, 
     systemGroupsCount: systemGroups.length,
     systemGroups: systemGroups.map(g => ({ name: g.name, permissions: g.permissions }))
   });
   
-  if (users.length === 0 || systemGroups.length === 0) {
-    console.warn('⚠️ Skipping permission utils creation - missing data');
+  if (systemGroups.length === 0) {
+    console.warn('⚠️ Skipping permission utils creation - missing system groups');
     return;
   }
 
-  usersData = users;
+  // Store the current auth user (should be only one)
+  currentAuthUser = users.length > 0 ? users[0] : null;
   systemGroupsData = systemGroups;
   permissionCache.clear();
-  console.log('✅ Permission utilities created successfully');
+  console.log('✅ Auth-first permission utilities created successfully');
 };
 
 export const hasPermission = (userId: string, permission: string): boolean => {
@@ -37,22 +38,15 @@ export const hasPermission = (userId: string, permission: string): boolean => {
   try {
     console.log(`🔐 Checking permission: ${permission} for user ${userId}`);
     
-    // Special handling for admin temp user
-    if (userId === 'admin-temp') {
-      console.log('🔓 Admin temp user detected, granting permission:', permission);
-      permissionCache.set(cacheKey, true);
-      return true;
-    }
-
-    // Find user
-    const user = usersData.find(u => u.id.toString() === userId.toString());
-    if (!user) {
-      console.warn(`⚠️ User not found: ${userId}`);
+    // Use current auth user instead of looking up in users array
+    const user = currentAuthUser;
+    if (!user || user.id.toString() !== userId.toString()) {
+      console.warn(`⚠️ User not found or mismatch: ${userId}`);
       permissionCache.set(cacheKey, false);
       return false;
     }
 
-    console.log(`👤 Found user: ${user.id} with role_id: ${user.role_id}`);
+    console.log(`👤 Found auth user: ${user.id} with role_id: ${user.role_id}`);
 
     // For role_id 1 (Administrator), grant all permissions
     if (user.role_id === 1) {
@@ -61,9 +55,8 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return true;
     }
 
-    // Find the user's role/group by role_id - use the systemGroups from database
+    // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {
-      // Convert role.id to number for comparison with user.role_id
       return parseInt(role.id) === user.role_id;
     });
 
@@ -97,8 +90,8 @@ export const clearPermissionCache = () => {
 
 export const getUserPermissions = (userId: string): string[] => {
   try {
-    const user = usersData.find(u => u.id.toString() === userId.toString());
-    if (!user) return [];
+    const user = currentAuthUser;
+    if (!user || user.id.toString() !== userId.toString()) return [];
 
     // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {

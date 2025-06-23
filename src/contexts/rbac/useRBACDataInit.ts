@@ -1,8 +1,7 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { RBACState, RBACActions } from './types';
-import { loadRoles, loadUsers } from './dataLoaders';
+import { loadRoles } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
 
 interface UseRBACDataInitProps {
@@ -20,9 +19,20 @@ const isAdminEmail = (email: string): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 };
 
-// Helper function to get role_id from email
-const getRoleIdForEmail = (email: string): number => {
-  return isAdminEmail(email) ? 1 : 3; // 1 = Administrator, 3 = Employee
+// Helper function to get role_id from auth user
+const getRoleIdFromAuthUser = (authUser: any): number => {
+  // First check user metadata for role_id
+  if (authUser.user_metadata?.role_id) {
+    return authUser.user_metadata.role_id;
+  }
+  
+  // Fallback to email-based admin detection
+  if (isAdminEmail(authUser.email || '')) {
+    return 1; // Administrator
+  }
+  
+  // Default to employee
+  return 3; // Employee
 };
 
 export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
@@ -39,6 +49,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     // If no user is authenticated, don't initialize RBAC
     if (!authUser) {
       console.log('❌ No authenticated user, skipping RBAC initialization');
+      actions.setCurrentUser(null);
       actions.setLoading(false);
       return;
     }
@@ -49,75 +60,63 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 Starting RBAC initialization for user:', authUser?.email);
+      console.log('🚀 Starting auth-first RBAC initialization for user:', authUser?.email);
       initializationRef.current = true;
       actions.setLoading(true);
 
       try {
-        // Load both system groups and users in parallel
-        const [systemGroups, users] = await Promise.all([
-          loadRoles(),
-          loadUsers()
-        ]);
+        // Load only system groups (roles) - no users table needed for auth
+        const systemGroups = await loadRoles();
 
         console.log('✅ RBAC Data loaded:', {
           systemGroupsCount: systemGroups.length,
-          usersCount: users.length,
-          authUserEmail: authUser?.email
+          authUserEmail: authUser?.email,
+          authUserMetadata: authUser?.user_metadata
         });
 
-        // Set the data
+        // Set the roles data
         actions.setRoles(systemGroups);
-        actions.setUsers(users);
+        // Don't load users table for authentication - keep it empty for auth purposes
+        actions.setUsers([]);
 
-        // Find current user by email
-        const currentUser = users.find(user => 
-          user.email?.toLowerCase() === authUser.email?.toLowerCase()
-        );
+        // Create current user from auth user data
+        const roleId = getRoleIdFromAuthUser(authUser);
+        
+        console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
+        
+        // Create user profile from auth user
+        const currentUser = {
+          id: authUser.id,
+          name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+          email: authUser.email || '',
+          phone: authUser.user_metadata?.phone || '',
+          role_id: roleId,
+          status: 'Active' as const,
+          createdAt: new Date().toISOString(),
+        };
 
-        if (currentUser) {
-          console.log('✅ Current user found:', {
-            id: currentUser.id,
-            name: currentUser.name,
-            email: currentUser.email,
-            role_id: currentUser.role_id
-          });
-          actions.setCurrentUser(currentUser);
-        } else {
-          console.log('⚠️ Current user not found in system, creating basic profile');
-          
-          // Get appropriate role_id for this user
-          const roleId = getRoleIdForEmail(authUser.email || '');
-          
-          console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
-          
-          // Create a basic user profile for authenticated users not in the system
-          const basicUser = {
-            id: authUser.id,
-            name: authUser.email?.split('@')[0] || 'User',
-            email: authUser.email || '',
-            phone: '',
-            role_id: roleId,
-            status: 'Active' as const,
-            createdAt: new Date().toISOString(),
-          };
-          actions.setCurrentUser(basicUser);
-        }
+        actions.setCurrentUser(currentUser);
 
-        // Initialize permission utilities
-        createPermissionUtils(users, systemGroups);
+        // Initialize permission utilities with empty users array and current user
+        createPermissionUtils([currentUser], systemGroups);
+
+        console.log('✅ Auth-first RBAC initialized with user:', {
+          id: currentUser.id,
+          email: currentUser.email,
+          role_id: currentUser.role_id
+        });
 
       } catch (error) {
         console.error('❌ RBAC initialization error:', error);
         actions.setCurrentUser(null);
       } finally {
         actions.setLoading(false);
-        console.log('🏁 RBAC initialization completed');
+        console.log('🏁 Auth-first RBAC initialization completed');
       }
     };
 
     initializeRBAC();
-  }, [authUser?.email, authLoading]);
+  }, [authUser?.email, authUser?.id, authUser?.user_metadata, authLoading]);
 
   // Reset initialization flag when user changes
   useEffect(() => {

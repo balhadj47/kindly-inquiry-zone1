@@ -61,11 +61,9 @@ export const useUserActionHandlers = () => {
         return;
       }
 
-      if (window.confirm(`Êtes-vous sûr de vouloir supprimer l'utilisateur "${user.name}" ?`)) {
-        console.log('UserActionHandlers - Deleting user:', user.id);
-        await deleteUser(user.id);
-        console.log('UserActionHandlers - User deleted successfully');
-      }
+      console.log('UserActionHandlers - Deleting user:', user.id);
+      await deleteUser(user.id);
+      console.log('UserActionHandlers - User deleted successfully');
     } catch (error) {
       console.error('UserActionHandlers - Error deleting user:', error);
       alert("Erreur lors de la suppression de l'utilisateur. Veuillez réessayer.");

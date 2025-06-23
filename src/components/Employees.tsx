@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -135,7 +134,7 @@ const Employees = () => {
   // Check permissions using role_id - safely access the property with detailed logging
   const userRoleId = (authUser as any)?.role_id || 0;
   console.log('🔐 Employees: Current user role_id:', userRoleId);
-  console.log('🔐 Employees: Current user:', authUser?.email, authUser?.name);
+  console.log('🔐 Employees: Current user email:', authUser?.email);
   
   const canCreateUsers = authUser ? roleIdHasPermission(userRoleId, 'users:create') : false;
   const canEditUsers = authUser ? roleIdHasPermission(userRoleId, 'users:update') : false;

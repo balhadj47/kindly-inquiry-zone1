@@ -58,9 +58,16 @@ const menuItems: MenuItem[] = [
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  const { hasPermission, currentUser, loading } = useRBAC();
+  const { hasPermission, currentUser, loading, roles } = useRBAC();
   
-  console.log('🔍 Menu items processing - user:', currentUser?.id, 'role_id:', currentUser?.role_id, 'loading:', loading);
+  console.log('🔍 DETAILED Menu items processing:', {
+    userId: currentUser?.id,
+    userEmail: currentUser?.email,
+    roleId: currentUser?.role_id,
+    loading: loading,
+    rolesCount: roles?.length || 0,
+    rolesData: roles?.map(r => ({ id: r.id, name: r.name, permissions: r.permissions })) || []
+  });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
   if (loading) {
@@ -74,6 +81,14 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
+  // If no roles are loaded yet, wait
+  if (!roles || roles.length === 0) {
+    console.log('🔍 No roles loaded yet, returning empty menu');
+    return [];
+  }
+
+  console.log('🔍 SUPERVISOR CHECK - User role_id:', currentUser.role_id, 'Expected permissions for Supervisor (role_id 2):', ['dashboard:read', 'companies:read', 'vans:read', 'trips:read']);
+
   // Filter menu items based on permissions
   const filteredMenuItems = menuItems.filter((item) => {
     // All menu items now require permissions - no exceptions
@@ -84,13 +99,18 @@ export const useSidebarMenuItems = () => {
     
     // Check if user has the required permission
     const hasAccess = hasPermission(item.permission);
-    console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess} for role_id ${currentUser.role_id}`);
+    console.log(`🔍 DETAILED Permission check for ${item.title} (${item.permission}): ${hasAccess} for user ${currentUser.email} with role_id ${currentUser.role_id}`);
     
     return hasAccess;
   });
 
-  console.log('🔍 Final filtered menu items count:', filteredMenuItems.length);
-  console.log('🔍 Filtered menu items:', filteredMenuItems.map(item => `${item.title} (${item.permission})`));
+  console.log('🔍 FINAL RESULT:', {
+    totalMenuItems: menuItems.length,
+    filteredCount: filteredMenuItems.length,
+    filteredTitles: filteredMenuItems.map(item => item.title),
+    userRole: currentUser.role_id,
+    userEmail: currentUser.email
+  });
   
   return filteredMenuItems;
 };

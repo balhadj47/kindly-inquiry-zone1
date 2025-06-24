@@ -7,16 +7,16 @@ import { roleIdHasPermission } from '@/utils/rolePermissions';
 const AuthUsersPage = () => {
   const { user: authUser } = useAuth();
   
-  // Check if user has admin permissions
+  // Check if user has auth users permissions
   const userRoleId = authUser?.user_metadata?.role_id || 0;
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
-  const hasAdminPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
+  const hasAuthUsersPermission = roleIdHasPermission(userRoleId, 'auth-users:read') || isKnownAdmin;
 
   console.log('🔍 AuthUsersPage permissions check:', {
     email: authUser?.email,
     userRoleId,
     isKnownAdmin,
-    hasAdminPermission,
+    hasAuthUsersPermission,
     metadata: authUser?.user_metadata
   });
 
@@ -29,7 +29,7 @@ const AuthUsersPage = () => {
     );
   }
 
-  if (!hasAdminPermission) {
+  if (!hasAuthUsersPermission) {
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Accès restreint</h2>

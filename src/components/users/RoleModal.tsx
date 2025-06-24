@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -29,6 +30,10 @@ const AVAILABLE_PERMISSIONS = [
   { id: 'users:create', name: 'Créer utilisateurs', category: 'Utilisateurs' },
   { id: 'users:update', name: 'Modifier utilisateurs', category: 'Utilisateurs' },
   { id: 'users:delete', name: 'Supprimer utilisateurs', category: 'Utilisateurs' },
+  { id: 'auth-users:read', name: 'Voir comptes auth', category: 'Authentification' },
+  { id: 'auth-users:create', name: 'Créer comptes auth', category: 'Authentification' },
+  { id: 'auth-users:update', name: 'Modifier comptes auth', category: 'Authentification' },
+  { id: 'auth-users:delete', name: 'Supprimer comptes auth', category: 'Authentification' },
   { id: 'companies:read', name: 'Voir entreprises', category: 'Entreprises' },
   { id: 'companies:create', name: 'Créer entreprises', category: 'Entreprises' },
   { id: 'companies:update', name: 'Modifier entreprises', category: 'Entreprises' },

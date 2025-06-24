@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -96,13 +97,13 @@ const AuthUsers = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions
+  // Check permissions using the new auth-users specific permissions
   const userRoleId = authUser?.user_metadata?.role_id || 0;
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
-  const hasAdminPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
-  const canCreateUsers = hasAdminPermission;
-  const canEditUsers = hasAdminPermission;
-  const canDeleteUsers = hasAdminPermission;
+  const hasAuthUsersPermission = roleIdHasPermission(userRoleId, 'auth-users:read') || isKnownAdmin;
+  const canCreateAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:create') || isKnownAdmin;
+  const canEditAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:update') || isKnownAdmin;
+  const canDeleteAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:delete') || isKnownAdmin;
 
   // Handle error states
   const showAdminError = error?.message.includes('Insufficient permissions');
@@ -124,7 +125,7 @@ const AuthUsers = () => {
     );
   }
 
-  if (showAdminError || !hasAdminPermission) {
+  if (showAdminError || !hasAuthUsersPermission) {
     return (
       <div className="space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
@@ -170,7 +171,7 @@ const AuthUsers = () => {
       <div className="flex items-center justify-between">
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
-          {canCreateUsers && (
+          {canCreateAuthUsers && (
             <Button onClick={handleAddUser} variant="outline" size="icon">
               <Plus className="h-4 w-4" />
             </Button>
@@ -194,8 +195,8 @@ const AuthUsers = () => {
         statusFilter={statusFilter}
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUserDialog}
-        canEdit={canEditUsers}
-        canDelete={canDeleteUsers}
+        canEdit={canEditAuthUsers}
+        canDelete={canDeleteAuthUsers}
         actionLoading={deleteAuthUser.isPending || updateAuthUser.isPending || createAuthUser.isPending ? 'loading' : null}
       />
 

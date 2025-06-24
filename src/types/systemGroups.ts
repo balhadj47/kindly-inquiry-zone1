@@ -26,6 +26,7 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
     name: 'Administrator',
     permissions: [
       'users:read', 'users:create', 'users:update', 'users:delete',
+      'auth-users:read', 'auth-users:create', 'auth-users:update', 'auth-users:delete',
       'vans:read', 'vans:create', 'vans:update', 'vans:delete',
       'trips:read', 'trips:create', 'trips:update', 'trips:delete',
       'companies:read', 'companies:create', 'companies:update', 'companies:delete',

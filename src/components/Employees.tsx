@@ -1,5 +1,7 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRBAC } from '@/contexts/RBACContext';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { User } from '@/types/rbac';
@@ -12,7 +14,6 @@ import { RefreshButton } from '@/components/ui/refresh-button';
 import { useToast } from '@/hooks/use-toast';
 import { useUsersByRoleId, useUserMutations } from '@/hooks/useUsersOptimized';
 import { useModernRefresh } from '@/hooks/useModernRefresh';
-import { roleIdHasPermission } from '@/utils/rolePermissions';
 
 // Helper function to transform optimized user data to RBAC User type
 const transformOptimizedUser = (user: any): User => ({
@@ -41,6 +42,7 @@ const Employees = () => {
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   
   const { user: authUser } = useAuth();
+  const { currentUser, hasPermission } = useRBAC();
   const { toast } = useToast();
   
   // Use the optimized hook for employees (role_id: 3)
@@ -131,18 +133,17 @@ const Employees = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions using role_id - safely access the property with detailed logging
-  const userRoleId = (authUser as any)?.role_id || 0;
-  console.log('🔐 Employees: Current user role_id:', userRoleId);
-  console.log('🔐 Employees: Current user email:', authUser?.email);
+  // Check permissions using RBAC context instead of auth user
+  console.log('🔐 Employees: Current user from RBAC:', currentUser?.role_id);
+  console.log('🔐 Employees: Auth user email:', authUser?.email);
   
   // Special handling for known admin user
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
   
-  // Allow all authenticated users to create employees, but restrict edit/delete based on permissions
-  const canCreateUsers = !!authUser; // All authenticated users can add employees
-  const canEditUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:update') : false);
-  const canDeleteUsers = isKnownAdmin || (authUser ? roleIdHasPermission(userRoleId, 'users:delete') : false);
+  // Use RBAC permissions system
+  const canCreateUsers = hasPermission('users:create') || !!authUser; // All authenticated users can add employees
+  const canEditUsers = hasPermission('users:update') || isKnownAdmin;
+  const canDeleteUsers = hasPermission('users:delete') || isKnownAdmin;
   
   console.log('🔐 Employees: Permissions - Create:', canCreateUsers, 'Edit:', canEditUsers, 'Delete:', canDeleteUsers);
   console.log('🔐 Employees: Is known admin:', isKnownAdmin);
@@ -164,7 +165,8 @@ const Employees = () => {
     );
   }
 
-  const hasUsersReadPermission = roleIdHasPermission(userRoleId, 'users:read') || isKnownAdmin;
+  // Use RBAC permission system for access control
+  const hasUsersReadPermission = hasPermission('users:read') || isKnownAdmin;
 
   if (!hasUsersReadPermission) {
     return (

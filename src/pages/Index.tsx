@@ -35,6 +35,15 @@ const PageLoadingSkeleton = () => (
   </div>
 );
 
+const AccessDenied = () => (
+  <div className="flex items-center justify-center h-full">
+    <div className="text-center">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès refusé</h2>
+      <p className="text-gray-600">Vous n'avez pas les permissions nécessaires pour accéder à cette page.</p>
+    </div>
+  </div>
+);
+
 const Index = () => {
   console.log('📱 Index: Rendering main app...');
   console.log('📱 Index: Current URL:', window.location.pathname);
@@ -42,20 +51,29 @@ const Index = () => {
   const isMobile = useIsMobile();
   
   // Safely access RBAC context
-  let hasPermission: (permission: string) => boolean = () => true; // Default to true to avoid blocking
+  let hasPermission: (permission: string) => boolean = () => false; // Default to false for security
   let currentUser: any = null;
+  let loading = true;
+  
   try {
     const rbacContext = useRBAC();
-    hasPermission = rbacContext.hasPermission || (() => true);
+    hasPermission = rbacContext.hasPermission || (() => false);
     currentUser = rbacContext.currentUser;
+    loading = rbacContext.loading;
     console.log('📱 Index: RBAC context loaded successfully');
   } catch (error) {
     console.error('📱 Index: Error accessing RBAC context:', error);
-    // Continue with all permissions allowed for now
+    // Continue with default values (no access)
   }
 
   console.log('📱 Index: isMobile:', isMobile);
-  console.log('📱 Index: Checking permissions and routes...');
+  console.log('📱 Index: Current user:', currentUser?.id, 'role_id:', currentUser?.role_id);
+  console.log('📱 Index: Loading:', loading);
+
+  // Show loading while RBAC is initializing
+  if (loading) {
+    return <PageLoadingSkeleton />;
+  }
 
   return (
     <>
@@ -74,23 +92,39 @@ const Index = () => {
               }`}>
                 <Suspense fallback={<PageLoadingSkeleton />}>
                   <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
+                    <Route path="/" element={
+                      hasPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
+                    } />
+                    <Route path="/dashboard" element={
+                      hasPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
+                    } />
                     <Route path="/companies/*" element={
-                      hasPermission('companies:read') ? <Companies /> : <div>Access Denied</div>
+                      hasPermission('companies:read') ? <Companies /> : <AccessDenied />
                     } />
-                    <Route path="/vans-drivers" element={<Vans />} />
-                    <Route path="/vans/*" element={<Vans />} />
+                    <Route path="/vans-drivers" element={
+                      hasPermission('vans:read') ? <Vans /> : <AccessDenied />
+                    } />
+                    <Route path="/vans/*" element={
+                      hasPermission('vans:read') ? <Vans /> : <AccessDenied />
+                    } />
                     <Route path="/users" element={
-                      (hasPermission('users:read') && currentUser?.role_id === 1) ? <Users /> : <div>Access Denied</div>
+                      hasPermission('users:read') ? <Users /> : <AccessDenied />
                     } />
-                    <Route path="/auth-users" element={<AuthUsersPage />} />
+                    <Route path="/auth-users" element={
+                      hasPermission('users:read') ? <AuthUsersPage /> : <AccessDenied />
+                    } />
                     <Route path="/employees" element={
-                      hasPermission('users:read') ? <Employees /> : <div>Access Denied</div>
+                      hasPermission('users:read') ? <Employees /> : <AccessDenied />
                     } />
-                    <Route path="/log-trip" element={<TripLoggerPage />} />
-                    <Route path="/trip-logger" element={<TripLoggerPage />} />
-                    <Route path="/trip-history" element={<TripHistoryPage />} />
+                    <Route path="/log-trip" element={
+                      hasPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                    } />
+                    <Route path="/trip-logger" element={
+                      hasPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                    } />
+                    <Route path="/trip-history" element={
+                      hasPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
+                    } />
                     <Route path="/settings" element={<UserSettings />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>

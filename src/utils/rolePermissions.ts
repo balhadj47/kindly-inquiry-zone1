@@ -8,13 +8,15 @@ export const ROLE_ID_PERMISSIONS: Record<number, string[]> = {
     'vans:read', 'vans:create', 'vans:update', 'vans:delete',
     'trips:read', 'trips:create', 'trips:update', 'trips:delete',
     'companies:read', 'companies:create', 'companies:update', 'companies:delete',
+    'missions:read', 'missions:create', 'missions:update', 'missions:delete',
     'groups:read', 'groups:manage',
     'dashboard:read', 'settings:read', 'settings:update'
   ],
-  2: [ // Supervisor
-    'users:read', 'users:update',
-    'vans:read', 'vans:update',
-    'trips:read', 'trips:create', 'trips:update',
+  2: [ // Supervisor - Updated permissions (read-only access)
+    'users:read',
+    'vans:read',
+    'trips:read',
+    'missions:read',
     'companies:read',
     'groups:read',
     'dashboard:read'
@@ -22,6 +24,7 @@ export const ROLE_ID_PERMISSIONS: Record<number, string[]> = {
   3: [ // Employee
     'dashboard:read',
     'trips:read', 'trips:create',
+    'missions:read', 'missions:create',
     'companies:read',
     'vans:read'
   ]

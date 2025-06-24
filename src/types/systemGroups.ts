@@ -41,10 +41,10 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
     id: '2',
     name: 'Supervisor',
     permissions: [
-      'users:read', 'users:update',
-      'vans:read', 'vans:update',
-      'trips:read', 'trips:create', 'trips:update',
-      'missions:read', 'missions:create', 'missions:update',
+      'users:read',
+      'vans:read',
+      'trips:read',
+      'missions:read',
       'companies:read',
       'groups:read',
       'dashboard:read'

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -20,17 +21,20 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
 
     console.log('📋 Raw groups data:', groupsData);
 
-    // For each group, get its permissions from the database
+    // For each group, get its permissions from role_permissions table directly
     const rolesWithPermissions = await Promise.all(
       (groupsData || []).map(async (group) => {
         console.log(`📋 Loading permissions for role_id: ${group.role_id}`);
         
+        // Query role_permissions table directly instead of using RPC
         const { data: permissionsData, error: permissionsError } = await supabase
-          .rpc('get_role_permissions', { user_role_id: group.role_id });
+          .from('role_permissions')
+          .select('permission_name')
+          .eq('role_id', group.role_id);
 
         if (permissionsError) {
           console.error(`❌ Error loading permissions for role ${group.role_id}:`, permissionsError);
-          // Fall back to stored permissions in user_groups table if RPC fails
+          // Fall back to stored permissions in user_groups table if query fails
           return {
             id: group.id.toString(),
             name: group.name as SystemGroupName,
@@ -42,7 +46,8 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
           };
         }
 
-        const permissions = permissionsData?.map((p: any) => p.permission_name) || [];
+        // Extract permission names from the array
+        const permissions = (permissionsData || []).map((p: any) => p.permission_name);
         console.log(`📋 Loaded ${permissions.length} permissions for ${group.name}:`, permissions);
 
         return {

@@ -88,19 +88,33 @@ const VansIndex = () => {
       // Status filter - make sure we're comparing the exact values
       const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
       
-      console.log('Van filter check:', { 
-        vanId: van.id, 
-        vanStatus: van.status, 
-        statusFilter, 
-        matchesStatus, 
-        matchesSearch,
-        vanReferenceCode: van.reference_code
-      });
+      // Enhanced debugging for search issues
+      if (searchTerm && (van.reference_code?.toLowerCase().includes(searchLower) || 
+                        van.license_plate?.toLowerCase().includes(searchLower) || 
+                        van.model?.toLowerCase().includes(searchLower))) {
+        console.log('🔍 Search match found:', { 
+          vanId: van.id, 
+          license_plate: van.license_plate,
+          model: van.model,
+          reference_code: van.reference_code,
+          searchTerm,
+          matchesSearch,
+          matchesStatus,
+          vanStatus: van.status,
+          statusFilter
+        });
+      }
 
       return matchesSearch && matchesStatus;
     });
 
-    console.log('Filtered vans:', filtered.length);
+    console.log('Filtered vans result:', { 
+      searchTerm, 
+      statusFilter, 
+      totalVans: vansData.length, 
+      filteredCount: filtered.length,
+      filteredVanIds: filtered.map(v => ({ id: v.id, ref: v.reference_code, plate: v.license_plate }))
+    });
 
     // Sort the filtered results
     filtered.sort((a, b) => {

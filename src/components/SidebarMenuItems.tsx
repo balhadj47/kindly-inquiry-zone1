@@ -9,12 +9,13 @@ export interface MenuItem {
   permission?: string;
 }
 
-// Full menu items - always available
+// Full menu items - with proper permission requirements
 const menuItems: MenuItem[] = [
   {
     title: 'Dashboard',
     href: '/dashboard',
     icon: Home,
+    permission: 'dashboard:read', // Now requires dashboard permission
   },
   {
     title: 'Companies',
@@ -59,7 +60,7 @@ export const useSidebarMenuItems = () => {
   
   const { hasPermission, currentUser, loading } = useRBAC();
   
-  console.log('🔍 Menu items processing - user:', currentUser?.id, 'loading:', loading);
+  console.log('🔍 Menu items processing - user:', currentUser?.id, 'role_id:', currentUser?.role_id, 'loading:', loading);
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
   if (loading) {
@@ -67,22 +68,29 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
+  // If no user is logged in, return empty menu
+  if (!currentUser) {
+    console.log('🔍 No current user, returning empty menu');
+    return [];
+  }
+
   // Filter menu items based on permissions
   const filteredMenuItems = menuItems.filter((item) => {
-    // Always show items without permission requirements (like Dashboard)
+    // All menu items now require permissions - no exceptions
     if (!item.permission) {
-      return true;
+      console.log(`⚠️ Menu item "${item.title}" has no permission requirement - this should not happen`);
+      return false;
     }
     
     // Check if user has the required permission
     const hasAccess = hasPermission(item.permission);
-    console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess}`);
+    console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess} for role_id ${currentUser.role_id}`);
     
     return hasAccess;
   });
 
   console.log('🔍 Final filtered menu items count:', filteredMenuItems.length);
-  console.log('🔍 Filtered menu items:', filteredMenuItems.map(item => item.title));
+  console.log('🔍 Filtered menu items:', filteredMenuItems.map(item => `${item.title} (${item.permission})`));
   
   return filteredMenuItems;
 };

@@ -39,7 +39,7 @@ const menuItems: MenuItem[] = [
     title: 'Comptes',
     href: '/auth-users',
     icon: Shield,
-    permission: 'users:read',
+    permission: 'auth-users:read', // Changed from 'users:read' to 'auth-users:read'
   },
   {
     title: 'Log Mission',

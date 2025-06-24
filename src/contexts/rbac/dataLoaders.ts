@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -8,7 +7,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
   const startTime = performance.now();
 
   try {
-    // Load user_groups with their permissions from role_permissions table
+    // Load user_groups with their permissions directly from the table
     const { data: groupsData, error: groupsError } = await supabase
       .from('user_groups')
       .select('*')
@@ -21,49 +20,27 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
 
     console.log('📋 Raw groups data:', groupsData);
 
-    // For each group, get its permissions from role_permissions table directly
-    const rolesWithPermissions = await Promise.all(
-      (groupsData || []).map(async (group) => {
-        console.log(`📋 Loading permissions for role_id: ${group.role_id}`);
-        
-        // Query role_permissions table directly instead of using RPC
-        const { data: permissionsData, error: permissionsError } = await supabase
-          .from('role_permissions')
-          .select('permission_name')
-          .eq('role_id', group.role_id);
+    // Transform the groups data to match SystemGroup interface
+    const rolesWithPermissions = (groupsData || []).map((group) => {
+      console.log(`📋 Processing role: ${group.name} (role_id: ${group.role_id})`);
+      
+      // Use permissions directly from the user_groups table
+      const permissions = group.permissions || [];
+      console.log(`📋 Loaded ${permissions.length} permissions for ${group.name}:`, permissions);
 
-        if (permissionsError) {
-          console.error(`❌ Error loading permissions for role ${group.role_id}:`, permissionsError);
-          // Fall back to stored permissions in user_groups table if query fails
-          return {
-            id: group.id.toString(),
-            name: group.name as SystemGroupName,
-            description: group.description,
-            permissions: group.permissions || [],
-            color: group.color,
-            role_id: group.role_id,
-            isSystemRole: true,
-          };
-        }
-
-        // Extract permission names from the array
-        const permissions = (permissionsData || []).map((p: any) => p.permission_name);
-        console.log(`📋 Loaded ${permissions.length} permissions for ${group.name}:`, permissions);
-
-        return {
-          id: group.id.toString(),
-          name: group.name as SystemGroupName,
-          description: group.description,
-          permissions: permissions,
-          color: group.color,
-          role_id: group.role_id,
-          isSystemRole: true,
-        };
-      })
-    );
+      return {
+        id: group.id.toString(),
+        name: group.name as SystemGroupName,
+        description: group.description,
+        permissions: permissions,
+        color: group.color,
+        role_id: group.role_id,
+        isSystemRole: true,
+      };
+    });
 
     const endTime = performance.now();
-    console.log(`✅ Loaded ${rolesWithPermissions.length} roles with database permissions in ${endTime - startTime}ms`);
+    console.log(`✅ Loaded ${rolesWithPermissions.length} roles with permissions in ${endTime - startTime}ms`);
     console.log('📋 Final roles data:', rolesWithPermissions);
 
     return rolesWithPermissions;

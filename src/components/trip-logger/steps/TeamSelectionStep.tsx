@@ -25,12 +25,27 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 }) => {
   const { users } = useRBAC();
 
-  // Filter to show all users and apply search
+  console.log('👥 TeamSelectionStep: All users from RBAC:', users);
+  console.log('👥 TeamSelectionStep: Users count:', users?.length || 0);
+  console.log('👥 TeamSelectionStep: User search query:', userSearchQuery);
+
+  // Filter to show all users and apply search - removed role_id restriction for debugging
   const filteredUsers = users.filter(user => {
     const matchesSearch = !userSearchQuery || 
       user.name.toLowerCase().includes(userSearchQuery.toLowerCase());
+    
+    console.log('👥 TeamSelectionStep: User filter check:', {
+      userName: user.name,
+      roleId: user.role_id,
+      status: user.status,
+      matchesSearch
+    });
+    
     return matchesSearch;
   });
+
+  console.log('👥 TeamSelectionStep: Filtered users:', filteredUsers);
+  console.log('👥 TeamSelectionStep: Filtered users count:', filteredUsers.length);
 
   // Sort users: active first, then by name
   const sortedUsers = filteredUsers.sort((a, b) => {
@@ -59,6 +74,14 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         <p className="text-gray-600">Sélectionnez les utilisateurs pour cette mission</p>
       </div>
 
+      {/* Debug Information */}
+      <div className="bg-blue-50 p-3 rounded-lg text-sm">
+        <p><strong>Debug Info:</strong></p>
+        <p>Total users in system: {users?.length || 0}</p>
+        <p>Filtered users: {filteredUsers.length}</p>
+        <p>Selected users: {selectedUsersWithRoles.length}</p>
+      </div>
+
       {/* User Search */}
       <div className="space-y-4">
         <Label className="flex items-center space-x-2">
@@ -79,9 +102,22 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         {/* Users List */}
         <div className="max-h-96 overflow-y-auto border rounded-md">
           {sortedUsers.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-8">
-              {userSearchQuery ? 'Aucun utilisateur trouvé.' : 'Aucun utilisateur disponible.'}
-            </p>
+            <div className="p-8 text-center">
+              <p className="text-sm text-gray-500 mb-2">
+                {userSearchQuery ? 'Aucun utilisateur trouvé.' : 'Aucun utilisateur disponible.'}
+              </p>
+              <p className="text-xs text-gray-400">
+                Total users in database: {users?.length || 0}
+              </p>
+              {users?.length > 0 && (
+                <div className="mt-2 text-xs text-gray-400">
+                  <p>Sample users found:</p>
+                  {users.slice(0, 3).map(user => (
+                    <p key={user.id}>- {user.name} (Role: {user.role_id}, Status: {user.status})</p>
+                  ))}
+                </div>
+              )}
+            </div>
           ) : (
             <div className="p-3 space-y-3">
               {sortedUsers.map((user) => {
@@ -117,9 +153,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
                           {user.badgeNumber && (
                             <span>Badge: {user.badgeNumber}</span>
                           )}
-                          {user.role_id && (
-                            <span>Role: {user.role_id}</span>
-                          )}
+                          <span>Role ID: {user.role_id}</span>
                         </div>
                       </div>
                     </label>

@@ -41,15 +41,12 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
     id: '2',
     name: 'Supervisor',
     permissions: [
-      'users:read',
-      'vans:read',
-      'trips:read',
-      'missions:read',
+      'dashboard:read',
       'companies:read',
-      'groups:read',
-      'dashboard:read'
+      'vans:read',
+      'trips:read'
     ],
-    description: 'Accès superviseur',
+    description: 'Accès superviseur - lecture seule',
     color: '#ea580c',
     isSystemRole: true,
   },

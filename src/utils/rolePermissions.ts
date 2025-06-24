@@ -1,4 +1,3 @@
-
 import { SystemGroupName } from '@/types/systemGroups';
 
 // Permission mappings for role_id (1=Administrator, 2=Supervisor, 3=Employee)
@@ -12,14 +11,11 @@ export const ROLE_ID_PERMISSIONS: Record<number, string[]> = {
     'groups:read', 'groups:manage',
     'dashboard:read', 'settings:read', 'settings:update'
   ],
-  2: [ // Supervisor - Updated permissions (read-only access)
-    'users:read',
-    'vans:read',
-    'trips:read',
-    'missions:read',
+  2: [ // Supervisor - Limited read-only access
+    'dashboard:read',
     'companies:read',
-    'groups:read',
-    'dashboard:read'
+    'vans:read',
+    'trips:read'
   ],
   3: [ // Employee
     'dashboard:read',

@@ -1,38 +1,103 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
 export const loadRoles = async (): Promise<SystemGroup[]> => {
-  console.log('🔄 Loading system groups/roles...');
+  console.log('🔄 Loading system groups/roles from database...');
   const startTime = performance.now();
 
   try {
-    const { data, error } = await supabase
+    // Load user_groups with their permissions from role_permissions table
+    const { data: groupsData, error: groupsError } = await supabase
       .from('user_groups')
       .select('*')
       .order('role_id');
 
-    if (error) {
-      console.error('❌ Error loading roles:', error);
-      throw error;
+    if (groupsError) {
+      console.error('❌ Error loading user groups:', groupsError);
+      throw groupsError;
     }
 
-    const endTime = performance.now();
-    console.log(`✅ Loaded ${data?.length || 0} roles in ${endTime - startTime}ms`);
+    console.log('📋 Raw groups data:', groupsData);
 
-    return (data || []).map(group => ({
-      id: group.id,
-      name: group.name as SystemGroupName, // Cast to SystemGroupName
-      description: group.description,
-      permissions: group.permissions || [],
-      color: group.color,
-      role_id: group.role_id,
-      isSystemRole: true,
-    }));
+    // For each group, get its permissions from the database
+    const rolesWithPermissions = await Promise.all(
+      (groupsData || []).map(async (group) => {
+        console.log(`📋 Loading permissions for role_id: ${group.role_id}`);
+        
+        const { data: permissionsData, error: permissionsError } = await supabase
+          .rpc('get_role_permissions', { user_role_id: group.role_id });
+
+        if (permissionsError) {
+          console.error(`❌ Error loading permissions for role ${group.role_id}:`, permissionsError);
+          // Fall back to stored permissions in user_groups table if RPC fails
+          return {
+            id: group.id.toString(),
+            name: group.name as SystemGroupName,
+            description: group.description,
+            permissions: group.permissions || [],
+            color: group.color,
+            role_id: group.role_id,
+            isSystemRole: true,
+          };
+        }
+
+        const permissions = permissionsData?.map((p: any) => p.permission_name) || [];
+        console.log(`📋 Loaded ${permissions.length} permissions for ${group.name}:`, permissions);
+
+        return {
+          id: group.id.toString(),
+          name: group.name as SystemGroupName,
+          description: group.description,
+          permissions: permissions,
+          color: group.color,
+          role_id: group.role_id,
+          isSystemRole: true,
+        };
+      })
+    );
+
+    const endTime = performance.now();
+    console.log(`✅ Loaded ${rolesWithPermissions.length} roles with database permissions in ${endTime - startTime}ms`);
+    console.log('📋 Final roles data:', rolesWithPermissions);
+
+    return rolesWithPermissions;
   } catch (error) {
-    console.error('❌ Failed to load roles:', error);
-    return [];
+    console.error('❌ Failed to load roles from database:', error);
+    
+    // Return minimal default roles as fallback
+    const fallbackRoles = [
+      {
+        id: '1',
+        name: 'Administrator' as SystemGroupName,
+        description: 'Full system access',
+        permissions: ['dashboard:read'], // Minimal permission
+        color: '#dc2626',
+        role_id: 1,
+        isSystemRole: true,
+      },
+      {
+        id: '2', 
+        name: 'Supervisor' as SystemGroupName,
+        description: 'Limited access',
+        permissions: ['dashboard:read'],
+        color: '#ea580c',
+        role_id: 2,
+        isSystemRole: true,
+      },
+      {
+        id: '3',
+        name: 'Employee' as SystemGroupName, 
+        description: 'Basic access',
+        permissions: ['dashboard:read'],
+        color: '#3b82f6',
+        role_id: 3,
+        isSystemRole: true,
+      }
+    ];
+    
+    console.log('📋 Using fallback roles:', fallbackRoles);
+    return fallbackRoles;
   }
 };
 
@@ -61,7 +126,7 @@ export const loadUsers = async (): Promise<User[]> => {
       email: user.email || undefined,
       phone: user.phone || '',
       role_id: user.role_id || 3,
-      status: (user.status || 'Active') as UserStatus, // Cast to proper UserStatus type
+      status: (user.status || 'Active') as UserStatus,
       createdAt: user.created_at,
       licenseNumber: user.driver_license,
       totalTrips: user.total_trips,

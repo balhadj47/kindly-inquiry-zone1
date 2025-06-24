@@ -64,19 +64,29 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 Starting auth-first RBAC initialization for user:', authUser?.email);
+      console.log('🚀 Starting database-driven RBAC initialization for user:', authUser?.email);
       console.log('🔍 Auth user metadata:', authUser?.user_metadata);
       initializationRef.current = true;
       actions.setLoading(true);
 
       try {
-        // Load only system groups (roles) - no users table needed for auth
+        // Load system groups (roles) from database with their permissions
+        console.log('📋 Loading system groups from database...');
         const systemGroups = await loadRoles();
 
-        console.log('✅ RBAC Data loaded:', {
+        if (!systemGroups || systemGroups.length === 0) {
+          throw new Error('No system groups loaded from database');
+        }
+
+        console.log('✅ RBAC Data loaded from database:', {
           systemGroupsCount: systemGroups.length,
           authUserEmail: authUser?.email,
-          authUserMetadata: authUser?.user_metadata
+          authUserMetadata: authUser?.user_metadata,
+          systemGroups: systemGroups.map(g => ({ 
+            name: g.name, 
+            role_id: (g as any).role_id, 
+            permissionsCount: g.permissions.length 
+          }))
         });
 
         // Set the roles data
@@ -102,23 +112,25 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
 
         actions.setCurrentUser(currentUser);
 
-        // Initialize permission utilities with empty users array and current user
+        // Initialize permission utilities with current user and database groups
+        console.log('🔧 Creating permission utils with database groups...');
         createPermissionUtils([currentUser], systemGroups);
 
-        console.log('✅ Auth-first RBAC initialized with user:', {
+        console.log('✅ Database-driven RBAC initialized with user:', {
           id: currentUser.id,
           email: currentUser.email,
           role_id: currentUser.role_id,
           metadata_role_id: authUser.user_metadata?.role_id,
-          fallback_used: !authUser.user_metadata?.role_id
+          fallback_used: !authUser.user_metadata?.role_id,
+          systemGroupsLoaded: systemGroups.length
         });
 
       } catch (error) {
-        console.error('❌ RBAC initialization error:', error);
+        console.error('❌ Database RBAC initialization error:', error);
         actions.setCurrentUser(null);
       } finally {
         actions.setLoading(false);
-        console.log('🏁 Auth-first RBAC initialization completed');
+        console.log('🏁 Database-driven RBAC initialization completed');
       }
     };
 

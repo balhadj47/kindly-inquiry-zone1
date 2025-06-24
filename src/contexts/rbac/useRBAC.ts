@@ -16,7 +16,7 @@ export const useRBAC = () => {
   const hasPermission = (permission: string): boolean => {
     try {
       console.log('🔐 RBAC hasPermission called with:', permission);
-      console.log('🔐 Current user:', currentUser?.id, currentUser?.role_id);
+      console.log('🔐 Current user:', currentUser?.id, 'role_id:', currentUser?.role_id);
       console.log('🔐 Loading state:', loading);
       console.log('🔐 Roles available:', roles.length);
 
@@ -25,21 +25,21 @@ export const useRBAC = () => {
         return false;
       }
 
-      // Special handling for admin temporary user - always grant access
+      // Special handling for admin users - always grant access
       if (currentUser.id === 'admin-temp' || currentUser.role_id === 1) {
         console.log('🔓 Admin user detected - granting all permissions:', permission);
         return true;
       }
 
-      // If we have roles loaded, use the permission system
+      // If we have roles loaded from database, use the permission system
       if (roles && roles.length > 0) {
         const result = checkPermission(currentUser.id.toString(), permission);
-        console.log(`🔐 Permission check result: ${permission} = ${result} for user ${currentUser.id}`);
+        console.log(`🔐 Database permission check result: ${permission} = ${result} for user ${currentUser.id}`);
         return result;
       }
 
-      // Fallback: if no roles loaded yet, deny access for non-admins
-      console.log('⚠️ No roles loaded, denying permission for non-admin:', permission);
+      // If no roles loaded yet from database, deny access for non-admins
+      console.log('⚠️ No database roles loaded, denying permission for non-admin:', permission);
       return false;
 
     } catch (error) {

@@ -7,14 +7,19 @@ let currentAuthUser: User | null = null;
 let systemGroupsData: SystemGroup[] = [];
 
 export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
-  console.log('🔧 Creating auth-first permission utils with:', { 
+  console.log('🔧 Creating database-driven permission utils with:', { 
     usersCount: users.length, 
     systemGroupsCount: systemGroups.length,
-    systemGroups: systemGroups.map(g => ({ name: g.name, permissions: g.permissions }))
+    systemGroups: systemGroups.map(g => ({ 
+      id: g.id, 
+      name: g.name, 
+      role_id: (g as any).role_id,
+      permissions: g.permissions 
+    }))
   });
   
   if (systemGroups.length === 0) {
-    console.warn('⚠️ Skipping permission utils creation - missing system groups');
+    console.warn('⚠️ No system groups provided to permission utils - permissions may not work');
     return;
   }
 
@@ -22,7 +27,10 @@ export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]
   currentAuthUser = users.length > 0 ? users[0] : null;
   systemGroupsData = systemGroups;
   permissionCache.clear();
-  console.log('✅ Auth-first permission utilities created successfully');
+  
+  console.log('✅ Database-driven permission utilities created successfully');
+  console.log('👤 Current auth user:', currentAuthUser?.id, 'role_id:', currentAuthUser?.role_id);
+  console.log('📋 Available system groups:', systemGroupsData.map(g => `${g.name} (role_id: ${(g as any).role_id})`));
 };
 
 export const hasPermission = (userId: string, permission: string): boolean => {
@@ -36,12 +44,12 @@ export const hasPermission = (userId: string, permission: string): boolean => {
   }
 
   try {
-    console.log(`🔐 Checking permission: ${permission} for user ${userId}`);
+    console.log(`🔐 Checking database permission: ${permission} for user ${userId}`);
     
     // Use current auth user instead of looking up in users array
     const user = currentAuthUser;
     if (!user || user.id.toString() !== userId.toString()) {
-      console.warn(`⚠️ User not found or mismatch: ${userId}`);
+      console.warn(`⚠️ User not found or mismatch: ${userId} vs ${user?.id}`);
       permissionCache.set(cacheKey, false);
       return false;
     }
@@ -55,29 +63,34 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return true;
     }
 
-    // Find the user's role/group by role_id
+    // Find the user's role/group by role_id from database groups
     const userRole = systemGroupsData.find(role => {
-      return parseInt(role.id) === user.role_id;
+      const roleId = (role as any).role_id || parseInt(role.id);
+      return roleId === user.role_id;
     });
 
     if (!userRole) {
       console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
-      console.log('Available roles:', systemGroupsData.map(r => ({ id: r.id, name: r.name })));
+      console.log('Available roles:', systemGroupsData.map(r => ({ 
+        id: r.id, 
+        name: r.name, 
+        role_id: (r as any).role_id 
+      })));
       permissionCache.set(cacheKey, false);
       return false;
     }
 
-    console.log(`🎯 Found user role: ${userRole.name} with permissions:`, userRole.permissions);
+    console.log(`🎯 Found user role: ${userRole.name} (role_id: ${(userRole as any).role_id}) with permissions:`, userRole.permissions);
 
-    // Check if the role has the required permission
+    // Check if the role has the required permission from database
     const hasAccess = userRole.permissions.includes(permission);
     
     permissionCache.set(cacheKey, hasAccess);
-    console.log(`🔐 Permission check result: ${permission} = ${hasAccess} for user ${userId} (role: ${userRole.name})`);
+    console.log(`🔐 Database permission check result: ${permission} = ${hasAccess} for user ${userId} (role: ${userRole.name})`);
     
     return hasAccess;
   } catch (error) {
-    console.error('❌ Error checking permission:', error);
+    console.error('❌ Error checking database permission:', error);
     permissionCache.set(cacheKey, false);
     return false;
   }
@@ -95,7 +108,8 @@ export const getUserPermissions = (userId: string): string[] => {
 
     // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {
-      return parseInt(role.id) === user.role_id;
+      const roleId = (role as any).role_id || parseInt(role.id);
+      return roleId === user.role_id;
     });
 
     return userRole?.permissions || [];

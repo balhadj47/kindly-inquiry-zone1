@@ -1,5 +1,4 @@
 
-
 export type SystemGroupName = 
   | 'Administrator'
   | 'Supervisor' 
@@ -59,10 +58,9 @@ export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [
       'trips:read', 'trips:create',
       'missions:read', 'missions:create',
       'companies:read',
-      'vans:read',
-      'users:read', 'users:create', 'users:update', 'users:delete'
+      'vans:read'
     ],
-    description: 'Accès employé avec gestion du personnel',
+    description: 'Accès employé standard',
     color: '#3b82f6',
     isSystemRole: true,
   }

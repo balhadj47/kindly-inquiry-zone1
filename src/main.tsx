@@ -160,14 +160,17 @@ root.render(
 
 // Enhanced service worker registration with better error handling
 if (import.meta.env.PROD && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  import('./utils/serviceWorker').then(({ registerServiceWorker }) => {
-    registerServiceWorker().catch(error => {
-      console.warn('🔧 Service Worker registration failed:', error);
-      // Don't throw - app should work without service worker
+  // Add a small delay to ensure the app loads first
+  setTimeout(() => {
+    import('./utils/serviceWorker').then(({ registerServiceWorker }) => {
+      registerServiceWorker().catch(error => {
+        console.warn('🔧 Service Worker registration failed:', error);
+        // App continues to work without service worker
+      });
+    }).catch(() => {
+      console.warn('🔧 Service Worker module failed to load');
     });
-  }).catch(() => {
-    console.warn('🔧 Service Worker module failed to load');
-  });
+  }, 1000);
 } else {
   console.log('🔧 Service Worker registration skipped (development mode or not supported)');
 }

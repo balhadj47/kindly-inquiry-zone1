@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Van } from '@/types/van';
 import { useVansPagination } from '@/hooks/useVansPagination';
 import VanListGrid from './vans/VanListGrid';
@@ -29,7 +29,6 @@ const VanList = React.memo(({
   onQuickAction,
   onDeleteVan
 }: VanListProps) => {
-  const [filteredVans, setFilteredVans] = useState(vans);
   const [selectedVan, setSelectedVan] = useState<Van | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   
@@ -39,26 +38,11 @@ const VanList = React.memo(({
     paginatedVans,
     handlePageChange,
   } = useVansPagination({
-    filteredVans,
+    filteredVans: vans, // Use the already filtered vans from VansIndex
     itemsPerPage: 12,
     searchTerm,
     statusFilter,
   });
-
-  useEffect(() => {
-    const filtered = vans.filter((van) => {
-      if (searchTerm) {
-        return van.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-               van.model?.toLowerCase().includes(searchTerm.toLowerCase());
-      }
-      if (statusFilter !== 'all') {
-        return van.status === statusFilter;
-      }
-      return true;
-    });
-    setFilteredVans(filtered);
-  }, [vans, searchTerm, statusFilter]);
 
   const handleVanClick = (van: Van) => {
     setSelectedVan(van);
@@ -84,7 +68,7 @@ const VanList = React.memo(({
     <div className="space-y-6">
       <VanListSummary
         displayedCount={paginatedVans.length}
-        filteredCount={filteredVans.length}
+        filteredCount={vans.length}
         currentPage={currentPage}
         totalPages={totalPages}
       />

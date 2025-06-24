@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import VansHeader from './VansHeader';
 import VansSearch from './VansSearch';
@@ -77,7 +78,7 @@ const VansIndex = () => {
     }
     
     let filtered = vansData.filter(van => {
-      // Search filter
+      // Search filter - now includes reference_code
       const searchLower = searchTerm.toLowerCase();
       const matchesSearch = !searchTerm || 
         van.license_plate?.toLowerCase().includes(searchLower) ||
@@ -92,7 +93,8 @@ const VansIndex = () => {
         vanStatus: van.status, 
         statusFilter, 
         matchesStatus, 
-        matchesSearch 
+        matchesSearch,
+        vanReferenceCode: van.reference_code
       });
 
       return matchesSearch && matchesStatus;

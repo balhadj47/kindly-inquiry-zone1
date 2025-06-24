@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
+import { PlusButton } from '@/components/ui/plus-button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Plus } from 'lucide-react';
 
 interface VanStatsProps {
   vans: any[];
@@ -26,13 +25,7 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button 
-              onClick={onAddVan} 
-              size="icon"
-              className="mt-4 lg:mt-0 w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-            >
-              <Plus className="h-5 w-5" />
-            </Button>
+            <PlusButton onClick={onAddVan} />
           </TooltipTrigger>
           <TooltipContent>
             <p>Ajouter Nouvelle Camionnette</p>

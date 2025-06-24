@@ -1,9 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import UsersHeader from './users/UsersHeader';
 import UsersNavigation from './users/UsersNavigation';
 import UsersTab from './users/UsersTab';
@@ -12,6 +9,7 @@ import { LoadingState, ErrorState } from './users/UsersStates';
 import { useUserActionHandlers } from './users/UserActionHandlers';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
+import { PlusButton } from '@/components/ui/plus-button';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -122,9 +120,7 @@ const Users = () => {
         <UsersHeader />
         <div className="flex items-center space-x-2">
           {canCreateUsers && (
-            <Button onClick={handleAddUser} variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
+            <PlusButton onClick={handleAddUser} />
           )}
           <RefreshButton onRefresh={handleRefresh} />
         </div>

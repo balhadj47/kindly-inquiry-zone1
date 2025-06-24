@@ -25,7 +25,10 @@ const CompaniesEmptyState = ({ searchTerm, onAddCompany }: CompaniesEmptyStatePr
           }
         </p>
         {!searchTerm && (
-          <Button onClick={onAddCompany}>
+          <Button 
+            onClick={onAddCompany}
+            className="w-auto h-10 px-4 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+          >
             <Plus className="h-4 w-4 mr-2" />
             {t.addYourFirstCompany}
           </Button>

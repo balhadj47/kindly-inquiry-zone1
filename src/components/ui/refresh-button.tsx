@@ -52,7 +52,7 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       size={size}
       variant={variant}
       className={cn(
-        'transition-all duration-200',
+        'w-10 h-10 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105',
         isRefreshing && 'opacity-75',
         className
       )}

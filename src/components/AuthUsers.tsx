@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -183,7 +182,13 @@ const AuthUsers = () => {
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="icon">
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing} 
+            variant="outline" 
+            size="icon"
+            className="bg-black text-white hover:bg-gray-800 border-black"
+          >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
         </div>

@@ -104,7 +104,7 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-red-600">Erreur de chargement des données</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon">
+          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -113,8 +113,8 @@ const Dashboard = () => {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
             <p className="text-gray-600 mb-4">
-              {(vansError && typeof vansError === 'object' && 'message' in vansError ? vansError.message : vansError) || 
-               (companiesError && typeof companiesError === 'object' && 'message' in companiesError ? companiesError.message : companiesError) || 
+              {(vansError && typeof vansError === 'object' && vansError !== null && 'message' in vansError ? vansError.message : vansError) || 
+               (companiesError && typeof companiesError === 'object' && companiesError !== null && 'message' in companiesError ? companiesError.message : companiesError) || 
                'Une erreur est survenue lors du chargement des données'}
             </p>
             <Button onClick={handleRefresh}>
@@ -149,7 +149,7 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon">
+          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>
@@ -168,7 +168,7 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-red-600">Erreur de calcul des statistiques</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon">
+          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
             <RefreshCw className="h-4 w-4" />
           </Button>
         </div>

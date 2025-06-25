@@ -182,6 +182,7 @@ const VansOptimized = () => {
             disabled={isRefreshing}
             variant="outline"
             size="icon"
+            className="bg-black text-white hover:bg-gray-800 border-black"
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>

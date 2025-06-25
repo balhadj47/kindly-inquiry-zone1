@@ -6,6 +6,7 @@ import CompaniesEmptyState from './CompaniesEmptyState';
 import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
+import { RefreshButton } from '@/components/ui/refresh-button';
 import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
@@ -54,9 +55,17 @@ const CompaniesIndex = () => {
     invalidateCompanies();
   };
 
+  const handleRefresh = async () => {
+    await refetch();
+    invalidateCompanies();
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6">
-      <CompaniesHeader onAddCompany={handleAddCompany} />
+      <div className="flex items-center justify-between">
+        <CompaniesHeader onAddCompany={handleAddCompany} />
+        <RefreshButton onRefresh={handleRefresh} variant="companies" />
+      </div>
       
       <CompaniesSearch 
         searchTerm={searchTerm} 

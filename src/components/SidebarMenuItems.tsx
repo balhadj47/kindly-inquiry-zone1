@@ -1,7 +1,5 @@
 
 import { Home, Truck, Factory, Clock, Users, Shield } from 'lucide-react';
-import { useRBAC } from '@/contexts/RBACContext';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface MenuItem {
   title: string;
@@ -13,43 +11,41 @@ export interface MenuItem {
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  // Safely access RBAC context
+  // Import hooks inside try-catch to handle context access safely
   let hasPermission: (permission: string) => boolean = () => false;
   let currentUser: any = null;
   let loading = true;
   let roles: any[] = [];
+  let t: any = {
+    dashboard: 'Dashboard',
+    companies: 'Companies',
+    vansDrivers: 'Vans & Drivers',
+    employees: 'Employees',
+    comptes: 'Accounts',
+    logTrip: 'Log Trip',
+    tripHistory: 'Trip History'
+  };
   
   try {
+    // Dynamic imports to handle context access safely
+    const { useRBAC } = require('@/contexts/RBACContext');
+    const { useLanguage } = require('@/contexts/LanguageContext');
+    
     const rbacContext = useRBAC();
     if (rbacContext) {
       hasPermission = rbacContext.hasPermission || (() => false);
       currentUser = rbacContext.currentUser;
       loading = rbacContext.loading;
       roles = rbacContext.roles || [];
-    } else {
-      console.warn('🔍 useSidebarMenuItems: RBAC context is null');
+    }
+    
+    const languageContext = useLanguage();
+    if (languageContext?.t) {
+      t = languageContext.t;
     }
   } catch (error) {
-    console.error('🔍 useSidebarMenuItems: Error accessing RBAC context:', error);
-  }
-  
-  // Safely access Language context
-  let t: any = {};
-  try {
-    const languageContext = useLanguage();
-    t = languageContext?.t || {};
-  } catch (error) {
-    console.error('🔍 useSidebarMenuItems: Error accessing Language context:', error);
-    // Provide fallback translations
-    t = {
-      dashboard: 'Dashboard',
-      companies: 'Companies',
-      vansDrivers: 'Vans & Drivers',
-      employees: 'Employees',
-      comptes: 'Accounts',
-      logTrip: 'Log Trip',
-      tripHistory: 'Trip History'
-    };
+    console.warn('🔍 useSidebarMenuItems: Context access error:', error.message);
+    // Continue with fallback values
   }
   
   // Menu items with safe fallbacks

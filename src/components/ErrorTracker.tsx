@@ -17,14 +17,23 @@ const ErrorTracker = () => {
     const isContextError = (message: string) => {
       return message.includes('must be used within a') || 
              message.includes('Context') ||
-             message.includes('Provider');
+             message.includes('Provider') ||
+             message.includes('useRBAC') ||
+             message.includes('useLanguage');
     };
 
     const isReactHookError = (message: string) => {
       return message.includes('useState') ||
              message.includes('useEffect') ||
              message.includes('useContext') ||
-             message.includes('Cannot read properties of null');
+             message.includes('Cannot read properties of null') ||
+             message.includes('hook');
+    };
+
+    const isPermissionError = (message: string) => {
+      return message.includes('permission') ||
+             message.includes('RBAC') ||
+             message.includes('hasPermission');
     };
 
     // Safely override console.error
@@ -39,7 +48,8 @@ const ErrorTracker = () => {
         
         // Categorize and store error
         const errorType = isContextError(message) ? 'context' : 
-                         isReactHookError(message) ? 'react-hook' : 'general';
+                         isReactHookError(message) ? 'react-hook' : 
+                         isPermissionError(message) ? 'permission' : 'general';
         
         errors.push({
           message: `[${errorType.toUpperCase()}] ${message}`,
@@ -48,17 +58,18 @@ const ErrorTracker = () => {
         });
         
         // Log summary for critical errors
-        if (isContextError(message) || isReactHookError(message)) {
+        if (isContextError(message) || isReactHookError(message) || isPermissionError(message)) {
           console.log('🚨 CRITICAL ERROR DETECTED:', {
             type: errorType,
             message: message.substring(0, 100),
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            stackTrace: new Error().stack?.split('\n').slice(1, 4).join('\n')
           });
         }
         
         // Keep only recent errors
-        if (errors.length > 10) {
-          errors.splice(0, errors.length - 10);
+        if (errors.length > 15) {
+          errors.splice(0, errors.length - 15);
         }
         
       } catch (trackingError) {
@@ -78,17 +89,27 @@ const ErrorTracker = () => {
         // Always call original console.warn first
         originalConsoleWarn.apply(console, args);
         
-        // Filter out known non-critical warnings
+        // Filter out known non-critical warnings but include context warnings
         if (!message.includes('React Router') && 
             !message.includes('deprecated') && 
             !message.includes('Warning: ReactDOM.render') &&
             !message.includes('DevTools')) {
           
+          const errorType = isContextError(message) ? 'context-warn' : 'warning';
+          
           errors.push({
-            message: `[WARN] ${message}`,
+            message: `[${errorType.toUpperCase()}] ${message}`,
             source: 'warning',
             timestamp: Date.now()
           });
+
+          // Log context warnings as they're important
+          if (isContextError(message)) {
+            console.log('⚠️ CONTEXT WARNING:', {
+              message: message.substring(0, 100),
+              timestamp: new Date().toISOString()
+            });
+          }
         }
         
       } catch (trackingError) {

@@ -8,7 +8,28 @@ export const useRBAC = () => {
   
   if (!context) {
     console.error('❌ CRITICAL: useRBAC must be used within a RBACProvider');
-    throw new Error('useRBAC must be used within a RBACProvider');
+    // Return a safe fallback instead of throwing to prevent app crashes
+    return {
+      currentUser: null,
+      users: [],
+      roles: [],
+      permissions: [],
+      loading: true,
+      hasPermission: () => {
+        console.warn('🚫 hasPermission called outside RBACProvider context');
+        return false;
+      },
+      getUserRole: () => null,
+      canUserPerformAction: () => false,
+      addUser: async () => ({ success: false, error: 'Context not available' }),
+      updateUser: async () => ({ success: false, error: 'Context not available' }),
+      deleteUser: async () => ({ success: false, error: 'Context not available' }),
+      changeUserPassword: async () => ({ success: false, error: 'Context not available' }),
+      addRole: async () => ({ success: false, error: 'Context not available' }),
+      updateRole: async () => ({ success: false, error: 'Context not available' }),
+      deleteRole: async () => ({ success: false, error: 'Context not available' }),
+      setUser: () => {},
+    };
   }
 
   const { currentUser, users, roles, permissions, loading } = context;
@@ -70,6 +91,25 @@ export const useRBAC = () => {
     }
   };
 
+  const getUserRole = (userId: string) => {
+    if (!currentUser || currentUser.id !== userId) {
+      return null;
+    }
+    
+    // Find role by role_id
+    const role = roles?.find(r => parseInt(r.id) === currentUser.role_id);
+    return role || null;
+  };
+
+  const canUserPerformAction = (userId: string, action: string): boolean => {
+    const userRole = getUserRole(userId);
+    if (!userRole) {
+      return false;
+    }
+    
+    return userRole.permissions?.includes(action) || false;
+  };
+
   return {
     currentUser,
     users: users || [],
@@ -77,6 +117,8 @@ export const useRBAC = () => {
     permissions: permissions || [],
     loading: loading || false,
     hasPermission,
+    getUserRole,
+    canUserPerformAction,
     ...context,
   };
 };

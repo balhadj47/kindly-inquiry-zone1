@@ -5,9 +5,10 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RBACProvider } from '@/contexts/RBACContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
-import { ProgressiveLoadingProvider } from '@/contexts/ProgressiveLoadingContext';
 import { TripProvider } from '@/contexts/TripContext';
+import { ProgressiveLoadingProvider } from '@/contexts/ProgressiveLoadingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import ErrorTracker from '@/components/ErrorTracker';
 import Index from '@/pages/Index';
 
 const queryClient = new QueryClient({
@@ -25,16 +26,17 @@ function App() {
   
   return (
     <ErrorBoundary>
+      <ErrorTracker />
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
               <RBACProvider>
-                <ProgressiveLoadingProvider>
-                  <TripProvider>
+                <TripProvider>
+                  <ProgressiveLoadingProvider>
                     <Index />
-                  </TripProvider>
-                </ProgressiveLoadingProvider>
+                  </ProgressiveLoadingProvider>
+                </TripProvider>
               </RBACProvider>
             </LanguageProvider>
           </AuthProvider>

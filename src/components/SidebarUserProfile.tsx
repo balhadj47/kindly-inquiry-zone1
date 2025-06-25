@@ -13,6 +13,7 @@ import {
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/components/ui/sidebar';
+import { getRoleDisplayNameById } from '@/utils/rolePermissions';
 
 const SidebarUserProfile = () => {
   const { currentUser } = useRBAC();
@@ -25,7 +26,7 @@ const SidebarUserProfile = () => {
     (currentUser?.email ? currentUser.email.split('@')[0].substring(0, 2).toUpperCase() : 'U');
 
   const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'User';
-  const userRole = currentUser?.role_id === 1 ? 'Admin' : 'Manager';
+  const userRole = getRoleDisplayNameById(currentUser?.role_id || 3); // Default to Employee if no role_id
   const isAdmin = currentUser?.role_id === 1;
 
   const handleUserProfileClick = () => {

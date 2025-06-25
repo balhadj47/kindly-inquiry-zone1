@@ -11,7 +11,7 @@ export interface MenuItem {
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  // Import hooks inside try-catch to handle context access safely
+  // Safe context access with proper error handling
   let hasPermission: (permission: string) => boolean = () => false;
   let currentUser: any = null;
   let loading = true;
@@ -27,24 +27,31 @@ export const useSidebarMenuItems = () => {
   };
   
   try {
-    // Dynamic imports to handle context access safely
+    // Dynamic imports with safe context access
     const { useRBAC } = require('@/contexts/RBACContext');
     const { useLanguage } = require('@/contexts/LanguageContext');
     
     const rbacContext = useRBAC();
-    if (rbacContext) {
+    if (rbacContext && typeof rbacContext === 'object') {
       hasPermission = rbacContext.hasPermission || (() => false);
       currentUser = rbacContext.currentUser;
       loading = rbacContext.loading;
       roles = rbacContext.roles || [];
+      
+      console.log('🔍 useSidebarMenuItems: RBAC context loaded successfully');
+    } else {
+      console.warn('🔍 useSidebarMenuItems: RBAC context not available');
     }
     
     const languageContext = useLanguage();
-    if (languageContext?.t) {
+    if (languageContext && typeof languageContext === 'object' && languageContext.t) {
       t = languageContext.t;
+      console.log('🔍 useSidebarMenuItems: Language context loaded successfully');
+    } else {
+      console.warn('🔍 useSidebarMenuItems: Language context not available, using defaults');
     }
   } catch (error) {
-    console.warn('🔍 useSidebarMenuItems: Context access error:', error.message);
+    console.warn('🔍 useSidebarMenuItems: Context access error:', error?.message || 'Unknown error');
     // Continue with fallback values
   }
   
@@ -95,11 +102,12 @@ export const useSidebarMenuItems = () => {
   ];
   
   console.log('🔍 Menu items processing:', {
-    userId: currentUser?.id,
-    userEmail: currentUser?.email,
-    roleId: currentUser?.role_id,
+    userId: currentUser?.id || 'null',
+    userEmail: currentUser?.email || 'null',
+    roleId: currentUser?.role_id || 'null',
     loading: loading,
-    rolesCount: roles?.length || 0
+    rolesCount: roles?.length || 0,
+    hasPermissionFunction: typeof hasPermission === 'function'
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -132,12 +140,17 @@ export const useSidebarMenuItems = () => {
         return false;
       }
       
+      if (typeof hasPermission !== 'function') {
+        console.error('⚠️ hasPermission is not a function:', typeof hasPermission);
+        return false;
+      }
+      
       const hasAccess = hasPermission(item.permission);
       console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess}`);
       
       return hasAccess;
     } catch (error) {
-      console.error(`🔍 Error checking permission for ${item.title}:`, error);
+      console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
       return false;
     }
   });

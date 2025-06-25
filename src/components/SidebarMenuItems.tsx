@@ -1,4 +1,3 @@
-
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -21,10 +20,11 @@ export const useSidebarMenuItems = () => {
   let t: any = {
     dashboard: 'Dashboard',
     logTrip: 'Log Trip',
-    missions: 'Missions', // Changed from tripHistory to missions
+    missions: 'Missions',
     companies: 'Companies',
     authUsers: 'Auth Users',
     vansDrivers: 'Vans & Drivers',
+    vans: 'Vans',
     employees: 'Employees'
   };
   
@@ -56,7 +56,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items in the original order with missions instead of trip history
+  // Menu items with both vans routes included
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -69,6 +69,12 @@ export const useSidebarMenuItems = () => {
       href: '/companies',
       icon: Factory,
       permission: 'companies:read',
+    },
+    {
+      title: t?.vans || 'Vans',
+      href: '/vans',
+      icon: Truck,
+      permission: 'vans:read',
     },
     {
       title: t?.vansDrivers || 'Vans & Drivers',

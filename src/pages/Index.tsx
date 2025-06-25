@@ -10,6 +10,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import ErrorTracker from '@/components/ErrorTracker';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -50,17 +51,27 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   
-  // Safely access RBAC context
-  let hasPermission: (permission: string) => boolean = () => false; // Default to false for security
+  // Safely access RBAC context with better error handling
+  let hasPermission: (permission: string) => boolean = () => {
+    console.warn('⚠️ hasPermission called before RBAC context loaded');
+    return false;
+  };
   let currentUser: any = null;
   let loading = true;
   
   try {
     const rbacContext = useRBAC();
-    hasPermission = rbacContext.hasPermission || (() => false);
-    currentUser = rbacContext.currentUser;
-    loading = rbacContext.loading;
-    console.log('📱 Index: RBAC context loaded successfully');
+    if (rbacContext) {
+      hasPermission = rbacContext.hasPermission || (() => {
+        console.warn('⚠️ hasPermission function not available in RBAC context');
+        return false;
+      });
+      currentUser = rbacContext.currentUser;
+      loading = rbacContext.loading;
+      console.log('📱 Index: RBAC context loaded successfully');
+    } else {
+      console.error('❌ Index: RBAC context is null or undefined');
+    }
   } catch (error) {
     console.error('📱 Index: Error accessing RBAC context:', error);
     // Continue with default values (no access)
@@ -80,6 +91,7 @@ const Index = () => {
 
   return (
     <>
+      <ErrorTracker />
       <Toaster />
       <Sonner />
       

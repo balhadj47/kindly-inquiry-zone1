@@ -13,49 +13,67 @@ export interface MenuItem {
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  const { hasPermission, currentUser, loading, roles } = useRBAC();
+  let hasPermission: (permission: string) => boolean = () => false;
+  let currentUser: any = null;
+  let loading = true;
+  let roles: any[] = [];
+  
+  try {
+    const rbacContext = useRBAC();
+    if (rbacContext) {
+      hasPermission = rbacContext.hasPermission || (() => false);
+      currentUser = rbacContext.currentUser;
+      loading = rbacContext.loading;
+      roles = rbacContext.roles || [];
+    } else {
+      console.warn('🔍 useSidebarMenuItems: RBAC context is null');
+    }
+  } catch (error) {
+    console.error('🔍 useSidebarMenuItems: Error accessing RBAC context:', error);
+  }
+  
   const { t } = useLanguage();
   
   // Menu items with translation keys
   const menuItems: MenuItem[] = [
     {
-      title: t.dashboard,
+      title: t?.dashboard || 'Dashboard',
       href: '/dashboard',
       icon: Home,
       permission: 'dashboard:read',
     },
     {
-      title: t.companies,
+      title: t?.companies || 'Companies',
       href: '/companies',
       icon: Factory,
       permission: 'companies:read',
     },
     {
-      title: t.vansDrivers,
+      title: t?.vansDrivers || 'Vans & Drivers',
       href: '/vans-drivers',
       icon: Truck,
       permission: 'vans:read',
     },
     {
-      title: t.employees,
+      title: t?.employees || 'Employees',
       href: '/employees',
       icon: Users,
       permission: 'users:read',
     },
     {
-      title: t.comptes,
+      title: t?.comptes || 'Accounts',
       href: '/auth-users',
       icon: Shield,
       permission: 'auth-users:read',
     },
     {
-      title: t.logTrip,
+      title: t?.logTrip || 'Log Trip',
       href: '/log-trip',
       icon: Clock,
       permission: 'trips:create',
     },
     {
-      title: t.tripHistory,
+      title: t?.tripHistory || 'Trip History',
       href: '/trip-history',
       icon: Clock,
       permission: 'trips:read',

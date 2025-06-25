@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import VanStats from './VanStats';
@@ -154,8 +155,8 @@ const VansOptimized = () => {
     setIsModalOpen(true);
   };
 
-  const handleQuickAction = (action: string, van: any) => {
-    console.log(`Quick action: ${action} for van:`, van);
+  const handleQuickAction = (van: any) => {
+    console.log('Quick action for van:', van);
   };
 
   const handleDeleteVan = async (van: any) => {

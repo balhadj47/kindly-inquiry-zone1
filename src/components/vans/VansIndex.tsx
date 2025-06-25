@@ -13,6 +13,10 @@ const VansLoadingSkeleton = () => (
         <Skeleton className="h-8 w-64 mb-2" />
         <Skeleton className="h-6 w-32" />
       </div>
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-10 w-10" />
+        <Skeleton className="h-10 w-10" />
+      </div>
     </div>
     
     <Card>
@@ -36,7 +40,12 @@ const VansLoadingSkeleton = () => (
   </div>
 );
 
-const VansIndex = () => {
+interface VansIndexProps {
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
+}
+
+const VansIndex: React.FC<VansIndexProps> = ({ onRefresh, isRefreshing = false }) => {
   const {
     searchTerm,
     setSearchTerm,
@@ -119,6 +128,8 @@ const VansIndex = () => {
       handleConfirmDelete={handleConfirmDelete}
       handleModalSuccess={handleModalSuccess}
       handleQuickAction={handleQuickAction}
+      onRefresh={onRefresh}
+      isRefreshing={isRefreshing}
     />
   );
 };

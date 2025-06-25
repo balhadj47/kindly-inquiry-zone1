@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useVanMutations } from '@/hooks/useVansOptimized';
@@ -12,7 +12,10 @@ const VanLoadingSkeleton = () => (
   <div className="space-y-6">
     <div className="flex justify-between items-center">
       <Skeleton className="h-8 w-48" />
-      <Skeleton className="h-10 w-32" />
+      <div className="flex items-center gap-2">
+        <Skeleton className="h-10 w-10" />
+        <Skeleton className="h-10 w-10" />
+      </div>
     </div>
     <Skeleton className="h-12 w-full" />
     <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
@@ -25,6 +28,7 @@ const VanLoadingSkeleton = () => (
 
 const Vans = () => {
   const { refreshVans } = useVanMutations();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
@@ -32,10 +36,23 @@ const Vans = () => {
     refreshVans();
   }, [refreshVans]);
 
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    
+    console.log('🔄 Vans: Manual refresh triggered');
+    setIsRefreshing(true);
+    
+    try {
+      await refreshVans();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
+  };
+
   return (
     <Suspense fallback={<VanLoadingSkeleton />}>
       <Routes>
-        <Route path="/" element={<VansIndex />} />
+        <Route path="/" element={<VansIndex onRefresh={handleRefresh} isRefreshing={isRefreshing} />} />
         <Route path="/:vanId" element={<VanDetail />} />
       </Routes>
     </Suspense>

@@ -21,13 +21,13 @@ const AppSidebar = () => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="border-r border-gray-200 bg-white shadow-sm"
+      className="border-r border-gray-200 bg-white shadow-sm group-data-[collapsible=icon]:shadow-md"
     >
-      <SidebarHeader className="p-6 border-b border-gray-100">
+      <SidebarHeader className="p-4 border-b border-gray-100 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:border-b-0">
         <SidebarBranding />
       </SidebarHeader>
       
-      <SidebarContent className="py-2 bg-white flex-1">
+      <SidebarContent className="py-2 bg-white flex-1 group-data-[collapsible=icon]:py-3">
         <SidebarMenuContent />
       </SidebarContent>
       

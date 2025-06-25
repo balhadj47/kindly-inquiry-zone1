@@ -43,7 +43,7 @@ const SidebarMenuContent = React.memo(() => {
   }, [menuItems, location.pathname]);
 
   return (
-    <div className="px-3 py-4 space-y-1">
+    <div className="px-2 py-2 space-y-1 group-data-[collapsible=icon]:px-1">
       <SidebarMenu className="space-y-1">
         {menuItemsWithActiveState.map((item) => (
           <SidebarMenuItem key={item.title} className="group/item">
@@ -54,25 +54,29 @@ const SidebarMenuContent = React.memo(() => {
               className={`
                 w-full group relative overflow-hidden
                 transition-all duration-200 ease-in-out
+                group-data-[collapsible=icon]:h-10 group-data-[collapsible=icon]:w-10
+                group-data-[collapsible=icon]:p-0 group-data-[collapsible=icon]:justify-center
+                group-data-[collapsible=icon]:rounded-lg
                 ${item.isActive 
-                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-r-3 border-blue-500 shadow-sm' 
-                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm'
+                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-r-3 border-blue-500 shadow-sm group-data-[collapsible=icon]:border-r-0 group-data-[collapsible=icon]:bg-blue-100' 
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900 hover:shadow-sm group-data-[collapsible=icon]:hover:bg-gray-100'
                 }
                 before:absolute before:inset-0 before:bg-gradient-to-r 
                 ${item.isActive 
-                  ? 'before:from-blue-50/50 before:to-transparent' 
-                  : 'before:from-gray-50/0 hover:before:from-gray-50/50 before:to-transparent'
+                  ? 'before:from-blue-50/50 before:to-transparent group-data-[collapsible=icon]:before:hidden' 
+                  : 'before:from-gray-50/0 hover:before:from-gray-50/50 before:to-transparent group-data-[collapsible=icon]:before:hidden'
                 }
                 before:transition-all before:duration-200 before:ease-in-out
               `}
             >
               <NavLink 
                 to={item.href}
-                className="flex items-center w-full relative z-10"
+                className="flex items-center w-full relative z-10 group-data-[collapsible=icon]:justify-center"
               >
-                <div className="flex items-center gap-3 min-w-0 flex-1">
+                <div className="flex items-center gap-3 min-w-0 flex-1 group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:gap-0">
                   <item.icon className={`
-                    h-4 w-4 flex-shrink-0 transition-all duration-200
+                    h-5 w-5 flex-shrink-0 transition-all duration-200
+                    group-data-[collapsible=icon]:h-5 group-data-[collapsible=icon]:w-5
                     ${getIconColor(item.href, item.isActive)}
                   `} />
                   <span className={`

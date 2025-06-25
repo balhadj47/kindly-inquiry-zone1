@@ -46,15 +46,15 @@ const SidebarUserProfile = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50/50">
+    <div className="flex items-center justify-between p-3 border-t border-gray-100 bg-gray-50/50 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div 
-            className="flex items-center gap-3 cursor-pointer hover:bg-white/80 rounded-xl p-3 -m-3 transition-all duration-200 ease-in-out flex-1 group"
+            className="flex items-center gap-2 cursor-pointer hover:bg-white/80 rounded-lg p-2 -m-2 transition-all duration-200 ease-in-out flex-1 group group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:m-0 group-data-[collapsible=icon]:p-1"
           >
-            <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-white shadow-sm transition-all duration-200 group-hover:ring-blue-100">
+            <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white shadow-sm transition-all duration-200 group-hover:ring-blue-100 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xs group-data-[collapsible=icon]:text-xs">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
@@ -62,7 +62,7 @@ const SidebarUserProfile = () => {
               <span className="text-gray-900 font-semibold text-sm truncate leading-tight">{userName}</span>
               <span className="text-gray-500 text-xs truncate font-medium">{userRole}</span>
             </div>
-            <ChevronUp className="h-4 w-4 text-gray-400 group-data-[collapsible=icon]:hidden transition-all duration-200 group-hover:text-gray-600" />
+            <ChevronUp className="h-3 w-3 text-gray-400 group-data-[collapsible=icon]:hidden transition-all duration-200 group-hover:text-gray-600" />
           </div>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start" side="top" className="w-56 mb-2 shadow-lg border-0 bg-white/95 backdrop-blur-sm">
@@ -88,9 +88,9 @@ const SidebarUserProfile = () => {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-white/80 group-data-[collapsible=icon]:hidden flex-shrink-0 ml-2 transition-all duration-200"
+        className="h-7 w-7 text-gray-400 hover:text-gray-600 hover:bg-white/80 group-data-[collapsible=icon]:hidden flex-shrink-0 ml-1 transition-all duration-200"
       >
-        <PanelLeftClose className="h-4 w-4" />
+        <PanelLeftClose className="h-3 w-3" />
       </Button>
     </div>
   );

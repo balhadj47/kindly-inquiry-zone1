@@ -52,45 +52,22 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   
-  // Enhanced RBAC context access with comprehensive error handling
-  let rbacContext;
-  let hasPermission = (permission: string) => false;
-  let currentUser = null;
-  let loading = true;
+  // Always call useRBAC hook consistently
+  const rbacContext = useRBAC();
   
-  try {
-    rbacContext = useRBAC();
-    console.log('📱 Index: RBAC context accessed successfully');
-    
-    if (rbacContext && typeof rbacContext === 'object') {
-      // Safely extract values with validation
-      hasPermission = typeof rbacContext.hasPermission === 'function' 
-        ? rbacContext.hasPermission 
-        : (permission: string) => {
-            console.warn('📱 Index: hasPermission not a function, using fallback');
-            return false;
-          };
-      
-      currentUser = rbacContext.currentUser || null;
-      loading = typeof rbacContext.loading === 'boolean' ? rbacContext.loading : true;
-      
-      console.log('📱 Index: RBAC context values extracted:', {
-        hasPermissionType: typeof hasPermission,
-        currentUserId: currentUser?.id || 'null',
-        currentUserRoleId: currentUser?.role_id || 'null',
-        loading: loading
-      });
-    } else {
-      console.error('❌ Index: RBAC context is invalid:', typeof rbacContext);
+  // Extract values safely with fallbacks
+  const hasPermission = React.useMemo(() => {
+    if (rbacContext && typeof rbacContext.hasPermission === 'function') {
+      return rbacContext.hasPermission;
     }
-  } catch (error) {
-    console.error('❌ Index: Critical error accessing RBAC context:', error);
-    console.error('❌ Index: Error details:', {
-      message: error?.message || 'Unknown error',
-      stack: error?.stack?.substring(0, 300) || 'No stack trace',
-      timestamp: new Date().toISOString()
-    });
-  }
+    return (permission: string) => {
+      console.warn('📱 Index: hasPermission not available, using fallback');
+      return false;
+    };
+  }, [rbacContext]);
+  
+  const currentUser = rbacContext?.currentUser || null;
+  const loading = rbacContext?.loading ?? true;
 
   console.log('📱 Index: Final context state:', {
     isMobile,
@@ -101,13 +78,7 @@ const Index = () => {
     rbacContextAvailable: !!rbacContext
   });
 
-  // Show loading while RBAC is initializing
-  if (loading) {
-    console.log('📱 Index: Showing loading skeleton - RBAC still loading');
-    return <PageLoadingSkeleton />;
-  }
-
-  // Enhanced permission check wrapper with detailed logging
+  // Enhanced permission check wrapper with consistent hooks
   const checkPermission = React.useCallback((permission: string): boolean => {
     console.log('🔐 Index: Permission check requested:', permission);
     
@@ -118,15 +89,6 @@ const Index = () => {
           permission,
           type: typeof permission,
           length: permission?.length || 0
-        });
-        return false;
-      }
-
-      // Validate hasPermission function
-      if (typeof hasPermission !== 'function') {
-        console.error('🔐 Index: hasPermission is not a function:', {
-          type: typeof hasPermission,
-          value: hasPermission
         });
         return false;
       }
@@ -171,6 +133,12 @@ const Index = () => {
       return false;
     }
   }, [hasPermission, currentUser]);
+
+  // Show loading while RBAC is initializing
+  if (loading) {
+    console.log('📱 Index: Showing loading skeleton - RBAC still loading');
+    return <PageLoadingSkeleton />;
+  }
 
   console.log('📱 Index: Rendering main application layout');
 

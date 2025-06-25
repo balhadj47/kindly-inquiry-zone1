@@ -5,7 +5,8 @@ import VanFilters from './VanFilters';
 import VanList from './VanList';
 import VanModal from './VanModal';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RefreshButton } from '@/components/ui/refresh-button';
+import { Button } from '@/components/ui/button';
+import { Plus, RefreshCw } from 'lucide-react';
 import { Van } from '@/types/van';
 
 const VansLoadingSkeleton = () => (
@@ -51,6 +52,7 @@ const VansOptimized = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedVan, setSelectedVan] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Force fresh data on component mount
   useEffect(() => {
@@ -59,7 +61,16 @@ const VansOptimized = () => {
   }, [refetch]);
 
   const handleRefresh = async () => {
-    await refetch();
+    if (isRefreshing) return;
+    
+    console.log('🔄 VansOptimized: Manual refresh triggered');
+    setIsRefreshing(true);
+    
+    try {
+      await refetch();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   // Show loading only when actually loading
@@ -165,13 +176,21 @@ const VansOptimized = () => {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
-        <RefreshButton onRefresh={handleRefresh} />
+        <div className="flex items-center gap-2 mt-4 lg:mt-0">
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="icon"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+          <Button onClick={handleAddVan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter Camionnette
+          </Button>
+        </div>
       </div>
-      
-      <VanStats 
-        vans={vansData}
-        onAddVan={handleAddVan}
-      />
       
       <VanFilters
         searchTerm={searchTerm}

@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Search, User, Phone, Mail, Plus } from 'lucide-react';
+import { Search, User, Phone, Mail, Plus, RefreshCw } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useDrivers } from '@/hooks/useDriversOptimized';
-import { RefreshButton } from '@/components/ui/refresh-button';
 
 const DriversLoadingSkeleton = () => (
   <div className="space-y-6">
@@ -69,6 +68,7 @@ const DriversOptimized = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const { data: drivers = [], isLoading, error, refetch } = useDrivers();
 
   // Refresh data when component mounts (user enters the page)
@@ -78,7 +78,16 @@ const DriversOptimized = () => {
   }, [refetch]);
 
   const handleRefresh = async () => {
-    await refetch();
+    if (isRefreshing) return;
+    
+    console.log('🔄 DriversOptimized: Manual refresh triggered');
+    setIsRefreshing(true);
+    
+    try {
+      await refetch();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   if (isLoading) {
@@ -136,7 +145,14 @@ const DriversOptimized = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Gestion des Chauffeurs</h1>
         <div className="flex items-center gap-2 mt-4 md:mt-0">
-          <RefreshButton onRefresh={handleRefresh} />
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="icon"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
           <Button onClick={handleAddDriver}>
             <Plus className="h-4 w-4 mr-2" />
             Ajouter Nouveau Chauffeur

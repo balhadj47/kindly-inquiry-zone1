@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -21,11 +20,11 @@ const SidebarUserProfile = () => {
   const { toggleSidebar } = useSidebar();
   const navigate = useNavigate();
 
-  const userInitials = currentUser?.email ? 
-    currentUser.email.split('@')[0].substring(0, 2).toUpperCase() : 
-    'U';
+  const userInitials = currentUser?.name ? 
+    currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() : 
+    (currentUser?.email ? currentUser.email.split('@')[0].substring(0, 2).toUpperCase() : 'U');
 
-  const userName = currentUser?.email?.split('@')[0] || 'User';
+  const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'User';
   const userRole = currentUser?.role_id === 1 ? 'Admin' : 'Manager';
   const isAdmin = currentUser?.role_id === 1;
 

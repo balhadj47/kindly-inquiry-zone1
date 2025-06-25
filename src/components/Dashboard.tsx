@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -55,16 +56,18 @@ const Dashboard = () => {
   console.log('📊 Dashboard: Component starting to render');
   
   const { users } = useRBAC();
-  const { vans, isLoading: vansLoading, refetch: refetchVans } = useVans();
-  const { companies, refetch: refetchCompanies } = useCompanies();
+  const { vans, isLoading: vansLoading, refetch: refetchVans, error: vansError } = useVans();
+  const { companies, refetch: refetchCompanies, error: companiesError } = useCompanies();
   const { trips } = useTrip();
 
-  console.log('📊 Dashboard: Data state:', {
+  console.log('📊 Dashboard: Data state with errors:', {
     users: users?.length || 'null/undefined',
     vans: vans?.length || 'null/undefined', 
     companies: companies?.length || 'null/undefined',
     trips: trips?.length || 'null/undefined',
     vansLoading,
+    vansError: vansError?.message || 'none',
+    companiesError: companiesError?.message || 'none',
     timestamp: new Date().toISOString()
   });
 
@@ -76,15 +79,51 @@ const Dashboard = () => {
 
   const handleRefresh = async () => {
     console.log('📊 Manual refresh triggered');
-    await Promise.all([
-      refetchVans?.(),
-      refetchCompanies?.()
-    ]);
+    try {
+      await Promise.all([
+        refetchVans?.(),
+        refetchCompanies?.()
+      ]);
+      console.log('📊 Manual refresh completed successfully');
+    } catch (error) {
+      console.error('📊 Manual refresh failed:', error);
+    }
   };
 
   const isLoading = vansLoading;
 
   console.log('📊 Dashboard: Render decision - isLoading:', isLoading);
+
+  // Show error state if there are critical errors
+  if (vansError || companiesError) {
+    console.log('📊 Dashboard: Showing error state');
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+            <p className="text-sm sm:text-base text-red-600">Erreur de chargement des données</p>
+          </div>
+          <Button onClick={handleRefresh} variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <Card className="p-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
+            <p className="text-gray-600 mb-4">
+              {vansError?.message || companiesError?.message || 'Une erreur est survenue lors du chargement des données'}
+            </p>
+            <Button onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Réessayer
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 
   if (isLoading) {
     console.log('📊 Dashboard: Showing loading skeleton');
@@ -93,29 +132,58 @@ const Dashboard = () => {
 
   console.log('📊 Dashboard: Calculating stats and rendering main content');
 
-  const stats = calculateDashboardStats(users, vans, companies, trips);
-  const chartData = createChartData(companies, trips);
+  try {
+    const stats = calculateDashboardStats(users, vans, companies, trips);
+    const chartData = createChartData(companies, trips);
 
-  console.log('📊 Dashboard: Stats calculated:', stats);
+    console.log('📊 Dashboard: Stats calculated successfully:', stats);
+    console.log('📊 Dashboard: Chart data created successfully:', Object.keys(chartData));
 
-  return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
-          <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        {/* Header */}
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+            <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
+          </div>
+          <Button onClick={handleRefresh} variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="icon">
-          <RefreshCw className="h-4 w-4" />
-        </Button>
-      </div>
 
-      <EnhancedStatsGrid stats={stats} />
-      <QuickActions />
-      <EnhancedChartsSection chartData={chartData} />
-    </div>
-  );
+        <EnhancedStatsGrid stats={stats} />
+        <QuickActions />
+        <EnhancedChartsSection chartData={chartData} />
+      </div>
+    );
+  } catch (error) {
+    console.error('📊 Dashboard: Error calculating stats or chart data:', error);
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
+            <p className="text-sm sm:text-base text-red-600">Erreur de calcul des statistiques</p>
+          </div>
+          <Button onClick={handleRefresh} variant="outline" size="icon">
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        
+        <Card className="p-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de traitement</h3>
+            <p className="text-gray-600 mb-4">Impossible de calculer les statistiques du tableau de bord</p>
+            <Button onClick={handleRefresh}>
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Réessayer
+            </Button>
+          </div>
+        </Card>
+      </div>
+    );
+  }
 };
 
 export default Dashboard;

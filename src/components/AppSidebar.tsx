@@ -8,8 +8,12 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar';
-import SidebarHeaderComponent from './SidebarHeader';
+import SidebarUserProfile from './SidebarUserProfile';
+import SidebarSearchBar from './SidebarSearchBar';
 import SidebarMenuContent from './SidebarMenuContent';
+import SidebarTeamsSection from './SidebarTeamsSection';
+import SidebarDragDropArea from './SidebarDragDropArea';
+import SidebarThemeToggle from './SidebarThemeToggle';
 
 const AppSidebar = () => {
   const location = useLocation();
@@ -20,20 +24,21 @@ const AppSidebar = () => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="border-r border-gray-200"
+      className="border-r border-gray-700 bg-gray-900"
     >
-      <SidebarHeader>
-        <SidebarHeaderComponent />
+      <SidebarHeader className="p-0">
+        <SidebarUserProfile />
+        <SidebarSearchBar />
       </SidebarHeader>
       
-      <SidebarContent className="py-2">
+      <SidebarContent className="py-0 bg-gray-900">
         <SidebarMenuContent />
+        <SidebarTeamsSection />
       </SidebarContent>
       
-      <SidebarFooter>
-        <div className="p-3 text-xs text-gray-500 text-center group-data-[collapsible=icon]:hidden">
-          Fleet Management v1.0
-        </div>
+      <SidebarFooter className="p-0 bg-gray-900">
+        <SidebarDragDropArea />
+        <SidebarThemeToggle />
       </SidebarFooter>
       
       <SidebarRail />

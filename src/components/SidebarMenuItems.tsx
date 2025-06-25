@@ -1,5 +1,4 @@
-
-import { Home, Truck, Factory, Clock, Users, Shield } from 'lucide-react';
+import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -20,6 +19,10 @@ export const useSidebarMenuItems = () => {
   let roles: any[] = [];
   let t: any = {
     dashboard: 'Dashboard',
+    tasks: 'Tasks',
+    notifications: 'Notifications', 
+    messages: 'Messages',
+    inbox: 'Inbox',
     companies: 'Companies',
     vansDrivers: 'Vans & Drivers',
     employees: 'Employees',
@@ -56,7 +59,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items with safe fallbacks
+  // Menu items matching the design - reordered to match the attachment
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -65,10 +68,28 @@ export const useSidebarMenuItems = () => {
       permission: 'dashboard:read',
     },
     {
-      title: t?.companies || 'Companies',
+      title: t?.tasks || 'Tasks',
+      href: '/log-trip',
+      icon: Clock,
+      permission: 'trips:create',
+    },
+    {
+      title: t?.notifications || 'Notifications',
+      href: '/trip-history',
+      icon: Bell,
+      permission: 'trips:read',
+    },
+    {
+      title: t?.messages || 'Messages',
       href: '/companies',
-      icon: Factory,
+      icon: MessageSquare,
       permission: 'companies:read',
+    },
+    {
+      title: t?.inbox || 'Inbox',
+      href: '/auth-users',
+      icon: Inbox,
+      permission: 'auth-users:read',
     },
     {
       title: t?.vansDrivers || 'Vans & Drivers',
@@ -81,24 +102,6 @@ export const useSidebarMenuItems = () => {
       href: '/employees',
       icon: Users,
       permission: 'users:read',
-    },
-    {
-      title: t?.comptes || 'Accounts',
-      href: '/auth-users',
-      icon: Shield,
-      permission: 'auth-users:read',
-    },
-    {
-      title: t?.logTrip || 'Log Trip',
-      href: '/log-trip',
-      icon: Clock,
-      permission: 'trips:create',
-    },
-    {
-      title: t?.tripHistory || 'Trip History',
-      href: '/trip-history',
-      icon: Clock,
-      permission: 'trips:read',
     },
   ];
   

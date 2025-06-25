@@ -1,14 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { User } from '@/types/rbac';
 import EmployeesHeader from './EmployeesHeader';
 import EmployeesFilters from './EmployeesFilters';
 import EmployeesList from './EmployeesList';
 import EmployeeModal from './EmployeeModal';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
-import { RefreshButton } from '@/components/ui/refresh-button';
 import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
 import { useModernRefresh } from '@/hooks/useModernRefresh';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
@@ -36,10 +35,11 @@ const transformOptimizedUser = (user: any): User => ({
 const EmployeesContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   
   // Use the optimized hook for employees (role_id: 3)
   const { data: rawEmployees = [], isLoading: loading, refetch } = useUsersByRoleId(3);
-  const { modernRefresh, isRefreshing } = useModernRefresh<User>();
+  const { modernRefresh } = useModernRefresh<User>();
 
   // Transform the raw employees data to match RBAC User type
   const employees: User[] = rawEmployees.map(transformOptimizedUser);
@@ -72,16 +72,24 @@ const EmployeesContainer = () => {
   }, [refetch]);
 
   const handleRefresh = async () => {
+    if (isRefreshing) return;
+    
     console.log('🔄 Employees: Manual refresh triggered');
-    await modernRefresh(
-      employees,
-      async () => {
-        const result = await refetch();
-        return (result.data || []).map(transformOptimizedUser);
-      },
-      () => {}, // No need to update state, React Query handles it
-      { showToast: true }
-    );
+    setIsRefreshing(true);
+    
+    try {
+      await modernRefresh(
+        employees,
+        async () => {
+          const result = await refetch();
+          return (result.data || []).map(transformOptimizedUser);
+        },
+        () => {}, // No need to update state, React Query handles it
+        { showToast: true }
+      );
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   const clearFilters = () => {
@@ -125,7 +133,14 @@ const EmployeesContainer = () => {
               <Plus className="h-4 w-4" />
             </Button>
           )}
-          <RefreshButton onRefresh={handleRefresh} disabled={isRefreshing} />
+          <Button 
+            onClick={handleRefresh} 
+            variant="outline" 
+            size="icon"
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
         </div>
       </div>
 

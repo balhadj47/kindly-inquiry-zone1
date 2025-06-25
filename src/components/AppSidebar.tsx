@@ -30,12 +30,12 @@ const AppSidebar = () => {
         <SidebarHeaderComponent />
       </SidebarHeader>
       
-      <SidebarContent>
+      <SidebarContent className="py-2">
         <SidebarMenuContent />
       </SidebarContent>
       
       <SidebarFooter>
-        <div className="p-4 text-xs text-gray-500 text-center group-data-[collapsible=icon]:hidden">
+        <div className="p-3 text-xs text-gray-500 text-center group-data-[collapsible=icon]:hidden transition-all duration-200">
           Fleet Management v1.0
         </div>
       </SidebarFooter>

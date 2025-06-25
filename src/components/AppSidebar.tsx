@@ -25,7 +25,7 @@ const AppSidebar = () => {
   });
 
   return (
-    <Sidebar variant="inset" className="border-r border-gray-200">
+    <Sidebar variant="sidebar" collapsible="icon" className="border-r border-gray-200">
       <SidebarHeader>
         <SidebarHeaderComponent />
       </SidebarHeader>
@@ -35,7 +35,7 @@ const AppSidebar = () => {
       </SidebarContent>
       
       <SidebarFooter>
-        <div className="p-4 text-xs text-gray-500 text-center">
+        <div className="p-4 text-xs text-gray-500 text-center group-data-[collapsible=icon]:hidden">
           Fleet Management v1.0
         </div>
       </SidebarFooter>

@@ -8,7 +8,7 @@ export const navigation = {
   employees: 'Employés',
   comptes: 'Comptes',
   logTrip: 'Enregistrer une Mission',
-  missions: 'Missions', // Changed from tripHistory
+  missions: 'Missions', // This is correct - changed from tripHistory
   settings: 'Paramètres',
   
   // Navigation - Mobile specific

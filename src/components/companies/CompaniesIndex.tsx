@@ -73,9 +73,8 @@ const CompaniesIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <CompaniesHeader onAddCompany={handleAddCompany} />
-        <Button onClick={handleRefresh} disabled={isRefreshing}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Actualiser
+        <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="icon">
+          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
         </Button>
       </div>
       

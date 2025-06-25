@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -107,9 +106,8 @@ const Dashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
           <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
         </div>
-        <Button onClick={handleRefresh}>
-          <RefreshCw className="h-4 w-4 mr-2" />
-          Actualiser
+        <Button onClick={handleRefresh} variant="outline" size="icon">
+          <RefreshCw className="h-4 w-4" />
         </Button>
       </div>
 

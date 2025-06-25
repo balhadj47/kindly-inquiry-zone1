@@ -3,7 +3,7 @@ export const navigation = {
   // Navigation
   dashboard: 'Tableau de Bord',
   companies: 'Entreprises',
-  vansDrivers: 'Camionnettes',
+  vansDrivers: 'Véhicules',
   users: 'Utilisateurs',
   employees: 'Employés',
   comptes: 'Comptes',
@@ -13,7 +13,7 @@ export const navigation = {
   
   // Navigation - Mobile specific
   home: 'Accueil',
-  vans: 'Camionnettes',
+  vans: 'Véhicules',
   logger: 'Logger',
   history: 'Historique',
   

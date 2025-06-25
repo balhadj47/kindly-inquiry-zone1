@@ -3,7 +3,7 @@ export const navigation = {
   // Navigation
   dashboard: 'لوحة التحكم',
   companies: 'الشركات',
-  vansDrivers: 'الشاحنات',
+  vansDrivers: 'المركبات',
   users: 'المستخدمين',
   employees: 'الموظفين',
   comptes: 'الحسابات',
@@ -13,7 +13,7 @@ export const navigation = {
   
   // Navigation - Mobile specific
   home: 'الرئيسية',
-  vans: 'الشاحنات',
+  vans: 'المركبات',
   logger: 'المسجل',
   history: 'التاريخ',
   

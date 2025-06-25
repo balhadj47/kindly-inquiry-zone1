@@ -23,7 +23,7 @@ const SidebarMenuContent = React.memo(() => {
       
       // Add realistic badge counts based on menu item
       let badge = null;
-      if (item.href === '/trip-history') {
+      if (item.href === '/trip-history') { // Missions page
         badge = { count: 12, variant: 'default' as const };
       } else if (item.href === '/auth-users') {
         badge = { count: 3, variant: 'secondary' as const };

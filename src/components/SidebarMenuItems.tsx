@@ -21,7 +21,7 @@ export const useSidebarMenuItems = () => {
   let t: any = {
     dashboard: 'Dashboard',
     logTrip: 'Log Trip',
-    tripHistory: 'Trip History',
+    missions: 'Missions', // Changed from tripHistory to missions
     companies: 'Companies',
     authUsers: 'Auth Users',
     vansDrivers: 'Vans & Drivers',
@@ -56,7 +56,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Real menu items matching actual page routes
+  // Menu items in the original order with missions instead of trip history
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -65,28 +65,10 @@ export const useSidebarMenuItems = () => {
       permission: 'dashboard:read',
     },
     {
-      title: t?.logTrip || 'Log Trip',
-      href: '/log-trip',
-      icon: Clock,
-      permission: 'trips:create',
-    },
-    {
-      title: t?.tripHistory || 'Trip History',
-      href: '/trip-history',
-      icon: Bell,
-      permission: 'trips:read',
-    },
-    {
       title: t?.companies || 'Companies',
       href: '/companies',
       icon: Factory,
       permission: 'companies:read',
-    },
-    {
-      title: t?.authUsers || 'Auth Users',
-      href: '/auth-users',
-      icon: Shield,
-      permission: 'auth-users:read',
     },
     {
       title: t?.vansDrivers || 'Vans & Drivers',
@@ -99,6 +81,24 @@ export const useSidebarMenuItems = () => {
       href: '/employees',
       icon: Users,
       permission: 'users:read',
+    },
+    {
+      title: t?.authUsers || 'Auth Users',
+      href: '/auth-users',
+      icon: Shield,
+      permission: 'auth-users:read',
+    },
+    {
+      title: t?.logTrip || 'Log Trip',
+      href: '/log-trip',
+      icon: Clock,
+      permission: 'trips:create',
+    },
+    {
+      title: t?.missions || 'Missions',
+      href: '/trip-history',
+      icon: Bell,
+      permission: 'trips:read',
     },
   ];
   

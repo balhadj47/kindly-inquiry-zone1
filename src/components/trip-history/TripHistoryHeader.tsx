@@ -10,8 +10,8 @@ const TripHistoryHeader = () => {
   return (
     <div className="flex flex-col md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">{t.tripHistory}</h1>
-        <p className="text-gray-500 mt-2">{t.reviewAllTrips}</p>
+        <h1 className="text-3xl font-bold text-gray-900">Missions</h1>
+        <p className="text-gray-500 mt-2">Consultez l'historique complet de toutes les missions</p>
       </div>
       <Button variant="outline" className="mt-4 md:mt-0">
         <Download className="h-4 w-4 mr-2" />

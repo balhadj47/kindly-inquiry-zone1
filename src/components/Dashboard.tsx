@@ -94,6 +94,16 @@ const Dashboard = () => {
 
   console.log('📊 Dashboard: Render decision - isLoading:', isLoading);
 
+  // Helper function to get error message safely
+  const getErrorMessage = (error: unknown): string => {
+    if (!error) return '';
+    if (typeof error === 'string') return error;
+    if (typeof error === 'object' && error !== null && 'message' in error) {
+      return String(error.message);
+    }
+    return '';
+  };
+
   // Show error state if there are critical errors
   if (vansError || companiesError) {
     console.log('📊 Dashboard: Showing error state');
@@ -113,13 +123,7 @@ const Dashboard = () => {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
             <p className="text-gray-600 mb-4">
-              {(vansError && typeof vansError === 'object' && vansError !== null && 'message' in vansError 
-                ? String(vansError.message) 
-                : vansError && typeof vansError === 'string' ? vansError : '') || 
-               (companiesError && typeof companiesError === 'object' && companiesError !== null && 'message' in companiesError 
-                ? String(companiesError.message) 
-                : companiesError && typeof companiesError === 'string' ? companiesError : '') || 
-               'Une erreur est survenue lors du chargement des données'}
+              {getErrorMessage(vansError) || getErrorMessage(companiesError) || 'Une erreur est survenue lors du chargement des données'}
             </p>
             <Button onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />

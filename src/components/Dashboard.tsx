@@ -60,14 +60,14 @@ const Dashboard = () => {
   const { companies, refetch: refetchCompanies, error: companiesError } = useCompanies();
   const { trips } = useTrip();
 
-  console.log('📊 Dashboard: Data state with errors:', {
+  console.log('📊 Dashboard: Data state:', {
     users: users?.length || 'null/undefined',
     vans: vans?.length || 'null/undefined', 
     companies: companies?.length || 'null/undefined',
     trips: trips?.length || 'null/undefined',
     vansLoading,
-    vansError: vansError || 'none',
-    companiesError: companiesError || 'none',
+    hasVansError: !!vansError,
+    hasCompaniesError: !!companiesError,
     timestamp: new Date().toISOString()
   });
 
@@ -99,9 +99,9 @@ const Dashboard = () => {
     if (!error) return '';
     if (typeof error === 'string') return error;
     if (typeof error === 'object' && error !== null && 'message' in error) {
-      return String(error.message);
+      return String((error as any).message);
     }
-    return '';
+    return 'Une erreur est survenue';
   };
 
   // Show error state if there are critical errors

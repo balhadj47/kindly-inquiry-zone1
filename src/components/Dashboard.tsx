@@ -113,8 +113,12 @@ const Dashboard = () => {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
             <p className="text-gray-600 mb-4">
-              {(vansError && typeof vansError === 'object' && vansError !== null && 'message' in vansError ? vansError.message : vansError) || 
-               (companiesError && typeof companiesError === 'object' && companiesError !== null && 'message' in companiesError ? companiesError.message : companiesError) || 
+              {(vansError && typeof vansError === 'object' && vansError !== null && 'message' in vansError 
+                ? String(vansError.message) 
+                : vansError && typeof vansError === 'string' ? vansError : '') || 
+               (companiesError && typeof companiesError === 'object' && companiesError !== null && 'message' in companiesError 
+                ? String(companiesError.message) 
+                : companiesError && typeof companiesError === 'string' ? companiesError : '') || 
                'Une erreur est survenue lors du chargement des données'}
             </p>
             <Button onClick={handleRefresh}>

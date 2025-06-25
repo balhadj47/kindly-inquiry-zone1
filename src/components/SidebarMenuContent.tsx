@@ -51,8 +51,8 @@ const SidebarMenuContent = React.memo(() => {
               className={`
                 w-full justify-between group
                 ${item.isActive 
-                  ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-r-2 border-blue-500' 
+                  : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
                 }
               `}
             >
@@ -70,8 +70,8 @@ const SidebarMenuContent = React.memo(() => {
                     className={`
                       group-data-[collapsible=icon]:hidden text-xs
                       ${item.isActive 
-                        ? 'bg-blue-800 text-blue-100' 
-                        : 'bg-gray-700 text-gray-300'
+                        ? 'bg-blue-100 text-blue-700' 
+                        : 'bg-gray-100 text-gray-600'
                       }
                     `}
                   >

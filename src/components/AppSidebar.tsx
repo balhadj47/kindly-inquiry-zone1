@@ -9,10 +9,7 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar';
 import SidebarUserProfile from './SidebarUserProfile';
-import SidebarSearchBar from './SidebarSearchBar';
 import SidebarMenuContent from './SidebarMenuContent';
-import SidebarTeamsSection from './SidebarTeamsSection';
-import SidebarDragDropArea from './SidebarDragDropArea';
 import SidebarThemeToggle from './SidebarThemeToggle';
 
 const AppSidebar = () => {
@@ -24,20 +21,17 @@ const AppSidebar = () => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="border-r border-gray-700 bg-gray-900"
+      className="border-r border-gray-200 bg-white"
     >
       <SidebarHeader className="p-0">
         <SidebarUserProfile />
-        <SidebarSearchBar />
       </SidebarHeader>
       
-      <SidebarContent className="py-0 bg-gray-900">
+      <SidebarContent className="py-0 bg-white">
         <SidebarMenuContent />
-        <SidebarTeamsSection />
       </SidebarContent>
       
-      <SidebarFooter className="p-0 bg-gray-900">
-        <SidebarDragDropArea />
+      <SidebarFooter className="p-0 bg-white">
         <SidebarThemeToggle />
       </SidebarFooter>
       

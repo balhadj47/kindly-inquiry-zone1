@@ -17,6 +17,17 @@ export const vans = {
   updateVan: 'Mettre à Jour Camionnette',
   vanNotFound: 'Camionnette non trouvée',
   
+  // Van Management Page
+  vansManagement: 'Gestion des Camionnettes',
+  manageYourFleet: 'Gérez votre flotte de véhicules',
+  noVansFound: 'Aucune camionnette trouvée',
+  tryAdjustingSearch: 'Essayez d\'ajuster votre recherche',
+  startByAddingFirstVan: 'Commencez par ajouter votre première camionnette',
+  addYourFirstVan: 'Ajouter Votre Première Camionnette',
+  tryAdjustingFiltersOrSearch: 'Essayez d\'ajuster votre recherche ou vos filtres',
+  vansLabel: 'Camionnettes',
+  addNewVanTooltip: 'Ajouter Nouvelle Camionnette',
+  
   vanStatuses: {
     active: 'Actif',
     inTransit: 'En Transit',

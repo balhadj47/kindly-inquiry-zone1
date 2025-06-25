@@ -16,7 +16,7 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
         <p className="text-gray-600 mt-1">
-          Gérez vos entreprises et leurs succursales
+          {t.manageCompaniesAndBranches}
         </p>
       </div>
       <TooltipProvider>

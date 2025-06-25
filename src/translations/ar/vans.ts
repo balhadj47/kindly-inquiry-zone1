@@ -17,6 +17,17 @@ export const vans = {
   updateVan: 'تحديث الشاحنة',
   vanNotFound: 'الشاحنة غير موجودة',
   
+  // Van Management Page
+  vansManagement: 'إدارة الشاحنات',
+  manageYourFleet: 'إدارة أسطول المركبات الخاص بك',
+  noVansFound: 'لم يتم العثور على شاحنات',
+  tryAdjustingSearch: 'جرب تعديل البحث',
+  startByAddingFirstVan: 'ابدأ بإضافة أول شاحنة',
+  addYourFirstVan: 'أضف شاحنتك الأولى',
+  tryAdjustingFiltersOrSearch: 'جرب تعديل المرشحات أو مصطلحات البحث',
+  vansLabel: 'الشاحنات',
+  addNewVanTooltip: 'إضافة شاحنة جديدة',
+  
   vanStatuses: {
     active: 'نشط',
     inTransit: 'في العبور',

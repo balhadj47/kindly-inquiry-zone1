@@ -21,6 +21,7 @@ export const companies = {
   enterAddress: 'Enter company address',
   enterPhone: 'Enter phone number',
   enterEmail: 'Enter email address',
+  manageCompaniesAndBranches: 'Manage your companies and their branches',
   
   // Branch Management
   addNewBranch: 'Add New Branch',

@@ -21,6 +21,7 @@ export const companies = {
   enterAddress: 'Entrer l\'adresse de l\'entreprise',
   enterPhone: 'Entrer le numéro de téléphone',
   enterEmail: 'Entrer l\'adresse email',
+  manageCompaniesAndBranches: 'Gérez vos entreprises et leurs succursales',
   
   // Branch Management
   addNewBranch: 'Ajouter Nouvelle Succursale',

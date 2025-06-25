@@ -21,6 +21,7 @@ export const companies = {
   enterAddress: 'أدخل عنوان الشركة',
   enterPhone: 'أدخل رقم الهاتف',
   enterEmail: 'أدخل البريد الإلكتروني',
+  manageCompaniesAndBranches: 'إدارة شركاتك وفروعها',
   
   // Branch Management
   addNewBranch: 'إضافة فرع جديد',

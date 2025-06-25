@@ -59,32 +59,48 @@ const Index = () => {
     authUser: authUser?.email || 'null',
     authLoading,
     currentUser: currentUser?.id || 'null',
-    rbacLoading
+    rbacLoading,
+    isMobile,
+    timestamp: new Date().toISOString()
   });
 
   // Simple permission check without complex fallbacks
   const checkPermission = React.useCallback((permission: string): boolean => {
+    console.log('📱 Index: Checking permission:', permission, {
+      authLoading,
+      rbacLoading,
+      authUser: !!authUser,
+      currentUser: !!currentUser,
+      hasPermissionFn: !!hasPermission
+    });
+
     // If still loading, deny access to prevent premature rendering
     if (authLoading || rbacLoading) {
+      console.log('📱 Index: Permission denied - still loading');
       return false;
     }
 
     // If no auth user, deny access
     if (!authUser) {
+      console.log('📱 Index: Permission denied - no auth user');
       return false;
     }
 
     // Admin bypass for known admin email
     if (authUser.email === 'gb47@msn.com') {
+      console.log('📱 Index: Permission granted - admin bypass');
       return true;
     }
 
     // If RBAC user exists, use permission system
     if (currentUser && hasPermission) {
-      return hasPermission(permission);
+      const result = hasPermission(permission);
+      console.log('📱 Index: Permission result from RBAC:', result);
+      return result;
     }
 
     // Default deny if no proper context
+    console.log('📱 Index: Permission denied - no proper context');
     return false;
   }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
 
@@ -122,7 +138,17 @@ const Index = () => {
                 <Suspense fallback={<PageLoadingSkeleton />}>
                   <Routes>
                     <Route path="/" element={
-                      checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
+                      checkPermission('dashboard:read') ? (
+                        <>
+                          {console.log('📱 Index: Rendering Dashboard for / route')}
+                          <Dashboard />
+                        </>
+                      ) : (
+                        <>
+                          {console.log('📱 Index: Showing AccessDenied for / route')}
+                          <AccessDenied />
+                        </>
+                      )
                     } />
                     <Route path="/dashboard" element={
                       checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />

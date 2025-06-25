@@ -14,7 +14,7 @@ export const companies = {
   updateCompany: 'Mettre à Jour Entreprise',
   companyNotFound: 'Entreprise non trouvée',
   noCompaniesFound: 'Aucune entreprise trouvée',
-  addYourFirstCompany: 'Ajouter Votre Première Entreprise',
+  addYourFirstCompany: 'Ajoutez Votre Première Entreprise',
   companyAdded: 'Entreprise ajoutée avec succès',
   companyUpdated: 'Entreprise mise à jour avec succès',
   companyDeleted: 'Entreprise supprimée avec succès',

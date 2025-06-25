@@ -2,11 +2,12 @@
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useTrip } from '@/contexts/TripContext';
-import { RefreshButton } from '@/components/ui/refresh-button';
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
 import QuickActions from './dashboard/QuickActions';
@@ -106,7 +107,10 @@ const Dashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
           <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
         </div>
-        <RefreshButton onRefresh={handleRefresh} />
+        <Button onClick={handleRefresh}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Actualiser
+        </Button>
       </div>
 
       <EnhancedStatsGrid stats={stats} />

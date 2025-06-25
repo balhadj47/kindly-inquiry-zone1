@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { PlusButton } from '@/components/ui/plus-button';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VansHeaderProps {
@@ -23,7 +24,10 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan }) => {
         </div>
         
         <div className="flex items-center gap-2 mt-4 lg:mt-0">
-          <PlusButton onClick={onAddVan} />
+          <Button onClick={onAddVan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter Camionnette
+          </Button>
         </div>
       </div>
     </div>

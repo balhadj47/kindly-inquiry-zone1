@@ -43,46 +43,111 @@ const UsersTab: React.FC<UsersTabProps> = ({
   
   const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
 
-  // Filter out employees (role_id: 3) from the Users tab - show only admins and supervisors
-  const nonEmployeeUsers = users.filter(user => user.role_id !== 3);
+  console.log('👥 UsersTab: Starting with users:', {
+    usersCount: Array.isArray(users) ? users.length : 'not array',
+    usersType: typeof users,
+    searchTerm,
+    statusFilter,
+    roleFilter
+  });
+
+  // Safely filter out employees (role_id: 3) from the Users tab - show only admins and supervisors
+  const nonEmployeeUsers = React.useMemo(() => {
+    try {
+      if (!Array.isArray(users)) {
+        console.warn('👥 UsersTab: users is not an array:', typeof users);
+        return [];
+      }
+      
+      const filtered = users.filter(user => {
+        if (!user || typeof user !== 'object') {
+          console.warn('👥 UsersTab: Invalid user object:', user);
+          return false;
+        }
+        return user.role_id !== 3;
+      });
+      
+      console.log('👥 UsersTab: Filtered non-employee users:', filtered.length);
+      return filtered;
+    } catch (error) {
+      console.error('👥 UsersTab: Error filtering non-employee users:', error);
+      return [];
+    }
+  }, [users]);
 
   // Use our custom filtering hook with non-employee users
   const { safeUsers, filteredUsers, uniqueStatuses, uniqueRoles } = useUsersFiltering({
     users: nonEmployeeUsers,
-    searchTerm,
-    statusFilter,
-    roleFilter,
+    searchTerm: searchTerm || '',
+    statusFilter: statusFilter || '',
+    roleFilter: roleFilter || '',
   });
 
   // Use our custom pagination hook
   const { currentPage, totalPages, paginatedUsers, handlePageChange } = useUsersPagination({
-    filteredUsers,
+    filteredUsers: filteredUsers || [],
     itemsPerPage,
-    searchTerm,
-    statusFilter,
-    roleFilter,
+    searchTerm: searchTerm || '',
+    statusFilter: statusFilter || '',
+    roleFilter: roleFilter || '',
     view,
   });
 
   // Safe view change handler
   const handleViewChange = useCallback((newView: 'grid' | 'table') => {
     try {
+      console.log('👥 UsersTab: View change requested:', newView);
       setView(newView);
     } catch (error) {
-      console.error('Error changing view:', error);
+      console.error('👥 UsersTab: Error changing view:', error);
     }
   }, []);
 
-  console.log('UsersTab - Rendering with safe data:', {
-    usersCount: safeUsers.length,
-    searchTerm,
-    statusFilter,
-    roleFilter,
-    view,
-    currentPage,
+  // Safe handler wrappers
+  const safeOnEditUser = useCallback((user: User) => {
+    try {
+      if (!user || !user.id) {
+        console.warn('👥 UsersTab: Invalid user for edit:', user);
+        return;
+      }
+      onEditUser(user);
+    } catch (error) {
+      console.error('👥 UsersTab: Error in edit user handler:', error);
+    }
+  }, [onEditUser]);
+
+  const safeOnDeleteUser = useCallback((user: User) => {
+    try {
+      if (!user || !user.id) {
+        console.warn('👥 UsersTab: Invalid user for delete:', user);
+        return;
+      }
+      onDeleteUser(user);
+    } catch (error) {
+      console.error('👥 UsersTab: Error in delete user handler:', error);
+    }
+  }, [onDeleteUser]);
+
+  const safeOnChangePassword = useCallback((user: User) => {
+    try {
+      if (!user || !user.id) {
+        console.warn('👥 UsersTab: Invalid user for password change:', user);
+        return;
+      }
+      onChangePassword(user);
+    } catch (error) {
+      console.error('👥 UsersTab: Error in change password handler:', error);
+    }
+  }, [onChangePassword]);
+
+  console.log('👥 UsersTab: Rendering with processed data:', {
+    nonEmployeeUsersCount: nonEmployeeUsers.length,
+    safeUsersCount: safeUsers.length,
     filteredUsersCount: filteredUsers.length,
-    totalPages,
     paginatedUsersCount: paginatedUsers.length,
+    currentPage,
+    totalPages,
+    view,
     isMobile
   });
 
@@ -90,17 +155,17 @@ const UsersTab: React.FC<UsersTabProps> = ({
     <TabsContent value="users" className="space-y-4">
       <div className="space-y-4">
         <UserFilters
-          searchTerm={searchTerm}
+          searchTerm={searchTerm || ''}
           setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
+          statusFilter={statusFilter || ''}
           setStatusFilter={setStatusFilter}
-          roleFilter={roleFilter}
+          roleFilter={roleFilter || ''}
           setRoleFilter={setRoleFilter}
-          uniqueStatuses={uniqueStatuses}
-          uniqueRoles={uniqueRoles}
-          filteredCount={filteredUsers.length}
-          totalCount={safeUsers.length}
-          hasActiveFilters={hasActiveFilters}
+          uniqueStatuses={uniqueStatuses || []}
+          uniqueRoles={uniqueRoles || []}
+          filteredCount={filteredUsers?.length || 0}
+          totalCount={safeUsers?.length || 0}
+          hasActiveFilters={hasActiveFilters || false}
           clearFilters={clearFilters}
         />
         
@@ -116,13 +181,13 @@ const UsersTab: React.FC<UsersTabProps> = ({
 
       <UserListContent
         view={view}
-        filteredUsers={filteredUsers}
-        paginatedUsers={paginatedUsers}
-        hasActiveFilters={hasActiveFilters}
+        filteredUsers={filteredUsers || []}
+        paginatedUsers={paginatedUsers || []}
+        hasActiveFilters={hasActiveFilters || false}
         clearFilters={clearFilters}
-        onEditUser={onEditUser}
-        onDeleteUser={onDeleteUser}
-        onChangePassword={onChangePassword}
+        onEditUser={safeOnEditUser}
+        onDeleteUser={safeOnDeleteUser}
+        onChangePassword={safeOnChangePassword}
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}

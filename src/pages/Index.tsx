@@ -16,7 +16,7 @@ import DebugConsole from '@/components/DebugConsole';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
-// Import all pages directly instead of lazy loading to fix 404 errors
+// Import all pages directly
 import UserSettings from '@/pages/UserSettings';
 import SystemSettingsPage from '@/pages/SystemSettingsPage';
 import TripLoggerPage from '@/pages/TripLoggerPage';
@@ -50,110 +50,47 @@ const AccessDenied = () => (
 
 const Index = () => {
   console.log('📱 Index: Starting render process...');
-  console.log('📱 Index: Current URL:', window.location.pathname);
-  console.log('📱 Index: Timestamp:', new Date().toISOString());
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
-  
-  // Safely get RBAC context with error handling
-  let rbacContext;
-  try {
-    rbacContext = useRBAC();
-    console.log('📱 Index: RBAC context accessed successfully');
-  } catch (error) {
-    console.error('❌ Index: Failed to access RBAC context:', error);
-    rbacContext = {
-      currentUser: null,
-      loading: true,
-      hasPermission: () => false
-    };
-  }
-  
-  // Extract values safely with fallbacks
-  const currentUser = rbacContext?.currentUser || null;
-  const rbacLoading = rbacContext?.loading ?? true;
-  const hasPermission = rbacContext?.hasPermission || (() => false);
+  const { currentUser, loading: rbacLoading, hasPermission } = useRBAC();
 
-  console.log('📱 Index: Auth and RBAC state:', {
+  console.log('📱 Index: State check:', {
     authUser: authUser?.email || 'null',
     authLoading,
-    currentUserId: currentUser?.id || 'null',
-    currentUserRoleId: currentUser?.role_id || 'null',
-    rbacLoading,
-    hasPermissionAvailable: typeof hasPermission === 'function'
+    currentUser: currentUser?.id || 'null',
+    rbacLoading
   });
 
-  // Enhanced permission check wrapper with better error handling
+  // Simple permission check without complex fallbacks
   const checkPermission = React.useCallback((permission: string): boolean => {
-    console.log('🔐 Index: Permission check requested:', permission);
-    
-    try {
-      // If auth is still loading, allow access to prevent blocking
-      if (authLoading) {
-        console.log('🔐 Index: Auth still loading, allowing access temporarily');
-        return true;
-      }
-
-      // If no auth user, deny access
-      if (!authUser) {
-        console.log('🔐 Index: No auth user, denying access');
-        return false;
-      }
-
-      // If RBAC is still loading but we have an auth user, allow access
-      if (rbacLoading && authUser) {
-        console.log('🔐 Index: RBAC loading but auth user exists, allowing access');
-        return true;
-      }
-
-      // Validate permission parameter
-      if (!permission || typeof permission !== 'string' || permission.trim() === '') {
-        console.warn('🔐 Index: Invalid permission parameter:', permission);
-        return false;
-      }
-
-      // Special handling for admin users - always grant access
-      if (currentUser?.role_id === 1) {
-        console.log('🔓 Index: Admin user detected - granting permission:', permission);
-        return true;
-      }
-
-      // Use permission system with enhanced error handling
-      if (typeof hasPermission !== 'function') {
-        console.warn('🔐 Index: hasPermission is not a function, falling back to auth user check');
-        return !!authUser;
-      }
-
-      const result = hasPermission(permission);
-      console.log('🔐 Index: Permission check result:', {
-        permission,
-        result: Boolean(result),
-        userId: currentUser?.id || 'null'
-      });
-      
-      return Boolean(result);
-
-    } catch (error) {
-      console.error('❌ Index: Critical error in permission check:', {
-        permission,
-        error: error?.message || 'Unknown error',
-        currentUserId: currentUser?.id || 'null',
-        authUserId: authUser?.id || 'null'
-      });
-      
-      // Fallback - if we have an auth user, allow access
-      if (authUser) {
-        console.log('🔧 Index: Fallback access granted due to error - auth user exists');
-        return true;
-      }
+    // If still loading, deny access to prevent premature rendering
+    if (authLoading || rbacLoading) {
       return false;
     }
-  }, [hasPermission, currentUser, authUser, rbacLoading, authLoading]);
 
-  // Show loading while auth is still loading
-  if (authLoading) {
-    console.log('📱 Index: Showing loading skeleton - Auth still loading');
+    // If no auth user, deny access
+    if (!authUser) {
+      return false;
+    }
+
+    // Admin bypass for known admin email
+    if (authUser.email === 'gb47@msn.com') {
+      return true;
+    }
+
+    // If RBAC user exists, use permission system
+    if (currentUser && hasPermission) {
+      return hasPermission(permission);
+    }
+
+    // Default deny if no proper context
+    return false;
+  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
+
+  // Show loading while auth or RBAC is loading
+  if (authLoading || rbacLoading) {
+    console.log('📱 Index: Showing loading - Auth or RBAC loading');
     return <PageLoadingSkeleton />;
   }
 
@@ -163,7 +100,7 @@ const Index = () => {
     return <AccessDenied />;
   }
 
-  console.log('📱 Index: Rendering main application layout with auth user:', authUser.email);
+  console.log('📱 Index: Rendering main application');
 
   return (
     <>

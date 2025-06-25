@@ -1,24 +1,14 @@
 
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useRBAC } from '@/contexts/RBACContext';
 import AuthUsers from '@/components/AuthUsers';
-import { roleIdHasPermission } from '@/utils/rolePermissions';
 
 const AuthUsersPage = () => {
   const { user: authUser } = useAuth();
+  const { currentUser, hasPermission } = useRBAC();
   
-  // Check if user has auth users permissions
-  const userRoleId = authUser?.user_metadata?.role_id || 0;
-  const isKnownAdmin = authUser?.email === 'gb47@msn.com';
-  const hasAuthUsersPermission = roleIdHasPermission(userRoleId, 'auth-users:read') || isKnownAdmin;
-
-  console.log('🔍 AuthUsersPage permissions check:', {
-    email: authUser?.email,
-    userRoleId,
-    isKnownAdmin,
-    hasAuthUsersPermission,
-    metadata: authUser?.user_metadata
-  });
+  console.log('🔍 AuthUsersPage rendering for user:', authUser?.email);
 
   if (!authUser) {
     return (
@@ -29,6 +19,10 @@ const AuthUsersPage = () => {
     );
   }
 
+  // Simple permission check - admin email or proper permission
+  const isKnownAdmin = authUser.email === 'gb47@msn.com';
+  const hasAuthUsersPermission = isKnownAdmin || (hasPermission && hasPermission('users:read'));
+
   if (!hasAuthUsersPermission) {
     return (
       <div className="text-center py-8">
@@ -37,7 +31,7 @@ const AuthUsersPage = () => {
           Cette fonctionnalité nécessite des permissions d'administrateur.
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          Rôle actuel: {userRoleId === 1 ? 'Administrateur' : userRoleId === 2 ? 'Superviseur' : 'Employé'}
+          Rôle actuel: {currentUser?.role_id === 1 ? 'Administrateur' : currentUser?.role_id === 2 ? 'Superviseur' : 'Employé'}
         </p>
       </div>
     );

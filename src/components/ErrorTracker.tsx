@@ -11,6 +11,7 @@ const ErrorTracker = () => {
     // Store original console methods safely
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
+    const originalConsoleLog = console.log;
     const errors: ConsoleError[] = [];
 
     // Enhanced error filtering and categorization
@@ -28,20 +29,25 @@ const ErrorTracker = () => {
              message.includes('useContext') ||
              message.includes('Cannot read properties of null') ||
              message.includes('Cannot read property') ||
-             message.includes('hook');
+             message.includes('hook') ||
+             message.includes('rendered more hooks') ||
+             message.includes('Hook called conditionally');
     };
 
     const isPermissionError = (message: string) => {
       return message.includes('permission') ||
              message.includes('RBAC') ||
-             message.includes('hasPermission');
+             message.includes('hasPermission') ||
+             message.includes('role') ||
+             message.includes('unauthorized');
     };
 
     const isTypeError = (message: string) => {
       return message.includes('Property') && message.includes('does not exist') ||
              message.includes('is not a function') ||
              message.includes('undefined is not') ||
-             message.includes('null is not');
+             message.includes('null is not') ||
+             message.includes('TypeError');
     };
 
     const isBrowserExtensionError = (message: string) => {
@@ -56,16 +62,25 @@ const ErrorTracker = () => {
       return message.includes('fetch') ||
              message.includes('network') ||
              message.includes('cors') ||
-             message.includes('Failed to load');
+             message.includes('Failed to load') ||
+             message.includes('500') ||
+             message.includes('404');
     };
 
-    // Safely override console.error
+    const isSupabaseError = (message: string) => {
+      return message.includes('supabase') ||
+             message.includes('auth') ||
+             message.includes('RLS') ||
+             message.includes('database');
+    };
+
+    // Enhanced console.error override
     console.error = (...args) => {
       try {
         const message = args.map(arg => {
           if (typeof arg === 'object' && arg !== null) {
             try {
-              return JSON.stringify(arg);
+              return JSON.stringify(arg, null, 2);
             } catch {
               return String(arg);
             }
@@ -76,54 +91,71 @@ const ErrorTracker = () => {
         // Always call original console.error first
         originalConsoleError.apply(console, args);
         
-        // Filter out browser extension errors as they're not our concern
+        // Filter out browser extension errors
         if (isBrowserExtensionError(message)) {
           console.log('🔇 Filtered browser extension error:', message.substring(0, 100));
           return;
         }
         
         // Categorize and store error
-        const errorType = isContextError(message) ? 'context' : 
-                         isReactHookError(message) ? 'react-hook' : 
-                         isPermissionError(message) ? 'permission' :
-                         isTypeError(message) ? 'type-error' : 
-                         isNetworkError(message) ? 'network' : 'general';
+        const errorType = isContextError(message) ? 'CONTEXT' : 
+                         isReactHookError(message) ? 'REACT-HOOK' : 
+                         isPermissionError(message) ? 'PERMISSION' :
+                         isTypeError(message) ? 'TYPE-ERROR' : 
+                         isNetworkError(message) ? 'NETWORK' :
+                         isSupabaseError(message) ? 'SUPABASE' : 'GENERAL';
         
         errors.push({
-          message: `[${errorType.toUpperCase()}] ${message}`,
+          message: `[${errorType}] ${message}`,
           source: 'error',
           timestamp: Date.now()
         });
         
-        // Log summary for critical errors
+        // Enhanced logging for critical errors
         if (isContextError(message) || isReactHookError(message) || isPermissionError(message) || isTypeError(message)) {
-          console.log('🚨 CRITICAL ERROR DETECTED:', {
+          console.log('🚨 CRITICAL APPLICATION ERROR:', {
             type: errorType,
-            message: message.substring(0, 100),
+            message: message.substring(0, 200),
             timestamp: new Date().toISOString(),
-            stackTrace: new Error().stack?.split('\n').slice(1, 4).join('\n')
+            component: message.includes('Component') ? message.match(/Component:\s*(\w+)/)?.[1] : 'Unknown',
+            stackTrace: new Error().stack?.split('\n').slice(1, 5).join('\n')
           });
+          
+          // Add debugging info for specific error types
+          if (isContextError(message)) {
+            console.log('🔍 Context Debug Info:', {
+              availableContexts: ['RBACContext', 'LanguageContext', 'AuthContext', 'TripContext'],
+              checkProviderHierarchy: 'Ensure component is wrapped in provider'
+            });
+          }
+          
+          if (isPermissionError(message)) {
+            console.log('🔍 Permission Debug Info:', {
+              currentUser: 'Check if user is loaded',
+              hasPermissionFunction: 'Verify function exists and works',
+              roleData: 'Check if roles are loaded from database'
+            });
+          }
         }
         
         // Keep only recent errors
-        if (errors.length > 15) {
-          errors.splice(0, errors.length - 15);
+        if (errors.length > 20) {
+          errors.splice(0, errors.length - 20);
         }
         
       } catch (trackingError) {
-        // Fallback to original console if tracking fails
         originalConsoleError.apply(console, args);
-        originalConsoleError('ErrorTracker failed:', trackingError);
+        originalConsoleError('🚨 ErrorTracker failed:', trackingError);
       }
     };
 
-    // Safely override console.warn
+    // Enhanced console.warn override
     console.warn = (...args) => {
       try {
         const message = args.map(arg => {
           if (typeof arg === 'object' && arg !== null) {
             try {
-              return JSON.stringify(arg);
+              return JSON.stringify(arg, null, 2);
             } catch {
               return String(arg);
             }
@@ -139,55 +171,77 @@ const ErrorTracker = () => {
           return;
         }
         
-        // Filter out known non-critical warnings but include context warnings
+        // Filter out known non-critical warnings but include important ones
         if (!message.includes('React Router') && 
             !message.includes('deprecated') && 
             !message.includes('Warning: ReactDOM.render') &&
             !message.includes('DevTools') &&
             !message.includes('defaultProps')) {
           
-          const errorType = isContextError(message) ? 'context-warn' : 
-                           isPermissionError(message) ? 'permission-warn' :
-                           isTypeError(message) ? 'type-warn' : 'warning';
+          const errorType = isContextError(message) ? 'CONTEXT-WARN' : 
+                           isPermissionError(message) ? 'PERMISSION-WARN' :
+                           isTypeError(message) ? 'TYPE-WARN' : 
+                           isSupabaseError(message) ? 'SUPABASE-WARN' : 'WARNING';
           
           errors.push({
-            message: `[${errorType.toUpperCase()}] ${message}`,
+            message: `[${errorType}] ${message}`,
             source: 'warning',
             timestamp: Date.now()
           });
 
-          // Log context warnings as they're important
-          if (isContextError(message) || isPermissionError(message)) {
+          // Log important warnings
+          if (isContextError(message) || isPermissionError(message) || isSupabaseError(message)) {
             console.log('⚠️ IMPORTANT WARNING:', {
               type: errorType,
-              message: message.substring(0, 100),
+              message: message.substring(0, 200),
               timestamp: new Date().toISOString()
             });
           }
         }
         
       } catch (trackingError) {
-        // Fallback to original console if tracking fails
         originalConsoleWarn.apply(console, args);
-        originalConsoleError('ErrorTracker warn failed:', trackingError);
+        originalConsoleError('⚠️ ErrorTracker warn failed:', trackingError);
       }
     };
 
-    // Add global error handler for unhandled errors
+    // Enhanced console.log override for debugging
+    console.log = (...args) => {
+      try {
+        // Always call original first
+        originalConsoleLog.apply(console, args);
+        
+        // Track application flow for debugging
+        const message = args.join(' ');
+        if (message.includes('🚨') || message.includes('❌') || message.includes('⚠️')) {
+          console.log('📊 Debug Info:', {
+            timestamp: new Date().toISOString(),
+            location: window.location.pathname,
+            userAgent: navigator.userAgent.substring(0, 100)
+          });
+        }
+        
+      } catch (trackingError) {
+        originalConsoleLog.apply(console, args);
+      }
+    };
+
+    // Global error handlers
     const handleGlobalError = (event: ErrorEvent) => {
       try {
-        // Filter out browser extension errors
         if (event.filename?.includes('chrome-extension://') || 
             event.message?.includes('chrome-extension://')) {
           return;
         }
         
-        console.error('🚨 UNHANDLED ERROR:', {
+        console.error('🚨 UNHANDLED GLOBAL ERROR:', {
           message: event.message,
           filename: event.filename,
           lineno: event.lineno,
           colno: event.colno,
-          stack: event.error?.stack
+          stack: event.error?.stack?.substring(0, 500),
+          timestamp: new Date().toISOString(),
+          url: window.location.href
         });
       } catch (error) {
         originalConsoleError('🚨 UNHANDLED ERROR (fallback):', event);
@@ -196,7 +250,6 @@ const ErrorTracker = () => {
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       try {
-        // Filter out browser extension promise rejections
         if (event.reason?.message?.includes('chrome-extension://') ||
             event.reason?.stack?.includes('chrome-extension://')) {
           return;
@@ -204,22 +257,34 @@ const ErrorTracker = () => {
         
         console.error('🚨 UNHANDLED PROMISE REJECTION:', {
           reason: event.reason,
-          stack: event.reason?.stack
+          stack: event.reason?.stack?.substring(0, 500),
+          timestamp: new Date().toISOString(),
+          url: window.location.href
         });
       } catch (error) {
         originalConsoleError('🚨 UNHANDLED PROMISE REJECTION (fallback):', event);
       }
     };
 
+    // Add global listeners
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
 
-    // Cleanup function to restore original console methods
+    // Log initialization
+    console.log('✅ Enhanced ErrorTracker initialized:', {
+      timestamp: new Date().toISOString(),
+      location: window.location.pathname,
+      features: ['Context errors', 'Permission errors', 'Type errors', 'Network errors', 'Supabase errors']
+    });
+
+    // Cleanup function
     return () => {
       console.error = originalConsoleError;
       console.warn = originalConsoleWarn;
+      console.log = originalConsoleLog;
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+      console.log('🧹 ErrorTracker cleaned up');
     };
   }, []);
 

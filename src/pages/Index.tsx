@@ -46,62 +46,131 @@ const AccessDenied = () => (
 );
 
 const Index = () => {
-  console.log('📱 Index: Rendering main app...');
+  console.log('📱 Index: Starting render process...');
   console.log('📱 Index: Current URL:', window.location.pathname);
+  console.log('📱 Index: Timestamp:', new Date().toISOString());
   
   const isMobile = useIsMobile();
   
-  // Safely access RBAC context with comprehensive error handling
-  const rbacContext = useRBAC();
+  // Enhanced RBAC context access with comprehensive error handling
+  let rbacContext;
+  let hasPermission = () => false;
+  let currentUser = null;
+  let loading = true;
   
-  // Extract context values with safe defaults
-  const hasPermission = React.useMemo(() => {
-    if (!rbacContext || typeof rbacContext.hasPermission !== 'function') {
-      console.warn('⚠️ hasPermission not available, using fallback');
-      return () => false;
+  try {
+    rbacContext = useRBAC();
+    console.log('📱 Index: RBAC context accessed successfully');
+    
+    if (rbacContext && typeof rbacContext === 'object') {
+      // Safely extract values with validation
+      hasPermission = typeof rbacContext.hasPermission === 'function' 
+        ? rbacContext.hasPermission 
+        : () => {
+            console.warn('📱 Index: hasPermission not a function, using fallback');
+            return false;
+          };
+      
+      currentUser = rbacContext.currentUser || null;
+      loading = typeof rbacContext.loading === 'boolean' ? rbacContext.loading : true;
+      
+      console.log('📱 Index: RBAC context values extracted:', {
+        hasPermissionType: typeof hasPermission,
+        currentUserId: currentUser?.id || 'null',
+        currentUserRoleId: currentUser?.role_id || 'null',
+        loading: loading
+      });
+    } else {
+      console.error('❌ Index: RBAC context is invalid:', typeof rbacContext);
     }
-    return rbacContext.hasPermission;
-  }, [rbacContext]);
+  } catch (error) {
+    console.error('❌ Index: Critical error accessing RBAC context:', error);
+    console.error('❌ Index: Error details:', {
+      message: error?.message || 'Unknown error',
+      stack: error?.stack?.substring(0, 300) || 'No stack trace',
+      timestamp: new Date().toISOString()
+    });
+  }
 
-  const currentUser = rbacContext?.currentUser || null;
-  const loading = rbacContext?.loading ?? true;
-
-  console.log('📱 Index: Context state:', {
+  console.log('📱 Index: Final context state:', {
     isMobile,
     currentUserId: currentUser?.id || 'null',
     currentUserRoleId: currentUser?.role_id || 'null',
     loading,
-    hasPermissionType: typeof hasPermission,
+    hasPermissionAvailable: typeof hasPermission === 'function',
     rbacContextAvailable: !!rbacContext
   });
 
   // Show loading while RBAC is initializing
   if (loading) {
-    console.log('📱 Index: Showing loading skeleton');
+    console.log('📱 Index: Showing loading skeleton - RBAC still loading');
     return <PageLoadingSkeleton />;
   }
 
-  // Safe permission check wrapper with comprehensive error handling
+  // Enhanced permission check wrapper with detailed logging
   const checkPermission = React.useCallback((permission: string): boolean => {
+    console.log('🔐 Index: Permission check requested:', permission);
+    
     try {
-      if (!permission || typeof permission !== 'string') {
-        console.warn('📱 Index: Invalid permission parameter:', permission);
+      // Validate permission parameter
+      if (!permission || typeof permission !== 'string' || permission.trim() === '') {
+        console.warn('🔐 Index: Invalid permission parameter:', {
+          permission,
+          type: typeof permission,
+          length: permission?.length || 0
+        });
         return false;
       }
 
+      // Validate hasPermission function
       if (typeof hasPermission !== 'function') {
-        console.warn('📱 Index: hasPermission is not a function:', typeof hasPermission);
+        console.error('🔐 Index: hasPermission is not a function:', {
+          type: typeof hasPermission,
+          value: hasPermission
+        });
         return false;
       }
 
+      // Check for current user
+      if (!currentUser || !currentUser.id) {
+        console.log('🔐 Index: No current user for permission check:', {
+          currentUser: currentUser ? 'exists but no id' : 'null',
+          permission
+        });
+        return false;
+      }
+
+      // Execute permission check
       const result = hasPermission(permission);
-      console.log('📱 Index: Permission check:', permission, '=', result);
-      return Boolean(result);
+      const booleanResult = Boolean(result);
+      
+      console.log('🔐 Index: Permission check result:', {
+        permission,
+        userId: currentUser.id,
+        userRoleId: currentUser.role_id,
+        result: booleanResult,
+        rawResult: result
+      });
+      
+      return booleanResult;
+      
     } catch (error) {
-      console.error('📱 Index: Error checking permission:', permission, error);
+      console.error('❌ Index: Critical error in permission check:', {
+        permission,
+        error: error?.message || 'Unknown error',
+        stack: error?.stack?.substring(0, 200) || 'No stack trace',
+        currentUserId: currentUser?.id || 'null',
+        timestamp: new Date().toISOString()
+      });
+      
+      // Fallback for administrators in case of errors
+      if (currentUser?.role_id === 1 || currentUser?.id === 'admin-temp') {
+        console.log('🔧 Index: Fallback admin access granted due to error');
+        return true;
+      }
       return false;
     }
-  }, [hasPermission]);
+  }, [hasPermission, currentUser]);
 
   console.log('📱 Index: Rendering main application layout');
 

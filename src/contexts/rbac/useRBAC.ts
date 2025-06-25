@@ -8,13 +8,18 @@ export const useRBAC = () => {
   
   try {
     context = useContext(RBACContext);
+    console.log('🔐 useRBAC: Context accessed successfully');
   } catch (error) {
-    console.error('❌ CRITICAL: Error accessing RBACContext:', error);
+    console.error('❌ useRBAC: Critical error accessing RBACContext:', {
+      error: error?.message || 'Unknown error',
+      stack: error?.stack?.substring(0, 200) || 'No stack trace',
+      timestamp: new Date().toISOString()
+    });
     context = null;
   }
   
   if (!context) {
-    console.error('❌ CRITICAL: useRBAC must be used within a RBACProvider');
+    console.error('❌ useRBAC: Context not available, returning safe fallback');
     // Return a safe fallback instead of throwing to prevent app crashes
     return {
       currentUser: null,
@@ -23,69 +28,155 @@ export const useRBAC = () => {
       permissions: [],
       loading: true,
       hasPermission: (permission: string) => {
-        console.warn('🚫 hasPermission called outside RBACProvider context:', permission);
+        console.warn('🚫 useRBAC: hasPermission called outside RBACProvider context:', permission);
         return false;
       },
-      getUserRole: () => null,
-      canUserPerformAction: () => false,
-      addUser: async () => ({ success: false, error: 'Context not available' }),
-      updateUser: async () => ({ success: false, error: 'Context not available' }),
-      deleteUser: async () => ({ success: false, error: 'Context not available' }),
-      changeUserPassword: async () => ({ success: false, error: 'Context not available' }),
-      addRole: async () => ({ success: false, error: 'Context not available' }),
-      updateRole: async () => ({ success: false, error: 'Context not available' }),
-      deleteRole: async () => ({ success: false, error: 'Context not available' }),
-      setUser: () => {},
+      getUserRole: () => {
+        console.warn('🚫 useRBAC: getUserRole called outside RBACProvider context');
+        return null;
+      },
+      canUserPerformAction: () => {
+        console.warn('🚫 useRBAC: canUserPerformAction called outside RBACProvider context');
+        return false;
+      },
+      addUser: async () => {
+        console.warn('🚫 useRBAC: addUser called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      updateUser: async () => {
+        console.warn('🚫 useRBAC: updateUser called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      deleteUser: async () => {
+        console.warn('🚫 useRBAC: deleteUser called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      changeUserPassword: async () => {
+        console.warn('🚫 useRBAC: changeUserPassword called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      addRole: async () => {
+        console.warn('🚫 useRBAC: addRole called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      updateRole: async () => {
+        console.warn('🚫 useRBAC: updateRole called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      deleteRole: async () => {
+        console.warn('🚫 useRBAC: deleteRole called outside RBACProvider context');
+        return { success: false, error: 'Context not available' };
+      },
+      setUser: () => {
+        console.warn('🚫 useRBAC: setUser called outside RBACProvider context');
+      },
     };
   }
 
-  const { currentUser, users, roles, permissions, loading } = context;
+  // Safely extract context values with validation
+  let currentUser, users, roles, permissions, loading;
+  
+  try {
+    currentUser = context.currentUser || null;
+    users = Array.isArray(context.users) ? context.users : [];
+    roles = Array.isArray(context.roles) ? context.roles : [];
+    permissions = Array.isArray(context.permissions) ? context.permissions : [];
+    loading = typeof context.loading === 'boolean' ? context.loading : true;
+    
+    console.log('🔐 useRBAC: Context values extracted:', {
+      currentUserId: currentUser?.id || 'null',
+      currentUserRoleId: currentUser?.role_id || 'null',
+      usersCount: users.length,
+      rolesCount: roles.length,
+      permissionsCount: permissions.length,
+      loading: loading
+    });
+  } catch (error) {
+    console.error('❌ useRBAC: Error extracting context values:', {
+      error: error?.message || 'Unknown error',
+      contextKeys: context ? Object.keys(context) : 'no context'
+    });
+    
+    // Fallback values
+    currentUser = null;
+    users = [];
+    roles = [];
+    permissions = [];
+    loading = true;
+  }
   
   const hasPermission = (permission: string): boolean => {
     try {
-      console.log('🔐 RBAC hasPermission called with:', permission);
-      console.log('🔐 Current user:', currentUser?.id, 'role_id:', currentUser?.role_id);
-      console.log('🔐 Loading state:', loading);
-      console.log('🔐 Roles available:', roles?.length || 0);
+      console.log('🔐 useRBAC: hasPermission called:', {
+        permission,
+        currentUserId: currentUser?.id || 'null',
+        currentUserRoleId: currentUser?.role_id || 'null',
+        loading: loading,
+        rolesCount: roles.length
+      });
 
-      // Safety check for permission parameter
-      if (!permission || typeof permission !== 'string') {
-        console.warn('🚫 Invalid permission parameter:', permission);
+      // Validate permission parameter
+      if (!permission || typeof permission !== 'string' || permission.trim() === '') {
+        console.warn('🚫 useRBAC: Invalid permission parameter:', {
+          permission,
+          type: typeof permission
+        });
         return false;
       }
 
-      // Safety check for current user
+      // Check for current user
       if (!currentUser || !currentUser.id) {
-        console.log('🚫 No current user for permission check:', permission);
+        console.log('🚫 useRBAC: No current user for permission check:', {
+          currentUser: currentUser ? 'exists but no id' : 'null',
+          permission
+        });
         return false;
       }
 
       // Special handling for admin users - always grant access
       if (currentUser.id === 'admin-temp' || currentUser.role_id === 1) {
-        console.log('🔓 Admin user detected - granting all permissions:', permission);
+        console.log('🔓 useRBAC: Admin user detected - granting permission:', {
+          permission,
+          userId: currentUser.id,
+          roleId: currentUser.role_id
+        });
         return true;
       }
 
-      // Safety check for roles array
+      // Check if roles are loaded
       if (!Array.isArray(roles) || roles.length === 0) {
-        console.log('⚠️ Roles not loaded or invalid, denying permission for non-admin:', permission);
+        console.log('⚠️ useRBAC: Roles not loaded, denying permission for non-admin:', {
+          permission,
+          rolesType: typeof roles,
+          rolesLength: Array.isArray(roles) ? roles.length : 'not array',
+          userId: currentUser.id
+        });
         return false;
       }
 
-      // If we have roles loaded from database, use the permission system
+      // Use permission system with enhanced logging
       const result = checkPermission(String(currentUser.id), permission);
-      console.log(`🔐 Database permission check result: ${permission} = ${result} for user ${currentUser.id}`);
+      console.log('🔐 useRBAC: Permission check result:', {
+        permission,
+        userId: currentUser.id,
+        result: result,
+        timestamp: new Date().toISOString()
+      });
+      
       return result;
 
     } catch (error) {
-      console.error('❌ CRITICAL ERROR in permission check:', error);
-      console.error('❌ Permission:', permission);
-      console.error('❌ Current user:', currentUser);
-      console.error('❌ Roles:', roles);
+      console.error('❌ useRBAC: Critical error in permission check:', {
+        permission,
+        error: error?.message || 'Unknown error',
+        stack: error?.stack?.substring(0, 300) || 'No stack trace',
+        currentUserId: currentUser?.id || 'null',
+        timestamp: new Date().toISOString()
+      });
       
       // Fallback for administrators in case of errors
       if (currentUser?.role_id === 1 || currentUser?.id === 'admin-temp') {
-        console.log('🔧 Fallback: granting admin access due to error');
+        console.log('🔧 useRBAC: Fallback admin access granted due to error');
         return true;
       }
       return false;
@@ -94,44 +185,78 @@ export const useRBAC = () => {
 
   const getUserRole = (userId: string) => {
     try {
+      console.log('🔐 useRBAC: getUserRole called:', userId);
+      
       if (!currentUser || currentUser.id !== userId) {
+        console.log('🔐 useRBAC: User ID mismatch for getUserRole:', {
+          requestedUserId: userId,
+          currentUserId: currentUser?.id || 'null'
+        });
         return null;
       }
       
       if (!Array.isArray(roles)) {
-        console.warn('🔧 Roles array not available for getUserRole');
+        console.warn('🔧 useRBAC: Roles array not available:', typeof roles);
         return null;
       }
       
       // Find role by role_id
       const role = roles.find(r => parseInt(r.id) === currentUser.role_id);
+      console.log('🔐 useRBAC: getUserRole result:', {
+        userId,
+        roleId: currentUser.role_id,
+        roleFound: !!role,
+        roleName: role?.name || 'not found'
+      });
+      
       return role || null;
     } catch (error) {
-      console.error('🔧 Error in getUserRole:', error);
+      console.error('🔧 useRBAC: Error in getUserRole:', {
+        error: error?.message || 'Unknown error',
+        userId,
+        currentUserId: currentUser?.id || 'null'
+      });
       return null;
     }
   };
 
   const canUserPerformAction = (userId: string, action: string): boolean => {
     try {
+      console.log('🔐 useRBAC: canUserPerformAction called:', { userId, action });
+      
       const userRole = getUserRole(userId);
       if (!userRole) {
+        console.log('🔐 useRBAC: No role found for canUserPerformAction');
         return false;
       }
       
-      return Array.isArray(userRole.permissions) && userRole.permissions.includes(action);
+      const hasAction = Array.isArray(userRole.permissions) && userRole.permissions.includes(action);
+      console.log('🔐 useRBAC: canUserPerformAction result:', {
+        userId,
+        action,
+        hasAction,
+        permissions: userRole.permissions || []
+      });
+      
+      return hasAction;
     } catch (error) {
-      console.error('🔧 Error in canUserPerformAction:', error);
+      console.error('🔧 useRBAC: Error in canUserPerformAction:', {
+        error: error?.message || 'Unknown error',
+        userId,
+        action
+      });
       return false;
     }
   };
 
+  console.log('🔐 useRBAC: Returning enhanced context with logging');
+
   return {
     currentUser,
-    users: Array.isArray(users) ? users : [],
-    roles: Array.isArray(roles) ? roles : [],
-    permissions: Array.isArray(permissions) ? permissions : [],
-    loading: Boolean(loading),
+    users,
+    roles,
+    permissions,
+    loading,
     hasPermission,
     getUserRole,
     canUserPerformAction,

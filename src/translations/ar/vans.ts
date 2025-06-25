@@ -1,4 +1,5 @@
 
+
 export const vans = {
   // Van Management
   addNewVan: 'إضافة شاحنة جديدة',
@@ -35,3 +36,4 @@ export const vans = {
     inactive: 'غير نشط',
   },
 };
+

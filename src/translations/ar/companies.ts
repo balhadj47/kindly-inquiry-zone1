@@ -1,4 +1,5 @@
 
+
 export const companies = {
   // Company Management
   addNewCompany: 'إضافة شركة جديدة',
@@ -31,3 +32,4 @@ export const companies = {
   branchPhone: 'هاتف الفرع',
   noBranchesFound: 'لم يتم العثور على فروع',
 };
+

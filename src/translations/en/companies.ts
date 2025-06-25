@@ -1,4 +1,5 @@
 
+
 export const companies = {
   // Company Management
   addNewCompany: 'Add New Company',
@@ -31,3 +32,4 @@ export const companies = {
   branchPhone: 'Branch Phone',
   noBranchesFound: 'No branches found',
 };
+

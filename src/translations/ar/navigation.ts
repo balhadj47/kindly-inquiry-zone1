@@ -1,4 +1,5 @@
 
+
 export const navigation = {
   // Navigation
   dashboard: 'لوحة التحكم',
@@ -21,3 +22,4 @@ export const navigation = {
   dashboardFull: 'لوحة التحكم',
   logTripFull: 'تسجيل المهمة',
 };
+

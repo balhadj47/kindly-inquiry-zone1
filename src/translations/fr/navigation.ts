@@ -1,4 +1,5 @@
 
+
 export const navigation = {
   // Navigation
   dashboard: 'Tableau de Bord',
@@ -21,3 +22,4 @@ export const navigation = {
   dashboardFull: 'Tableau de Bord',
   logTripFull: 'Logger Mission',
 };
+

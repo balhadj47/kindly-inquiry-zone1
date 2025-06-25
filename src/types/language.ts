@@ -1,3 +1,4 @@
+
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 
 export interface TranslationKeys {
@@ -6,6 +7,8 @@ export interface TranslationKeys {
   companies: string;
   vansDrivers: string;
   users: string;
+  employees: string;
+  comptes: string;
   logTrip: string;
   tripHistory: string;
   settings: string;
@@ -65,6 +68,7 @@ export interface TranslationKeys {
   enterAddress: string;
   enterPhone: string;
   enterEmail: string;
+  manageCompaniesAndBranches: string;
   
   // Branch Management
   addNewBranch: string;
@@ -75,6 +79,38 @@ export interface TranslationKeys {
   updateBranch: string;
   createBranch: string;
   addFirstBranch: string;
+  
+  // Van Management
+  addNewVan: string;
+  editVan: string;
+  plateNumber: string;
+  carNumberPlate: string;
+  vanModel: string;
+  status: string;
+  insuranceDate: string;
+  controlDate: string;
+  insurer: string;
+  pickInsuranceDate: string;
+  pickControlDate: string;
+  additionalNotes: string;
+  createVan: string;
+  updateVan: string;
+  vansManagement: string;
+  manageYourFleet: string;
+  noVansFound: string;
+  tryAdjustingSearch: string;
+  startByAddingFirstVan: string;
+  addYourFirstVan: string;
+  tryAdjustingFiltersOrSearch: string;
+  vansLabel: string;
+  addNewVanTooltip: string;
+  
+  vanStatuses: {
+    active: string;
+    inTransit: string;
+    maintenance: string;
+    inactive: string;
+  };
   
   // Trip Logger
   tripLogger: string;
@@ -132,7 +168,6 @@ export interface TranslationKeys {
   searchByNameEmailLicense: string;
   noUsersFound: string;
   tryAdjustingFilters: string;
-  tryAdjustingSearch: string;
   clearAllFilters: string;
   viewHistory: string;
   totalTripsLabel: string;
@@ -149,28 +184,6 @@ export interface TranslationKeys {
   createFirstGroup: string;
   isDefaultGroup: string;
   cannotDelete: string;
-
-  // Van Management
-  addNewVan: string;
-  editVan: string;
-  plateNumber: string;
-  carNumberPlate: string;
-  vanModel: string;
-  status: string;
-  insuranceDate: string;
-  controlDate: string;
-  insurer: string;
-  pickInsuranceDate: string;
-  pickControlDate: string;
-  additionalNotes: string;
-  createVan: string;
-  updateVan: string;
-  vanStatuses: {
-    active: string;
-    inTransit: string;
-    maintenance: string;
-    inactive: string;
-  };
   
   // Common placeholders and labels
   required: string;

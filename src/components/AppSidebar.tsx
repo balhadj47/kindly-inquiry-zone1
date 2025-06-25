@@ -28,18 +28,18 @@ const AppSidebar = () => {
     <Sidebar 
       variant="sidebar" 
       collapsible="icon" 
-      className="border-r border-gray-200 transition-all duration-300 ease-in-out"
+      className="border-r border-gray-200"
     >
-      <SidebarHeader className="transition-all duration-300 ease-in-out">
+      <SidebarHeader>
         <SidebarHeaderComponent />
       </SidebarHeader>
       
-      <SidebarContent className="py-2 transition-all duration-300 ease-in-out">
+      <SidebarContent className="py-2">
         <SidebarMenuContent />
       </SidebarContent>
       
-      <SidebarFooter className="transition-all duration-300 ease-in-out">
-        <div className="p-3 text-xs text-gray-500 text-center group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:scale-95 transition-all duration-300 ease-in-out overflow-hidden">
+      <SidebarFooter>
+        <div className="p-3 text-xs text-gray-500 text-center group-data-[collapsible=icon]:hidden">
           Fleet Management v1.0
         </div>
       </SidebarFooter>

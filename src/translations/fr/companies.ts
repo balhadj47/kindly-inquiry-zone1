@@ -35,4 +35,10 @@ export const companies = {
   branchAddress: 'Adresse de la Succursale',
   branchPhone: 'Téléphone de la Succursale',
   noBranchesFound: 'Aucune succursale trouvée',
+  
+  // Additional missing keys that might be needed
+  totalBranches: 'Total des Succursales',
+  branchType: 'Type de Succursale',
+  companyDetails: 'Détails de l\'Entreprise',
+  branchDetails: 'Détails de la Succursale',
 };

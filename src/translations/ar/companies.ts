@@ -4,7 +4,7 @@ export const companies = {
   addNewCompany: 'إضافة شركة جديدة',
   editCompany: 'تعديل الشركة',
   companies: 'الشركات',
-  manageCompaniesAndBranches: 'إدارة شركاتك وفروعها',
+  manageCompaniesAndBranches: 'إدارة الشركات والفروع',
   companyName: 'اسم الشركة',
   companyAddress: 'عنوان الشركة',
   companyPhone: 'هاتف الشركة',
@@ -12,7 +12,7 @@ export const companies = {
   status: 'الحالة',
   createCompany: 'إنشاء شركة',
   updateCompany: 'تحديث الشركة',
-  companyNotFound: 'الشركة غير موجودة',
+  companyNotFound: 'لم يتم العثور على الشركة',
   noCompaniesFound: 'لم يتم العثور على شركات',
   addYourFirstCompany: 'أضف شركتك الأولى',
   companyAdded: 'تم إضافة الشركة بنجاح',
@@ -35,4 +35,10 @@ export const companies = {
   branchAddress: 'عنوان الفرع',
   branchPhone: 'هاتف الفرع',
   noBranchesFound: 'لم يتم العثور على فروع',
+  
+  // Additional missing keys that might be needed
+  totalBranches: 'إجمالي الفروع',
+  branchType: 'نوع الفرع',
+  companyDetails: 'تفاصيل الشركة',
+  branchDetails: 'تفاصيل الفرع',
 };

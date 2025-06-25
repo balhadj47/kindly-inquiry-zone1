@@ -9,4 +9,6 @@ export const dashboard = {
   tripsByMonth: 'الرحلات حسب الشهر',
   vanUtilization: 'استخدام الشاحنات',
   driverPerformance: 'أداء السائقين',
+  thisWeekTrips: 'رحلات هذا الأسبوع',
+  companiesVisited: 'الشركات المزارة',
 };

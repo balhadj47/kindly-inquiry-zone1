@@ -1,39 +1,25 @@
 
-
 export const vans = {
-  // Van Management
+  // Vans specific
   addNewVan: 'Ajouter Nouvelle Camionnette',
   editVan: 'Modifier Camionnette',
   plateNumber: 'Numéro de Plaque',
   carNumberPlate: 'Plaque d\'Immatriculation',
   vanModel: 'Modèle de Camionnette',
-  status: 'Statut',
   insuranceDate: 'Date d\'Assurance',
   controlDate: 'Date de Contrôle',
   insurer: 'Assureur',
-  pickInsuranceDate: 'Sélectionner date d\'assurance',
-  pickControlDate: 'Sélectionner date de contrôle',
-  additionalNotes: 'Notes supplémentaires sur la camionnette...',
-  createVan: 'Créer Camionnette',
-  updateVan: 'Mettre à Jour Camionnette',
-  vanNotFound: 'Camionnette non trouvée',
-  
-  // Van Management Page
-  vansManagement: 'Gestion des Camionnettes',
-  manageYourFleet: 'Gérez votre flotte de véhicules',
-  noVansFound: 'Aucune camionnette trouvée',
-  tryAdjustingSearch: 'Essayez d\'ajuster votre recherche',
-  startByAddingFirstVan: 'Commencez par ajouter votre première camionnette',
-  addYourFirstVan: 'Ajouter Votre Première Camionnette',
-  tryAdjustingFiltersOrSearch: 'Essayez d\'ajuster votre recherche ou vos filtres',
-  vansLabel: 'Camionnettes',
-  addNewVanTooltip: 'Ajouter Nouvelle Camionnette',
-  
-  vanStatuses: {
-    active: 'Actif',
-    inTransit: 'En Transit',
-    maintenance: 'Maintenance',
-    inactive: 'Inactif',
-  },
+  pickInsuranceDate: 'Choisir Date d\'Assurance',
+  pickControlDate: 'Choisir Date de Contrôle',
+  addNewDriver: 'Ajouter Nouveau Conducteur',
+  selectDriver: 'Sélectionner Conducteur',
+  noDrivers: 'Aucun Conducteur',
+  noDriversMessage: 'Aucun conducteur disponible',
+  selectADriver: 'Sélectionner un Conducteur',
+  searchDrivers: 'Rechercher Conducteurs',
+  driverName: 'Nom du Conducteur',
+  driverPhone: 'Téléphone du Conducteur',
+  driverLicense: 'Permis du Conducteur',
+  noResults: 'Aucun Résultat',
+  noResultsMessage: 'Aucun résultat trouvé',
 };
-

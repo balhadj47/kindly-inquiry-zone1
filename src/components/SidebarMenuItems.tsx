@@ -23,7 +23,6 @@ export const useSidebarMenuItems = () => {
     missions: 'Missions',
     companies: 'Companies',
     authUsers: 'Auth Users',
-    vansDrivers: 'Vans & Drivers',
     vans: 'Vans',
     employees: 'Employees'
   };
@@ -73,12 +72,6 @@ export const useSidebarMenuItems = () => {
     {
       title: t?.vans || 'Vans',
       href: '/vans',
-      icon: Truck,
-      permission: 'vans:read',
-    },
-    {
-      title: t?.vansDrivers || 'Vans & Drivers',
-      href: '/vans-drivers',
       icon: Truck,
       permission: 'vans:read',
     },

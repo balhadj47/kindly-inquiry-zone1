@@ -180,14 +180,14 @@ const VansOptimized = () => {
         <div className="flex items-center space-x-2 mt-4 lg:mt-0">
           <Button 
             onClick={handleRefresh} 
-            variant="outline" 
-            size="icon"
             disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
           </Button>
-          <Button onClick={handleAddVan} variant="outline" size="icon">
-            <Plus className="h-4 w-4" />
+          <Button onClick={handleAddVan}>
+            <Plus className="h-4 w-4 mr-2" />
+            Ajouter Camionnette
           </Button>
         </div>
       </div>

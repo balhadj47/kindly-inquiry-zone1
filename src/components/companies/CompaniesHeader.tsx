@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { PlusButton } from '@/components/ui/plus-button';
+import { Button } from '@/components/ui/button';
+import { Plus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -22,7 +23,10 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <PlusButton onClick={onAddCompany} />
+            <Button onClick={onAddCompany}>
+              <Plus className="h-4 w-4 mr-2" />
+              {t.addNewCompany}
+            </Button>
           </TooltipTrigger>
           <TooltipContent>
             <p>{t.addNewCompany}</p>

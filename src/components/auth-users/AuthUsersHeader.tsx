@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Shield } from 'lucide-react';
-import { PlusButton } from '@/components/ui/plus-button';
-import { RefreshButton } from '@/components/ui/refresh-button';
 
 interface AuthUsersHeaderProps {
   authUsersCount: number;
@@ -27,14 +25,6 @@ const AuthUsersHeader: React.FC<AuthUsersHeaderProps> = ({
             {authUsersCount} compte{authUsersCount !== 1 ? 's' : ''} d'authentification
           </p>
         </div>
-      </div>
-      <div className="flex items-center space-x-2">
-        {onAddUser && (
-          <PlusButton onClick={onAddUser} />
-        )}
-        {onRefresh && (
-          <RefreshButton onRefresh={onRefresh} />
-        )}
       </div>
     </div>
   );

@@ -6,13 +6,15 @@ import CompaniesEmptyState from './CompaniesEmptyState';
 import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
-import { RefreshButton } from '@/components/ui/refresh-button';
+import { Button } from '@/components/ui/button';
+import { RefreshCw } from 'lucide-react';
 import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
 const CompaniesIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 12;
   const { data: companies = [], refetch } = useAllCompaniesWithBranches();
   const { invalidateCompanies } = useCompanyMutations();
@@ -56,15 +58,25 @@ const CompaniesIndex = () => {
   };
 
   const handleRefresh = async () => {
-    await refetch();
-    invalidateCompanies();
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      invalidateCompanies();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <CompaniesHeader onAddCompany={handleAddCompany} />
-        <RefreshButton onRefresh={handleRefresh} />
+        <Button onClick={handleRefresh} disabled={isRefreshing}>
+          <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+          Actualiser
+        </Button>
       </div>
       
       <CompaniesSearch 

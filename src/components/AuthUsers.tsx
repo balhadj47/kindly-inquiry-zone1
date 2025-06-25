@@ -1,11 +1,9 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Plus, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Plus, ExternalLink, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { RefreshButton } from '@/components/ui/refresh-button';
 import { roleIdHasPermission } from '@/utils/rolePermissions';
 import { useAuthUsers, useAuthUserMutations } from '@/hooks/useAuthUsers';
 import AuthUsersHeader from './auth-users/AuthUsersHeader';
@@ -29,6 +27,7 @@ interface AuthUser {
 const AuthUsers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; user: AuthUser | null }>({
     isOpen: false,
     user: null
@@ -47,7 +46,14 @@ const AuthUsers = () => {
   const { deleteAuthUser, updateAuthUser, createAuthUser } = useAuthUserMutations();
 
   const handleRefresh = async () => {
-    await refetch();
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setTimeout(() => setIsRefreshing(false), 500);
+    }
   };
 
   const handleDeleteUser = async (userId: string) => {
@@ -172,11 +178,15 @@ const AuthUsers = () => {
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
           {canCreateAuthUsers && (
-            <Button onClick={handleAddUser} variant="outline" size="icon">
-              <Plus className="h-4 w-4" />
+            <Button onClick={handleAddUser}>
+              <Plus className="h-4 w-4 mr-2" />
+              Ajouter Utilisateur
             </Button>
           )}
-          <RefreshButton onRefresh={handleRefresh} />
+          <Button onClick={handleRefresh} disabled={isRefreshing}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
         </div>
       </div>
 

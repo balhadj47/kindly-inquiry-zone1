@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import VanStats from './VanStats';
@@ -176,7 +177,7 @@ const VansOptimized = () => {
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
         <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
-        <div className="flex items-center gap-2 mt-4 lg:mt-0">
+        <div className="flex items-center space-x-2 mt-4 lg:mt-0">
           <Button 
             onClick={handleRefresh} 
             variant="outline" 
@@ -185,9 +186,8 @@ const VansOptimized = () => {
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
-          <Button onClick={handleAddVan}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter Camionnette
+          <Button onClick={handleAddVan} variant="outline" size="icon">
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>

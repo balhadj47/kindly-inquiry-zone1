@@ -6,7 +6,6 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { Badge } from '@/components/ui/badge';
 import { useSidebarMenuItems } from './SidebarMenuItems';
 
 const SidebarMenuContent = React.memo(() => {
@@ -15,26 +14,15 @@ const SidebarMenuContent = React.memo(() => {
   
   console.log('🔍 SidebarMenuContent: Rendering with', menuItems.length, 'items for', location.pathname);
 
-  // Add badge counts for menu items based on real data
-  const menuItemsWithBadges = useMemo(() => {
+  // Add active state for menu items without badges
+  const menuItemsWithActiveState = useMemo(() => {
     return menuItems.map((item) => {
       const isActive = location.pathname === item.href || 
         (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
       
-      // Add realistic badge counts based on menu item
-      let badge = null;
-      if (item.href === '/trip-history') { // Missions page
-        badge = { count: 12, variant: 'default' as const };
-      } else if (item.href === '/auth-users') {
-        badge = { count: 3, variant: 'destructive' as const };
-      } else if (item.href === '/companies') {
-        badge = { count: 5, variant: 'secondary' as const };
-      }
-      
       return {
         ...item,
-        isActive,
-        badge
+        isActive
       };
     });
   }, [menuItems, location.pathname]);
@@ -42,14 +30,14 @@ const SidebarMenuContent = React.memo(() => {
   return (
     <div className="px-3 py-4 space-y-1">
       <SidebarMenu className="space-y-1">
-        {menuItemsWithBadges.map((item) => (
+        {menuItemsWithActiveState.map((item) => (
           <SidebarMenuItem key={item.title} className="group/item">
             <SidebarMenuButton 
               asChild 
               isActive={item.isActive}
               tooltip={item.title}
               className={`
-                w-full justify-between group relative overflow-hidden
+                w-full group relative overflow-hidden
                 transition-all duration-200 ease-in-out
                 ${item.isActive 
                   ? 'bg-blue-50 text-blue-700 hover:bg-blue-100 border-r-3 border-blue-500 shadow-sm' 
@@ -65,7 +53,7 @@ const SidebarMenuContent = React.memo(() => {
             >
               <NavLink 
                 to={item.href}
-                className="flex items-center justify-between w-full relative z-10"
+                className="flex items-center w-full relative z-10"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <item.icon className={`
@@ -79,24 +67,6 @@ const SidebarMenuContent = React.memo(() => {
                     {item.title}
                   </span>
                 </div>
-                {item.badge && (
-                  <Badge 
-                    variant={item.badge.variant}
-                    className={`
-                      group-data-[collapsible=icon]:hidden text-xs font-semibold px-2 py-0.5
-                      transition-all duration-200 ease-in-out
-                      ${item.isActive 
-                        ? 'bg-blue-100 text-blue-700 border-blue-200' 
-                        : item.badge.variant === 'destructive' 
-                          ? 'bg-red-100 text-red-700 border-red-200 group-hover:bg-red-50'
-                          : 'bg-gray-100 text-gray-600 border-gray-200 group-hover:bg-gray-50'
-                      }
-                      ${item.badge.count > 99 ? 'px-1.5' : ''}
-                    `}
-                  >
-                    {item.badge.count > 99 ? '99+' : item.badge.count}
-                  </Badge>
-                )}
               </NavLink>
             </SidebarMenuButton>
           </SidebarMenuItem>

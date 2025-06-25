@@ -1,10 +1,9 @@
 
-
 export const navigation = {
   // Navigation
   dashboard: 'Tableau de Bord',
   companies: 'Entreprises',
-  vansDrivers: 'Camionnettes et Chauffeurs',
+  vansDrivers: 'Camionnettes',
   users: 'Utilisateurs',
   employees: 'Employés',
   comptes: 'Comptes',
@@ -22,4 +21,3 @@ export const navigation = {
   dashboardFull: 'Tableau de Bord',
   logTripFull: 'Logger Mission',
 };
-

@@ -1,10 +1,9 @@
 
-
 export const navigation = {
   // Navigation
   dashboard: 'Dashboard',
   companies: 'Companies',
-  vansDrivers: 'Vans & Drivers',
+  vansDrivers: 'Vans',
   users: 'Users',
   employees: 'Employees',
   comptes: 'Accounts',
@@ -22,4 +21,3 @@ export const navigation = {
   dashboardFull: 'Dashboard',
   logTripFull: 'Log Mission',
 };
-

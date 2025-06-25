@@ -1,10 +1,9 @@
 
-
 export const navigation = {
   // Navigation
   dashboard: 'لوحة التحكم',
   companies: 'الشركات',
-  vansDrivers: 'الشاحنات والسائقين',
+  vansDrivers: 'الشاحنات',
   users: 'المستخدمين',
   employees: 'الموظفين',
   comptes: 'الحسابات',
@@ -22,4 +21,3 @@ export const navigation = {
   dashboardFull: 'لوحة التحكم',
   logTripFull: 'تسجيل المهمة',
 };
-

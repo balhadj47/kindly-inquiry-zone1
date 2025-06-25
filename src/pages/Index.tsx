@@ -54,7 +54,7 @@ const Index = () => {
   
   // Enhanced RBAC context access with comprehensive error handling
   let rbacContext;
-  let hasPermission = () => false;
+  let hasPermission = (permission: string) => false;
   let currentUser = null;
   let loading = true;
   
@@ -66,7 +66,7 @@ const Index = () => {
       // Safely extract values with validation
       hasPermission = typeof rbacContext.hasPermission === 'function' 
         ? rbacContext.hasPermission 
-        : () => {
+        : (permission: string) => {
             console.warn('📱 Index: hasPermission not a function, using fallback');
             return false;
           };

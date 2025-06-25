@@ -44,43 +44,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       if (!translations) {
         console.error('❌ LanguageContext: Translations object not available');
-        return {
-          dashboard: 'Dashboard',
-          companies: 'Companies',
-          vansDrivers: 'Vans & Drivers',
-          employees: 'Employees',
-          comptes: 'Accounts',
-          logTrip: 'Log Trip',
-          tripHistory: 'Trip History'
-        } as TranslationKeys;
+        return translations.fr || {} as TranslationKeys;
       }
       
       const currentTranslations = translations[language];
       if (!currentTranslations) {
         console.warn('⚠️ LanguageContext: No translations for language:', language, 'falling back to French');
-        return translations.fr || {
-          dashboard: 'Dashboard',
-          companies: 'Companies',
-          vansDrivers: 'Vans & Drivers',
-          employees: 'Employees',
-          comptes: 'Accounts',
-          logTrip: 'Log Trip',
-          tripHistory: 'Trip History'
-        } as TranslationKeys;
+        return translations.fr || {} as TranslationKeys;
       }
       
       return currentTranslations;
     } catch (error) {
       console.error('❌ LanguageContext: Error getting translations:', error);
-      return {
-        dashboard: 'Dashboard',
-        companies: 'Companies',
-        vansDrivers: 'Vans & Drivers',
-        employees: 'Employees',
-        comptes: 'Accounts',
-        logTrip: 'Log Trip',
-        tripHistory: 'Trip History'
-      } as TranslationKeys;
+      return translations.fr || {} as TranslationKeys;
     }
   };
 
@@ -102,15 +78,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const contextValue = {
     language,
     setLanguage,
-    t: t || {
-      dashboard: 'Dashboard',
-      companies: 'Companies',
-      vansDrivers: 'Vans & Drivers',
-      employees: 'Employees',
-      comptes: 'Accounts',
-      logTrip: 'Log Trip',
-      tripHistory: 'Trip History'
-    } as TranslationKeys
+    t: t || translations.fr || {} as TranslationKeys
   };
 
   return (
@@ -130,15 +98,7 @@ export const useLanguage = () => {
       setLanguage: () => {
         console.warn('⚠️ setLanguage called outside LanguageProvider context');
       },
-      t: {
-        dashboard: 'Dashboard',
-        companies: 'Companies',
-        vansDrivers: 'Vans & Drivers',
-        employees: 'Employees',
-        comptes: 'Accounts',
-        logTrip: 'Log Trip',
-        tripHistory: 'Trip History'
-      } as TranslationKeys
+      t: translations.fr || {} as TranslationKeys
     };
   }
   return context;

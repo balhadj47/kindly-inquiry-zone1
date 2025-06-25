@@ -1,5 +1,6 @@
 
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
+export type Language = SupportedLanguage;
 
 export interface TranslationKeys {
   // Navigation
@@ -10,7 +11,7 @@ export interface TranslationKeys {
   employees: string;
   comptes: string;
   logTrip: string;
-  missions: string; // Changed from tripHistory to missions
+  missions: string;
   settings: string;
   
   // Navigation - Mobile specific
@@ -334,6 +335,104 @@ export interface TranslationKeys {
   which: string;
   thisActionIsIrreversible: string;
 
+  // Missing keys for build errors
+  confirmDeletion: string;
+  areYouSureDelete: string;
+  thisWillAlsoDelete: string;
+  branches: string;
+  deleting: string;
+  enterCompanyName: string;
+  enterAddress: string;
+  enterPhone: string;
+  enterEmail: string;
+  enterBranchName: string;
+  addBranch: string;
+  currentBranches: string;
+  updateCompany: string;
+  createCompany: string;
+  currentTime: string;
+  tripsToday: string;
+  totalBranches: string;
+  tripLogger: string;
+  recordVanVisits: string;
+  signOut: string;
+  saving: string;
+  updateVan: string;
+  createVan: string;
+  vansManagement: string;
+  vansLabel: string;
+  addNewVanTooltip: string;
+  createdOn: string;
+  activeBranch: string;
+  noAddress: string;
+  noPhone: string;
+  noEmail: string;
+  deleteBranch: string;
+  deleteBranchConfirmation: string;
+  actionCannotBeUndone: string;
+  branchNotFoundFull: string;
+  unableToFindBranch: string;
+  backToCompanies: string;
+  branchOf: string;
+  editBranch: string;
+  branchDetails: string;
+  noAddressProvided: string;
+  noPhoneProvided: string;
+  noEmailProvided: string;
+  companyContext: string;
+  branchId: string;
+  branchAge: string;
+  daysOld: string;
+  createdDate: string;
+  companyAddress: string;
+  totalBranchesLabel: string;
+  backTo: string;
+  closeDetails: string;
+
+  // Additional missing keys from build errors
+  addNewBranch: string;
+  branchName: string;
+  updateBranch: string;
+  createBranch: string;
+  noCompanyFoundMessage: string;
+  tryAdjustingSearch: string;
+  addFirstCompany: string;
+  addYourFirstCompany: string;
+  manageCompaniesAndBranches: string;
+  searchCompanies: string;
+  more: string;
+  companyNotFoundFull: string;
+  unableToFindCompany: string;
+  companyInformation: string;
+  companyStatus: string;
+  userStatus: {
+    active: string;
+    inactive: string;
+    pending: string;
+  };
+  noBranchesAvailable: string;
+  addFirstBranch: string;
+  created: string;
+  yearsActive: string;
+  multi: string;
+  single: string;
+  branchType: string;
+  noTripsFoundFull: string;
+  noTripsRecorded: string;
+  noTripsMatchFilters: string;
+  thisWeekTrips: string;
+  companiesVisited: string;
+  selectCompany: string;
+  selectBranch: string;
+  tripLoggedSuccessfully: string;
+  totalTripsDriver: string;
+  lastTrip: string;
+  noVansFound: string;
+  tryAdjustingFiltersOrSearch: string;
+  startByAddingFirstVan: string;
+  addYourFirstVan: string;
+  manageYourFleet: string;
+
   // Vans specific
   addNewVan: string;
   editVan: string;
@@ -427,58 +526,4 @@ export interface TranslationKeys {
   networkError: string;
   serverError: string;
   validationError: string;
-
-  // Missing keys that are causing build errors
-  confirmDeletion: string;
-  areYouSureDelete: string;
-  thisWillAlsoDelete: string;
-  branches: string;
-  deleting: string;
-  enterCompanyName: string;
-  enterAddress: string;
-  enterPhone: string;
-  enterEmail: string;
-  enterBranchName: string;
-  addBranch: string;
-  currentBranches: string;
-  updateCompany: string;
-  createCompany: string;
-  currentTime: string;
-  tripsToday: string;
-  totalBranches: string;
-  tripLogger: string;
-  recordVanVisits: string;
-  signOut: string;
-  saving: string;
-  updateVan: string;
-  createVan: string;
-  vansManagement: string;
-  vansLabel: string;
-  addNewVanTooltip: string;
-  createdOn: string;
-  activeBranch: string;
-  noAddress: string;
-  noPhone: string;
-  noEmail: string;
-  deleteBranch: string;
-  deleteBranchConfirmation: string;
-  actionCannotBeUndone: string;
-  branchNotFoundFull: string;
-  unableToFindBranch: string;
-  backToCompanies: string;
-  branchOf: string;
-  editBranch: string;
-  branchDetails: string;
-  noAddressProvided: string;
-  noPhoneProvided: string;
-  noEmailProvided: string;
-  companyContext: string;
-  branchId: string;
-  branchAge: string;
-  daysOld: string;
-  createdDate: string;
-  companyAddress: string;
-  totalBranchesLabel: string;
-  backTo: string;
-  closeDetails: string;
 }

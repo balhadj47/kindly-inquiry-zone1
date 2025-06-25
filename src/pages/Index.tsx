@@ -12,6 +12,7 @@ import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import ErrorTracker from '@/components/ErrorTracker';
+import DebugConsole from '@/components/DebugConsole';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -55,34 +56,35 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
   
-  // Always call useRBAC hook consistently
-  const rbacContext = useRBAC();
+  // Safely get RBAC context with error handling
+  let rbacContext;
+  try {
+    rbacContext = useRBAC();
+    console.log('📱 Index: RBAC context accessed successfully');
+  } catch (error) {
+    console.error('❌ Index: Failed to access RBAC context:', error);
+    rbacContext = {
+      currentUser: null,
+      loading: true,
+      hasPermission: () => false
+    };
+  }
   
   // Extract values safely with fallbacks
-  const hasPermission = React.useMemo(() => {
-    if (rbacContext && typeof rbacContext.hasPermission === 'function') {
-      return rbacContext.hasPermission;
-    }
-    return (permission: string) => {
-      console.warn('📱 Index: hasPermission not available, using fallback');
-      return false;
-    };
-  }, [rbacContext]);
-  
   const currentUser = rbacContext?.currentUser || null;
-  const loading = rbacContext?.loading ?? true;
+  const rbacLoading = rbacContext?.loading ?? true;
+  const hasPermission = rbacContext?.hasPermission || (() => false);
 
   console.log('📱 Index: Auth and RBAC state:', {
     authUser: authUser?.email || 'null',
     authLoading,
     currentUserId: currentUser?.id || 'null',
     currentUserRoleId: currentUser?.role_id || 'null',
-    rbacLoading: loading,
-    hasPermissionAvailable: typeof hasPermission === 'function',
-    rbacContextAvailable: !!rbacContext
+    rbacLoading,
+    hasPermissionAvailable: typeof hasPermission === 'function'
   });
 
-  // Enhanced permission check wrapper with consistent hooks
+  // Enhanced permission check wrapper with better error handling
   const checkPermission = React.useCallback((permission: string): boolean => {
     console.log('🔐 Index: Permission check requested:', permission);
     
@@ -100,63 +102,44 @@ const Index = () => {
       }
 
       // If RBAC is still loading but we have an auth user, allow access
-      if (loading && authUser) {
+      if (rbacLoading && authUser) {
         console.log('🔐 Index: RBAC loading but auth user exists, allowing access');
         return true;
       }
 
       // Validate permission parameter
       if (!permission || typeof permission !== 'string' || permission.trim() === '') {
-        console.warn('🔐 Index: Invalid permission parameter:', {
-          permission,
-          type: typeof permission,
-          length: permission?.length || 0
-        });
+        console.warn('🔐 Index: Invalid permission parameter:', permission);
         return false;
       }
 
-      // Check for current user
-      if (!currentUser || !currentUser.id) {
-        console.log('🔐 Index: No current user for permission check, but auth user exists - allowing access:', {
-          currentUser: currentUser ? 'exists but no id' : 'null',
-          authUser: authUser?.email || 'null',
-          permission
-        });
-        // If we have an auth user but no current user from RBAC, allow access
-        return !!authUser;
-      }
-
       // Special handling for admin users - always grant access
-      if (currentUser.id === 'admin-temp' || currentUser.role_id === 1) {
-        console.log('🔓 Index: Admin user detected - granting permission:', {
-          permission,
-          userId: currentUser.id,
-          roleId: currentUser.role_id
-        });
+      if (currentUser?.role_id === 1) {
+        console.log('🔓 Index: Admin user detected - granting permission:', permission);
         return true;
       }
 
-      // Use permission system with enhanced logging
+      // Use permission system with enhanced error handling
+      if (typeof hasPermission !== 'function') {
+        console.warn('🔐 Index: hasPermission is not a function, falling back to auth user check');
+        return !!authUser;
+      }
+
       const result = hasPermission(permission);
-      const booleanResult = Boolean(result);
-      
       console.log('🔐 Index: Permission check result:', {
         permission,
-        userId: currentUser.id,
-        result: booleanResult,
-        rawResult: result
+        result: Boolean(result),
+        userId: currentUser?.id || 'null'
       });
       
-      return booleanResult;
+      return Boolean(result);
 
     } catch (error) {
       console.error('❌ Index: Critical error in permission check:', {
         permission,
         error: error?.message || 'Unknown error',
-        stack: error?.stack?.substring(0, 200) || 'No stack trace',
         currentUserId: currentUser?.id || 'null',
-        authUserId: authUser?.id || 'null',
-        timestamp: new Date().toISOString()
+        authUserId: authUser?.id || 'null'
       });
       
       // Fallback - if we have an auth user, allow access
@@ -166,7 +149,7 @@ const Index = () => {
       }
       return false;
     }
-  }, [hasPermission, currentUser, authUser, loading, authLoading]);
+  }, [hasPermission, currentUser, authUser, rbacLoading, authLoading]);
 
   // Show loading while auth is still loading
   if (authLoading) {
@@ -185,6 +168,7 @@ const Index = () => {
   return (
     <>
       <ErrorTracker />
+      <DebugConsole />
       <Toaster />
       <Sonner />
       

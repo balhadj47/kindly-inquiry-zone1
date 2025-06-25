@@ -7,7 +7,7 @@ import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
 import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { Plus, RefreshCw } from 'lucide-react';
 import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
@@ -72,10 +72,20 @@ const CompaniesIndex = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
-        <CompaniesHeader onAddCompany={handleAddCompany} />
-        <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="icon">
-          <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-        </Button>
+        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Entreprises</h1>
+            <p className="text-gray-600 mt-1">Gérer les entreprises et leurs succursales</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button onClick={handleAddCompany} size="icon">
+            <Plus className="h-4 w-4" />
+          </Button>
+          <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="icon">
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        </div>
       </div>
       
       <CompaniesSearch 

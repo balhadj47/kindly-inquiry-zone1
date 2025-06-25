@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import VanStats from './VanStats';
@@ -186,9 +185,8 @@ const VansOptimized = () => {
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
-          <Button onClick={handleAddVan}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter Camionnette
+          <Button onClick={handleAddVan} size="icon">
+            <Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>

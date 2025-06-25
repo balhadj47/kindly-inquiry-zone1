@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -178,9 +179,8 @@ const AuthUsers = () => {
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
           {canCreateAuthUsers && (
-            <Button onClick={handleAddUser}>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter Utilisateur
+            <Button onClick={handleAddUser} size="icon">
+              <Plus className="h-4 w-4" />
             </Button>
           )}
           <Button onClick={handleRefresh} disabled={isRefreshing} variant="outline" size="icon">

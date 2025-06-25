@@ -66,8 +66,8 @@ const Dashboard = () => {
     companies: companies?.length || 'null/undefined',
     trips: trips?.length || 'null/undefined',
     vansLoading,
-    vansError: vansError?.message || 'none',
-    companiesError: companiesError?.message || 'none',
+    vansError: vansError || 'none',
+    companiesError: companiesError || 'none',
     timestamp: new Date().toISOString()
   });
 
@@ -113,7 +113,9 @@ const Dashboard = () => {
           <div className="text-center">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
             <p className="text-gray-600 mb-4">
-              {vansError?.message || companiesError?.message || 'Une erreur est survenue lors du chargement des données'}
+              {(vansError && typeof vansError === 'object' && 'message' in vansError ? vansError.message : vansError) || 
+               (companiesError && typeof companiesError === 'object' && 'message' in companiesError ? companiesError.message : companiesError) || 
+               'Une erreur est survenue lors du chargement des données'}
             </p>
             <Button onClick={handleRefresh}>
               <RefreshCw className="h-4 w-4 mr-2" />

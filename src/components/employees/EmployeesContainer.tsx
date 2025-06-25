@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
@@ -129,9 +128,8 @@ const EmployeesContainer = () => {
         <EmployeesHeader employeesCount={employees.length} />
         <div className="flex items-center space-x-2">
           {canCreateUsers && (
-            <Button onClick={handleAddEmployee}>
-              <Plus className="h-4 w-4 mr-2" />
-              Ajouter Employé
+            <Button onClick={handleAddEmployee} size="icon">
+              <Plus className="h-4 w-4" />
             </Button>
           )}
           <Button 

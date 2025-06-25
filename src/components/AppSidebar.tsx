@@ -8,7 +8,6 @@ import {
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar';
-import SidebarBranding from './SidebarBranding';
 import SidebarHeaderComponent from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -28,7 +27,6 @@ const AppSidebar = () => {
   return (
     <Sidebar variant="inset" className="border-r border-gray-200">
       <SidebarHeader>
-        <SidebarBranding />
         <SidebarHeaderComponent />
       </SidebarHeader>
       

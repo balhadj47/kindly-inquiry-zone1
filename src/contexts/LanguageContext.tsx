@@ -33,7 +33,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error('❌ LanguageContext: Translations not found for language:', language);
     } else {
       console.log('✅ LanguageContext: Translations loaded successfully for:', language);
-      console.log('🔧 LanguageContext: Navigation keys:', Object.keys(t.navigation || {}));
+      console.log('🔧 LanguageContext: Translation keys:', Object.keys(t));
     }
   }, [t, language]);
 

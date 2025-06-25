@@ -38,6 +38,10 @@ interface VansIndexContentProps {
   handleConfirmDelete: () => Promise<void>;
   handleModalSuccess: () => void;
   handleQuickAction: (van: any) => void;
+  
+  // Refresh props
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
 const VansIndexContent: React.FC<VansIndexContentProps> = ({
@@ -63,10 +67,16 @@ const VansIndexContent: React.FC<VansIndexContentProps> = ({
   handleConfirmDelete,
   handleModalSuccess,
   handleQuickAction,
+  onRefresh,
+  isRefreshing,
 }) => {
   return (
     <div className="space-y-4 sm:space-y-6">
-      <VansHeader onAddVan={handleAddVan} />
+      <VansHeader 
+        onAddVan={handleAddVan} 
+        onRefresh={onRefresh}
+        isRefreshing={isRefreshing}
+      />
       
       <Card>
         <CardContent className="p-4 sm:pt-6">

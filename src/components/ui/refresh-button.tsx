@@ -52,19 +52,24 @@ export const RefreshButton: React.FC<RefreshButtonProps> = ({
       size={size}
       variant={variant}
       className={cn(
-        'w-10 h-10 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105',
-        isRefreshing && 'opacity-75',
+        'relative w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 border-0 group overflow-hidden',
+        'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
+        'after:absolute after:inset-0 after:rounded-xl after:ring-2 after:ring-blue-300/50 after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-300',
+        isRefreshing && 'opacity-75 hover:scale-100',
+        disabled && 'opacity-50 hover:scale-100 cursor-not-allowed',
         className
       )}
     >
-      {children || (
-        <RefreshCw 
-          className={cn(
-            "h-4 w-4", 
-            isRefreshing && "animate-spin"
-          )} 
-        />
-      )}
+      <div className="relative z-10 flex items-center justify-center">
+        {children || (
+          <RefreshCw 
+            className={cn(
+              "h-5 w-5 transition-transform duration-200", 
+              isRefreshing && "animate-spin"
+            )} 
+          />
+        )}
+      </div>
     </Button>
   );
 };

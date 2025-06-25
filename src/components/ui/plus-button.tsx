@@ -26,11 +26,16 @@ export const PlusButton: React.FC<PlusButtonProps> = ({
       disabled={disabled}
       size={size}
       className={cn(
-        'w-10 h-10 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105',
+        'relative w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 hover:from-emerald-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 border-0 group overflow-hidden',
+        'before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/20 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
+        'after:absolute after:inset-0 after:rounded-xl after:ring-2 after:ring-emerald-300/50 after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-300',
+        disabled && 'opacity-50 hover:scale-100 cursor-not-allowed',
         className
       )}
     >
-      {children || <Plus className="h-4 w-4" />}
+      <div className="relative z-10 flex items-center justify-center">
+        {children || <Plus className="h-5 w-5 transition-transform duration-200 group-hover:rotate-90" />}
+      </div>
     </Button>
   );
 };

@@ -90,7 +90,7 @@ const Dashboard = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
           <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
         </div>
-        <RefreshButton onRefresh={handleRefresh} />
+        <RefreshButton onRefresh={handleRefresh} theme="green" />
       </div>
 
       <EnhancedStatsGrid stats={stats} />

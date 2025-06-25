@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -120,9 +121,9 @@ const Users = () => {
         <UsersHeader />
         <div className="flex items-center space-x-2">
           {canCreateUsers && (
-            <PlusButton onClick={handleAddUser} />
+            <PlusButton onClick={handleAddUser} theme="orange" />
           )}
-          <RefreshButton onRefresh={handleRefresh} />
+          <RefreshButton onRefresh={handleRefresh} theme="violet" />
         </div>
       </div>
 

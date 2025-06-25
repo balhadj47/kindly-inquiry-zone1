@@ -1,42 +1,48 @@
 
 import React from 'react';
-import {
+import { useLocation } from 'react-router-dom';
+import { 
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
   SidebarFooter,
+  SidebarHeader,
+  SidebarRail
 } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
+import SidebarBranding from './SidebarBranding';
 import SidebarHeader from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
-import UserProfile from './UserProfile';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const AppSidebar = () => {
-  const isMobile = useIsMobile();
+  const location = useLocation();
+  const { t } = useLanguage();
   
-  console.log('🔍 AppSidebar render - always showing sidebar with menu items');
+  console.log('🔧 AppSidebar: Current location:', location.pathname);
+  console.log('🔧 AppSidebar: Navigation translations loaded:', {
+    dashboard: t.navigation?.dashboard,
+    companies: t.navigation?.companies,
+    vansDrivers: t.navigation?.vansDrivers,
+    users: t.navigation?.users
+  });
 
   return (
-    <Sidebar 
-      collapsible="icon" 
-      className="border-r border-gray-200 bg-white group-data-[collapsible=icon]:w-16"
-    >
-      <SidebarHeader />
+    <Sidebar variant="inset" className="border-r border-gray-200">
+      <SidebarHeader>
+        <SidebarBranding />
+        <SidebarHeader />
+      </SidebarHeader>
       
-      <SidebarContent className="flex flex-col h-full bg-white px-3 group-data-[collapsible=icon]:px-2">
-        <div className="flex-1 py-4 overflow-y-auto">
-          <SidebarGroup>
-            <SidebarGroupContent>
-              <SidebarMenuContent />
-            </SidebarGroupContent>
-          </SidebarGroup>
-        </div>
-        
-        <SidebarFooter className="border-t border-gray-100 p-3 group-data-[collapsible=icon]:p-2">
-          <UserProfile />
-        </SidebarFooter>
+      <SidebarContent>
+        <SidebarMenuContent />
       </SidebarContent>
+      
+      <SidebarFooter>
+        <div className="p-4 text-xs text-gray-500 text-center">
+          Fleet Management v1.0
+        </div>
+      </SidebarFooter>
+      
+      <SidebarRail />
     </Sidebar>
   );
 };

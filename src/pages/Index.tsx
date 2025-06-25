@@ -72,8 +72,11 @@ const Index = () => {
 
   // Show loading while RBAC is initializing
   if (loading) {
+    console.log('📱 Index: Showing loading skeleton');
     return <PageLoadingSkeleton />;
   }
+
+  console.log('📱 Index: Rendering main application layout');
 
   return (
     <>

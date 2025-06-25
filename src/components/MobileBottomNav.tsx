@@ -1,24 +1,16 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useLocation, Link } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Home, Building2, Car, History, Settings } from 'lucide-react';
 
-const MobileBottomNav = () => {
+const MobileBottomNav = React.memo(() => {
   const location = useLocation();
   const { t } = useLanguage();
   
-  console.log('📱 MobileBottomNav: Current location:', location.pathname);
-  console.log('📱 MobileBottomNav: Navigation translations:', {
-    home: t.home,
-    companies: t.companies,
-    vans: t.vans,
-    history: t.history,
-    settings: t.settings
-  });
-
-  const navItems = [
+  // Memoize navigation items to prevent recreation on every render
+  const navItems = useMemo(() => [
     {
       to: '/dashboard',
       icon: Home,
@@ -49,7 +41,9 @@ const MobileBottomNav = () => {
       label: t.settings || 'Settings',
       isActive: location.pathname.startsWith('/settings')
     }
-  ];
+  ], [location.pathname, t]);
+
+  console.log('📱 MobileBottomNav: Rendered for', location.pathname);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
@@ -75,6 +69,8 @@ const MobileBottomNav = () => {
       </div>
     </nav>
   );
-};
+});
+
+MobileBottomNav.displayName = 'MobileBottomNav';
 
 export default MobileBottomNav;

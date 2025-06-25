@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -8,10 +8,10 @@ import TripHistoryFilters from './TripHistoryFilters';
 import TripHistoryList from './TripHistoryList';
 import TripDetailsDialog from '../TripDetailsDialog';
 
-const TripHistoryContainer = () => {
+const TripHistoryContainer = React.memo(() => {
   console.log('🗂️ TripHistoryContainer: Component rendering...');
 
-  // State management
+  // State management with useCallback to prevent recreating functions
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
@@ -23,71 +23,59 @@ const TripHistoryContainer = () => {
   const { vans } = useVans();
   const { companies } = useCompanies();
 
-  console.log('🗂️ TripHistoryContainer: Raw trips data:', trips);
-
-  // Process trips data
+  // Memoize the trips processing to prevent recalculation
   const processedTrips = useMemo(() => {
     if (!Array.isArray(trips)) {
       console.warn('🗂️ TripHistoryContainer: trips is not an array:', trips);
       return [];
     }
 
+    console.log('🗂️ TripHistoryContainer: Processing', trips.length, 'trips');
+
     return trips.map(trip => {
-      try {
-        if (!trip) {
-          console.warn('🗂️ TripHistoryContainer: Found null trip');
+      if (!trip) return null;
+
+      const processDate = (dateObj) => {
+        if (!dateObj) return null;
+        
+        try {
+          if (dateObj._type === 'Date' && dateObj.value) {
+            if (dateObj.value.iso) {
+              return dateObj.value.iso;
+            }
+            if (dateObj.value.value && typeof dateObj.value.value === 'number') {
+              return new Date(dateObj.value.value).toISOString();
+            }
+          }
+          
+          if (typeof dateObj === 'string') {
+            return dateObj;
+          }
+          
+          if (dateObj instanceof Date) {
+            return dateObj.toISOString();
+          }
+          
+          if (typeof dateObj === 'number') {
+            return new Date(dateObj).toISOString();
+          }
+          
+          return null;
+        } catch (err) {
+          console.warn('🗂️ TripHistoryContainer: Error processing date:', err);
           return null;
         }
+      };
 
-        const processDate = (dateObj) => {
-          if (!dateObj) return null;
-          
-          try {
-            if (dateObj._type === 'Date' && dateObj.value) {
-              if (dateObj.value.iso) {
-                return dateObj.value.iso;
-              }
-              if (dateObj.value.value && typeof dateObj.value.value === 'number') {
-                return new Date(dateObj.value.value).toISOString();
-              }
-            }
-            
-            if (typeof dateObj === 'string') {
-              return dateObj;
-            }
-            
-            if (dateObj instanceof Date) {
-              return dateObj.toISOString();
-            }
-            
-            if (typeof dateObj === 'number') {
-              return new Date(dateObj).toISOString();
-            }
-            
-            return null;
-          } catch (err) {
-            console.warn('🗂️ TripHistoryContainer: Error processing date:', err, dateObj);
-            return null;
-          }
-        };
-
-        return {
-          ...trip,
-          startDate: processDate(trip.startDate),
-          endDate: processDate(trip.endDate)
-        };
-      } catch (dateError) {
-        console.error('🗂️ TripHistoryContainer: Error processing trip:', dateError, trip);
-        return {
-          ...trip,
-          startDate: null,
-          endDate: null
-        };
-      }
+      return {
+        ...trip,
+        startDate: processDate(trip.startDate),
+        endDate: processDate(trip.endDate)
+      };
     }).filter(Boolean);
   }, [trips]);
 
-  // Filter trips
+  // Memoize filtered trips to prevent recalculation
   const filteredTrips = useMemo(() => {
     if (!Array.isArray(processedTrips)) {
       return [];
@@ -110,12 +98,12 @@ const TripHistoryContainer = () => {
     });
   }, [processedTrips, searchTerm, companyFilter, vanFilter]);
 
-  // Event handlers
-  const handleOpenTripDetails = (trip) => {
+  // Memoize event handlers to prevent recreating functions
+  const handleOpenTripDetails = useCallback((trip) => {
     setSelectedTrip(trip);
-  };
+  }, []);
 
-  const handleDeleteTrip = async (tripId) => {
+  const handleDeleteTrip = useCallback(async (tripId) => {
     try {
       setDeletingTripId(tripId);
       await deleteTrip(tripId);
@@ -124,13 +112,17 @@ const TripHistoryContainer = () => {
     } finally {
       setDeletingTripId(null);
     }
-  };
+  }, [deleteTrip]);
 
-  const handleClearFilters = () => {
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setCompanyFilter('all');
     setVanFilter('all');
-  };
+  }, []);
+
+  const handleCloseDialog = useCallback(() => {
+    setSelectedTrip(null);
+  }, []);
 
   if (isLoading) {
     return <TripHistoryOptimizedSkeleton />;
@@ -175,10 +167,12 @@ const TripHistoryContainer = () => {
       <TripDetailsDialog
         trip={selectedTrip}
         isOpen={!!selectedTrip}
-        onClose={() => setSelectedTrip(null)}
+        onClose={handleCloseDialog}
       />
     </>
   );
-};
+});
+
+TripHistoryContainer.displayName = 'TripHistoryContainer';
 
 export default TripHistoryContainer;

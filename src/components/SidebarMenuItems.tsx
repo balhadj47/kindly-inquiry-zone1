@@ -1,6 +1,7 @@
 
 import { Home, Truck, Factory, Clock, Users, Shield } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface MenuItem {
   title: string;
@@ -9,56 +10,57 @@ export interface MenuItem {
   permission?: string;
 }
 
-// Full menu items - with proper permission requirements
-const menuItems: MenuItem[] = [
-  {
-    title: 'Dashboard',
-    href: '/dashboard',
-    icon: Home,
-    permission: 'dashboard:read', // Now requires dashboard permission
-  },
-  {
-    title: 'Companies',
-    href: '/companies',
-    icon: Factory,
-    permission: 'companies:read',
-  },
-  {
-    title: 'Vans & Drivers',
-    href: '/vans-drivers',
-    icon: Truck,
-    permission: 'vans:read',
-  },
-  {
-    title: 'Employees',
-    href: '/employees',
-    icon: Users,
-    permission: 'users:read',
-  },
-  {
-    title: 'Comptes',
-    href: '/auth-users',
-    icon: Shield,
-    permission: 'auth-users:read', // Changed from 'users:read' to 'auth-users:read'
-  },
-  {
-    title: 'Log Mission',
-    href: '/log-trip',
-    icon: Clock,
-    permission: 'trips:create',
-  },
-  {
-    title: 'Mission History',
-    href: '/trip-history',
-    icon: Clock,
-    permission: 'trips:read',
-  },
-];
-
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
   const { hasPermission, currentUser, loading, roles } = useRBAC();
+  const { t } = useLanguage();
+  
+  // Menu items with translation keys
+  const menuItems: MenuItem[] = [
+    {
+      title: t.dashboard,
+      href: '/dashboard',
+      icon: Home,
+      permission: 'dashboard:read',
+    },
+    {
+      title: t.companies,
+      href: '/companies',
+      icon: Factory,
+      permission: 'companies:read',
+    },
+    {
+      title: t.vansDrivers,
+      href: '/vans-drivers',
+      icon: Truck,
+      permission: 'vans:read',
+    },
+    {
+      title: t.employees,
+      href: '/employees',
+      icon: Users,
+      permission: 'users:read',
+    },
+    {
+      title: t.comptes,
+      href: '/auth-users',
+      icon: Shield,
+      permission: 'auth-users:read',
+    },
+    {
+      title: t.logTrip,
+      href: '/log-trip',
+      icon: Clock,
+      permission: 'trips:create',
+    },
+    {
+      title: t.tripHistory,
+      href: '/trip-history',
+      icon: Clock,
+      permission: 'trips:read',
+    },
+  ];
   
   console.log('🔍 DETAILED Menu items processing:', {
     userId: currentUser?.id,

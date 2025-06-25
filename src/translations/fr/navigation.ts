@@ -5,6 +5,8 @@ export const navigation = {
   companies: 'Entreprises',
   vansDrivers: 'Camionnettes et Chauffeurs',
   users: 'Utilisateurs',
+  employees: 'Employés',
+  comptes: 'Comptes',
   logTrip: 'Enregistrer une Mission',
   tripHistory: 'Historique des Missions',
   settings: 'Paramètres',

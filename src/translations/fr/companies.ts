@@ -1,5 +1,4 @@
 
-
 export const companies = {
   // Company Management
   addNewCompany: 'Ajouter Nouvelle Entreprise',
@@ -16,6 +15,11 @@ export const companies = {
   companyNotFound: 'Entreprise non trouvée',
   noCompaniesFound: 'Aucune entreprise trouvée',
   addYourFirstCompany: 'Ajouter Votre Première Entreprise',
+  companyAdded: 'Entreprise ajoutée avec succès',
+  companyUpdated: 'Entreprise mise à jour avec succès',
+  companyDeleted: 'Entreprise supprimée avec succès',
+  deleteCompanyConfirm: 'Êtes-vous sûr de vouloir supprimer cette entreprise?',
+  companyDeletedSuccessfully: 'Entreprise supprimée avec succès',
   
   // Company statuses
   companyStatuses: {
@@ -32,4 +36,3 @@ export const companies = {
   branchPhone: 'Téléphone de la Succursale',
   noBranchesFound: 'Aucune succursale trouvée',
 };
-

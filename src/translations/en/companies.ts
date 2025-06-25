@@ -1,5 +1,4 @@
 
-
 export const companies = {
   // Company Management
   addNewCompany: 'Add New Company',
@@ -16,6 +15,11 @@ export const companies = {
   companyNotFound: 'Company not found',
   noCompaniesFound: 'No companies found',
   addYourFirstCompany: 'Add Your First Company',
+  companyAdded: 'Company added successfully',
+  companyUpdated: 'Company updated successfully',
+  companyDeleted: 'Company deleted successfully',
+  deleteCompanyConfirm: 'Are you sure you want to delete this company?',
+  companyDeletedSuccessfully: 'Company deleted successfully',
   
   // Company statuses
   companyStatuses: {
@@ -32,4 +36,3 @@ export const companies = {
   branchPhone: 'Branch Phone',
   noBranchesFound: 'No branches found',
 };
-

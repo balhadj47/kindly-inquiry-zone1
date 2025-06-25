@@ -1,3 +1,4 @@
+
 export const common = {
   // Basic actions
   save: 'Save',
@@ -363,8 +364,6 @@ export const common = {
   totalBranchesLabel: 'Total Branches',
   backTo: 'Back to',
   closeDetails: 'Close Details',
-
-  // Additional missing keys
   addNewBranch: 'Add New Branch',
   branchName: 'Branch Name',
   updateBranch: 'Update Branch',
@@ -407,4 +406,11 @@ export const common = {
   startByAddingFirstVan: 'Start by adding your first van',
   addYourFirstVan: 'Add Your First Van',
   manageYourFleet: 'Manage your fleet of vehicles',
+
+  // Form validation specific
+  selectVehicleAndKm: 'Please select a vehicle and enter starting kilometers',
+  selectCompanyAndBranch: 'Please select a company and branch',
+  selectAtLeastOneUser: 'Please select at least one user for the trip',
+  startDateMustBeBeforeEnd: 'Start date must be before end date',
+  incompleteStep: 'Incomplete Step',
 };

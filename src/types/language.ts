@@ -388,8 +388,6 @@ export interface TranslationKeys {
   totalBranchesLabel: string;
   backTo: string;
   closeDetails: string;
-
-  // Additional missing keys from build errors
   addNewBranch: string;
   branchName: string;
   updateBranch: string;
@@ -488,6 +486,7 @@ export interface TranslationKeys {
   companyUpdated: string;
   companyDeleted: string;
   deleteCompanyConfirm: string;
+  companyDeletedSuccessfully: string;
   
   // Trips specific
   logNewTrip: string;
@@ -505,6 +504,13 @@ export interface TranslationKeys {
   notes: string;
   selectVan: string;
   selectDestination: string;
+  
+  // Form validation specific
+  selectVehicleAndKm: string;
+  selectCompanyAndBranch: string;
+  selectAtLeastOneUser: string;
+  startDateMustBeBeforeEnd: string;
+  incompleteStep: string;
   
   // Auth specific
   signIn: string;

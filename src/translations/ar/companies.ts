@@ -1,5 +1,4 @@
 
-
 export const companies = {
   // Company Management
   addNewCompany: 'إضافة شركة جديدة',
@@ -16,6 +15,11 @@ export const companies = {
   companyNotFound: 'الشركة غير موجودة',
   noCompaniesFound: 'لم يتم العثور على شركات',
   addYourFirstCompany: 'أضف شركتك الأولى',
+  companyAdded: 'تم إضافة الشركة بنجاح',
+  companyUpdated: 'تم تحديث الشركة بنجاح',
+  companyDeleted: 'تم حذف الشركة بنجاح',
+  deleteCompanyConfirm: 'هل أنت متأكد من حذف هذه الشركة؟',
+  companyDeletedSuccessfully: 'تم حذف الشركة بنجاح',
   
   // Company statuses
   companyStatuses: {
@@ -32,4 +36,3 @@ export const companies = {
   branchPhone: 'هاتف الفرع',
   noBranchesFound: 'لم يتم العثور على فروع',
 };
-

@@ -14,6 +14,21 @@ const SidebarMenuContent = React.memo(() => {
   
   console.log('🔍 SidebarMenuContent: Rendering with', menuItems.length, 'items for', location.pathname);
 
+  // Define color schemes for different icons
+  const getIconColor = (href: string, isActive: boolean) => {
+    const colorMap = {
+      '/dashboard': isActive ? 'text-blue-600' : 'text-blue-500 group-hover:text-blue-600',
+      '/companies': isActive ? 'text-purple-600' : 'text-purple-500 group-hover:text-purple-600',
+      '/vans-drivers': isActive ? 'text-green-600' : 'text-green-500 group-hover:text-green-600',
+      '/employees': isActive ? 'text-orange-600' : 'text-orange-500 group-hover:text-orange-600',
+      '/auth-users': isActive ? 'text-red-600' : 'text-red-500 group-hover:text-red-600',
+      '/log-trip': isActive ? 'text-indigo-600' : 'text-indigo-500 group-hover:text-indigo-600',
+      '/trip-history': isActive ? 'text-amber-600' : 'text-amber-500 group-hover:text-amber-600',
+    };
+    
+    return colorMap[href] || (isActive ? 'text-gray-600' : 'text-gray-500 group-hover:text-gray-600');
+  };
+
   // Add active state for menu items without badges
   const menuItemsWithActiveState = useMemo(() => {
     return menuItems.map((item) => {
@@ -58,7 +73,7 @@ const SidebarMenuContent = React.memo(() => {
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <item.icon className={`
                     h-4 w-4 flex-shrink-0 transition-all duration-200
-                    ${item.isActive ? 'text-blue-600' : 'text-gray-500 group-hover:text-gray-700'}
+                    ${getIconColor(item.href, item.isActive)}
                   `} />
                   <span className={`
                     group-data-[collapsible=icon]:hidden font-medium transition-all duration-200

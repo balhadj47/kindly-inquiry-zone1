@@ -6,6 +6,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useRBAC } from '@/contexts/RBACContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
@@ -52,6 +53,7 @@ const Index = () => {
   console.log('📱 Index: Timestamp:', new Date().toISOString());
   
   const isMobile = useIsMobile();
+  const { user: authUser, loading: authLoading } = useAuth();
   
   // Always call useRBAC hook consistently
   const rbacContext = useRBAC();
@@ -70,11 +72,12 @@ const Index = () => {
   const currentUser = rbacContext?.currentUser || null;
   const loading = rbacContext?.loading ?? true;
 
-  console.log('📱 Index: Final context state:', {
-    isMobile,
+  console.log('📱 Index: Auth and RBAC state:', {
+    authUser: authUser?.email || 'null',
+    authLoading,
     currentUserId: currentUser?.id || 'null',
     currentUserRoleId: currentUser?.role_id || 'null',
-    loading,
+    rbacLoading: loading,
     hasPermissionAvailable: typeof hasPermission === 'function',
     rbacContextAvailable: !!rbacContext
   });
@@ -84,6 +87,24 @@ const Index = () => {
     console.log('🔐 Index: Permission check requested:', permission);
     
     try {
+      // If auth is still loading, allow access to prevent blocking
+      if (authLoading) {
+        console.log('🔐 Index: Auth still loading, allowing access temporarily');
+        return true;
+      }
+
+      // If no auth user, deny access
+      if (!authUser) {
+        console.log('🔐 Index: No auth user, denying access');
+        return false;
+      }
+
+      // If RBAC is still loading but we have an auth user, allow access
+      if (loading && authUser) {
+        console.log('🔐 Index: RBAC loading but auth user exists, allowing access');
+        return true;
+      }
+
       // Validate permission parameter
       if (!permission || typeof permission !== 'string' || permission.trim() === '') {
         console.warn('🔐 Index: Invalid permission parameter:', {
@@ -96,52 +117,70 @@ const Index = () => {
 
       // Check for current user
       if (!currentUser || !currentUser.id) {
-        console.log('🔐 Index: No current user for permission check:', {
+        console.log('🔐 Index: No current user for permission check, but auth user exists - allowing access:', {
           currentUser: currentUser ? 'exists but no id' : 'null',
+          authUser: authUser?.email || 'null',
           permission
         });
-        return false;
+        // If we have an auth user but no current user from RBAC, allow access
+        return !!authUser;
       }
 
-      // Execute permission check
+      // Special handling for admin users - always grant access
+      if (currentUser.id === 'admin-temp' || currentUser.role_id === 1) {
+        console.log('🔓 Index: Admin user detected - granting permission:', {
+          permission,
+          userId: currentUser.id,
+          roleId: currentUser.role_id
+        });
+        return true;
+      }
+
+      // Use permission system with enhanced logging
       const result = hasPermission(permission);
       const booleanResult = Boolean(result);
       
       console.log('🔐 Index: Permission check result:', {
         permission,
         userId: currentUser.id,
-        userRoleId: currentUser.role_id,
         result: booleanResult,
         rawResult: result
       });
       
       return booleanResult;
-      
+
     } catch (error) {
       console.error('❌ Index: Critical error in permission check:', {
         permission,
         error: error?.message || 'Unknown error',
         stack: error?.stack?.substring(0, 200) || 'No stack trace',
         currentUserId: currentUser?.id || 'null',
+        authUserId: authUser?.id || 'null',
         timestamp: new Date().toISOString()
       });
       
-      // Fallback for administrators in case of errors
-      if (currentUser?.role_id === 1 || currentUser?.id === 'admin-temp') {
-        console.log('🔧 Index: Fallback admin access granted due to error');
+      // Fallback - if we have an auth user, allow access
+      if (authUser) {
+        console.log('🔧 Index: Fallback access granted due to error - auth user exists');
         return true;
       }
       return false;
     }
-  }, [hasPermission, currentUser]);
+  }, [hasPermission, currentUser, authUser, loading, authLoading]);
 
-  // Show loading while RBAC is initializing
-  if (loading) {
-    console.log('📱 Index: Showing loading skeleton - RBAC still loading');
+  // Show loading while auth is still loading
+  if (authLoading) {
+    console.log('📱 Index: Showing loading skeleton - Auth still loading');
     return <PageLoadingSkeleton />;
   }
 
-  console.log('📱 Index: Rendering main application layout');
+  // If no auth user, show access denied
+  if (!authUser) {
+    console.log('📱 Index: No auth user - showing access denied');
+    return <AccessDenied />;
+  }
+
+  console.log('📱 Index: Rendering main application layout with auth user:', authUser.email);
 
   return (
     <>

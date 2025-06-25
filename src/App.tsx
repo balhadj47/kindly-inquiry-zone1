@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RBACProvider } from '@/contexts/RBACContext';
@@ -9,7 +9,9 @@ import { TripProvider } from '@/contexts/TripContext';
 import { ProgressiveLoadingProvider } from '@/contexts/ProgressiveLoadingContext';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ErrorTracker from '@/components/ErrorTracker';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import Index from '@/pages/Index';
+import AuthPage from '@/pages/AuthPage';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -31,13 +33,20 @@ function App() {
         <BrowserRouter>
           <AuthProvider>
             <LanguageProvider>
-              <RBACProvider>
-                <TripProvider>
-                  <ProgressiveLoadingProvider>
-                    <Index />
-                  </ProgressiveLoadingProvider>
-                </TripProvider>
-              </RBACProvider>
+              <Routes>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/*" element={
+                  <ProtectedRoute>
+                    <RBACProvider>
+                      <TripProvider>
+                        <ProgressiveLoadingProvider>
+                          <Index />
+                        </ProgressiveLoadingProvider>
+                      </TripProvider>
+                    </RBACProvider>
+                  </ProtectedRoute>
+                } />
+              </Routes>
             </LanguageProvider>
           </AuthProvider>
         </BrowserRouter>

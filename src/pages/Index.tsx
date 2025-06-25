@@ -49,7 +49,7 @@ const AccessDenied = () => (
 );
 
 const Index = () => {
-  console.log('📱 Index: Starting render process...');
+  console.log('📱 Index: Starting render process with hash routing...');
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
@@ -61,6 +61,7 @@ const Index = () => {
     currentUser: currentUser?.id || 'null',
     rbacLoading,
     isMobile,
+    currentHash: window.location.hash,
     timestamp: new Date().toISOString()
   });
 
@@ -116,7 +117,7 @@ const Index = () => {
     return <AccessDenied />;
   }
 
-  console.log('📱 Index: Rendering main application');
+  console.log('📱 Index: Rendering main application with hash-based routing');
 
   return (
     <>
@@ -140,12 +141,12 @@ const Index = () => {
                     <Route path="/" element={
                       checkPermission('dashboard:read') ? (
                         <>
-                          {console.log('📱 Index: Rendering Dashboard for / route')}
+                          {console.log('📱 Index: Rendering Dashboard for hash root route')}
                           <Dashboard />
                         </>
                       ) : (
                         <>
-                          {console.log('📱 Index: Showing AccessDenied for / route')}
+                          {console.log('📱 Index: Showing AccessDenied for hash root route')}
                           <AccessDenied />
                         </>
                       )

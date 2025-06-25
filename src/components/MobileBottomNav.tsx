@@ -12,38 +12,38 @@ const MobileBottomNav = React.memo(() => {
   // Memoize navigation items to prevent recreation on every render
   const navItems = useMemo(() => [
     {
-      to: '/dashboard',
+      to: '#/dashboard',
       icon: Home,
       label: t.home || 'Home',
       isActive: location.pathname === '/' || location.pathname === '/dashboard'
     },
     {
-      to: '/companies',
+      to: '#/companies',
       icon: Building2,
       label: t.companies || 'Companies',
       isActive: location.pathname.startsWith('/companies')
     },
     {
-      to: '/vans-drivers',
+      to: '#/vans-drivers',
       icon: Car,
       label: t.vans || 'Vehicles',
       isActive: location.pathname.startsWith('/vans')
     },
     {
-      to: '/trip-history',
+      to: '#/trip-history',
       icon: History,
       label: t.history || 'History',
       isActive: location.pathname.startsWith('/trip-history')
     },
     {
-      to: '/settings',
+      to: '#/settings',
       icon: Settings,
       label: t.settings || 'Settings',
       isActive: location.pathname.startsWith('/settings')
     }
   ], [location.pathname, t]);
 
-  console.log('📱 MobileBottomNav: Rendered for', location.pathname);
+  console.log('📱 MobileBottomNav: Rendered for hash route', location.pathname);
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden">
@@ -51,9 +51,9 @@ const MobileBottomNav = React.memo(() => {
         {navItems.map((item, index) => {
           const Icon = item.icon;
           return (
-            <Link
+            <a
               key={index}
-              to={item.to}
+              href={item.to}
               className={cn(
                 "flex flex-col items-center justify-center flex-1 py-2 px-1 rounded-lg transition-colors",
                 item.isActive
@@ -63,7 +63,7 @@ const MobileBottomNav = React.memo(() => {
             >
               <Icon className="h-5 w-5 mb-1" />
               <span className="text-xs font-medium truncate">{item.label}</span>
-            </Link>
+            </a>
           );
         })}
       </div>

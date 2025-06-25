@@ -15,7 +15,7 @@ import SidebarMenuContent from './SidebarMenuContent';
 const AppSidebar = () => {
   const location = useLocation();
   
-  console.log('🔧 AppSidebar: Current location:', location.pathname);
+  console.log('🔧 AppSidebar: Current hash location:', location.pathname, window.location.hash);
 
   return (
     <Sidebar 

@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
@@ -9,6 +10,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 const SidebarUserProfile = () => {
   const { currentUser } = useRBAC();
   const { toggleSidebar } = useSidebar();
+  const navigate = useNavigate();
 
   const userInitials = currentUser?.email ? 
     currentUser.email.split('@')[0].substring(0, 2).toUpperCase() : 
@@ -17,9 +19,16 @@ const SidebarUserProfile = () => {
   const userName = currentUser?.email?.split('@')[0] || 'User';
   const userRole = currentUser?.role_id === 1 ? 'Admin' : 'Manager';
 
+  const handleUserProfileClick = () => {
+    navigate('/settings');
+  };
+
   return (
     <div className="flex items-center justify-between p-4 border-b border-gray-200">
-      <div className="flex items-center gap-3">
+      <div 
+        className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors"
+        onClick={handleUserProfileClick}
+      >
         <Avatar className="h-10 w-10">
           <AvatarImage src="" />
           <AvatarFallback className="bg-blue-500 text-white font-semibold">

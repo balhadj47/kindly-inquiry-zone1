@@ -1,3 +1,4 @@
+
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -19,16 +20,12 @@ export const useSidebarMenuItems = () => {
   let roles: any[] = [];
   let t: any = {
     dashboard: 'Dashboard',
-    tasks: 'Tasks',
-    notifications: 'Notifications', 
-    messages: 'Messages',
-    inbox: 'Inbox',
-    companies: 'Companies',
-    vansDrivers: 'Vans & Drivers',
-    employees: 'Employees',
-    comptes: 'Accounts',
     logTrip: 'Log Trip',
-    tripHistory: 'Trip History'
+    tripHistory: 'Trip History',
+    companies: 'Companies',
+    authUsers: 'Auth Users',
+    vansDrivers: 'Vans & Drivers',
+    employees: 'Employees'
   };
   
   try {
@@ -59,7 +56,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items matching the design - reordered to match the attachment
+  // Real menu items matching actual page routes
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -68,27 +65,27 @@ export const useSidebarMenuItems = () => {
       permission: 'dashboard:read',
     },
     {
-      title: t?.tasks || 'Tasks',
+      title: t?.logTrip || 'Log Trip',
       href: '/log-trip',
       icon: Clock,
       permission: 'trips:create',
     },
     {
-      title: t?.notifications || 'Notifications',
+      title: t?.tripHistory || 'Trip History',
       href: '/trip-history',
       icon: Bell,
       permission: 'trips:read',
     },
     {
-      title: t?.messages || 'Messages',
+      title: t?.companies || 'Companies',
       href: '/companies',
-      icon: MessageSquare,
+      icon: Factory,
       permission: 'companies:read',
     },
     {
-      title: t?.inbox || 'Inbox',
+      title: t?.authUsers || 'Auth Users',
       href: '/auth-users',
-      icon: Inbox,
+      icon: Shield,
       permission: 'auth-users:read',
     },
     {

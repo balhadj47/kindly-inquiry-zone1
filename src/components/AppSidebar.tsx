@@ -4,13 +4,11 @@ import { useLocation } from 'react-router-dom';
 import { 
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarHeader,
   SidebarRail
 } from '@/components/ui/sidebar';
 import SidebarUserProfile from './SidebarUserProfile';
 import SidebarMenuContent from './SidebarMenuContent';
-import SidebarThemeToggle from './SidebarThemeToggle';
 
 const AppSidebar = () => {
   const location = useLocation();
@@ -30,10 +28,6 @@ const AppSidebar = () => {
       <SidebarContent className="py-0 bg-white">
         <SidebarMenuContent />
       </SidebarContent>
-      
-      <SidebarFooter className="p-0 bg-white">
-        <SidebarThemeToggle />
-      </SidebarFooter>
       
       <SidebarRail />
     </Sidebar>

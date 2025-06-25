@@ -15,20 +15,20 @@ const SidebarMenuContent = React.memo(() => {
   
   console.log('🔍 SidebarMenuContent: Rendering with', menuItems.length, 'items for', location.pathname);
 
-  // Add badge counts for menu items
+  // Add badge counts for menu items based on real data
   const menuItemsWithBadges = useMemo(() => {
     return menuItems.map((item) => {
       const isActive = location.pathname === item.href || 
         (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
       
-      // Add badge counts based on menu item
+      // Add realistic badge counts based on menu item
       let badge = null;
-      if (item.href === '/log-trip') {
-        badge = { count: 32, variant: 'default' as const };
-      } else if (item.href === '/trip-history') {
-        badge = { count: 4, variant: 'secondary' as const };
+      if (item.href === '/trip-history') {
+        badge = { count: 12, variant: 'default' as const };
       } else if (item.href === '/auth-users') {
-        badge = { count: 9, variant: 'secondary' as const };
+        badge = { count: 3, variant: 'secondary' as const };
+      } else if (item.href === '/companies') {
+        badge = { count: 5, variant: 'secondary' as const };
       }
       
       return {

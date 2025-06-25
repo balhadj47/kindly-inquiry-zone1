@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 // Import all pages directly instead of lazy loading to fix 404 errors
 import UserSettings from '@/pages/UserSettings';
+import SystemSettingsPage from '@/pages/SystemSettingsPage';
 import TripLoggerPage from '@/pages/TripLoggerPage';
 import TripHistoryPage from '@/pages/TripHistoryPage';
 import AuthUsersPage from '@/pages/AuthUsersPage';
@@ -193,7 +194,7 @@ const Index = () => {
                     <Route path="/trip-history" element={
                       checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
                     } />
-                    <Route path="/settings" element={<UserSettings />} />
+                    <Route path="/settings" element={<SystemSettingsPage />} />
                     <Route path="/user-settings" element={<UserSettings />} />
                   </Routes>
                 </Suspense>

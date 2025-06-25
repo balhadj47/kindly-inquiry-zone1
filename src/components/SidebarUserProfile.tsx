@@ -3,7 +3,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { ChevronUp, User, Settings, LogOut } from 'lucide-react';
+import { ChevronUp, User, Settings, LogOut, PanelLeftClose } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,40 +46,40 @@ const SidebarUserProfile = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-4">
+    <div className="flex items-center justify-between p-4 border-t border-gray-100 bg-gray-50/50">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div 
-            className="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-lg p-2 -m-2 transition-colors flex-1"
+            className="flex items-center gap-3 cursor-pointer hover:bg-white/80 rounded-xl p-3 -m-3 transition-all duration-200 ease-in-out flex-1 group"
           >
-            <Avatar className="h-8 w-8 flex-shrink-0">
+            <Avatar className="h-9 w-9 flex-shrink-0 ring-2 ring-white shadow-sm transition-all duration-200 group-hover:ring-blue-100">
               <AvatarImage src="" />
-              <AvatarFallback className="bg-blue-500 text-white font-semibold text-xs">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-sm">
                 {userInitials}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col group-data-[collapsible=icon]:hidden min-w-0 flex-1">
-              <span className="text-gray-900 font-medium text-sm truncate">{userName}</span>
-              <span className="text-gray-500 text-xs truncate">{userRole}</span>
+              <span className="text-gray-900 font-semibold text-sm truncate leading-tight">{userName}</span>
+              <span className="text-gray-500 text-xs truncate font-medium">{userRole}</span>
             </div>
-            <ChevronUp className="h-4 w-4 text-gray-400 group-data-[collapsible=icon]:hidden" />
+            <ChevronUp className="h-4 w-4 text-gray-400 group-data-[collapsible=icon]:hidden transition-all duration-200 group-hover:text-gray-600" />
           </div>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" side="top" className="w-56 mb-2">
-          <DropdownMenuItem onClick={handleUserProfileClick} className="cursor-pointer">
-            <User className="mr-2 h-4 w-4" />
-            Profile Settings
+        <DropdownMenuContent align="start" side="top" className="w-56 mb-2 shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+          <DropdownMenuItem onClick={handleUserProfileClick} className="cursor-pointer hover:bg-blue-50 transition-colors duration-200">
+            <User className="mr-2 h-4 w-4 text-blue-600" />
+            <span className="font-medium">Profile Settings</span>
           </DropdownMenuItem>
           {isAdmin && (
-            <DropdownMenuItem onClick={handleWebsiteSettingsClick} className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              Website Settings
+            <DropdownMenuItem onClick={handleWebsiteSettingsClick} className="cursor-pointer hover:bg-blue-50 transition-colors duration-200">
+              <Settings className="mr-2 h-4 w-4 text-blue-600" />
+              <span className="font-medium">Website Settings</span>
             </DropdownMenuItem>
           )}
-          <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 focus:text-red-600">
+          <DropdownMenuSeparator className="bg-gray-200" />
+          <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 hover:text-red-700 hover:bg-red-50 focus:text-red-700 transition-colors duration-200">
             <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
+            <span className="font-medium">Sign Out</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -88,9 +88,9 @@ const SidebarUserProfile = () => {
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="h-6 w-6 text-gray-500 hover:text-gray-700 hover:bg-gray-100 group-data-[collapsible=icon]:hidden flex-shrink-0"
+        className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-white/80 group-data-[collapsible=icon]:hidden flex-shrink-0 ml-2 transition-all duration-200"
       >
-        <ChevronUp className="h-3 w-3" />
+        <PanelLeftClose className="h-4 w-4" />
       </Button>
     </div>
   );

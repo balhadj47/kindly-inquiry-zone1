@@ -1,5 +1,7 @@
 
 import { Home, Truck, Factory, Clock, Users, Shield } from 'lucide-react';
+import { useRBAC } from '@/contexts/RBACContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export interface MenuItem {
   title: string;
@@ -27,22 +29,22 @@ export const useSidebarMenuItems = () => {
   };
   
   try {
-    // Dynamic imports with safe context access
-    const { useRBAC } = require('@/contexts/RBACContext');
-    const { useLanguage } = require('@/contexts/LanguageContext');
-    
     const rbacContext = useRBAC();
     if (rbacContext && typeof rbacContext === 'object') {
       hasPermission = rbacContext.hasPermission || (() => false);
       currentUser = rbacContext.currentUser;
       loading = rbacContext.loading;
-      roles = rbacContext.roles || [];
+      roles = Array.isArray(rbacContext.roles) ? rbacContext.roles : [];
       
       console.log('🔍 useSidebarMenuItems: RBAC context loaded successfully');
     } else {
       console.warn('🔍 useSidebarMenuItems: RBAC context not available');
     }
-    
+  } catch (error) {
+    console.warn('🔍 useSidebarMenuItems: RBAC context access error:', error?.message || 'Unknown error');
+  }
+  
+  try {
     const languageContext = useLanguage();
     if (languageContext && typeof languageContext === 'object' && languageContext.t) {
       t = languageContext.t;
@@ -51,8 +53,7 @@ export const useSidebarMenuItems = () => {
       console.warn('🔍 useSidebarMenuItems: Language context not available, using defaults');
     }
   } catch (error) {
-    console.warn('🔍 useSidebarMenuItems: Context access error:', error?.message || 'Unknown error');
-    // Continue with fallback values
+    console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
   // Menu items with safe fallbacks

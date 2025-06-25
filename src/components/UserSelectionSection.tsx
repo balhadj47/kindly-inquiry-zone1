@@ -24,17 +24,17 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
   const { filteredUsers, totalFilteredUsers, users } = useUserFiltering(userSearchQuery);
 
   console.log('👥 UserSelectionSection: Rendering with data:', {
-    filteredUsersCount: filteredUsers?.length || 0,
-    totalUsers: users?.length || 0,
-    selectedCount: selectedUserIds?.length || 0
+    filteredUsersCount: Array.isArray(filteredUsers) ? filteredUsers.length : 0,
+    totalUsers: Array.isArray(users) ? users.length : 0,
+    selectedCount: Array.isArray(selectedUserIds) ? selectedUserIds.length : 0
   });
 
-  // Group users by their role_id with proper typing and error handling
-  const usersByRole = React.useMemo(() => {
+  // Group users by their role_id with comprehensive error handling
+  const usersByRole = React.useMemo((): [string, User[]][] => {
     try {
-      if (!filteredUsers || !Array.isArray(filteredUsers)) {
-        console.warn('👥 UserSelectionSection: Invalid filtered users data');
-        return [] as [string, User[]][];
+      if (!Array.isArray(filteredUsers)) {
+        console.warn('👥 UserSelectionSection: filteredUsers is not an array:', typeof filteredUsers);
+        return [];
       }
 
       const grouped: Record<string, User[]> = filteredUsers.reduce((acc, user) => {
@@ -45,6 +45,11 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
 
         try {
           const roleName = getRoleNameFromId(user.role_id);
+          if (!roleName) {
+            console.warn('👥 UserSelectionSection: Could not get role name for user:', user.id, 'role_id:', user.role_id);
+            return acc;
+          }
+          
           if (!acc[roleName]) {
             acc[roleName] = [];
           }
@@ -55,20 +60,45 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         return acc;
       }, {} as Record<string, User[]>);
       
-      const result = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)) as [string, User[]][];
+      const result = Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
       console.log('👥 UserSelectionSection: Grouped users by role:', result.length, 'roles');
       return result;
     } catch (error) {
       console.error('👥 UserSelectionSection: Error grouping users by role:', error);
-      return [] as [string, User[]][];
+      return [];
     }
   }, [filteredUsers]);
+
+  // Safe handler functions
+  const handleSearchChange = React.useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      const value = e.target.value || '';
+      setUserSearchQuery(value);
+    } catch (error) {
+      console.error('👥 UserSelectionSection: Error handling search change:', error);
+    }
+  }, [setUserSearchQuery]);
+
+  const handleUserSelection = React.useCallback((userId: string, checked: boolean) => {
+    try {
+      if (!userId || typeof userId !== 'string') {
+        console.warn('👥 UserSelectionSection: Invalid userId for selection:', userId);
+        return;
+      }
+      onUserSelection(userId, checked);
+    } catch (error) {
+      console.error('👥 UserSelectionSection: Error handling user selection:', error);
+    }
+  }, [onUserSelection]);
+
+  const safeSelectedUserIds = Array.isArray(selectedUserIds) ? selectedUserIds : [];
+  const safeUserSearchQuery = typeof userSearchQuery === 'string' ? userSearchQuery : '';
 
   return (
     <div className="space-y-4">
       <Label className="flex items-center space-x-2">
         <Users className="h-4 w-4" />
-        <span>Select Users ({selectedUserIds?.length || 0} selected)</span>
+        <span>Select Users ({safeSelectedUserIds.length} selected)</span>
       </Label>
       
       {/* User Search Input */}
@@ -76,28 +106,28 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
           placeholder="Search users by name..."
-          value={userSearchQuery || ''}
-          onChange={(e) => setUserSearchQuery(e.target.value || '')}
+          value={safeUserSearchQuery}
+          onChange={handleSearchChange}
           className="pl-10"
         />
       </div>
 
       {/* Users grouped by their roles */}
       <div className="max-h-96 overflow-y-auto border rounded-md">
-        {!usersByRole || usersByRole.length === 0 ? (
+        {!Array.isArray(usersByRole) || usersByRole.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-8">
-            {userSearchQuery ? 'No users found matching your search.' : 'No users available.'}
+            {safeUserSearchQuery ? 'No users found matching your search.' : 'No users available.'}
           </p>
         ) : (
           usersByRole.map(([roleName, roleUsers]) => {
-            if (!roleUsers || !Array.isArray(roleUsers) || roleUsers.length === 0) {
+            if (!Array.isArray(roleUsers) || roleUsers.length === 0) {
               return null;
             }
 
             return (
               <div key={roleName} className="border-b last:border-b-0">
                 <div className="px-4 py-3 bg-gray-100 font-medium text-sm border-b">
-                  {roleName} ({roleUsers.length} users)
+                  {roleName || 'Unknown Role'} ({roleUsers.length} users)
                 </div>
                 <div className="p-3 space-y-3">
                   {roleUsers.map((user) => {
@@ -108,21 +138,15 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
 
                     const isActive = user.status === 'Active';
                     const isDisabled = !isActive;
-                    const userId = user.id.toString();
-                    const isSelected = selectedUserIds?.includes(userId) || false;
+                    const userId = String(user.id);
+                    const isSelected = safeSelectedUserIds.includes(userId);
                     
                     return (
                       <div key={user.id} className={`flex items-center space-x-3 ${isDisabled ? 'opacity-50' : ''}`}>
                         <Checkbox
                           id={`user-${user.id}`}
                           checked={isSelected}
-                          onCheckedChange={(checked) => {
-                            try {
-                              onUserSelection(userId, checked as boolean);
-                            } catch (error) {
-                              console.error('👥 UserSelectionSection: Error handling user selection:', error);
-                            }
-                          }}
+                          onCheckedChange={(checked) => handleUserSelection(userId, Boolean(checked))}
                           disabled={isDisabled}
                         />
                         <label 
@@ -133,7 +157,7 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
                             <div>
                               <span className="font-medium">{user.name || 'Unknown User'}</span>
                               <span className="text-sm text-gray-500 ml-2">
-                                ({getRoleNameFromId(user.role_id)})
+                                ({getRoleNameFromId(user.role_id) || 'Unknown Role'})
                               </span>
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 user.status === 'Active' ? 'bg-green-100 text-green-800' :
@@ -159,13 +183,13 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         )}
       </div>
       
-      {userSearchQuery && (
+      {safeUserSearchQuery && (
         <p className="text-xs text-gray-500">
-          Showing {totalFilteredUsers || 0} of {users?.length || 0} users
+          Showing {totalFilteredUsers || 0} of {Array.isArray(users) ? users.length : 0} users
         </p>
       )}
       
-      {(!selectedUserIds || selectedUserIds.length === 0) && (
+      {safeSelectedUserIds.length === 0 && (
         <p className="text-sm text-gray-500">Please select at least one user for the trip.</p>
       )}
     </div>

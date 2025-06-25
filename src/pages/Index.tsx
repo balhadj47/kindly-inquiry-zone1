@@ -51,38 +51,28 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   
-  // Safely access RBAC context with better error handling
-  let hasPermission: (permission: string) => boolean = () => {
-    console.warn('⚠️ hasPermission called before RBAC context loaded');
-    return false;
-  };
-  let currentUser: any = null;
-  let loading = true;
+  // Safely access RBAC context with comprehensive error handling
+  const rbacContext = useRBAC();
   
-  try {
-    const rbacContext = useRBAC();
-    if (rbacContext && typeof rbacContext === 'object') {
-      hasPermission = rbacContext.hasPermission || (() => {
-        console.warn('⚠️ hasPermission function not available in RBAC context');
-        return false;
-      });
-      currentUser = rbacContext.currentUser;
-      loading = rbacContext.loading;
-      console.log('📱 Index: RBAC context loaded successfully');
-    } else {
-      console.error('❌ Index: RBAC context is null or undefined');
+  // Extract context values with safe defaults
+  const hasPermission = React.useMemo(() => {
+    if (!rbacContext || typeof rbacContext.hasPermission !== 'function') {
+      console.warn('⚠️ hasPermission not available, using fallback');
+      return () => false;
     }
-  } catch (error) {
-    console.error('📱 Index: Error accessing RBAC context:', error);
-    // Continue with default values (no access)
-  }
+    return rbacContext.hasPermission;
+  }, [rbacContext]);
+
+  const currentUser = rbacContext?.currentUser || null;
+  const loading = rbacContext?.loading ?? true;
 
   console.log('📱 Index: Context state:', {
     isMobile,
-    currentUserId: currentUser?.id,
-    currentUserRoleId: currentUser?.role_id,
+    currentUserId: currentUser?.id || 'null',
+    currentUserRoleId: currentUser?.role_id || 'null',
     loading,
-    hasPermissionType: typeof hasPermission
+    hasPermissionType: typeof hasPermission,
+    rbacContextAvailable: !!rbacContext
   });
 
   // Show loading while RBAC is initializing
@@ -91,21 +81,27 @@ const Index = () => {
     return <PageLoadingSkeleton />;
   }
 
-  // Safe permission check wrapper
-  const checkPermission = (permission: string): boolean => {
+  // Safe permission check wrapper with comprehensive error handling
+  const checkPermission = React.useCallback((permission: string): boolean => {
     try {
+      if (!permission || typeof permission !== 'string') {
+        console.warn('📱 Index: Invalid permission parameter:', permission);
+        return false;
+      }
+
       if (typeof hasPermission !== 'function') {
         console.warn('📱 Index: hasPermission is not a function:', typeof hasPermission);
         return false;
       }
+
       const result = hasPermission(permission);
       console.log('📱 Index: Permission check:', permission, '=', result);
-      return result;
+      return Boolean(result);
     } catch (error) {
       console.error('📱 Index: Error checking permission:', permission, error);
       return false;
     }
-  };
+  }, [hasPermission]);
 
   console.log('📱 Index: Rendering main application layout');
 

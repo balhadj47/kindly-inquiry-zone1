@@ -4,7 +4,14 @@ import { RBACContext } from './context';
 import { hasPermission as checkPermission } from './permissionUtils';
 
 export const useRBAC = () => {
-  const context = useContext(RBACContext);
+  let context;
+  
+  try {
+    context = useContext(RBACContext);
+  } catch (error) {
+    console.error('❌ CRITICAL: Error accessing RBACContext:', error);
+    context = null;
+  }
   
   if (!context) {
     console.error('❌ CRITICAL: useRBAC must be used within a RBACProvider');
@@ -15,8 +22,8 @@ export const useRBAC = () => {
       roles: [],
       permissions: [],
       loading: true,
-      hasPermission: () => {
-        console.warn('🚫 hasPermission called outside RBACProvider context');
+      hasPermission: (permission: string) => {
+        console.warn('🚫 hasPermission called outside RBACProvider context:', permission);
         return false;
       },
       getUserRole: () => null,
@@ -60,21 +67,15 @@ export const useRBAC = () => {
       }
 
       // Safety check for roles array
-      if (!roles || !Array.isArray(roles)) {
+      if (!Array.isArray(roles) || roles.length === 0) {
         console.log('⚠️ Roles not loaded or invalid, denying permission for non-admin:', permission);
         return false;
       }
 
       // If we have roles loaded from database, use the permission system
-      if (roles.length > 0) {
-        const result = checkPermission(String(currentUser.id), permission);
-        console.log(`🔐 Database permission check result: ${permission} = ${result} for user ${currentUser.id}`);
-        return result;
-      }
-
-      // If no roles loaded yet from database, deny access for non-admins
-      console.log('⚠️ No database roles loaded, denying permission for non-admin:', permission);
-      return false;
+      const result = checkPermission(String(currentUser.id), permission);
+      console.log(`🔐 Database permission check result: ${permission} = ${result} for user ${currentUser.id}`);
+      return result;
 
     } catch (error) {
       console.error('❌ CRITICAL ERROR in permission check:', error);
@@ -92,30 +93,45 @@ export const useRBAC = () => {
   };
 
   const getUserRole = (userId: string) => {
-    if (!currentUser || currentUser.id !== userId) {
+    try {
+      if (!currentUser || currentUser.id !== userId) {
+        return null;
+      }
+      
+      if (!Array.isArray(roles)) {
+        console.warn('🔧 Roles array not available for getUserRole');
+        return null;
+      }
+      
+      // Find role by role_id
+      const role = roles.find(r => parseInt(r.id) === currentUser.role_id);
+      return role || null;
+    } catch (error) {
+      console.error('🔧 Error in getUserRole:', error);
       return null;
     }
-    
-    // Find role by role_id
-    const role = roles?.find(r => parseInt(r.id) === currentUser.role_id);
-    return role || null;
   };
 
   const canUserPerformAction = (userId: string, action: string): boolean => {
-    const userRole = getUserRole(userId);
-    if (!userRole) {
+    try {
+      const userRole = getUserRole(userId);
+      if (!userRole) {
+        return false;
+      }
+      
+      return Array.isArray(userRole.permissions) && userRole.permissions.includes(action);
+    } catch (error) {
+      console.error('🔧 Error in canUserPerformAction:', error);
       return false;
     }
-    
-    return userRole.permissions?.includes(action) || false;
   };
 
   return {
     currentUser,
-    users: users || [],
-    roles: roles || [],
-    permissions: permissions || [],
-    loading: loading || false,
+    users: Array.isArray(users) ? users : [],
+    roles: Array.isArray(roles) ? roles : [],
+    permissions: Array.isArray(permissions) ? permissions : [],
+    loading: Boolean(loading),
     hasPermission,
     getUserRole,
     canUserPerformAction,

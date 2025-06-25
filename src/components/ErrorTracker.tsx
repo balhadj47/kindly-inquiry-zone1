@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 
 interface ConsoleError {
@@ -45,6 +44,21 @@ const ErrorTracker = () => {
              message.includes('null is not');
     };
 
+    const isBrowserExtensionError = (message: string) => {
+      return message.includes('chrome-extension://') ||
+             message.includes('extension') ||
+             message.includes('inpage.js') ||
+             message.includes('content script') ||
+             message.includes('browser extension');
+    };
+
+    const isNetworkError = (message: string) => {
+      return message.includes('fetch') ||
+             message.includes('network') ||
+             message.includes('cors') ||
+             message.includes('Failed to load');
+    };
+
     // Safely override console.error
     console.error = (...args) => {
       try {
@@ -62,11 +76,18 @@ const ErrorTracker = () => {
         // Always call original console.error first
         originalConsoleError.apply(console, args);
         
+        // Filter out browser extension errors as they're not our concern
+        if (isBrowserExtensionError(message)) {
+          console.log('🔇 Filtered browser extension error:', message.substring(0, 100));
+          return;
+        }
+        
         // Categorize and store error
         const errorType = isContextError(message) ? 'context' : 
                          isReactHookError(message) ? 'react-hook' : 
                          isPermissionError(message) ? 'permission' :
-                         isTypeError(message) ? 'type-error' : 'general';
+                         isTypeError(message) ? 'type-error' : 
+                         isNetworkError(message) ? 'network' : 'general';
         
         errors.push({
           message: `[${errorType.toUpperCase()}] ${message}`,
@@ -113,6 +134,11 @@ const ErrorTracker = () => {
         // Always call original console.warn first
         originalConsoleWarn.apply(console, args);
         
+        // Filter out browser extension warnings
+        if (isBrowserExtensionError(message)) {
+          return;
+        }
+        
         // Filter out known non-critical warnings but include context warnings
         if (!message.includes('React Router') && 
             !message.includes('deprecated') && 
@@ -150,6 +176,12 @@ const ErrorTracker = () => {
     // Add global error handler for unhandled errors
     const handleGlobalError = (event: ErrorEvent) => {
       try {
+        // Filter out browser extension errors
+        if (event.filename?.includes('chrome-extension://') || 
+            event.message?.includes('chrome-extension://')) {
+          return;
+        }
+        
         console.error('🚨 UNHANDLED ERROR:', {
           message: event.message,
           filename: event.filename,
@@ -164,6 +196,12 @@ const ErrorTracker = () => {
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       try {
+        // Filter out browser extension promise rejections
+        if (event.reason?.message?.includes('chrome-extension://') ||
+            event.reason?.stack?.includes('chrome-extension://')) {
+          return;
+        }
+        
         console.error('🚨 UNHANDLED PROMISE REJECTION:', {
           reason: event.reason,
           stack: event.reason?.stack

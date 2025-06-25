@@ -22,7 +22,7 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <PlusButton onClick={onAddCompany} variant="companies" />
+            <PlusButton onClick={onAddCompany} />
           </TooltipTrigger>
           <TooltipContent>
             <p>{t.addNewCompany}</p>

@@ -64,7 +64,7 @@ const CompaniesIndex = () => {
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
         <CompaniesHeader onAddCompany={handleAddCompany} />
-        <RefreshButton onRefresh={handleRefresh} variant="companies" />
+        <RefreshButton onRefresh={handleRefresh} />
       </div>
       
       <CompaniesSearch 

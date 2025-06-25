@@ -28,7 +28,7 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <PlusButton onClick={onAddVan} variant="vans" />
+            <PlusButton onClick={onAddVan} />
           </TooltipTrigger>
           <TooltipContent>
             <p>{t.addNewVanTooltip}</p>

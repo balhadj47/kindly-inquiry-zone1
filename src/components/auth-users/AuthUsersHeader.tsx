@@ -30,10 +30,10 @@ const AuthUsersHeader: React.FC<AuthUsersHeaderProps> = ({
       </div>
       <div className="flex items-center space-x-2">
         {onAddUser && (
-          <PlusButton onClick={onAddUser} variant="auth-users" />
+          <PlusButton onClick={onAddUser} />
         )}
         {onRefresh && (
-          <RefreshButton onRefresh={onRefresh} variant="auth-users" />
+          <RefreshButton onRefresh={onRefresh} />
         )}
       </div>
     </div>

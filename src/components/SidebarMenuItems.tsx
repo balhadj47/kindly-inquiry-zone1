@@ -32,9 +32,15 @@ export const useSidebarMenuItems = () => {
     console.error('🔍 useSidebarMenuItems: Error accessing RBAC context:', error);
   }
   
-  const { t } = useLanguage();
+  let t: any = {};
+  try {
+    const languageContext = useLanguage();
+    t = languageContext?.t || {};
+  } catch (error) {
+    console.error('🔍 useSidebarMenuItems: Error accessing Language context:', error);
+  }
   
-  // Menu items with translation keys
+  // Menu items with translation keys and safe fallbacks
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -86,7 +92,7 @@ export const useSidebarMenuItems = () => {
     roleId: currentUser?.role_id,
     loading: loading,
     rolesCount: roles?.length || 0,
-    rolesData: roles?.map(r => ({ id: r.id, name: r.name, permissions: r.permissions })) || []
+    rolesData: roles?.map(r => ({ id: r?.id, name: r?.name, permissions: r?.permissions })) || []
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -101,8 +107,12 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // If no roles are loaded yet, wait
+  // If no roles are loaded yet, wait (but allow admin access)
   if (!roles || roles.length === 0) {
+    if (currentUser.role_id === 1 || currentUser.id === 'admin-temp') {
+      console.log('🔍 Admin user detected, showing all menu items despite no roles loaded');
+      return menuItems;
+    }
     console.log('🔍 No roles loaded yet, returning empty menu');
     return [];
   }
@@ -111,17 +121,22 @@ export const useSidebarMenuItems = () => {
 
   // Filter menu items based on permissions
   const filteredMenuItems = menuItems.filter((item) => {
-    // All menu items now require permissions - no exceptions
-    if (!item.permission) {
-      console.log(`⚠️ Menu item "${item.title}" has no permission requirement - this should not happen`);
+    try {
+      // All menu items now require permissions - no exceptions
+      if (!item.permission) {
+        console.log(`⚠️ Menu item "${item.title}" has no permission requirement - this should not happen`);
+        return false;
+      }
+      
+      // Check if user has the required permission
+      const hasAccess = hasPermission(item.permission);
+      console.log(`🔍 DETAILED Permission check for ${item.title} (${item.permission}): ${hasAccess} for user ${currentUser.email} with role_id ${currentUser.role_id}`);
+      
+      return hasAccess;
+    } catch (error) {
+      console.error(`🔍 Error checking permission for ${item.title}:`, error);
       return false;
     }
-    
-    // Check if user has the required permission
-    const hasAccess = hasPermission(item.permission);
-    console.log(`🔍 DETAILED Permission check for ${item.title} (${item.permission}): ${hasAccess} for user ${currentUser.email} with role_id ${currentUser.role_id}`);
-    
-    return hasAccess;
   });
 
   console.log('🔍 FINAL RESULT:', {

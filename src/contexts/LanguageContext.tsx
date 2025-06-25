@@ -27,27 +27,64 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   useEffect(() => {
     try {
       console.log('🌐 LanguageContext: Language changed to:', language);
-      console.log('🌐 LanguageContext: Available translations:', Object.keys(translations[language] || {}));
-      localStorage.setItem('language', language);
+      
+      // Safety check for translations
+      if (translations && translations[language]) {
+        console.log('🌐 LanguageContext: Available translations:', Object.keys(translations[language] || {}));
+        localStorage.setItem('language', language);
+      } else {
+        console.warn('🌐 LanguageContext: Translations not available for language:', language);
+      }
     } catch (error) {
       console.warn('🌐 LanguageContext: Error saving language to localStorage:', error);
     }
   }, [language]);
 
-  const t = translations[language] || translations.fr; // Fallback to French
+  // Safe translation retrieval with fallbacks
+  const getTranslations = (): TranslationKeys => {
+    try {
+      if (!translations) {
+        console.error('❌ LanguageContext: Translations object not available');
+        return {} as TranslationKeys;
+      }
+      
+      const currentTranslations = translations[language];
+      if (!currentTranslations) {
+        console.warn('⚠️ LanguageContext: No translations for language:', language, 'falling back to French');
+        return translations.fr || {} as TranslationKeys;
+      }
+      
+      return currentTranslations;
+    } catch (error) {
+      console.error('❌ LanguageContext: Error getting translations:', error);
+      return {} as TranslationKeys;
+    }
+  };
+
+  const t = getTranslations();
   
   // Validate translations are loaded properly
   useEffect(() => {
-    if (!t) {
-      console.error('❌ LanguageContext: Translations not found for language:', language);
-    } else {
-      console.log('✅ LanguageContext: Translations loaded successfully for:', language);
-      console.log('🔧 LanguageContext: Translation keys:', Object.keys(t));
+    try {
+      if (!t || Object.keys(t).length === 0) {
+        console.error('❌ LanguageContext: Translations not found for language:', language);
+      } else {
+        console.log('✅ LanguageContext: Translations loaded successfully for:', language);
+        console.log('🔧 LanguageContext: Translation keys count:', Object.keys(t).length);
+      }
+    } catch (error) {
+      console.error('❌ LanguageContext: Error validating translations:', error);
     }
   }, [t, language]);
 
+  const contextValue = {
+    language,
+    setLanguage,
+    t: t || {} as TranslationKeys
+  };
+
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={contextValue}>
       {children}
     </LanguageContext.Provider>
   );

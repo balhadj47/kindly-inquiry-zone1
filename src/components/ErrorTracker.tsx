@@ -9,41 +9,61 @@ interface ConsoleError {
 
 const ErrorTracker = () => {
   useEffect(() => {
+    // Store original console methods safely
     const originalConsoleError = console.error;
     const originalConsoleWarn = console.warn;
     const errors: ConsoleError[] = [];
 
-    // Override console.error to track errors
+    // Safely override console.error
     console.error = (...args) => {
-      const message = args.join(' ');
-      errors.push({
-        message,
-        source: 'error',
-        timestamp: Date.now()
-      });
-      
-      // Still call original console.error
-      originalConsoleError.apply(console, args);
-      
-      // Log summary of recent errors
-      if (errors.length > 0) {
-        console.log('🔍 Recent Console Errors:', errors.slice(-5));
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        errors.push({
+          message,
+          source: 'error',
+          timestamp: Date.now()
+        });
+        
+        // Always call original console.error
+        originalConsoleError.apply(console, args);
+        
+        // Log summary safely
+        if (errors.length > 0) {
+          console.log('🔍 Recent Console Errors:', errors.slice(-3));
+        }
+      } catch (error) {
+        // Fallback to original console if tracking fails
+        originalConsoleError.apply(console, args);
       }
     };
 
-    // Override console.warn to track warnings
+    // Safely override console.warn
     console.warn = (...args) => {
-      const message = args.join(' ');
-      if (!message.includes('React Router') && !message.includes('deprecated')) {
-        errors.push({
-          message,
-          source: 'warning',
-          timestamp: Date.now()
-        });
+      try {
+        const message = args.map(arg => 
+          typeof arg === 'object' ? JSON.stringify(arg) : String(arg)
+        ).join(' ');
+        
+        // Filter out known non-critical warnings
+        if (!message.includes('React Router') && 
+            !message.includes('deprecated') && 
+            !message.includes('Warning: ReactDOM.render')) {
+          errors.push({
+            message,
+            source: 'warning',
+            timestamp: Date.now()
+          });
+        }
+        
+        // Always call original console.warn
+        originalConsoleWarn.apply(console, args);
+      } catch (error) {
+        // Fallback to original console if tracking fails
+        originalConsoleWarn.apply(console, args);
       }
-      
-      // Still call original console.warn
-      originalConsoleWarn.apply(console, args);
     };
 
     // Cleanup function to restore original console methods

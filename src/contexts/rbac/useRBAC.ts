@@ -18,9 +18,16 @@ export const useRBAC = () => {
       console.log('🔐 RBAC hasPermission called with:', permission);
       console.log('🔐 Current user:', currentUser?.id, 'role_id:', currentUser?.role_id);
       console.log('🔐 Loading state:', loading);
-      console.log('🔐 Roles available:', roles.length);
+      console.log('🔐 Roles available:', roles?.length || 0);
 
-      if (!currentUser) {
+      // Safety check for permission parameter
+      if (!permission || typeof permission !== 'string') {
+        console.warn('🚫 Invalid permission parameter:', permission);
+        return false;
+      }
+
+      // Safety check for current user
+      if (!currentUser || !currentUser.id) {
         console.log('🚫 No current user for permission check:', permission);
         return false;
       }
@@ -31,9 +38,15 @@ export const useRBAC = () => {
         return true;
       }
 
+      // Safety check for roles array
+      if (!roles || !Array.isArray(roles)) {
+        console.log('⚠️ Roles not loaded or invalid, denying permission for non-admin:', permission);
+        return false;
+      }
+
       // If we have roles loaded from database, use the permission system
-      if (roles && roles.length > 0) {
-        const result = checkPermission(currentUser.id.toString(), permission);
+      if (roles.length > 0) {
+        const result = checkPermission(String(currentUser.id), permission);
         console.log(`🔐 Database permission check result: ${permission} = ${result} for user ${currentUser.id}`);
         return result;
       }
@@ -59,10 +72,10 @@ export const useRBAC = () => {
 
   return {
     currentUser,
-    users,
-    roles,
-    permissions,
-    loading,
+    users: users || [],
+    roles: roles || [],
+    permissions: permissions || [],
+    loading: loading || false,
     hasPermission,
     ...context,
   };

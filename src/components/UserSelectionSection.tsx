@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -5,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Users, Search } from 'lucide-react';
 import { useUserFiltering } from '@/hooks/useUserFiltering';
 import { getRoleNameFromId } from '@/utils/roleUtils';
+import type { User } from '@/types/rbac';
 
 interface UserSelectionSectionProps {
   userSearchQuery: string;
@@ -21,18 +23,18 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
 }) => {
   const { filteredUsers, totalFilteredUsers, users } = useUserFiltering(userSearchQuery);
 
-  // Group users by their role_id
+  // Group users by their role_id with proper typing
   const usersByRole = React.useMemo(() => {
-    const grouped = filteredUsers.reduce((acc, user) => {
+    const grouped: Record<string, User[]> = filteredUsers.reduce((acc, user) => {
       const roleName = getRoleNameFromId(user.role_id);
       if (!acc[roleName]) {
         acc[roleName] = [];
       }
       acc[roleName].push(user);
       return acc;
-    }, {} as Record<string, typeof filteredUsers>);
+    }, {} as Record<string, User[]>);
     
-    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b));
+    return Object.entries(grouped).sort(([a], [b]) => a.localeCompare(b)) as [string, User[]][];
   }, [filteredUsers]);
 
   return (

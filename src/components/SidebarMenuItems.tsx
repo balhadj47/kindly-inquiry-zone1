@@ -13,6 +13,7 @@ export interface MenuItem {
 export const useSidebarMenuItems = () => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
+  // Safely access RBAC context
   let hasPermission: (permission: string) => boolean = () => false;
   let currentUser: any = null;
   let loading = true;
@@ -32,15 +33,26 @@ export const useSidebarMenuItems = () => {
     console.error('🔍 useSidebarMenuItems: Error accessing RBAC context:', error);
   }
   
+  // Safely access Language context
   let t: any = {};
   try {
     const languageContext = useLanguage();
     t = languageContext?.t || {};
   } catch (error) {
     console.error('🔍 useSidebarMenuItems: Error accessing Language context:', error);
+    // Provide fallback translations
+    t = {
+      dashboard: 'Dashboard',
+      companies: 'Companies',
+      vansDrivers: 'Vans & Drivers',
+      employees: 'Employees',
+      comptes: 'Accounts',
+      logTrip: 'Log Trip',
+      tripHistory: 'Trip History'
+    };
   }
   
-  // Menu items with translation keys and safe fallbacks
+  // Menu items with safe fallbacks
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -86,13 +98,12 @@ export const useSidebarMenuItems = () => {
     },
   ];
   
-  console.log('🔍 DETAILED Menu items processing:', {
+  console.log('🔍 Menu items processing:', {
     userId: currentUser?.id,
     userEmail: currentUser?.email,
     roleId: currentUser?.role_id,
     loading: loading,
-    rolesCount: roles?.length || 0,
-    rolesData: roles?.map(r => ({ id: r?.id, name: r?.name, permissions: r?.permissions })) || []
+    rolesCount: roles?.length || 0
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -117,20 +128,16 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  console.log('🔍 SUPERVISOR CHECK - User role_id:', currentUser.role_id, 'Expected permissions for Supervisor (role_id 2):', ['dashboard:read', 'companies:read', 'vans:read', 'trips:read']);
-
   // Filter menu items based on permissions
   const filteredMenuItems = menuItems.filter((item) => {
     try {
-      // All menu items now require permissions - no exceptions
       if (!item.permission) {
-        console.log(`⚠️ Menu item "${item.title}" has no permission requirement - this should not happen`);
+        console.log(`⚠️ Menu item "${item.title}" has no permission requirement`);
         return false;
       }
       
-      // Check if user has the required permission
       const hasAccess = hasPermission(item.permission);
-      console.log(`🔍 DETAILED Permission check for ${item.title} (${item.permission}): ${hasAccess} for user ${currentUser.email} with role_id ${currentUser.role_id}`);
+      console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess}`);
       
       return hasAccess;
     } catch (error) {
@@ -142,9 +149,7 @@ export const useSidebarMenuItems = () => {
   console.log('🔍 FINAL RESULT:', {
     totalMenuItems: menuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title),
-    userRole: currentUser.role_id,
-    userEmail: currentUser.email
+    filteredTitles: filteredMenuItems.map(item => item.title)
   });
   
   return filteredMenuItems;

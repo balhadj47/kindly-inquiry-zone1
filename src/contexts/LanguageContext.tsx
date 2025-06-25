@@ -28,7 +28,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     try {
       console.log('🌐 LanguageContext: Language changed to:', language);
       
-      // Safety check for translations
       if (translations && translations[language]) {
         console.log('🌐 LanguageContext: Available translations:', Object.keys(translations[language] || {}));
         localStorage.setItem('language', language);
@@ -70,7 +69,6 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         console.error('❌ LanguageContext: Translations not found for language:', language);
       } else {
         console.log('✅ LanguageContext: Translations loaded successfully for:', language);
-        console.log('🔧 LanguageContext: Translation keys count:', Object.keys(t).length);
       }
     } catch (error) {
       console.error('❌ LanguageContext: Error validating translations:', error);
@@ -94,7 +92,20 @@ export const useLanguage = () => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
     console.error('❌ useLanguage must be used within a LanguageProvider');
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    // Instead of throwing, return a safe fallback
+    return {
+      language: 'fr' as Language,
+      setLanguage: () => {},
+      t: {
+        dashboard: 'Dashboard',
+        companies: 'Companies',
+        vansDrivers: 'Vans & Drivers',
+        employees: 'Employees',
+        comptes: 'Accounts',
+        logTrip: 'Log Trip',
+        tripHistory: 'Trip History'
+      } as TranslationKeys
+    };
   }
   return context;
 };

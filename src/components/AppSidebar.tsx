@@ -10,19 +10,11 @@ import {
 } from '@/components/ui/sidebar';
 import SidebarHeaderComponent from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
-import { useLanguage } from '@/contexts/LanguageContext';
 
 const AppSidebar = () => {
   const location = useLocation();
-  const { t } = useLanguage();
   
   console.log('🔧 AppSidebar: Current location:', location.pathname);
-  console.log('🔧 AppSidebar: Navigation translations loaded:', {
-    dashboard: t.dashboard,
-    companies: t.companies,
-    vansDrivers: t.vansDrivers,
-    users: t.users
-  });
 
   return (
     <Sidebar 

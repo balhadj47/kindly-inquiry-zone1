@@ -9,7 +9,7 @@ import {
   SidebarRail
 } from '@/components/ui/sidebar';
 import SidebarBranding from './SidebarBranding';
-import SidebarHeader from './SidebarHeader';
+import SidebarHeaderComponent from './SidebarHeader';
 import SidebarMenuContent from './SidebarMenuContent';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -19,17 +19,17 @@ const AppSidebar = () => {
   
   console.log('🔧 AppSidebar: Current location:', location.pathname);
   console.log('🔧 AppSidebar: Navigation translations loaded:', {
-    dashboard: t.navigation?.dashboard,
-    companies: t.navigation?.companies,
-    vansDrivers: t.navigation?.vansDrivers,
-    users: t.navigation?.users
+    dashboard: t.dashboard,
+    companies: t.companies,
+    vansDrivers: t.vansDrivers,
+    users: t.users
   });
 
   return (
     <Sidebar variant="inset" className="border-r border-gray-200">
       <SidebarHeader>
         <SidebarBranding />
-        <SidebarHeader />
+        <SidebarHeaderComponent />
       </SidebarHeader>
       
       <SidebarContent>

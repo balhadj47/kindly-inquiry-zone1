@@ -11,42 +11,42 @@ const MobileBottomNav = () => {
   
   console.log('📱 MobileBottomNav: Current location:', location.pathname);
   console.log('📱 MobileBottomNav: Navigation translations:', {
-    home: t.navigation?.home,
-    companies: t.navigation?.companies,
-    vans: t.navigation?.vans,
-    history: t.navigation?.history,
-    settings: t.navigation?.settings
+    home: t.home,
+    companies: t.companies,
+    vans: t.vans,
+    history: t.history,
+    settings: t.settings
   });
 
   const navItems = [
     {
       to: '/dashboard',
       icon: Home,
-      label: t.navigation?.home || 'Home',
+      label: t.home || 'Home',
       isActive: location.pathname === '/' || location.pathname === '/dashboard'
     },
     {
       to: '/companies',
       icon: Building2,
-      label: t.navigation?.companies || 'Companies',
+      label: t.companies || 'Companies',
       isActive: location.pathname.startsWith('/companies')
     },
     {
       to: '/vans-drivers',
       icon: Car,
-      label: t.navigation?.vans || 'Vehicles',
+      label: t.vans || 'Vehicles',
       isActive: location.pathname.startsWith('/vans')
     },
     {
       to: '/trip-history',
       icon: History,
-      label: t.navigation?.history || 'History',
+      label: t.history || 'History',
       isActive: location.pathname.startsWith('/trip-history')
     },
     {
       to: '/settings',
       icon: Settings,
-      label: t.navigation?.settings || 'Settings',
+      label: t.settings || 'Settings',
       isActive: location.pathname.startsWith('/settings')
     }
   ];

@@ -1,4 +1,5 @@
 
+export type Language = 'en' | 'fr' | 'ar';
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 
 export interface TranslationKeys {

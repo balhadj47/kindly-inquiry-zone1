@@ -25,6 +25,7 @@ export const useVansIndexState = () => {
 
   const handleQuickAction = (van: any) => {
     console.log('Quick action for van:', van);
+    // This can be expanded later for specific quick actions
   };
 
   return {

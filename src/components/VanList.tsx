@@ -15,7 +15,7 @@ interface VanListProps {
   statusFilter: string;
   onAddVan: () => void;
   onEditVan: (van: any) => void;
-  onQuickAction: (action: string, van: any) => void;
+  onQuickAction: (van: any) => void; // Fixed signature to match usage
   onDeleteVan: (van: any) => void;
 }
 

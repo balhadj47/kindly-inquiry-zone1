@@ -41,7 +41,6 @@ const AuthUsers = () => {
   });
   const { user: authUser } = useAuth();
 
-  // Use the new caching hook
   const { data: authUsers = [], isLoading: loading, error, refetch } = useAuthUsers();
   const { deleteAuthUser, updateAuthUser, createAuthUser } = useAuthUserMutations();
 
@@ -103,7 +102,6 @@ const AuthUsers = () => {
     setStatusFilter('all');
   };
 
-  // Check permissions using the new auth-users specific permissions
   const userRoleId = authUser?.user_metadata?.role_id || 0;
   const isKnownAdmin = authUser?.email === 'gb47@msn.com';
   const hasAuthUsersPermission = roleIdHasPermission(userRoleId, 'auth-users:read') || isKnownAdmin;
@@ -111,7 +109,6 @@ const AuthUsers = () => {
   const canEditAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:update') || isKnownAdmin;
   const canDeleteAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:delete') || isKnownAdmin;
 
-  // Handle error states
   const showAdminError = error?.message.includes('Insufficient permissions');
 
   if (loading) {
@@ -178,18 +175,21 @@ const AuthUsers = () => {
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
           {canCreateAuthUsers && (
-            <Button onClick={handleAddUser} size="icon">
-              <Plus className="h-4 w-4" />
+            <Button 
+              onClick={handleAddUser} 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter
             </Button>
           )}
           <Button 
             onClick={handleRefresh} 
-            disabled={isRefreshing} 
-            variant="outline" 
-            size="icon"
-            className="bg-black text-white hover:bg-gray-800 border-black"
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
           </Button>
         </div>
       </div>

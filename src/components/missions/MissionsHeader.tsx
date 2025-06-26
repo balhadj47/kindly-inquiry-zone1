@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar, Building2, Truck } from 'lucide-react';
+import { Plus, Calendar, Building2, Truck, RefreshCw } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 
 interface MissionsHeaderProps {

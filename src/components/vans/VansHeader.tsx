@@ -30,15 +30,18 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, isRefreshi
             <Button 
               onClick={onRefresh} 
               disabled={isRefreshing}
-              variant="outline" 
-              size="icon"
-              className="bg-black text-white hover:bg-gray-800 border-black"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Actualiser
             </Button>
           )}
-          <Button onClick={onAddVan} size="icon">
-            <Plus className="h-4 w-4" />
+          <Button 
+            onClick={onAddVan} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter
           </Button>
         </div>
       </div>

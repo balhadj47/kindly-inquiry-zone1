@@ -21,6 +21,7 @@ import UserSettings from '@/pages/UserSettings';
 import SystemSettingsPage from '@/pages/SystemSettingsPage';
 import TripLoggerPage from '@/pages/TripLoggerPage';
 import TripHistoryPage from '@/pages/TripHistoryPage';
+import MissionsPage from '@/pages/MissionsPage';
 import AuthUsersPage from '@/pages/AuthUsersPage';
 import Dashboard from '@/components/Dashboard';
 import Companies from '@/components/Companies';
@@ -174,6 +175,9 @@ const Index = () => {
                     } />
                     <Route path="/trip-logger" element={
                       checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                    } />
+                    <Route path="/missions" element={
+                      checkPermission('trips:read') ? <MissionsPage /> : <AccessDenied />
                     } />
                     <Route path="/trip-history" element={
                       checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />

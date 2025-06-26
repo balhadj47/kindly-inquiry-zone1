@@ -45,66 +45,71 @@ const MissionsContainer: React.FC<MissionsContainerProps> = ({
 
   console.log('🚀 MissionsContainer: Raw trips data:', trips);
 
-  // Process trips data
+  // Process trips data safely
   const processedTrips = useMemo(() => {
-    if (!Array.isArray(trips)) {
-      console.warn('🚀 MissionsContainer: trips is not an array:', trips);
-      return [];
-    }
+    try {
+      if (!Array.isArray(trips)) {
+        console.warn('🚀 MissionsContainer: trips is not an array:', trips);
+        return [];
+      }
 
-    return trips.map(trip => {
-      try {
-        if (!trip) {
-          console.warn('🚀 MissionsContainer: Found null trip');
-          return null;
-        }
-
-        const processDate = (dateObj: any) => {
-          if (!dateObj) return null;
-          
-          try {
-            if (dateObj._type === 'Date' && dateObj.value) {
-              if (dateObj.value.iso) {
-                return dateObj.value.iso;
-              }
-              if (dateObj.value.value && typeof dateObj.value.value === 'number') {
-                return new Date(dateObj.value.value).toISOString();
-              }
-            }
-            
-            if (typeof dateObj === 'string') {
-              return dateObj;
-            }
-            
-            if (dateObj instanceof Date) {
-              return dateObj.toISOString();
-            }
-            
-            if (typeof dateObj === 'number') {
-              return new Date(dateObj).toISOString();
-            }
-            
-            return null;
-          } catch (err) {
-            console.warn('🚀 MissionsContainer: Error processing date:', err, dateObj);
+      return trips.map(trip => {
+        try {
+          if (!trip) {
+            console.warn('🚀 MissionsContainer: Found null trip');
             return null;
           }
-        };
 
-        return {
-          ...trip,
-          startDate: processDate(trip.startDate),
-          endDate: processDate(trip.endDate)
-        };
-      } catch (dateError) {
-        console.error('🚀 MissionsContainer: Error processing trip:', dateError, trip);
-        return {
-          ...trip,
-          startDate: null,
-          endDate: null
-        };
-      }
-    }).filter(Boolean);
+          const processDate = (dateObj: any) => {
+            if (!dateObj) return null;
+            
+            try {
+              if (dateObj._type === 'Date' && dateObj.value) {
+                if (dateObj.value.iso) {
+                  return dateObj.value.iso;
+                }
+                if (dateObj.value.value && typeof dateObj.value.value === 'number') {
+                  return new Date(dateObj.value.value).toISOString();
+                }
+              }
+              
+              if (typeof dateObj === 'string') {
+                return dateObj;
+              }
+              
+              if (dateObj instanceof Date) {
+                return dateObj.toISOString();
+              }
+              
+              if (typeof dateObj === 'number') {
+                return new Date(dateObj).toISOString();
+              }
+              
+              return null;
+            } catch (err) {
+              console.warn('🚀 MissionsContainer: Error processing date:', err, dateObj);
+              return null;
+            }
+          };
+
+          return {
+            ...trip,
+            startDate: processDate(trip.startDate),
+            endDate: processDate(trip.endDate)
+          };
+        } catch (dateError) {
+          console.error('🚀 MissionsContainer: Error processing trip:', dateError, trip);
+          return {
+            ...trip,
+            startDate: null,
+            endDate: null
+          };
+        }
+      }).filter(Boolean);
+    } catch (error) {
+      console.error('🚀 MissionsContainer: Error processing trips:', error);
+      return [];
+    }
   }, [trips]);
 
   // Filter trips
@@ -134,15 +139,22 @@ const MissionsContainer: React.FC<MissionsContainerProps> = ({
   }, [processedTrips, searchTerm, companyFilter, vanFilter, statusFilter]);
 
   const getVanDisplayName = (vanId: string) => {
-    const van = vans.find(v => v.id === vanId);
-    if (van) {
-      return (van as any).reference_code || van.license_plate || van.model;
+    try {
+      if (!vanId) return 'N/A';
+      const van = vans.find(v => v.id === vanId);
+      if (van) {
+        return (van as any).reference_code || van.license_plate || van.model || vanId;
+      }
+      return vanId;
+    } catch (error) {
+      console.error('🚀 MissionsContainer: Error getting van display name:', error);
+      return vanId || 'N/A';
     }
-    return vanId;
   };
 
   // Event handlers
   const handleOpenMissionDetails = (mission: Trip) => {
+    console.log('🚀 MissionsContainer: Opening mission details for:', mission);
     setSelectedMission(mission);
     setIsDetailsDialogOpen(true);
   };
@@ -183,6 +195,7 @@ const MissionsContainer: React.FC<MissionsContainerProps> = ({
       setSelectedMission(null);
       setCurrentAction(null);
     } catch (error) {
+      console.error('🚀 MissionsContainer: Error during action:', error);
       toast({
         title: 'Erreur',
         description: `Impossible de ${currentAction === 'delete' ? 'supprimer' : 'terminer'} la mission.`,
@@ -207,11 +220,12 @@ const MissionsContainer: React.FC<MissionsContainerProps> = ({
   }
 
   if (error) {
+    console.error('🚀 MissionsContainer: Error state:', error);
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
-          <p className="text-gray-600 mb-4">Impossible de charger les missions</p>
+          <p className="text-gray-600 mb-4">Impossible de charger les missions: {error}</p>
         </div>
       </div>
     );

@@ -66,7 +66,7 @@ const Index = () => {
     timestamp: new Date().toISOString()
   });
 
-  // Simple permission check without complex fallbacks
+  // Simple permission check - be more permissive for debugging
   const checkPermission = React.useCallback((permission: string): boolean => {
     console.log('📱 Index: Checking permission:', permission, {
       authLoading,
@@ -76,10 +76,10 @@ const Index = () => {
       hasPermissionFn: !!hasPermission
     });
 
-    // If still loading, deny access to prevent premature rendering
+    // If still loading, show loading instead of denying access
     if (authLoading || rbacLoading) {
-      console.log('📱 Index: Permission denied - still loading');
-      return false;
+      console.log('📱 Index: Still loading, showing skeleton');
+      return false; // This will trigger loading skeleton
     }
 
     // If no auth user, deny access
@@ -88,22 +88,28 @@ const Index = () => {
       return false;
     }
 
-    // Admin bypass for known admin email
-    if (authUser.email === 'gb47@msn.com') {
+    // Admin bypass for known admin emails
+    if (authUser.email === 'gb47@msn.com' || authUser.email === 'kacemdbz@gmail.com') {
       console.log('📱 Index: Permission granted - admin bypass');
       return true;
     }
 
     // If RBAC user exists, use permission system
-    if (currentUser && hasPermission) {
-      const result = hasPermission(permission);
-      console.log('📱 Index: Permission result from RBAC:', result);
-      return result;
+    if (currentUser && hasPermission && typeof hasPermission === 'function') {
+      try {
+        const result = hasPermission(permission);
+        console.log('📱 Index: Permission result from RBAC:', result);
+        return result;
+      } catch (error) {
+        console.error('📱 Index: Error checking permission:', error);
+        // Fall back to allowing access if there's an error
+        return true;
+      }
     }
 
-    // Default deny if no proper context
-    console.log('📱 Index: Permission denied - no proper context');
-    return false;
+    // For now, allow access if user is authenticated but no RBAC context
+    console.log('📱 Index: No RBAC context, allowing access for authenticated user');
+    return true;
   }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
 
   // Show loading while auth or RBAC is loading

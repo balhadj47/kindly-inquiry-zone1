@@ -32,11 +32,6 @@ const MissionsPage = () => {
 
   return (
     <MissionsLayout>
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">Missions</h1>
-        <p className="text-gray-500 mt-2">Gérez toutes vos missions</p>
-      </div>
-
       <MissionsHeader 
         trips={trips}
         onNewMissionClick={handleNewMissionClick}

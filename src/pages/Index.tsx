@@ -157,9 +157,6 @@ const Index = () => {
                     <Route path="/companies/*" element={
                       checkPermission('companies:read') ? <Companies /> : <AccessDenied />
                     } />
-                    <Route path="/vans-drivers" element={
-                      checkPermission('vans:read') ? <Vans /> : <AccessDenied />
-                    } />
                     <Route path="/vans/*" element={
                       checkPermission('vans:read') ? <Vans /> : <AccessDenied />
                     } />

@@ -1,3 +1,4 @@
+
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -55,7 +56,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items with both vans routes included
+  // Menu items with clean vans route
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',

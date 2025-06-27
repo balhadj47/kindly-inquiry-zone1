@@ -43,7 +43,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
         goToStep={goToStep}
       />
       
-      <TripFormSteps currentStep={currentStep} />
+      <TripFormSteps />
       
       <WizardNavigation
         isFirstStep={isFirstStep}

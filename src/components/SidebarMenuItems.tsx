@@ -56,7 +56,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items with missions route
+  // Menu items without log-trip
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -87,12 +87,6 @@ export const useSidebarMenuItems = () => {
       href: '/auth-users',
       icon: Shield,
       permission: 'auth-users:read',
-    },
-    {
-      title: t?.logTrip || 'Log Trip',
-      href: '/log-trip',
-      icon: Clock,
-      permission: 'trips:create',
     },
     {
       title: t?.missions || 'Missions',

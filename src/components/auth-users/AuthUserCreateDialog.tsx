@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface AuthUserCreateDialogProps {
   isOpen: boolean;
@@ -29,6 +30,17 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [roleId, setRoleId] = useState<number>(2);
+  const { roles } = useRBAC();
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      setEmail('');
+      setPassword('');
+      setName('');
+      setRoleId(2);
+    }
+  }, [isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,8 +116,11 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Administrateur</SelectItem>
-                <SelectItem value="2">Superviseur</SelectItem>
+                {roles.map((role) => (
+                  <SelectItem key={role.id} value={role.role_id?.toString() || role.id}>
+                    {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

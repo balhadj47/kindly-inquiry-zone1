@@ -60,14 +60,40 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const fileName = `employee-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      
+      console.log('Uploading employee image:', fileName);
 
-      console.log('Uploading employee image:', filePath);
+      // First try to create the bucket if it doesn't exist
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      
+      if (bucketsError) {
+        console.error('Error listing buckets:', bucketsError);
+      }
+
+      console.log('Available buckets:', buckets);
+
+      // Check if employee-avatars bucket exists, if not create it
+      const employeeAvatarsBucket = buckets?.find(bucket => bucket.name === 'employee-avatars');
+      
+      if (!employeeAvatarsBucket) {
+        console.log('Creating employee-avatars bucket...');
+        const { data: newBucket, error: createBucketError } = await supabase.storage.createBucket('employee-avatars', {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
+        });
+
+        if (createBucketError) {
+          console.error('Error creating bucket:', createBucketError);
+          throw createBucketError;
+        }
+        console.log('Bucket created successfully:', newBucket);
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('employee-avatars')
-        .upload(filePath, file, {
+        .upload(fileName, file, {
           cacheControl: '3600',
           upsert: false
         });
@@ -79,7 +105,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
 
       const { data } = supabase.storage
         .from('employee-avatars')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
 
       console.log('Employee image uploaded successfully, URL:', data.publicUrl);
       onImageChange(data.publicUrl);

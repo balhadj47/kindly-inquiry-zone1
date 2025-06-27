@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Building2 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -14,11 +14,16 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
 
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
-        <p className="text-gray-600 mt-1">
-          {t.manageCompaniesAndBranches}
-        </p>
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-orange-100 rounded-lg">
+          <Building2 className="h-6 w-6 text-orange-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
+          <p className="text-gray-600 mt-1">
+            {t.manageCompaniesAndBranches}
+          </p>
+        </div>
       </div>
       <TooltipProvider>
         <Tooltip>

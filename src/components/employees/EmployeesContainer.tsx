@@ -9,7 +9,6 @@ import EmployeesList from './EmployeesList';
 import EmployeeModal from './EmployeeModal';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
-import { useModernRefresh } from '@/hooks/useModernRefresh';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 
@@ -51,7 +50,6 @@ const EmployeesContainer = () => {
   
   // Use the optimized hook for employees (role_id: 3)
   const { data: rawEmployees = [], isLoading: loading, refetch, error } = useUsersByRoleId(3);
-  const { invalidateCompanies } = useModernRefresh<User>();
 
   // Transform the raw employees data to match RBAC User type with proper error handling
   const employees: User[] = React.useMemo(() => {

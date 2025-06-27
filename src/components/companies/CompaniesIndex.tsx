@@ -7,7 +7,7 @@ import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
@@ -123,13 +123,6 @@ const CompaniesIndex = () => {
       <div className="flex items-center justify-between">
         <CompaniesHeader onAddCompany={handleAddCompany} />
         <div className="flex items-center space-x-2">
-          <Button 
-            onClick={handleAddCompany}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter
-          </Button>
           <Button 
             onClick={handleRefresh} 
             disabled={isRefreshing}

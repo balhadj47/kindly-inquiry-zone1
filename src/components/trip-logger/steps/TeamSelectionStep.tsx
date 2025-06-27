@@ -32,24 +32,79 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 }) => {
   console.log('👥 TeamSelectionStep: Starting render');
   
-  const { users } = useRBAC();
+  const rbacContext = useRBAC();
+  console.log('👥 TeamSelectionStep: RBAC context:', rbacContext);
+
+  // Extract users from context with better error handling
+  const users = React.useMemo(() => {
+    console.log('👥 TeamSelectionStep: Processing RBAC context users');
+    
+    if (!rbacContext) {
+      console.warn('👥 TeamSelectionStep: No RBAC context available');
+      return [];
+    }
+
+    const { users: contextUsers, loading, error } = rbacContext;
+    
+    console.log('👥 TeamSelectionStep: Context state:', {
+      users: contextUsers,
+      usersType: typeof contextUsers,
+      usersIsArray: Array.isArray(contextUsers),
+      usersLength: contextUsers?.length,
+      loading,
+      error
+    });
+
+    if (loading) {
+      console.log('👥 TeamSelectionStep: Still loading users');
+      return [];
+    }
+
+    if (error) {
+      console.error('👥 TeamSelectionStep: Error in RBAC context:', error);
+      return [];
+    }
+
+    if (!contextUsers) {
+      console.warn('👥 TeamSelectionStep: No users in context');
+      return [];
+    }
+
+    if (!Array.isArray(contextUsers)) {
+      console.warn('👥 TeamSelectionStep: Users is not an array:', contextUsers);
+      return [];
+    }
+
+    return contextUsers;
+  }, [rbacContext]);
 
   // Safely handle users data
   const safeUsers = React.useMemo(() => {
     try {
-      if (!users || !Array.isArray(users)) {
+      console.log('👥 TeamSelectionStep: Processing safe users from:', users);
+      
+      if (!Array.isArray(users)) {
         console.warn('👥 TeamSelectionStep: Users is not an array:', users);
         return [];
       }
 
       // Filter out invalid users and ensure they have required fields
-      return users.filter(user => {
-        return user && 
+      const validUsers = users.filter(user => {
+        const isValid = user && 
                user.id && 
                user.name && 
                typeof user.name === 'string' &&
                user.name.trim().length > 0;
+        
+        if (!isValid) {
+          console.warn('👥 TeamSelectionStep: Invalid user filtered out:', user);
+        }
+        
+        return isValid;
       });
+
+      console.log('👥 TeamSelectionStep: Valid users after filtering:', validUsers);
+      return validUsers;
     } catch (error) {
       console.error('👥 TeamSelectionStep: Error processing users:', error);
       return [];
@@ -68,7 +123,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     return safeUsers.filter(user => {
       return user.name.toLowerCase().includes(searchLower) ||
              (user.email && user.email.toLowerCase().includes(searchLower)) ||
-             (user.badgeNumber && user.badgeNumber.toLowerCase().includes(searchLower));
+             (user.badge_number && user.badge_number.toLowerCase().includes(searchLower));
     });
   }, [safeUsers, userSearchQuery]);
 
@@ -119,8 +174,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 
   const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
-  // Show loading state if users are not loaded yet
-  if (!users) {
+  // Show loading state if RBAC is still loading
+  if (rbacContext?.loading) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -165,6 +220,10 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         {process.env.NODE_ENV === 'development' && (
           <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
             Debug: {safeUsers.length} total users, {filteredUsers.length} after filter, {sortedUsers.length} after sort
+            <br />
+            RBAC Loading: {rbacContext?.loading ? 'Yes' : 'No'}
+            <br />
+            Raw users from context: {users?.length || 0}
           </div>
         )}
 
@@ -197,6 +256,11 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
               <p className="text-xs text-gray-400 mt-2">
                 Total users loaded: {safeUsers.length}
               </p>
+              {rbacContext?.error && (
+                <p className="text-xs text-red-500 mt-2">
+                  Error: {rbacContext.error}
+                </p>
+              )}
             </div>
           ) : (
             <div className="space-y-0">
@@ -237,8 +301,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
                           </div>
                         </div>
                         <div className="flex items-center space-x-2 text-xs text-gray-400">
-                          {user.badgeNumber && (
-                            <span>Badge: {user.badgeNumber}</span>
+                          {user.badge_number && (
+                            <span>Badge: {user.badge_number}</span>
                           )}
                         </div>
                       </div>

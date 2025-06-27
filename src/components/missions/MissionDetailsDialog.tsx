@@ -189,9 +189,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="font-medium">{safeFormatDate(mission.created_at || mission.timestamp)}</p>
-                {(mission.created_at || mission.timestamp) && (
-                  <p className="text-sm text-gray-500">{formatTime(mission.created_at || mission.timestamp)}</p>
+                <p className="font-medium">{safeFormatDate(mission.timestamp)}</p>
+                {mission.timestamp && (
+                  <p className="text-sm text-gray-500">{formatTime(mission.timestamp)}</p>
                 )}
               </CardContent>
             </Card>
@@ -243,7 +243,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           </div>
 
           {/* Planned Dates */}
-          {(mission.planned_start_date || mission.planned_end_date || mission.startDate || mission.endDate) && (
+          {(mission.startDate || mission.endDate) && (
             <>
               <Separator />
               <Card>
@@ -255,16 +255,16 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-2">
-                    {(mission.planned_start_date || mission.startDate) && (
+                    {mission.startDate && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Début:</span>
-                        <span className="font-medium">{safeFormatDate(mission.planned_start_date || mission.startDate)}</span>
+                        <span className="font-medium">{safeFormatDate(mission.startDate)}</span>
                       </div>
                     )}
-                    {(mission.planned_end_date || mission.endDate) && (
+                    {mission.endDate && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Fin:</span>
-                        <span className="font-medium">{safeFormatDate(mission.planned_end_date || mission.endDate)}</span>
+                        <span className="font-medium">{safeFormatDate(mission.endDate)}</span>
                       </div>
                     )}
                   </div>

@@ -61,10 +61,8 @@ interface TripFormProviderProps {
 
 export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) => {
   console.log('🔄 TripFormProvider: Component render started');
-  const renderCount = useRef(0);
-  renderCount.current += 1;
-  console.log('🔄 TripFormProvider: Render count:', renderCount.current);
-
+  
+  // Memoize expensive operations
   const { t } = useLanguage();
   const { toast } = useToast();
   const { trips } = useTrip();
@@ -90,7 +88,7 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
 
   const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
 
-  // Create a stable callback for startKm changes
+  // Memoize the startKm change handler to prevent unnecessary re-renders
   const handleStartKmChange = useCallback((value: string) => {
     console.log('🔄 TripFormProvider: handleStartKmChange called with:', value);
     handleInputChange('startKm', value);
@@ -102,28 +100,35 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     onStartKmChange: handleStartKmChange
   });
 
-  // Stable calculation of available vans
+  // Memoize available vans calculation to prevent unnecessary recalculations
   const availableVans = useMemo(() => {
-    console.log('🔄 TripFormProvider: Recalculating availableVans');
-    const activeVanIds = trips
-      .filter(trip => trip.status === 'active')
-      .map(trip => trip.van);
+    console.log('🔄 TripFormProvider: Calculating available vans');
+    if (!trips || !Array.isArray(trips) || !vans || !Array.isArray(vans)) {
+      console.log('🔄 TripFormProvider: Missing data for available vans calculation');
+      return [];
+    }
     
-    const result = vans.filter(van => !activeVanIds.includes(van.id));
-    console.log('🔄 TripFormProvider: Available vans count:', result.length);
+    const activeVanIds = trips
+      .filter(trip => trip?.status === 'active')
+      .map(trip => trip.van)
+      .filter(Boolean);
+    
+    const result = vans.filter(van => van?.id && !activeVanIds.includes(van.id));
+    console.log('🔄 TripFormProvider: Available vans:', result.length);
     return result;
   }, [trips, vans]);
 
-  const handleNext = () => {
+  // Memoize handlers to prevent unnecessary re-renders
+  const handleNext = useCallback(() => {
     if (validateStep(currentStep, formData)) {
       setCompletedSteps(prev => new Set([...prev, currentStep]));
       goToNextStep();
     } else {
       showValidationError(currentStep);
     }
-  };
+  }, [validateStep, currentStep, formData, goToNextStep, showValidationError]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     const validation = validateTripForm(formData);
     if (!validation.isValid) {
       toast({
@@ -155,9 +160,34 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     } finally {
       setIsSubmitting(false);
     }
-  };
+  }, [formData, validateTripForm, submitTrip, resetForm, resetWizard, toast, t]);
 
-  const contextValue: TripFormContextType = {
+  // Memoize the context value to prevent unnecessary re-renders
+  const contextValue = useMemo<TripFormContextType>(() => ({
+    formData,
+    handleInputChange,
+    handleDateChange,
+    handleUserRoleSelection,
+    userSearchQuery,
+    setUserSearchQuery,
+    currentStep,
+    isFirstStep,
+    isLastStep,
+    goToNextStep,
+    goToPreviousStep,
+    goToStep,
+    getStepLabel,
+    allSteps,
+    completedSteps,
+    companies: companies || [],
+    availableVans,
+    vans: vans || [],
+    lastKm,
+    loadingLastKm,
+    handleNext,
+    handleSubmit,
+    isSubmitting,
+  }), [
     formData,
     handleInputChange,
     handleDateChange,
@@ -181,7 +211,7 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     handleNext,
     handleSubmit,
     isSubmitting,
-  };
+  ]);
 
   console.log('🔄 TripFormProvider: Component render completed');
 

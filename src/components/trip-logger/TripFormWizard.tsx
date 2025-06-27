@@ -3,7 +3,7 @@ import React from 'react';
 import { useTripFormContext } from './TripFormProvider';
 import WizardProgress from './WizardProgress';
 import WizardNavigation from './WizardNavigation';
-import TripFormSteps from './TripFormSteps';
+import { TripFormSteps } from './TripFormSteps';
 
 interface TripFormWizardProps {
   onSuccess?: () => void;
@@ -17,6 +17,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
     isFirstStep,
     isLastStep,
     goToPreviousStep,
+    goToStep,
     handleNext,
     handleSubmit,
     isSubmitting,
@@ -39,6 +40,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
         completedSteps={completedSteps}
         allSteps={allSteps}
         getStepLabel={getStepLabel}
+        goToStep={goToStep}
       />
       
       <TripFormSteps currentStep={currentStep} />

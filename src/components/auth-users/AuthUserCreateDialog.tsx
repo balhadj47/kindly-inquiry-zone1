@@ -11,13 +11,22 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useRBAC } from '@/contexts/RBACContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface AuthUserCreateDialogProps {
   isOpen: boolean;
   onConfirm: (userData: { email: string; password: string; name: string; role_id: number }) => void;
   onCancel: () => void;
   isLoading?: boolean;
+}
+
+interface DatabaseGroup {
+  id: string;
+  name: string;
+  description: string;
+  role_id: number;
+  permissions: string[];
 }
 
 const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
@@ -30,7 +39,59 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [roleId, setRoleId] = useState<number>(2);
-  const { roles } = useRBAC();
+  const [groups, setGroups] = useState<DatabaseGroup[]>([]);
+  const [loadingGroups, setLoadingGroups] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch groups from database
+  const fetchGroups = async () => {
+    setLoadingGroups(true);
+    try {
+      console.log('🔄 Fetching groups from database...');
+      
+      const { data, error } = await supabase
+        .from('user_groups')
+        .select('*')
+        .order('role_id', { ascending: true });
+
+      if (error) {
+        console.error('❌ Error fetching groups:', error);
+        toast({
+          title: 'Erreur',
+          description: 'Impossible de charger les groupes système.',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      const transformedGroups: DatabaseGroup[] = (data || []).map(group => ({
+        id: group.id,
+        name: group.name,
+        description: group.description,
+        role_id: group.role_id || 3,
+        permissions: group.permissions || [],
+      }));
+
+      console.log('✅ Groups loaded from database:', transformedGroups);
+      setGroups(transformedGroups);
+    } catch (error) {
+      console.error('❌ Exception fetching groups:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors du chargement des groupes.',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingGroups(false);
+    }
+  };
+
+  // Load groups when dialog opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchGroups();
+    }
+  }, [isOpen]);
 
   // Reset form when dialog closes
   useEffect(() => {
@@ -111,14 +172,23 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
 
           <div className="space-y-2">
             <Label htmlFor="role">Rôle</Label>
-            <Select value={roleId.toString()} onValueChange={(value) => setRoleId(parseInt(value))}>
+            <Select 
+              value={roleId.toString()} 
+              onValueChange={(value) => setRoleId(parseInt(value))}
+              disabled={loadingGroups}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un rôle" />
+                <SelectValue placeholder={loadingGroups ? "Chargement..." : "Sélectionner un rôle"} />
               </SelectTrigger>
               <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.id} value={role.role_id?.toString() || role.id}>
-                    {role.name}
+                {groups.map((group) => (
+                  <SelectItem key={group.id} value={group.role_id.toString()}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{group.name}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {group.description} ({group.permissions.length} permissions)
+                      </span>
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -129,7 +199,7 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
             <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading}>
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading || loadingGroups}>
               {isLoading ? 'Création...' : 'Créer'}
             </Button>
           </DialogFooter>

@@ -3,47 +3,54 @@ import React from 'react';
 import { useTripFormContext } from './TripFormProvider';
 import WizardProgress from './WizardProgress';
 import WizardNavigation from './WizardNavigation';
-import { TripFormSteps } from './TripFormSteps';
+import TripFormSteps from './TripFormSteps';
 
-export const TripFormWizard: React.FC = () => {
+interface TripFormWizardProps {
+  onSuccess?: () => void;
+}
+
+export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => {
+  console.log('🧙‍♂️ TripFormWizard: Component rendering');
+  
   const {
     currentStep,
-    allSteps,
-    getStepLabel,
-    goToStep,
-    completedSteps,
     isFirstStep,
     isLastStep,
     goToPreviousStep,
     handleNext,
     handleSubmit,
     isSubmitting,
+    completedSteps,
+    allSteps,
+    getStepLabel
   } = useTripFormContext();
 
+  const handleFinalSubmit = async () => {
+    await handleSubmit();
+    if (onSuccess) {
+      onSuccess();
+    }
+  };
+
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <WizardProgress
-          currentStep={currentStep}
-          allSteps={allSteps}
-          getStepLabel={getStepLabel}
-          goToStep={goToStep}
-          completedSteps={completedSteps}
-        />
-
-        <div className="mt-6">
-          <TripFormSteps />
-        </div>
-
-        <WizardNavigation
-          isFirstStep={isFirstStep}
-          isLastStep={isLastStep}
-          onPrevious={goToPreviousStep}
-          onNext={handleNext}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-        />
-      </div>
+    <div className="space-y-6">
+      <WizardProgress 
+        currentStep={currentStep}
+        completedSteps={completedSteps}
+        allSteps={allSteps}
+        getStepLabel={getStepLabel}
+      />
+      
+      <TripFormSteps currentStep={currentStep} />
+      
+      <WizardNavigation
+        isFirstStep={isFirstStep}
+        isLastStep={isLastStep}
+        isSubmitting={isSubmitting}
+        onPrevious={goToPreviousStep}
+        onNext={handleNext}
+        onSubmit={handleFinalSubmit}
+      />
     </div>
   );
 };

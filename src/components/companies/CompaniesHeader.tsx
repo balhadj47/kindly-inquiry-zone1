@@ -1,13 +1,16 @@
 
 import React from 'react';
-import { Building2 } from 'lucide-react';
+import { Building2, Plus, RefreshCw } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CompaniesHeaderProps {
   onAddCompany: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
+const CompaniesHeader = ({ onAddCompany, onRefresh, isRefreshing = false }: CompaniesHeaderProps) => {
   const { t } = useLanguage();
 
   return (
@@ -22,6 +25,25 @@ const CompaniesHeader = ({ onAddCompany }: CompaniesHeaderProps) => {
             {t.manageCompaniesAndBranches}
           </p>
         </div>
+      </div>
+      <div className="flex items-center space-x-2">
+        <Button
+          onClick={onAddCompany}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          {t.addNewCompany}
+        </Button>
+        {onRefresh && (
+          <Button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+        )}
       </div>
     </div>
   );

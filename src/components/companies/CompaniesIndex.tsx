@@ -6,8 +6,6 @@ import CompaniesEmptyState from './CompaniesEmptyState';
 import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '../CompanyModal';
 import CompanyDeleteDialog from '../CompanyDeleteDialog';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
 import { useAllCompaniesWithBranches, useCompanyMutations } from '@/hooks/useCompaniesOptimized';
 import { useCompaniesState } from '@/hooks/useCompaniesState';
 
@@ -146,25 +144,14 @@ const CompaniesIndex = () => {
     console.error('❌ Companies: Fetch error:', error);
     return (
       <div className="space-y-4 sm:space-y-6">
-        <div className="flex items-center justify-between">
-          <CompaniesHeader onAddCompany={handleAddCompany} />
-          <div className="flex items-center space-x-2">
-            <Button 
-              onClick={handleRefresh} 
-              disabled={isRefreshing}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-          </div>
-        </div>
+        <CompaniesHeader 
+          onAddCompany={handleAddCompany} 
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
         <div className="text-center py-8">
           <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
           <p className="text-gray-600 mb-4">Impossible de charger les entreprises</p>
-          <Button onClick={handleRefresh} disabled={isRefreshing}>
-            {isRefreshing ? 'Chargement...' : 'Réessayer'}
-          </Button>
         </div>
       </div>
     );
@@ -172,7 +159,11 @@ const CompaniesIndex = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <CompaniesHeader onAddCompany={handleAddCompany} />
+      <CompaniesHeader 
+        onAddCompany={handleAddCompany} 
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+      />
       
       <CompaniesSearch 
         searchTerm={searchTerm || ''} 

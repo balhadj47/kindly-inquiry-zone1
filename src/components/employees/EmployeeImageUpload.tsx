@@ -64,6 +64,32 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       
       console.log('Uploading employee image:', fileName);
 
+      // If there's an existing image, try to delete it first
+      if (profileImage && profileImage.includes('employee-avatars')) {
+        try {
+          // Extract the file path from the URL
+          const urlParts = profileImage.split('/');
+          const existingFileName = urlParts[urlParts.length - 1];
+          
+          console.log('Attempting to delete existing image:', existingFileName);
+          
+          const { error: deleteError } = await supabase.storage
+            .from('employee-avatars')
+            .remove([existingFileName]);
+            
+          if (deleteError) {
+            console.warn('Could not delete existing image:', deleteError);
+            // Don't throw error, just warn and continue with upload
+          } else {
+            console.log('Successfully deleted existing image');
+          }
+        } catch (deleteErr) {
+          console.warn('Error during image deletion:', deleteErr);
+          // Continue with upload even if deletion fails
+        }
+      }
+
+      // Upload the new image
       const { error: uploadError } = await supabase.storage
         .from('employee-avatars')
         .upload(fileName, file, {
@@ -76,16 +102,19 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         throw uploadError;
       }
 
+      // Get the public URL for the uploaded image
       const { data } = supabase.storage
         .from('employee-avatars')
         .getPublicUrl(fileName);
 
       console.log('Employee image uploaded successfully, URL:', data.publicUrl);
+      
+      // Update the form with the new image URL
       onImageChange(data.publicUrl);
       
       toast({
         title: 'Succès',
-        description: 'Image téléchargée avec succès.',
+        description: 'Image mise à jour avec succès.',
       });
     } catch (error: any) {
       console.error('Error uploading employee image:', error);
@@ -159,7 +188,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         ) : (
           <>
             <Upload className="h-4 w-4" />
-            <span>Télécharger une photo</span>
+            <span>{profileImage ? 'Changer la photo' : 'Télécharger une photo'}</span>
           </>
         )}
       </Button>

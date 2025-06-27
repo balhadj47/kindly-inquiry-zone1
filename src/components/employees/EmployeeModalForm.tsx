@@ -8,6 +8,7 @@ import { User, UserStatus } from '@/types/rbac';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import EmployeeImageUpload from './EmployeeImageUpload';
 
 interface EmployeeModalFormProps {
   employee?: User | null;
@@ -25,6 +26,7 @@ interface FormData {
   placeOfBirth: string;
   address: string;
   driverLicense?: string;
+  profileImage?: string;
 }
 
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
@@ -43,6 +45,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       placeOfBirth: employee?.placeOfBirth || '',
       address: employee?.address || '',
       driverLicense: employee?.driverLicense || '',
+      profileImage: employee?.profileImage || '',
     },
   });
 
@@ -60,6 +63,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        <EmployeeImageUpload
+          profileImage={form.watch('profileImage') || ''}
+          userName={form.watch('name')}
+          onImageChange={(url) => form.setValue('profileImage', url)}
+          isSubmitting={isSubmitting}
+        />
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}

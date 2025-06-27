@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -130,7 +131,7 @@ const AuthUsers = () => {
 
   if (showAdminError || !hasAuthUsersPermission) {
     return (
-      <div className="space-y-6 max-w-full overflow-hidden">
+      <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
           <AuthUsersHeader authUsersCount={0} />
         </div>

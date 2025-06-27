@@ -32,20 +32,72 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       .slice(0, 2);
   };
 
-  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('File input change event triggered');
+  const uploadImageToSupabase = async (file: File): Promise<string> => {
+    console.log('📁 Starting Supabase upload for file:', file.name, file.type, file.size);
+    
+    // Generate unique filename
+    const timestamp = Date.now();
+    const randomString = Math.random().toString(36).substring(2, 15);
+    const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+    const fileName = `employee_${timestamp}_${randomString}.${fileExtension}`;
+    
+    console.log('📝 Generated filename:', fileName);
+
+    try {
+      // Upload file to Supabase storage
+      console.log('⬆️ Uploading to employee-avatars bucket...');
+      const { data: uploadResult, error: uploadError } = await supabase.storage
+        .from('employee-avatars')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('❌ Supabase upload error:', uploadError);
+        throw new Error(`Failed to upload: ${uploadError.message}`);
+      }
+
+      console.log('✅ Upload successful:', uploadResult);
+
+      // Get public URL
+      const { data: urlResult } = supabase.storage
+        .from('employee-avatars')
+        .getPublicUrl(fileName);
+
+      const publicUrl = urlResult.publicUrl;
+      console.log('🔗 Generated public URL:', publicUrl);
+
+      if (!publicUrl) {
+        throw new Error('Failed to generate public URL');
+      }
+
+      return publicUrl;
+    } catch (error) {
+      console.error('💥 Error in uploadImageToSupabase:', error);
+      throw error;
+    }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('🎯 File input changed');
     
     const file = event.target.files?.[0];
     if (!file) {
-      console.log('No file selected');
+      console.log('❌ No file selected');
       return;
     }
 
-    console.log('File selected:', file.name, file.type, file.size);
+    console.log('📋 File details:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+      lastModified: file.lastModified
+    });
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
-      console.log('Invalid file type:', file.type);
+      console.log('❌ Invalid file type:', file.type);
       toast({
         title: 'Erreur',
         description: 'Veuillez sélectionner un fichier image valide.',
@@ -54,9 +106,10 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       return;
     }
 
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      console.log('File too large:', file.size);
+    // Validate file size (5MB max)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      console.log('❌ File too large:', file.size, 'Max:', maxSize);
       toast({
         title: 'Erreur',
         description: 'L\'image ne doit pas dépasser 5MB.',
@@ -66,72 +119,25 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     }
 
     setUploading(true);
-    console.log('Starting upload process...');
-    
+    console.log('🚀 Starting upload process...');
+
     try {
-      const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
-      const fileName = `employee-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      // Upload the image
+      const imageUrl = await uploadImageToSupabase(file);
       
-      console.log('Generated filename:', fileName);
-
-      // If there's an existing image, try to delete it first
-      if (profileImage && profileImage.includes('employee-avatars')) {
-        try {
-          // Extract the file path from the URL
-          const urlParts = profileImage.split('/');
-          const existingFileName = urlParts[urlParts.length - 1];
-          
-          console.log('Attempting to delete existing image:', existingFileName);
-          
-          const { error: deleteError } = await supabase.storage
-            .from('employee-avatars')
-            .remove([existingFileName]);
-            
-          if (deleteError) {
-            console.warn('Could not delete existing image:', deleteError.message);
-          } else {
-            console.log('Successfully deleted existing image');
-          }
-        } catch (deleteErr) {
-          console.warn('Error during image deletion:', deleteErr);
-        }
-      }
-
-      // Upload the new image
-      console.log('Uploading new image to storage...');
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('employee-avatars')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (uploadError) {
-        console.error('Upload error:', uploadError);
-        throw new Error(`Upload failed: ${uploadError.message}`);
-      }
-
-      console.log('Upload successful, data:', uploadData);
-
-      // Get the public URL for the uploaded image
-      const { data: urlData } = supabase.storage
-        .from('employee-avatars')
-        .getPublicUrl(fileName);
-
-      console.log('Generated public URL:', urlData.publicUrl);
-      
-      // Update the form with the new image URL
-      onImageChange(urlData.publicUrl);
+      // Update the form with new image URL
+      console.log('📤 Calling onImageChange with URL:', imageUrl);
+      onImageChange(imageUrl);
       
       toast({
         title: 'Succès',
-        description: 'Image mise à jour avec succès.',
+        description: 'Image téléchargée avec succès!',
       });
 
-      console.log('Image upload completed successfully');
+      console.log('✅ Upload process completed successfully');
       
     } catch (error: any) {
-      console.error('Error uploading employee image:', error);
+      console.error('💥 Upload failed:', error);
       toast({
         title: 'Erreur',
         description: error.message || 'Erreur lors du téléchargement de l\'image.',
@@ -139,18 +145,17 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       });
     } finally {
       setUploading(false);
-      // Reset the input value to allow selecting the same file again if needed
+      
+      // Clear the input to allow re-selecting the same file
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   };
 
-  const triggerImageUpload = () => {
-    console.log('Triggering file input click');
-    if (fileInputRef.current) {
-      // Reset the input value before triggering click to ensure onChange fires
-      fileInputRef.current.value = '';
+  const triggerFileSelect = () => {
+    console.log('🖱️ Triggering file input click');
+    if (fileInputRef.current && !isDisabled) {
       fileInputRef.current.click();
     }
   };
@@ -169,12 +174,13 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
             {userName ? getUserInitials(userName) : 'EMP'}
           </AvatarFallback>
         </Avatar>
+        
         <Button
           type="button"
           size="sm"
           variant="outline"
           className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-          onClick={triggerImageUpload}
+          onClick={triggerFileSelect}
           disabled={isDisabled}
         >
           {uploading ? (
@@ -184,19 +190,20 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
           )}
         </Button>
       </div>
+
       <input
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleImageUpload}
+        onChange={handleFileSelect}
         className="hidden"
-        key={`file-input-${Date.now()}`}
       />
+
       <Button
         type="button"
         variant="outline"
         size="sm"
-        onClick={triggerImageUpload}
+        onClick={triggerFileSelect}
         disabled={isDisabled}
         className="flex items-center space-x-2"
       >

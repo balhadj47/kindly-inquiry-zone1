@@ -16,15 +16,18 @@ const CompaniesIndex = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 12;
+  
+  // Add error boundary for data fetching
   const { data: companies = [], refetch, error } = useAllCompaniesWithBranches();
   const { invalidateCompanies } = useCompanyMutations();
   
-  // Fixed: Create a proper setter function that works with the existing hook
+  // Safe setter function with proper error handling
   const setCompanies = React.useCallback(() => {
     try {
+      console.log('📊 Companies: Invalidating companies cache');
       invalidateCompanies();
     } catch (error) {
-      console.error('Error invalidating companies:', error);
+      console.error('❌ Companies: Error invalidating companies:', error);
     }
   }, [invalidateCompanies]);
 
@@ -41,59 +44,106 @@ const CompaniesIndex = () => {
     handleConfirmDelete
   } = useCompaniesState(setCompanies);
 
-  // Safe filtering with proper null checks
+  // Enhanced filtering with comprehensive error handling
   const filteredCompanies = React.useMemo(() => {
-    if (!Array.isArray(companies)) {
-      console.warn('Companies data is not an array:', companies);
+    try {
+      if (!companies) {
+        console.warn('⚠️ Companies: Companies data is null/undefined');
+        return [];
+      }
+      
+      if (!Array.isArray(companies)) {
+        console.warn('⚠️ Companies: Companies data is not an array:', typeof companies, companies);
+        return [];
+      }
+      
+      return companies.filter(company => {
+        // Comprehensive null checks
+        if (!company) {
+          console.warn('⚠️ Companies: Null company object found');
+          return false;
+        }
+        
+        if (typeof company !== 'object') {
+          console.warn('⚠️ Companies: Invalid company object type:', typeof company);
+          return false;
+        }
+        
+        if (!company.name || typeof company.name !== 'string') {
+          console.warn('⚠️ Companies: Company missing or invalid name:', company);
+          return false;
+        }
+        
+        try {
+          return company.name.toLowerCase().includes((searchTerm || '').toLowerCase());
+        } catch (filterError) {
+          console.error('❌ Companies: Error filtering company:', filterError, company);
+          return false;
+        }
+      });
+    } catch (error) {
+      console.error('❌ Companies: Critical error in filtering:', error);
       return [];
     }
-    
-    return companies.filter(company => {
-      if (!company || typeof company.name !== 'string') {
-        console.warn('Invalid company object:', company);
-        return false;
-      }
-      return company.name.toLowerCase().includes(searchTerm.toLowerCase());
-    });
   }, [companies, searchTerm]);
 
-  const hasActiveFilters = searchTerm.length > 0;
+  const hasActiveFilters = searchTerm && searchTerm.length > 0;
 
   const clearFilters = () => {
-    setSearchTerm('');
-    setCurrentPage(1);
+    try {
+      setSearchTerm('');
+      setCurrentPage(1);
+    } catch (error) {
+      console.error('❌ Companies: Error clearing filters:', error);
+    }
   };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    try {
+      if (typeof page === 'number' && page > 0) {
+        setCurrentPage(page);
+      }
+    } catch (error) {
+      console.error('❌ Companies: Error changing page:', error);
+    }
   };
 
   const handleModalSuccess = () => {
     try {
+      console.log('✅ Companies: Modal success, refreshing data');
       refetch();
       invalidateCompanies();
     } catch (error) {
-      console.error('Error refreshing after modal success:', error);
+      console.error('❌ Companies: Error refreshing after modal success:', error);
     }
   };
 
   const handleRefresh = async () => {
-    if (isRefreshing) return;
+    if (isRefreshing) {
+      console.log('🔄 Companies: Refresh already in progress');
+      return;
+    }
     
     setIsRefreshing(true);
+    console.log('🔄 Companies: Starting manual refresh');
+    
     try {
       await refetch();
       invalidateCompanies();
+      console.log('✅ Companies: Manual refresh completed');
     } catch (error) {
-      console.error('Error during refresh:', error);
+      console.error('❌ Companies: Error during refresh:', error);
     } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
+      setTimeout(() => {
+        setIsRefreshing(false);
+        console.log('🔄 Companies: Refresh state reset');
+      }, 500);
     }
   };
 
-  // Handle error state
+  // Enhanced error state handling
   if (error) {
-    console.error('Companies fetch error:', error);
+    console.error('❌ Companies: Fetch error:', error);
     return (
       <div className="space-y-4 sm:space-y-6">
         <div className="flex items-center justify-between">
@@ -112,7 +162,9 @@ const CompaniesIndex = () => {
         <div className="text-center py-8">
           <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
           <p className="text-gray-600 mb-4">Impossible de charger les entreprises</p>
-          <Button onClick={handleRefresh}>Réessayer</Button>
+          <Button onClick={handleRefresh} disabled={isRefreshing}>
+            {isRefreshing ? 'Chargement...' : 'Réessayer'}
+          </Button>
         </div>
       </div>
     );
@@ -135,13 +187,13 @@ const CompaniesIndex = () => {
       </div>
       
       <CompaniesSearch 
-        searchTerm={searchTerm} 
+        searchTerm={searchTerm || ''} 
         onSearchChange={setSearchTerm} 
       />
 
       {filteredCompanies.length === 0 ? (
         <CompaniesEmptyState 
-          searchTerm={searchTerm} 
+          searchTerm={searchTerm || ''} 
           onAddCompany={handleAddCompany} 
         />
       ) : (

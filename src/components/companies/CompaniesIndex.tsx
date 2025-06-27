@@ -16,13 +16,17 @@ const CompaniesIndex = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const itemsPerPage = 12;
-  const { data: companies = [], refetch } = useAllCompaniesWithBranches();
+  const { data: companies = [], refetch, error } = useAllCompaniesWithBranches();
   const { invalidateCompanies } = useCompanyMutations();
   
-  // Create a setter function that works with the existing hook
-  const setCompanies = () => {
-    invalidateCompanies();
-  };
+  // Fixed: Create a proper setter function that works with the existing hook
+  const setCompanies = React.useCallback(() => {
+    try {
+      invalidateCompanies();
+    } catch (error) {
+      console.error('Error invalidating companies:', error);
+    }
+  }, [invalidateCompanies]);
 
   const {
     isModalOpen,
@@ -37,9 +41,21 @@ const CompaniesIndex = () => {
     handleConfirmDelete
   } = useCompaniesState(setCompanies);
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Safe filtering with proper null checks
+  const filteredCompanies = React.useMemo(() => {
+    if (!Array.isArray(companies)) {
+      console.warn('Companies data is not an array:', companies);
+      return [];
+    }
+    
+    return companies.filter(company => {
+      if (!company || typeof company.name !== 'string') {
+        console.warn('Invalid company object:', company);
+        return false;
+      }
+      return company.name.toLowerCase().includes(searchTerm.toLowerCase());
+    });
+  }, [companies, searchTerm]);
 
   const hasActiveFilters = searchTerm.length > 0;
 
@@ -53,8 +69,12 @@ const CompaniesIndex = () => {
   };
 
   const handleModalSuccess = () => {
-    refetch();
-    invalidateCompanies();
+    try {
+      refetch();
+      invalidateCompanies();
+    } catch (error) {
+      console.error('Error refreshing after modal success:', error);
+    }
   };
 
   const handleRefresh = async () => {
@@ -64,20 +84,44 @@ const CompaniesIndex = () => {
     try {
       await refetch();
       invalidateCompanies();
+    } catch (error) {
+      console.error('Error during refresh:', error);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
   };
 
+  // Handle error state
+  if (error) {
+    console.error('Companies fetch error:', error);
+    return (
+      <div className="space-y-4 sm:space-y-6">
+        <div className="flex items-center justify-between">
+          <CompaniesHeader onAddCompany={handleAddCompany} />
+          <div className="flex items-center space-x-2">
+            <Button 
+              onClick={handleRefresh} 
+              disabled={isRefreshing}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Actualiser
+            </Button>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
+          <p className="text-gray-600 mb-4">Impossible de charger les entreprises</p>
+          <Button onClick={handleRefresh}>Réessayer</Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       <div className="flex items-center justify-between">
-        <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Entreprises</h1>
-            <p className="text-gray-600 mt-1">Gérer les entreprises et leurs succursales</p>
-          </div>
-        </div>
+        <CompaniesHeader onAddCompany={handleAddCompany} />
         <div className="flex items-center space-x-2">
           <Button 
             onClick={handleAddCompany}

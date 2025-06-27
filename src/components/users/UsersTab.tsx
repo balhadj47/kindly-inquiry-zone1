@@ -64,6 +64,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
           console.warn('👥 UsersTab: Invalid user object:', user);
           return false;
         }
+        // Safe check for role_id
         return user.role_id !== 3;
       });
       
@@ -103,7 +104,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
     }
   }, []);
 
-  // Safe handler wrappers
+  // Safe handler wrappers with proper null checks
   const safeOnEditUser = useCallback((user: User) => {
     try {
       if (!user || !user.id) {
@@ -142,9 +143,9 @@ const UsersTab: React.FC<UsersTabProps> = ({
 
   console.log('👥 UsersTab: Rendering with processed data:', {
     nonEmployeeUsersCount: nonEmployeeUsers.length,
-    safeUsersCount: safeUsers.length,
-    filteredUsersCount: filteredUsers.length,
-    paginatedUsersCount: paginatedUsers.length,
+    safeUsersCount: safeUsers?.length || 0,
+    filteredUsersCount: filteredUsers?.length || 0,
+    paginatedUsersCount: paginatedUsers?.length || 0,
     currentPage,
     totalPages,
     view,

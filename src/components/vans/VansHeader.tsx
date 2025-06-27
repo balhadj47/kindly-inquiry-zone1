@@ -26,6 +26,13 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, isRefreshi
         </div>
         
         <div className="flex items-center gap-2 mt-4 lg:mt-0">
+          <Button 
+            onClick={onAddVan} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter
+          </Button>
           {onRefresh && (
             <Button 
               onClick={onRefresh} 
@@ -36,13 +43,6 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, isRefreshi
               Actualiser
             </Button>
           )}
-          <Button 
-            onClick={onAddVan} 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter
-          </Button>
         </div>
       </div>
     </div>

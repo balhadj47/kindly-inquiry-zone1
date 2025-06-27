@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import CompaniesHeader from './CompaniesHeader';
 import CompaniesSearch from './CompaniesSearch';
@@ -78,17 +79,20 @@ const CompaniesIndex = () => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <Button onClick={handleAddCompany} size="icon">
-            <Plus className="h-4 w-4" />
+          <Button 
+            onClick={handleAddCompany}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Ajouter
           </Button>
           <Button 
             onClick={handleRefresh} 
-            disabled={isRefreshing} 
-            variant="outline" 
-            size="icon"
-            className="bg-black text-white hover:bg-gray-800 border-black"
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
           </Button>
         </div>
       </div>

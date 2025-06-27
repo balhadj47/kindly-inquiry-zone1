@@ -114,8 +114,12 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-red-600">Erreur de chargement des données</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
-            <RefreshCw className="h-4 w-4" />
+          <Button 
+            onClick={handleRefresh} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
           </Button>
         </div>
         
@@ -157,8 +161,12 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-gray-500">Bienvenue! Voici un aperçu de votre flotte.</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
-            <RefreshCw className="h-4 w-4" />
+          <Button 
+            onClick={handleRefresh} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
           </Button>
         </div>
 
@@ -176,8 +184,12 @@ const Dashboard = () => {
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Tableau de Bord</h1>
             <p className="text-sm sm:text-base text-red-600">Erreur de calcul des statistiques</p>
           </div>
-          <Button onClick={handleRefresh} variant="outline" size="icon" className="bg-black text-white hover:bg-gray-800 border-black">
-            <RefreshCw className="h-4 w-4" />
+          <Button 
+            onClick={handleRefresh} 
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Actualiser
           </Button>
         </div>
         

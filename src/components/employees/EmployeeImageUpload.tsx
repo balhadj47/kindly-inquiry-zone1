@@ -45,6 +45,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
+      console.log('Invalid file type:', file.type);
       toast({
         title: 'Erreur',
         description: 'Veuillez sélectionner un fichier image valide.',
@@ -55,6 +56,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
 
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
+      console.log('File too large:', file.size);
       toast({
         title: 'Erreur',
         description: 'L\'image ne doit pas dépasser 5MB.',
@@ -64,12 +66,13 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     }
 
     setUploading(true);
+    console.log('Starting upload process...');
     
     try {
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `employee-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       
-      console.log('Starting upload for employee image:', fileName);
+      console.log('Generated filename:', fileName);
 
       // If there's an existing image, try to delete it first
       if (profileImage && profileImage.includes('employee-avatars')) {
@@ -85,20 +88,18 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
             .remove([existingFileName]);
             
           if (deleteError) {
-            console.warn('Could not delete existing image:', deleteError);
-            // Don't throw error, just warn and continue with upload
+            console.warn('Could not delete existing image:', deleteError.message);
           } else {
             console.log('Successfully deleted existing image');
           }
         } catch (deleteErr) {
           console.warn('Error during image deletion:', deleteErr);
-          // Continue with upload even if deletion fails
         }
       }
 
       // Upload the new image
       console.log('Uploading new image to storage...');
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('employee-avatars')
         .upload(fileName, file, {
           cacheControl: '3600',
@@ -106,24 +107,29 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         });
 
       if (uploadError) {
-        console.error('Error uploading file:', uploadError);
-        throw uploadError;
+        console.error('Upload error:', uploadError);
+        throw new Error(`Upload failed: ${uploadError.message}`);
       }
 
+      console.log('Upload successful, data:', uploadData);
+
       // Get the public URL for the uploaded image
-      const { data } = supabase.storage
+      const { data: urlData } = supabase.storage
         .from('employee-avatars')
         .getPublicUrl(fileName);
 
-      console.log('Employee image uploaded successfully, URL:', data.publicUrl);
+      console.log('Generated public URL:', urlData.publicUrl);
       
       // Update the form with the new image URL
-      onImageChange(data.publicUrl);
+      onImageChange(urlData.publicUrl);
       
       toast({
         title: 'Succès',
         description: 'Image mise à jour avec succès.',
       });
+
+      console.log('Image upload completed successfully');
+      
     } catch (error: any) {
       console.error('Error uploading employee image:', error);
       toast({
@@ -184,7 +190,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         accept="image/*"
         onChange={handleImageUpload}
         className="hidden"
-        key={Date.now()} // Force re-render to ensure fresh input
+        key={`file-input-${Date.now()}`}
       />
       <Button
         type="button"

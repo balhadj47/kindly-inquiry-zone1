@@ -64,33 +64,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       
       console.log('Uploading employee image:', fileName);
 
-      // First try to create the bucket if it doesn't exist
-      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
-      
-      if (bucketsError) {
-        console.error('Error listing buckets:', bucketsError);
-      }
-
-      console.log('Available buckets:', buckets);
-
-      // Check if employee-avatars bucket exists, if not create it
-      const employeeAvatarsBucket = buckets?.find(bucket => bucket.name === 'employee-avatars');
-      
-      if (!employeeAvatarsBucket) {
-        console.log('Creating employee-avatars bucket...');
-        const { data: newBucket, error: createBucketError } = await supabase.storage.createBucket('employee-avatars', {
-          public: true,
-          fileSizeLimit: 5242880, // 5MB
-          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp']
-        });
-
-        if (createBucketError) {
-          console.error('Error creating bucket:', createBucketError);
-          throw createBucketError;
-        }
-        console.log('Bucket created successfully:', newBucket);
-      }
-
       const { error: uploadError } = await supabase.storage
         .from('employee-avatars')
         .upload(fileName, file, {

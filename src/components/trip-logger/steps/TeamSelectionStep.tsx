@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Shield, Car, UserCheck, Target } from 'lucide-react';
-import { useRBAC } from '@/contexts/RBACContext';
+import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
 import { Badge } from '@/components/ui/badge';
 
 interface TeamSelectionStepProps {
@@ -30,88 +30,41 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
   selectedUsersWithRoles,
   onUserRoleSelection
 }) => {
-  console.log('👥 TeamSelectionStep: Starting render');
-  
-  const rbacContext = useRBAC();
-  console.log('👥 TeamSelectionStep: RBAC context:', rbacContext);
+  // Use the optimized employees hook (role_id: 3) instead of RBAC context
+  const { data: employees = [], isLoading: loading, error } = useUsersByRoleId(3);
 
-  // Extract users from context with better error handling
+  // Transform optimized user data to match expected format
   const users = React.useMemo(() => {
-    console.log('👥 TeamSelectionStep: Processing RBAC context users');
-    
-    if (!rbacContext) {
-      console.warn('👥 TeamSelectionStep: No RBAC context available');
+    if (loading || error || !employees || !Array.isArray(employees)) {
       return [];
     }
 
-    const { users: contextUsers, loading, error } = rbacContext;
-    
-    console.log('👥 TeamSelectionStep: Context state:', {
-      users: contextUsers,
-      usersType: typeof contextUsers,
-      usersIsArray: Array.isArray(contextUsers),
-      usersLength: contextUsers?.length,
-      loading,
-      error
-    });
-
-    if (loading) {
-      console.log('👥 TeamSelectionStep: Still loading users');
-      return [];
-    }
-
-    if (error) {
-      console.error('👥 TeamSelectionStep: Error in RBAC context:', error);
-      return [];
-    }
-
-    if (!contextUsers) {
-      console.warn('👥 TeamSelectionStep: No users in context');
-      return [];
-    }
-
-    if (!Array.isArray(contextUsers)) {
-      console.warn('👥 TeamSelectionStep: Users is not an array:', contextUsers);
-      return [];
-    }
-
-    return contextUsers;
-  }, [rbacContext]);
+    // Transform the optimized user data to match the expected format
+    return employees.map(emp => ({
+      id: emp.id,
+      name: emp.name,
+      email: emp.email,
+      status: emp.status,
+      badge_number: emp.badge_number,
+      role_id: emp.role_id
+    }));
+  }, [employees, loading, error]);
 
   // Safely handle users data
   const safeUsers = React.useMemo(() => {
-    try {
-      console.log('👥 TeamSelectionStep: Processing safe users from:', users);
-      
-      if (!Array.isArray(users)) {
-        console.warn('👥 TeamSelectionStep: Users is not an array:', users);
-        return [];
-      }
-
-      // Filter out invalid users and ensure they have required fields
-      const validUsers = users.filter(user => {
-        const isValid = user && 
-               user.id && 
-               user.name && 
-               typeof user.name === 'string' &&
-               user.name.trim().length > 0;
-        
-        if (!isValid) {
-          console.warn('👥 TeamSelectionStep: Invalid user filtered out:', user);
-        }
-        
-        return isValid;
-      });
-
-      console.log('👥 TeamSelectionStep: Valid users after filtering:', validUsers);
-      return validUsers;
-    } catch (error) {
-      console.error('👥 TeamSelectionStep: Error processing users:', error);
+    if (!Array.isArray(users)) {
       return [];
     }
-  }, [users]);
 
-  console.log('👥 TeamSelectionStep: Safe users count:', safeUsers.length);
+    // Filter out invalid users and ensure they have required fields
+    return users.filter(user => {
+      return user && 
+             user.id && 
+             user.name && 
+             typeof user.name === 'string' &&
+             user.name.trim().length > 0;
+    });
+  }, [users]);
 
   // Filter users based on search
   const filteredUsers = React.useMemo(() => {
@@ -137,34 +90,24 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
   }, [filteredUsers]);
 
   const handleRoleToggle = (userId: string, role: MissionRole, checked: boolean) => {
-    try {
-      console.log('👥 TeamSelectionStep: Role toggle:', userId, role, checked);
-      const currentUserRoles = selectedUsersWithRoles.find(u => u.userId === userId);
-      let newRoles: MissionRole[] = [];
+    const currentUserRoles = selectedUsersWithRoles.find(u => u.userId === userId);
+    let newRoles: MissionRole[] = [];
 
-      if (currentUserRoles) {
-        if (checked) {
-          newRoles = [...currentUserRoles.roles, role];
-        } else {
-          newRoles = currentUserRoles.roles.filter(r => r !== role);
-        }
-      } else if (checked) {
-        newRoles = [role];
+    if (currentUserRoles) {
+      if (checked) {
+        newRoles = [...currentUserRoles.roles, role];
+      } else {
+        newRoles = currentUserRoles.roles.filter(r => r !== role);
       }
-
-      onUserRoleSelection(userId, newRoles);
-    } catch (error) {
-      console.error('👥 TeamSelectionStep: Error in role toggle:', error);
+    } else if (checked) {
+      newRoles = [role];
     }
+
+    onUserRoleSelection(userId, newRoles);
   };
 
   const getUserRoles = (userId: string): MissionRole[] => {
-    try {
-      return selectedUsersWithRoles.find(u => u.userId === userId)?.roles || [];
-    } catch (error) {
-      console.error('👥 TeamSelectionStep: Error getting user roles:', error);
-      return [];
-    }
+    return selectedUsersWithRoles.find(u => u.userId === userId)?.roles || [];
   };
 
   const isUserSelected = (userId: string): boolean => {
@@ -174,8 +117,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 
   const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
-  // Show loading state if RBAC is still loading
-  if (rbacContext?.loading) {
+  // Show loading state if still loading
+  if (loading) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -183,7 +126,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
             <Users className="w-6 h-6 text-green-600" />
           </div>
           <h3 className="text-xl font-bold text-gray-900 mb-2">Sélection de l'équipe</h3>
-          <p className="text-gray-600">Chargement des utilisateurs...</p>
+          <p className="text-gray-600">Chargement des employés...</p>
         </div>
       </div>
     );
@@ -196,36 +139,25 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
           <Users className="w-6 h-6 text-green-600" />
         </div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">Sélection de l'équipe</h3>
-        <p className="text-gray-600">Sélectionnez les utilisateurs et leurs rôles pour cette mission</p>
+        <p className="text-gray-600">Sélectionnez les employés et leurs rôles pour cette mission</p>
       </div>
 
       {/* User Search */}
       <div className="space-y-4">
         <Label className="flex items-center space-x-2">
           <Users className="h-4 w-4" />
-          <span>Utilisateurs ({totalSelectedUsers} sélectionnés sur {sortedUsers.length} disponibles)</span>
+          <span>Employés ({totalSelectedUsers} sélectionnés sur {sortedUsers.length} disponibles)</span>
         </Label>
         
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Rechercher un utilisateur..."
+            placeholder="Rechercher un employé..."
             value={userSearchQuery}
             onChange={(e) => setUserSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
-
-        {/* Debug Info */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-            Debug: {safeUsers.length} total users, {filteredUsers.length} after filter, {sortedUsers.length} after sort
-            <br />
-            RBAC Loading: {rbacContext?.loading ? 'Yes' : 'No'}
-            <br />
-            Raw users from context: {users?.length || 0}
-          </div>
-        )}
 
         {/* Role Legend */}
         <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
@@ -249,16 +181,13 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500">
                 {userSearchQuery ? 
-                  `Aucun utilisateur trouvé pour "${userSearchQuery}".` : 
-                  'Aucun utilisateur disponible.'
+                  `Aucun employé trouvé pour "${userSearchQuery}".` : 
+                  'Aucun employé disponible.'
                 }
               </p>
-              <p className="text-xs text-gray-400 mt-2">
-                Total users loaded: {safeUsers.length}
-              </p>
-              {rbacContext?.error && (
+              {error && (
                 <p className="text-xs text-red-500 mt-2">
-                  Error: {rbacContext.error}
+                  Erreur: {error.message}
                 </p>
               )}
             </div>
@@ -348,12 +277,12 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         
         {userSearchQuery && (
           <p className="text-xs text-gray-500">
-            {sortedUsers.length} utilisateur(s) trouvé(s) sur {safeUsers.length} total
+            {sortedUsers.length} employé(s) trouvé(s) sur {safeUsers.length} total
           </p>
         )}
         
         {totalSelectedUsers === 0 && (
-          <p className="text-sm text-gray-500">Veuillez sélectionner au moins un utilisateur avec un rôle pour la mission.</p>
+          <p className="text-sm text-gray-500">Veuillez sélectionner au moins un employé avec un rôle pour la mission.</p>
         )}
       </div>
     </div>

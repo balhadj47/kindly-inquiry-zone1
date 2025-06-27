@@ -12,7 +12,6 @@ import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
 import ErrorTracker from '@/components/ErrorTracker';
-import DebugConsole from '@/components/DebugConsole';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -128,7 +127,6 @@ const Index = () => {
   return (
     <>
       <ErrorTracker />
-      <DebugConsole />
       <Toaster />
       <Sonner />
       

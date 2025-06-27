@@ -172,19 +172,7 @@ const CompaniesIndex = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="flex items-center justify-between">
-        <CompaniesHeader onAddCompany={handleAddCompany} />
-        <div className="flex items-center space-x-2">
-          <Button 
-            onClick={handleRefresh} 
-            disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        </div>
-      </div>
+      <CompaniesHeader onAddCompany={handleAddCompany} />
       
       <CompaniesSearch 
         searchTerm={searchTerm || ''} 

@@ -30,15 +30,97 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
   selectedUsersWithRoles,
   onUserRoleSelection
 }) => {
+  console.log('👥 TeamSelectionStep: Starting render');
+  
   const { users } = useRBAC();
 
-  console.log('👥 TeamSelectionStep: Starting render with users:', users?.length || 0);
-  console.log('👥 TeamSelectionStep: Raw users data:', users);
-  console.log('👥 TeamSelectionStep: Search query:', userSearchQuery);
+  // Safely handle users data
+  const safeUsers = React.useMemo(() => {
+    try {
+      if (!users || !Array.isArray(users)) {
+        console.warn('👥 TeamSelectionStep: Users is not an array:', users);
+        return [];
+      }
 
-  // Ensure users is an array and has data
-  if (!users || !Array.isArray(users)) {
-    console.warn('👥 TeamSelectionStep: Users is not an array or is null:', users);
+      // Filter out invalid users and ensure they have required fields
+      return users.filter(user => {
+        return user && 
+               user.id && 
+               user.name && 
+               typeof user.name === 'string' &&
+               user.name.trim().length > 0;
+      });
+    } catch (error) {
+      console.error('👥 TeamSelectionStep: Error processing users:', error);
+      return [];
+    }
+  }, [users]);
+
+  console.log('👥 TeamSelectionStep: Safe users count:', safeUsers.length);
+
+  // Filter users based on search
+  const filteredUsers = React.useMemo(() => {
+    if (!userSearchQuery.trim()) {
+      return safeUsers;
+    }
+
+    const searchLower = userSearchQuery.toLowerCase().trim();
+    return safeUsers.filter(user => {
+      return user.name.toLowerCase().includes(searchLower) ||
+             (user.email && user.email.toLowerCase().includes(searchLower)) ||
+             (user.badgeNumber && user.badgeNumber.toLowerCase().includes(searchLower));
+    });
+  }, [safeUsers, userSearchQuery]);
+
+  // Sort users: active first, then by name
+  const sortedUsers = React.useMemo(() => {
+    return [...filteredUsers].sort((a, b) => {
+      if (a.status === 'Active' && b.status !== 'Active') return -1;
+      if (a.status !== 'Active' && b.status === 'Active') return 1;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+  }, [filteredUsers]);
+
+  const handleRoleToggle = (userId: string, role: MissionRole, checked: boolean) => {
+    try {
+      console.log('👥 TeamSelectionStep: Role toggle:', userId, role, checked);
+      const currentUserRoles = selectedUsersWithRoles.find(u => u.userId === userId);
+      let newRoles: MissionRole[] = [];
+
+      if (currentUserRoles) {
+        if (checked) {
+          newRoles = [...currentUserRoles.roles, role];
+        } else {
+          newRoles = currentUserRoles.roles.filter(r => r !== role);
+        }
+      } else if (checked) {
+        newRoles = [role];
+      }
+
+      onUserRoleSelection(userId, newRoles);
+    } catch (error) {
+      console.error('👥 TeamSelectionStep: Error in role toggle:', error);
+    }
+  };
+
+  const getUserRoles = (userId: string): MissionRole[] => {
+    try {
+      return selectedUsersWithRoles.find(u => u.userId === userId)?.roles || [];
+    } catch (error) {
+      console.error('👥 TeamSelectionStep: Error getting user roles:', error);
+      return [];
+    }
+  };
+
+  const isUserSelected = (userId: string): boolean => {
+    const userRoles = getUserRoles(userId);
+    return userRoles.length > 0;
+  };
+
+  const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
+
+  // Show loading state if users are not loaded yet
+  if (!users) {
     return (
       <div className="space-y-6">
         <div className="text-center">
@@ -51,57 +133,6 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       </div>
     );
   }
-
-  // Filter users - show ALL users, not just employees
-  const filteredUsers = users.filter(user => {
-    if (!user) return false;
-    
-    const matchesSearch = !userSearchQuery || 
-      (user.name && user.name.toLowerCase().includes(userSearchQuery.toLowerCase()));
-    
-    console.log('👥 TeamSelectionStep: Filtering user:', user.name, 'matches search:', matchesSearch);
-    return matchesSearch;
-  });
-
-  console.log('👥 TeamSelectionStep: Filtered users count:', filteredUsers.length);
-
-  // Sort users: active first, then by name
-  const sortedUsers = filteredUsers.sort((a, b) => {
-    if (a.status === 'Active' && b.status !== 'Active') return -1;
-    if (a.status !== 'Active' && b.status === 'Active') return 1;
-    return (a.name || '').localeCompare(b.name || '');
-  });
-
-  console.log('👥 TeamSelectionStep: Sorted users:', sortedUsers.map(u => ({ name: u.name, status: u.status, role_id: u.role_id })));
-
-  const handleRoleToggle = (userId: string, role: MissionRole, checked: boolean) => {
-    console.log('👥 TeamSelectionStep: Role toggle:', userId, role, checked);
-    const currentUserRoles = selectedUsersWithRoles.find(u => u.userId === userId);
-    let newRoles: MissionRole[] = [];
-
-    if (currentUserRoles) {
-      if (checked) {
-        newRoles = [...currentUserRoles.roles, role];
-      } else {
-        newRoles = currentUserRoles.roles.filter(r => r !== role);
-      }
-    } else if (checked) {
-      newRoles = [role];
-    }
-
-    onUserRoleSelection(userId, newRoles);
-  };
-
-  const getUserRoles = (userId: string): MissionRole[] => {
-    return selectedUsersWithRoles.find(u => u.userId === userId)?.roles || [];
-  };
-
-  const isUserSelected = (userId: string): boolean => {
-    const userRoles = getUserRoles(userId);
-    return userRoles.length > 0;
-  };
-
-  const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
   return (
     <div className="space-y-6">
@@ -125,24 +156,24 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
           <Input
             placeholder="Rechercher un utilisateur..."
             value={userSearchQuery}
-            onChange={(e) => {
-              console.log('👥 TeamSelectionStep: Search input changed:', e.target.value);
-              setUserSearchQuery(e.target.value);
-            }}
+            onChange={(e) => setUserSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
 
         {/* Debug Info */}
-        <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
-          Debug: {users.length} total users, {filteredUsers.length} after filter, {sortedUsers.length} after sort
-        </div>
+        {process.env.NODE_ENV === 'development' && (
+          <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded">
+            Debug: {safeUsers.length} total users, {filteredUsers.length} after filter, {sortedUsers.length} after sort
+          </div>
+        )}
 
         {/* Role Legend */}
         <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-md">
           <span className="text-sm font-medium text-gray-600">Rôles disponibles:</span>
           {MISSION_ROLES.map((role) => {
             const roleConfig = MISSION_ROLE_ICONS[role.name];
+            if (!roleConfig) return null;
             const IconComponent = roleConfig.icon;
             return (
               <Badge key={role.id} variant="outline" className={`${roleConfig.color} flex items-center space-x-1.5 text-sm py-1 px-2`}>
@@ -158,27 +189,24 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
           {sortedUsers.length === 0 ? (
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500">
-                {userSearchQuery ? `Aucun utilisateur trouvé pour "${userSearchQuery}".` : 'Aucun utilisateur disponible.'}
+                {userSearchQuery ? 
+                  `Aucun utilisateur trouvé pour "${userSearchQuery}".` : 
+                  'Aucun utilisateur disponible.'
+                }
               </p>
               <p className="text-xs text-gray-400 mt-2">
-                Total users loaded: {users.length}
+                Total users loaded: {safeUsers.length}
               </p>
             </div>
           ) : (
             <div className="space-y-0">
               {sortedUsers.map((user) => {
-                if (!user || !user.id) {
-                  console.warn('👥 TeamSelectionStep: Invalid user object:', user);
-                  return null;
-                }
-
                 const userRoles = getUserRoles(user.id.toString());
                 const isSelected = isUserSelected(user.id.toString());
                 const isActive = user.status === 'Active';
-                const isDisabled = !isActive;
                 
                 return (
-                  <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'} ${isDisabled ? 'opacity-50' : ''}`}>
+                  <div key={user.id} className={`border-b last:border-b-0 p-4 ${isSelected ? 'bg-blue-50' : 'bg-white'} ${!isActive ? 'opacity-50' : ''}`}>
                     <div className="flex flex-col space-y-4">
                       {/* User Header */}
                       <div className="flex items-center space-x-3">
@@ -186,7 +214,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
                           <Users className="h-3.5 w-3.5 text-gray-600" />
                         </div>
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
-                          <span className="font-medium text-gray-900 text-base truncate">{user.name || 'Nom non disponible'}</span>
+                          <span className="font-medium text-gray-900 text-base truncate">{user.name}</span>
                           <span className={`px-2 py-1 text-xs rounded-full ${
                             user.status === 'Active' ? 'bg-green-100 text-green-800' :
                             user.status === 'Récupération' ? 'bg-yellow-100 text-yellow-800' :
@@ -212,15 +240,15 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
                           {user.badgeNumber && (
                             <span>Badge: {user.badgeNumber}</span>
                           )}
-                          <span>Role ID: {user.role_id || 'N/A'}</span>
                         </div>
                       </div>
                       
-                      {/* Role Selection Grid */}
-                      {!isDisabled && (
+                      {/* Role Selection Grid - Only show for active users */}
+                      {isActive && (
                         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 ml-9">
                           {MISSION_ROLES.map((role) => {
                             const roleConfig = MISSION_ROLE_ICONS[role.name];
+                            if (!roleConfig) return null;
                             const IconComponent = roleConfig.icon;
                             const isRoleSelected = userRoles.includes(role.name);
                             
@@ -256,7 +284,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         
         {userSearchQuery && (
           <p className="text-xs text-gray-500">
-            {sortedUsers.length} utilisateur(s) trouvé(s) sur {users.length} total
+            {sortedUsers.length} utilisateur(s) trouvé(s) sur {safeUsers.length} total
           </p>
         )}
         

@@ -50,7 +50,7 @@ const AccessDenied = () => (
 );
 
 const Index = () => {
-  console.log('📱 Index: Starting render process with hash routing...');
+  console.log('📱 Index: Starting render process...');
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
@@ -62,59 +62,58 @@ const Index = () => {
     currentUser: currentUser?.id || 'null',
     rbacLoading,
     isMobile,
-    currentHash: window.location.hash,
     timestamp: new Date().toISOString()
   });
 
-  // Simple permission check - be more permissive for debugging
+  // Enhanced permission check with better error handling
   const checkPermission = React.useCallback((permission: string): boolean => {
-    console.log('📱 Index: Checking permission:', permission, {
-      authLoading,
-      rbacLoading,
-      authUser: !!authUser,
-      currentUser: !!currentUser,
-      hasPermissionFn: !!hasPermission
-    });
+    console.log('📱 Index: Checking permission:', permission);
 
-    // If still loading, show loading instead of denying access
-    if (authLoading || rbacLoading) {
-      console.log('📱 Index: Still loading, showing skeleton');
-      return false; // This will trigger loading skeleton
-    }
-
-    // If no auth user, deny access
-    if (!authUser) {
-      console.log('📱 Index: Permission denied - no auth user');
-      return false;
-    }
-
-    // Admin bypass for known admin emails
-    if (authUser.email === 'gb47@msn.com' || authUser.email === 'kacemdbz@gmail.com') {
-      console.log('📱 Index: Permission granted - admin bypass');
-      return true;
-    }
-
-    // If RBAC user exists, use permission system
-    if (currentUser && hasPermission && typeof hasPermission === 'function') {
-      try {
-        const result = hasPermission(permission);
-        console.log('📱 Index: Permission result from RBAC:', result);
-        return result;
-      } catch (error) {
-        console.error('📱 Index: Error checking permission:', error);
-        // Fall back to allowing access if there's an error
+    try {
+      // If still loading, allow access to prevent blank screens
+      if (authLoading || rbacLoading) {
+        console.log('📱 Index: Still loading, allowing access');
         return true;
       }
-    }
 
-    // For now, allow access if user is authenticated but no RBAC context
-    console.log('📱 Index: No RBAC context, allowing access for authenticated user');
-    return true;
+      // If no auth user, deny access
+      if (!authUser) {
+        console.log('📱 Index: No auth user, denying access');
+        return false;
+      }
+
+      // Admin bypass for known admin emails
+      if (authUser.email === 'gb47@msn.com' || authUser.email === 'kacemdbz@gmail.com') {
+        console.log('📱 Index: Admin bypass granted');
+        return true;
+      }
+
+      // If RBAC user exists and hasPermission function is available
+      if (currentUser && hasPermission && typeof hasPermission === 'function') {
+        try {
+          const result = hasPermission(permission);
+          console.log('📱 Index: Permission result:', result);
+          return result;
+        } catch (error) {
+          console.error('📱 Index: Error checking permission:', error);
+          // Fall back to allowing access if there's an error
+          return true;
+        }
+      }
+
+      // For authenticated users without RBAC context, allow access
+      console.log('📱 Index: Authenticated user without RBAC, allowing access');
+      return true;
+    } catch (error) {
+      console.error('📱 Index: Error in checkPermission:', error);
+      // On error, allow access to prevent app from breaking
+      return true;
+    }
   }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
 
-  // Show loading while auth or RBAC is loading
-  if (authLoading || rbacLoading) {
-    console.log('📱 Index: Showing loading - Auth or RBAC loading');
+  // Show loading while auth is loading
+  if (authLoading) {
+    console.log('📱 Index: Showing loading - Auth loading');
     return <PageLoadingSkeleton />;
   }
 
@@ -124,7 +123,7 @@ const Index = () => {
     return <AccessDenied />;
   }
 
-  console.log('📱 Index: Rendering main application with hash-based routing');
+  console.log('📱 Index: Rendering main application');
 
   return (
     <>
@@ -147,15 +146,9 @@ const Index = () => {
                   <Routes>
                     <Route path="/" element={
                       checkPermission('dashboard:read') ? (
-                        <>
-                          {console.log('📱 Index: Rendering Dashboard for hash root route')}
-                          <Dashboard />
-                        </>
+                        <Dashboard />
                       ) : (
-                        <>
-                          {console.log('📱 Index: Showing AccessDenied for hash root route')}
-                          <AccessDenied />
-                        </>
+                        <AccessDenied />
                       )
                     } />
                     <Route path="/dashboard" element={

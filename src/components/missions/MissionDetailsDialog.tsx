@@ -42,9 +42,11 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     return null;
   }
 
-  const formatTime = (dateString: string) => {
+  const formatTime = (dateString: string | null | undefined) => {
     try {
+      if (!dateString) return 'N/A';
       const date = new Date(dateString);
+      if (isNaN(date.getTime())) return 'N/A';
       return date.toLocaleTimeString('fr-FR', {
         hour: '2-digit',
         minute: '2-digit'
@@ -60,20 +62,25 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
       if (!dateValue) return 'N/A';
       
       if (typeof dateValue === 'string') {
+        const date = new Date(dateValue);
+        if (isNaN(date.getTime())) return 'N/A';
         return formatDateOnly(dateValue);
       }
       
       if (dateValue instanceof Date) {
+        if (isNaN(dateValue.getTime())) return 'N/A';
         return formatDateOnly(dateValue.toISOString());
       }
       
       // Handle complex date objects from database
-      if (dateValue._type === 'Date' && dateValue.value) {
+      if (dateValue && typeof dateValue === 'object' && dateValue._type === 'Date' && dateValue.value) {
         if (dateValue.value.iso) {
           return formatDateOnly(dateValue.value.iso);
         }
         if (typeof dateValue.value.value === 'number') {
-          return formatDateOnly(new Date(dateValue.value.value).toISOString());
+          const date = new Date(dateValue.value.value);
+          if (isNaN(date.getTime())) return 'N/A';
+          return formatDateOnly(date.toISOString());
         }
       }
       
@@ -81,6 +88,38 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     } catch (error) {
       console.error('🎯 MissionDetailsDialog: Error formatting date:', error, dateValue);
       return 'N/A';
+    }
+  };
+
+  const safeGetProperty = (obj: any, property: string, fallback: string = 'N/A') => {
+    try {
+      return obj && obj[property] ? String(obj[property]) : fallback;
+    } catch (error) {
+      console.error(`🎯 MissionDetailsDialog: Error getting property ${property}:`, error);
+      return fallback;
+    }
+  };
+
+  const safeGetNumber = (obj: any, property: string, fallback: number = 0) => {
+    try {
+      const value = obj && obj[property];
+      if (value === null || value === undefined) return fallback;
+      const num = Number(value);
+      return isNaN(num) ? fallback : num;
+    } catch (error) {
+      console.error(`🎯 MissionDetailsDialog: Error getting number ${property}:`, error);
+      return fallback;
+    }
+  };
+
+  const safeGetArray = (obj: any, property: string) => {
+    try {
+      const value = obj && obj[property];
+      if (Array.isArray(value)) return value;
+      return [];
+    } catch (error) {
+      console.error(`🎯 MissionDetailsDialog: Error getting array ${property}:`, error);
+      return [];
     }
   };
 
@@ -98,8 +137,8 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           {/* Status and Company */}
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold">{mission.company || 'Entreprise non spécifiée'}</h3>
-              <p className="text-gray-600">{mission.branch || 'Succursale non spécifiée'}</p>
+              <h3 className="text-lg font-semibold">{safeGetProperty(mission, 'company', 'Entreprise non spécifiée')}</h3>
+              <p className="text-gray-600">{safeGetProperty(mission, 'branch', 'Succursale non spécifiée')}</p>
             </div>
             <Badge 
               variant={mission.status === 'active' ? 'default' : 'secondary'}
@@ -124,7 +163,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="font-medium">{getVanDisplayName(mission.van) || mission.van || 'N/A'}</p>
+                <p className="font-medium">
+                  {mission.van ? getVanDisplayName(mission.van) || mission.van : 'N/A'}
+                </p>
               </CardContent>
             </Card>
 
@@ -136,7 +177,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="font-medium">{mission.driver || 'N/A'}</p>
+                <p className="font-medium">{safeGetProperty(mission, 'driver')}</p>
               </CardContent>
             </Card>
 
@@ -148,9 +189,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="font-medium">{mission.timestamp ? safeFormatDate(mission.timestamp) : 'N/A'}</p>
-                {mission.timestamp && (
-                  <p className="text-sm text-gray-500">{formatTime(mission.timestamp)}</p>
+                <p className="font-medium">{safeFormatDate(mission.created_at || mission.timestamp)}</p>
+                {(mission.created_at || mission.timestamp) && (
+                  <p className="text-sm text-gray-500">{formatTime(mission.created_at || mission.timestamp)}</p>
                 )}
               </CardContent>
             </Card>
@@ -164,7 +205,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="font-medium">
-                  {(mission.userIds?.length || 0) + (mission.userRoles?.length || 0)} membres
+                  {safeGetArray(mission, 'userIds').length + safeGetArray(mission, 'userRoles').length} membres
                 </p>
               </CardContent>
             </Card>
@@ -177,7 +218,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
-                <p className="font-medium">{mission.startKm?.toLocaleString() || 0} km</p>
+                <p className="font-medium">{safeGetNumber(mission, 'startKm').toLocaleString()} km</p>
               </CardContent>
             </Card>
 
@@ -190,10 +231,10 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0">
-                  <p className="font-medium">{mission.endKm.toLocaleString()} km</p>
+                  <p className="font-medium">{safeGetNumber(mission, 'endKm').toLocaleString()} km</p>
                   {mission.startKm && (
                     <p className="text-sm text-gray-500">
-                      Distance: {(mission.endKm - mission.startKm).toLocaleString()} km
+                      Distance: {(safeGetNumber(mission, 'endKm') - safeGetNumber(mission, 'startKm')).toLocaleString()} km
                     </p>
                   )}
                 </CardContent>
@@ -202,7 +243,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           </div>
 
           {/* Planned Dates */}
-          {(mission.startDate || mission.endDate) && (
+          {(mission.planned_start_date || mission.planned_end_date || mission.startDate || mission.endDate) && (
             <>
               <Separator />
               <Card>
@@ -214,16 +255,16 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </CardHeader>
                 <CardContent className="pt-0">
                   <div className="space-y-2">
-                    {mission.startDate && (
+                    {(mission.planned_start_date || mission.startDate) && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Début:</span>
-                        <span className="font-medium">{safeFormatDate(mission.startDate)}</span>
+                        <span className="font-medium">{safeFormatDate(mission.planned_start_date || mission.startDate)}</span>
                       </div>
                     )}
-                    {mission.endDate && (
+                    {(mission.planned_end_date || mission.endDate) && (
                       <div className="flex justify-between">
                         <span className="text-gray-600">Fin:</span>
-                        <span className="font-medium">{safeFormatDate(mission.endDate)}</span>
+                        <span className="font-medium">{safeFormatDate(mission.planned_end_date || mission.endDate)}</span>
                       </div>
                     )}
                   </div>
@@ -233,7 +274,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           )}
 
           {/* Notes */}
-          {mission.notes && (
+          {mission.notes && mission.notes.trim() && (
             <>
               <Separator />
               <Card>

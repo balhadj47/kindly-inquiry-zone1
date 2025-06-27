@@ -33,8 +33,15 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
   };
 
   const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('File input change event triggered');
+    
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('No file selected');
+      return;
+    }
+
+    console.log('File selected:', file.name, file.type, file.size);
 
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -62,7 +69,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       const fileExt = file.name.split('.').pop()?.toLowerCase() || 'jpg';
       const fileName = `employee-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
       
-      console.log('Uploading employee image:', fileName);
+      console.log('Starting upload for employee image:', fileName);
 
       // If there's an existing image, try to delete it first
       if (profileImage && profileImage.includes('employee-avatars')) {
@@ -90,6 +97,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       }
 
       // Upload the new image
+      console.log('Uploading new image to storage...');
       const { error: uploadError } = await supabase.storage
         .from('employee-avatars')
         .upload(fileName, file, {
@@ -125,7 +133,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
       });
     } finally {
       setUploading(false);
-      // Clear the input so the same file can be selected again if needed
+      // Reset the input value to allow selecting the same file again if needed
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
@@ -133,7 +141,12 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
   };
 
   const triggerImageUpload = () => {
-    fileInputRef.current?.click();
+    console.log('Triggering file input click');
+    if (fileInputRef.current) {
+      // Reset the input value before triggering click to ensure onChange fires
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
   };
 
   const isDisabled = isSubmitting || uploading;
@@ -171,6 +184,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         accept="image/*"
         onChange={handleImageUpload}
         className="hidden"
+        key={Date.now()} // Force re-render to ensure fresh input
       />
       <Button
         type="button"

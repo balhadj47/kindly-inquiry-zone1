@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -139,65 +140,63 @@ const Index = () => {
       <Sonner />
       
       <TooltipProvider>
-        <div className="flex h-screen w-full bg-gray-50">
-          {/* Desktop Sidebar */}
-          {!isMobile && <AppSidebar />}
-          
-          {/* Main Content Area */}
-          <div className="flex flex-col flex-1 min-w-0">
-            <TopBar />
-            <main className={`flex-1 bg-gray-50 overflow-y-auto ${
-              isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
-            }`}>
-              <Suspense fallback={<PageLoadingSkeleton />}>
-                <Routes>
-                  <Route path="" element={
-                    checkPermission('dashboard:read') ? (
-                      <Dashboard />
-                    ) : (
-                      <AccessDenied />
-                    )
-                  } />
-                  <Route path="dashboard" element={
-                    checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
-                  } />
-                  <Route path="companies/*" element={
-                    checkPermission('companies:read') ? <Companies /> : <AccessDenied />
-                  } />
-                  <Route path="vans/*" element={
-                    checkPermission('vans:read') ? <Vans /> : <AccessDenied />
-                  } />
-                  <Route path="users" element={
-                    checkPermission('users:read') ? <Users /> : <AccessDenied />
-                  } />
-                  <Route path="auth-users" element={
-                    checkPermission('users:read') ? <AuthUsersPage /> : <AccessDenied />
-                  } />
-                  <Route path="employees" element={
-                    checkPermission('users:read') ? <Employees /> : <AccessDenied />
-                  } />
-                  <Route path="log-trip" element={
-                    checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
-                  } />
-                  <Route path="trip-logger" element={
-                    checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
-                  } />
-                  <Route path="missions" element={
-                    checkPermission('trips:read') ? <MissionsPage /> : <AccessDenied />
-                  } />
-                  <Route path="trip-history" element={
-                    checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
-                  } />
-                  <Route path="settings" element={<SystemSettingsPage />} />
-                  <Route path="user-settings" element={<UserSettings />} />
-                </Routes>
-              </Suspense>
-            </main>
-          </div>
-          
-          {/* Mobile Bottom Navigation */}
-          {isMobile && <MobileBottomNav />}
-        </div>
+        {/* Desktop Sidebar */}
+        {!isMobile && <AppSidebar />}
+        
+        {/* Main Content Area */}
+        <SidebarInset>
+          <TopBar />
+          <main className={`flex-1 bg-gray-50 overflow-y-auto ${
+            isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
+          }`}>
+            <Suspense fallback={<PageLoadingSkeleton />}>
+              <Routes>
+                <Route path="" element={
+                  checkPermission('dashboard:read') ? (
+                    <Dashboard />
+                  ) : (
+                    <AccessDenied />
+                  )
+                } />
+                <Route path="dashboard" element={
+                  checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
+                } />
+                <Route path="companies/*" element={
+                  checkPermission('companies:read') ? <Companies /> : <AccessDenied />
+                } />
+                <Route path="vans/*" element={
+                  checkPermission('vans:read') ? <Vans /> : <AccessDenied />
+                } />
+                <Route path="users" element={
+                  checkPermission('users:read') ? <Users /> : <AccessDenied />
+                } />
+                <Route path="auth-users" element={
+                  checkPermission('users:read') ? <AuthUsersPage /> : <AccessDenied />
+                } />
+                <Route path="employees" element={
+                  checkPermission('users:read') ? <Employees /> : <AccessDenied />
+                } />
+                <Route path="log-trip" element={
+                  checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                } />
+                <Route path="trip-logger" element={
+                  checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                } />
+                <Route path="missions" element={
+                  checkPermission('trips:read') ? <MissionsPage /> : <AccessDenied />
+                } />
+                <Route path="trip-history" element={
+                  checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
+                } />
+                <Route path="settings" element={<SystemSettingsPage />} />
+                <Route path="user-settings" element={<UserSettings />} />
+              </Routes>
+            </Suspense>
+          </main>
+        </SidebarInset>
+        
+        {/* Mobile Bottom Navigation */}
+        {isMobile && <MobileBottomNav />}
       </TooltipProvider>
     </>
   );

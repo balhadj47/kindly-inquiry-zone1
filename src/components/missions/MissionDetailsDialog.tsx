@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { formatDate } from '@/utils/dateUtils';
+import { useVans } from '@/hooks/useVansOptimized';
 
 interface MissionDetailsDialogProps {
   mission: Trip | null;
@@ -33,7 +33,18 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   onClose,
   getVanDisplayName,
 }) => {
+  const { data: vans = [] } = useVans();
+  
   console.log('🎯 MissionDetailsDialog: Rendering with mission:', mission?.id || 'null');
+
+  // Local function to get van display name with fallback
+  const getVanName = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
+    if (van) {
+      return van.license_plate ? `${van.license_plate} (${van.model})` : van.model;
+    }
+    return getVanDisplayName(vanId) || vanId;
+  };
 
   if (!mission) {
     console.log('🎯 MissionDetailsDialog: No mission provided');
@@ -128,7 +139,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 <Truck className="h-5 w-5 mr-3 text-gray-400" />
                 <div>
                   <span className="font-medium text-gray-700">Véhicule:</span>
-                  <p className="text-purple-600 font-medium">{getVanDisplayName(mission.van)}</p>
+                  <p className="text-purple-600 font-medium">{getVanName(mission.van)}</p>
                 </div>
               </div>
             </div>
@@ -218,8 +229,8 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                     <div className="flex space-x-1">
                       {userRole.roles.map((role, roleIndex) => {
                         // Handle both object and string types for roles
-                        const roleName = typeof role === 'string' ? role : role.name || 'Unknown Role';
-                        const roleColor = typeof role === 'string' ? '#10B981' : role.color || '#10B981';
+                        const roleName = typeof role === 'string' ? role : (role as any).name || 'Unknown Role';
+                        const roleColor = typeof role === 'string' ? '#10B981' : (role as any).color || '#10B981';
                         
                         return (
                           <Badge 

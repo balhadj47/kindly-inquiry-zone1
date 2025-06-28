@@ -216,16 +216,22 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                   <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                     <span className="text-sm font-medium">{userRole.userId}</span>
                     <div className="flex space-x-1">
-                      {userRole.roles.map((role, roleIndex) => (
-                        <Badge 
-                          key={roleIndex} 
-                          variant="outline" 
-                          className="text-xs"
-                          style={{ backgroundColor: role.color, color: 'white' }}
-                        >
-                          {role.name}
-                        </Badge>
-                      ))}
+                      {userRole.roles.map((role, roleIndex) => {
+                        // Handle both object and string types for roles
+                        const roleName = typeof role === 'string' ? role : role.name || 'Unknown Role';
+                        const roleColor = typeof role === 'string' ? '#10B981' : role.color || '#10B981';
+                        
+                        return (
+                          <Badge 
+                            key={roleIndex} 
+                            variant="outline" 
+                            className="text-xs"
+                            style={{ backgroundColor: roleColor, color: 'white' }}
+                          >
+                            {roleName}
+                          </Badge>
+                        );
+                      })}
                     </div>
                   </div>
                 ))}

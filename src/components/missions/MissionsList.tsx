@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Bell, Eye } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
+import { useVans } from '@/hooks/useVansOptimized';
 import MissionDetailsDialog from './MissionDetailsDialog';
 
 interface MissionsListProps {
@@ -29,6 +30,7 @@ const MissionsList: React.FC<MissionsListProps> = ({
 }) => {
   const [selectedMission, setSelectedMission] = useState<Trip | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const { data: vans = [] } = useVans();
 
   const filteredMissions = missions.filter(mission => {
     const matchesSearch = !searchTerm || 
@@ -56,7 +58,11 @@ const MissionsList: React.FC<MissionsListProps> = ({
   };
 
   const getVanDisplayName = (vanId: string) => {
-    return vanId; // Simple implementation, can be enhanced later
+    const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
+    if (van) {
+      return van.license_plate ? `${van.license_plate} (${van.model})` : van.model;
+    }
+    return vanId;
   };
 
   const getStatusColor = (status: string) => {
@@ -139,7 +145,7 @@ const MissionsList: React.FC<MissionsListProps> = ({
                       </div>
                       <div className="flex items-center">
                         <span className="font-medium text-gray-700 w-20">Véhicule:</span>
-                        <span className="text-purple-600 font-medium">{mission.van}</span>
+                        <span className="text-purple-600 font-medium">{getVanDisplayName(mission.van)}</span>
                       </div>
                     </div>
                     

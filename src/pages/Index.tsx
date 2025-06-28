@@ -139,16 +139,12 @@ const Index = () => {
       <Sonner />
       
       <TooltipProvider>
-        <div className="min-h-screen flex w-full bg-gray-50">
-          {/* Desktop Sidebar - Always visible on desktop */}
-          {!isMobile && (
-            <div className="hidden md:flex">
-              <AppSidebar />
-            </div>
-          )}
+        <div className="flex h-screen w-full bg-gray-50">
+          {/* Desktop Sidebar */}
+          {!isMobile && <AppSidebar />}
           
           {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex flex-col flex-1 min-w-0">
             <TopBar />
             <main className={`flex-1 bg-gray-50 overflow-y-auto ${
               isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'

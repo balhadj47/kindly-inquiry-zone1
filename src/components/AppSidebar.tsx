@@ -18,19 +18,18 @@ const AppSidebar = () => {
 
   return (
     <Sidebar 
-      variant="sidebar" 
-      collapsible="icon" 
       className="border-r border-gray-200 bg-white shadow-sm"
+      collapsible="icon"
     >
       <SidebarHeader className="p-4 border-b border-gray-100">
         <SidebarBranding />
       </SidebarHeader>
       
-      <SidebarContent className="py-2 bg-white flex-1">
+      <SidebarContent className="py-2 bg-white">
         <SidebarMenuContent />
       </SidebarContent>
       
-      <SidebarFooter className="p-0">
+      <SidebarFooter className="border-t border-gray-100 p-0">
         <SidebarUserProfile />
       </SidebarFooter>
     </Sidebar>

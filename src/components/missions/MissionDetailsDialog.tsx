@@ -20,7 +20,11 @@ import {
   Users,
   Circle,
   CheckCircle,
-  X
+  X,
+  Crown,
+  Car,
+  Shield,
+  UserCheck
 } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { formatDate } from '@/utils/dateUtils';
@@ -45,6 +49,24 @@ const TeamMemberRole: React.FC<{ roleId: number }> = ({ roleId }) => {
       {roleName}
     </Badge>
   );
+};
+
+// Helper function to get role icon
+const getRoleIcon = (roleName: string) => {
+  const roleStr = roleName.toLowerCase();
+  if (roleStr.includes('chef') || roleStr.includes('leader')) {
+    return <Crown className="h-4 w-4 text-yellow-600" />;
+  }
+  if (roleStr.includes('chauffeur') || roleStr.includes('driver')) {
+    return <Car className="h-4 w-4 text-blue-600" />;
+  }
+  if (roleStr.includes('aps') || roleStr.includes('security')) {
+    return <Shield className="h-4 w-4 text-green-600" />;
+  }
+  if (roleStr.includes('armé') || roleStr.includes('armed')) {
+    return <Shield className="h-4 w-4 text-red-600" />;
+  }
+  return <UserCheck className="h-4 w-4 text-gray-600" />;
 };
 
 const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
@@ -466,7 +488,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
             </div>
           )}
 
-          {/* Team */}
+          {/* Team - Simplified List */}
           {mission.userRoles && mission.userRoles.length > 0 && (
             <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
               <div className="flex items-center gap-3 mb-6">
@@ -475,40 +497,54 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
               </div>
               <div className="space-y-3">
                 {mission.userRoles.map((userRole, index) => (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-blue-100">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-gray-900 mb-2 truncate">
-                        {getUserName(userRole.userId)}
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
+                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                    <div className="flex items-center gap-3">
+                      {/* Role Icons on the left */}
+                      <div className="flex gap-1">
                         {userRole.roles.map((role, roleIndex) => {
+                          let roleName = '';
                           if (typeof role === 'string') {
-                            return (
-                              <Badge key={roleIndex} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
-                                {role}
-                              </Badge>
-                            );
+                            roleName = role;
                           } else if (typeof role === 'object' && role !== null) {
                             const roleObj = role as any;
-                            if (roleObj.role_id) {
-                              return <TeamMemberRole key={roleIndex} roleId={roleObj.role_id} />;
-                            }
-                            return (
-                              <Badge 
-                                key={roleIndex} 
-                                variant="outline" 
-                                className="text-xs bg-gray-50 text-gray-700 border-gray-200"
-                              >
-                                {roleObj.name || 'Rôle Inconnu'}
-                              </Badge>
-                            );
+                            roleName = roleObj.name || 'Rôle Inconnu';
                           }
-                          return null;
+                          return (
+                            <div key={roleIndex} className="flex items-center gap-1">
+                              {getRoleIcon(roleName)}
+                            </div>
+                          );
                         })}
                       </div>
+                      
+                      {/* User name */}
+                      <span className="font-medium text-gray-900">
+                        {getUserName(userRole.userId)}
+                      </span>
+                    </div>
+                    
+                    {/* Role badges on the right */}
+                    <div className="flex flex-wrap gap-1">
+                      {userRole.roles.map((role, roleIndex) => {
+                        if (typeof role === 'string') {
+                          return (
+                            <Badge key={roleIndex} variant="outline" className="text-xs">
+                              {role}
+                            </Badge>
+                          );
+                        } else if (typeof role === 'object' && role !== null) {
+                          const roleObj = role as any;
+                          if (roleObj.role_id) {
+                            return <TeamMemberRole key={roleIndex} roleId={roleObj.role_id} />;
+                          }
+                          return (
+                            <Badge key={roleIndex} variant="outline" className="text-xs">
+                              {roleObj.name || 'Rôle Inconnu'}
+                            </Badge>
+                          );
+                        }
+                        return null;
+                      })}
                     </div>
                   </div>
                 ))}

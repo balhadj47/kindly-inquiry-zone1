@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { getRoleNameFromId, getRoleColorFromId } from '@/utils/roleUtils';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useRoleData = (roleId: number) => {
   const [roleName, setRoleName] = useState<string>(`Role ${roleId}`);
@@ -21,16 +21,28 @@ export const useRoleData = (roleId: number) => {
           return;
         }
 
-        const [name, color] = await Promise.all([
-          getRoleNameFromId(roleId),
-          getRoleColorFromId(roleId)
-        ]);
-        
-        console.log('✅ useRoleData: Loaded role data:', { roleId, name, color });
-        setRoleName(name);
-        setRoleColor(color);
+        // Direct database query instead of utility functions
+        const { data, error } = await supabase
+          .from('user_groups')
+          .select('name, color')
+          .eq('role_id', roleId)
+          .single();
+
+        if (error) {
+          console.error('❌ useRoleData: Database error:', error);
+          if (error.code === 'PGRST116') {
+            setRoleName(`Role ${roleId} (Not Found)`);
+          } else {
+            setRoleName(`Role ${roleId}`);
+          }
+          setRoleColor('#6b7280');
+        } else if (data) {
+          console.log('✅ useRoleData: Successfully loaded role data:', data);
+          setRoleName(data.name || `Role ${roleId}`);
+          setRoleColor(data.color || '#6b7280');
+        }
       } catch (error) {
-        console.error('❌ useRoleData: Error loading role data:', error);
+        console.error('❌ useRoleData: Exception:', error);
         setRoleName(`Role ${roleId}`);
         setRoleColor('#6b7280');
       } finally {

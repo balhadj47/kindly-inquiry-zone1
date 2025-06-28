@@ -7,56 +7,40 @@ let currentAuthUser: User | null = null;
 let systemGroupsData: SystemGroup[] = [];
 
 export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
-  console.log('🔧 Creating database-driven permission utils with:', { 
+  console.log('🔧 Creating permission utils:', { 
     usersCount: users.length, 
-    systemGroupsCount: systemGroups.length,
-    systemGroups: systemGroups.map(g => ({ 
-      id: g.id, 
-      name: g.name, 
-      role_id: (g as any).role_id,
-      permissions: g.permissions 
-    }))
+    systemGroupsCount: systemGroups.length
   });
   
   if (systemGroups.length === 0) {
-    console.warn('⚠️ No system groups provided to permission utils - permissions may not work');
+    console.warn('⚠️ No system groups provided to permission utils');
     return;
   }
 
-  // Store the current auth user (should be only one)
   currentAuthUser = users.length > 0 ? users[0] : null;
   systemGroupsData = systemGroups;
   permissionCache.clear();
   
-  console.log('✅ Database-driven permission utilities created successfully');
-  console.log('👤 Current auth user:', currentAuthUser?.id, 'role_id:', currentAuthUser?.role_id);
-  console.log('📋 Available system groups:', systemGroupsData.map(g => `${g.name} (role_id: ${(g as any).role_id})`));
+  console.log('✅ Permission utilities created successfully');
 };
 
 export const hasPermission = (userId: string, permission: string): boolean => {
   const cacheKey = `${userId}-${permission}`;
   
-  // Check cache first
   if (permissionCache.has(cacheKey)) {
-    const result = permissionCache.get(cacheKey)!;
-    console.log(`🔐 Cache hit: ${permission} = ${result} for user ${userId}`);
-    return result;
+    return permissionCache.get(cacheKey)!;
   }
 
   try {
-    console.log(`🔐 Checking database permission: ${permission} for user ${userId}`);
+    console.log(`🔐 Checking permission: ${permission} for user ${userId}`);
     
-    // Use current auth user instead of looking up in users array
     const user = currentAuthUser;
     if (!user || user.id.toString() !== userId.toString()) {
-      console.warn(`⚠️ User not found or mismatch: ${userId} vs ${user?.id}`);
+      console.warn(`⚠️ User not found: ${userId}`);
       permissionCache.set(cacheKey, false);
       return false;
     }
 
-    console.log(`👤 Found auth user: ${user.id} with role_id: ${user.role_id}`);
-
-    // Find the user's role/group by role_id from database groups
     const userRole = systemGroupsData.find(role => {
       const roleId = (role as any).role_id || parseInt(role.id);
       return roleId === user.role_id;
@@ -64,33 +48,25 @@ export const hasPermission = (userId: string, permission: string): boolean => {
 
     if (!userRole) {
       console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
-      console.log('Available roles:', systemGroupsData.map(r => ({ 
-        id: r.id, 
-        name: r.name, 
-        role_id: (r as any).role_id 
-      })));
       permissionCache.set(cacheKey, false);
       return false;
     }
 
-    console.log(`🎯 Found user role: ${userRole.name} (role_id: ${(userRole as any).role_id}) with permissions:`, userRole.permissions);
-
-    // Check if the role has the required permission from database
     const hasAccess = userRole.permissions.includes(permission);
     
-    // Special handling for high-privilege roles - grant broader access
+    // High-privilege role handling
     if (!hasAccess && userRole.permissions.length >= 10) {
-      console.log('🔓 High-privilege role detected, granting permission:', permission);
+      console.log('🔓 High-privilege role, granting permission:', permission);
       permissionCache.set(cacheKey, true);
       return true;
     }
     
     permissionCache.set(cacheKey, hasAccess);
-    console.log(`🔐 Database permission check result: ${permission} = ${hasAccess} for user ${userId} (role: ${userRole.name})`);
+    console.log(`🔐 Permission result: ${permission} = ${hasAccess}`);
     
     return hasAccess;
   } catch (error) {
-    console.error('❌ Error checking database permission:', error);
+    console.error('❌ Error checking permission:', error);
     permissionCache.set(cacheKey, false);
     return false;
   }
@@ -106,7 +82,6 @@ export const getUserPermissions = (userId: string): string[] => {
     const user = currentAuthUser;
     if (!user || user.id.toString() !== userId.toString()) return [];
 
-    // Find the user's role/group by role_id
     const userRole = systemGroupsData.find(role => {
       const roleId = (role as any).role_id || parseInt(role.id);
       return roleId === user.role_id;

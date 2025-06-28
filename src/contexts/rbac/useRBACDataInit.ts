@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -19,30 +20,19 @@ interface UseRBACDataInitProps {
   rolesLoaded?: boolean;
 }
 
-// Dynamic admin detection based on role permissions
 const isAdminByPermissions = (userRole: SystemGroup): boolean => {
   if (!userRole || !userRole.permissions) return false;
-  // Admin roles typically have many permissions (10+)
   return userRole.permissions.length >= 10;
 };
 
-// Helper function to get role_id from auth user with better metadata handling
 const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): number | null => {
-  console.log('🔍 getRoleIdFromAuthUser: Full auth user object:', authUser);
-  console.log('🔍 getRoleIdFromAuthUser: user_metadata:', authUser.user_metadata);
-  console.log('🔍 getRoleIdFromAuthUser: app_metadata:', authUser.app_metadata);
+  console.log('🔍 getRoleIdFromAuthUser: Checking metadata for role_id');
   
-  // Check multiple possible locations for role_id
   const possibleRoleId = 
     authUser.user_metadata?.role_id || 
     authUser.app_metadata?.role_id ||
-    authUser.role_id ||
-    authUser.user_metadata?.role ||
-    authUser.app_metadata?.role;
+    authUser.role_id;
   
-  console.log('🔍 getRoleIdFromAuthUser: Found possible role_id:', possibleRoleId);
-  
-  // If we found a role_id, validate it exists in available roles
   if (possibleRoleId !== undefined && possibleRoleId !== null) {
     const roleId = typeof possibleRoleId === 'string' ? parseInt(possibleRoleId) : possibleRoleId;
     const roleExists = availableRoles.some(role => (role as any).role_id === roleId);
@@ -50,46 +40,38 @@ const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): nu
       console.log('📋 Found valid role_id in metadata:', roleId);
       return roleId;
     }
-    console.log('⚠️ Role_id from metadata not found in available roles:', roleId);
   }
   
-  // Dynamic admin detection - find highest permission role for admin emails
+  // Default to role with highest permissions for admin users
   const adminRole = availableRoles
     .filter(role => role.permissions && role.permissions.length > 0)
     .sort((a, b) => b.permissions.length - a.permissions.length)[0];
   
   if (adminRole && isAdminByPermissions(adminRole)) {
-    console.log('📋 Admin role detected by permissions, using role_id:', (adminRole as any).role_id);
+    console.log('📋 Using admin role by default:', (adminRole as any).role_id);
     return (adminRole as any).role_id;
   }
   
-  // No valid role found
-  console.log('📋 No valid role_id found, will use default from available roles');
   return null;
 };
 
-// Helper to get default role from available roles based on permission count
 const getDefaultRoleId = (availableRoles: SystemGroup[]): number | null => {
   if (!availableRoles || availableRoles.length === 0) {
-    console.warn('⚠️ No available roles to choose default from');
     return null;
   }
 
-  // Sort roles by permission count (ascending) to get the role with least permissions
+  // Use role with least permissions as default
   const sortedRoles = availableRoles
     .filter(role => role.permissions && Array.isArray(role.permissions))
     .sort((a, b) => a.permissions.length - b.permissions.length);
   
   if (sortedRoles.length > 0) {
     const defaultRole = sortedRoles[0];
-    console.log('📋 Using role with least permissions as default:', defaultRole.name, 'with role_id:', (defaultRole as any).role_id);
+    console.log('📋 Using default role:', defaultRole.name, 'role_id:', (defaultRole as any).role_id);
     return (defaultRole as any).role_id;
   }
   
-  // If no roles with permissions, use first available role
-  const firstRole = availableRoles[0];
-  console.log('📋 Using first available role as default:', firstRole.name, 'with role_id:', (firstRole as any).role_id);
-  return (firstRole as any).role_id;
+  return availableRoles[0] ? (availableRoles[0] as any).role_id : null;
 };
 
 export const useRBACDataInit = ({ 
@@ -109,102 +91,59 @@ export const useRBACDataInit = ({
   const initializationRef = useRef(false);
 
   useEffect(() => {
-    // Wait for auth to finish loading and roles to be loaded
     if (authLoading || !rolesLoaded) {
-      console.log('⏳ useRBACDataInit: Waiting for auth and roles...', { 
-        authLoading, 
-        rolesLoaded,
-        authUser: authUser?.email || 'null'
-      });
+      console.log('⏳ useRBACDataInit: Waiting for auth and roles...');
       return;
     }
 
-    // If no user is authenticated, don't initialize RBAC
     if (!authUser) {
-      console.log('❌ useRBACDataInit: No authenticated user, skipping RBAC initialization');
+      console.log('❌ useRBACDataInit: No authenticated user');
       setCurrentUser(null);
       setLoading(false);
       return;
     }
 
-    // Prevent multiple initializations
     if (initializationRef.current) {
-      console.log('🔄 useRBACDataInit: Already initialized, skipping...');
+      console.log('🔄 useRBACDataInit: Already initialized');
       return;
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 useRBACDataInit: Starting auth-based RBAC initialization for user:', authUser?.email);
-      console.log('🔍 useRBACDataInit: Auth user full object:', authUser);
+      console.log('🚀 useRBACDataInit: Starting initialization for user:', authUser?.email);
       initializationRef.current = true;
       setLoading(true);
 
       try {
-        // Load system groups (roles) from database with their permissions
-        console.log('📋 useRBACDataInit: Loading system groups from database...');
+        console.log('📋 useRBACDataInit: Loading system groups...');
         const systemGroups = await loadRoles();
 
-        console.log('📋 useRBACDataInit: Roles loaded from database:', {
-          count: systemGroups.length,
-          roles: systemGroups.map(g => ({ 
-            name: g.name, 
-            role_id: (g as any).role_id, 
-            id: g.id,
-            permissionsCount: g.permissions.length,
-            accessiblePages: g.accessiblePages?.length || 0
-          }))
-        });
-
         if (!systemGroups || systemGroups.length === 0) {
-          console.error('⚠️ useRBACDataInit: No system groups loaded from database!');
-          console.error('⚠️ useRBACDataInit: This will cause role resolution issues');
-          console.error('⚠️ useRBACDataInit: Please check your user_groups table in the database');
+          console.error('⚠️ useRBACDataInit: No system groups loaded!');
+          setRoles([]);
+          setUsers([]);
+          setCurrentUser(null);
+          return;
         }
 
-        // Set the roles data
         console.log('📋 useRBACDataInit: Setting roles in context...');
         setRoles(systemGroups);
-        
-        // Don't load users table for authentication - keep it empty for auth purposes
         setUsers([]);
 
-        // Create current user from auth user data with dynamic role detection
+        // Create current user with proper role assignment
         let roleId = getRoleIdFromAuthUser(authUser, systemGroups);
         
-        // If no role found in metadata, use default
         if (roleId === null) {
           roleId = getDefaultRoleId(systemGroups);
         }
         
-        console.log('🔐 useRBACDataInit: Final role_id assignment:', roleId, 'for email:', authUser.email);
-        
-        // Verify the role exists in the database
         const roleExists = systemGroups.some(role => (role as any).role_id === roleId);
         const assignedRole = systemGroups.find(role => (role as any).role_id === roleId);
         
-        console.log('🔐 useRBACDataInit: Role exists check:', {
-          roleId,
-          roleExists,
-          assignedRole: assignedRole ? {
-            name: assignedRole.name,
-            permissions: assignedRole.permissions,
-            accessiblePages: assignedRole.accessiblePages
-          } : null,
-          availableRoles: systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
-        });
-        
         if (!roleExists && systemGroups.length > 0) {
-          console.warn(`⚠️ useRBACDataInit: Role ${roleId} not found in database!`);
-          console.warn('⚠️ useRBACDataInit: Available roles:', 
-            systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
-          );
-          // Use the first available role as fallback
-          const fallbackRoleId = (systemGroups[0] as any).role_id;
-          console.log(`🔄 useRBACDataInit: Using fallback role_id: ${fallbackRoleId}`);
-          roleId = fallbackRoleId;
+          console.warn(`⚠️ Role ${roleId} not found, using fallback`);
+          roleId = (systemGroups[0] as any).role_id;
         }
         
-        // Create user profile from auth user
         const currentUser = {
           id: authUser.id,
           name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
@@ -218,55 +157,31 @@ export const useRBACDataInit = ({
         console.log('👤 useRBACDataInit: Created current user profile:', currentUser);
         setCurrentUser(currentUser);
 
-        // Initialize permission utilities with current user and database groups
-        console.log('🔧 useRBACDataInit: Creating permission utils with database groups...');
         createPermissionUtils([currentUser], systemGroups);
 
-        // Log detailed role and permission information
         const finalRole = systemGroups.find(role => (role as any).role_id === roleId);
-        if (finalRole) {
-          console.log('🎯 useRBACDataInit: Final user role details:', {
-            roleName: finalRole.name,
-            permissions: finalRole.permissions,
-            accessiblePages: finalRole.accessiblePages,
-            permissionsCount: finalRole.permissions.length,
-            pagesCount: finalRole.accessiblePages?.length || 0
-          });
-        }
-
-        console.log('✅ useRBACDataInit: Auth-based RBAC initialized successfully:', {
+        console.log('✅ useRBACDataInit: Initialization complete:', {
           userId: currentUser.id,
           email: currentUser.email,
           role_id: currentUser.role_id,
           roleName: finalRole?.name,
-          metadata_role_id: authUser.user_metadata?.role_id,
-          app_metadata_role_id: authUser.app_metadata?.role_id,
-          systemGroupsLoaded: systemGroups.length,
-          finalRoleAssigned: roleId,
-          userPermissions: finalRole?.permissions || [],
-          userAccessiblePages: finalRole?.accessiblePages || []
+          permissions: finalRole?.permissions?.length || 0,
+          pages: finalRole?.accessiblePages?.length || 0
         });
 
       } catch (error) {
-        console.error('❌ useRBACDataInit: Auth-based RBAC initialization error:', {
-          error: error?.message || error,
-          stack: error?.stack,
-          authUser: authUser?.email
-        });
+        console.error('❌ useRBACDataInit: Initialization error:', error);
         setCurrentUser(null);
       } finally {
         setLoading(false);
-        console.log('🏁 useRBACDataInit: Auth-based RBAC initialization completed');
       }
     };
 
     initializeRBAC();
-  }, [authUser?.email, authUser?.id, authUser?.user_metadata, authUser?.app_metadata, authLoading, rolesLoaded]);
+  }, [authUser?.email, authUser?.id, authLoading, rolesLoaded]);
 
-  // Reset initialization flag when user changes
   useEffect(() => {
     if (!authUser?.email) {
-      console.log('🔄 useRBACDataInit: Auth user changed, resetting initialization flag');
       initializationRef.current = false;
     }
   }, [authUser?.email]);

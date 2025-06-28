@@ -6,11 +6,21 @@ import { useRoleData } from '@/hooks/useRoleData';
 import AuthUsers from '@/components/AuthUsers';
 
 const AuthUsersPage = () => {
-  const { user: authUser } = useAuth();
-  const { currentUser, hasPermission } = useRBAC();
+  const { user: authUser, loading: authLoading } = useAuth();
+  const { currentUser, hasPermission, loading: rbacLoading } = useRBAC();
   const { roleName } = useRoleData(currentUser?.role_id || 0);
   
   console.log('🔍 AuthUsersPage rendering for user:', authUser?.email);
+
+  // Show loading while data is being fetched
+  if (authLoading || rbacLoading) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Chargement...</h2>
+        <p className="text-gray-600">Vérification des permissions en cours...</p>
+      </div>
+    );
+  }
 
   if (!authUser) {
     return (

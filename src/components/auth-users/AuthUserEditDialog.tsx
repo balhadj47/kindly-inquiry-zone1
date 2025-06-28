@@ -43,10 +43,18 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   const { roles } = useRBAC();
 
   // Filter roles to show only those suitable for auth users (exclude Employee roles)
-  const availableRoles = roles.filter(role => {
-    const roleIdNum = (role as any).role_id;
-    return roleIdNum && roleIdNum !== 3; // Exclude Employee role (typically role_id: 3)
-  });
+  const availableRoles = React.useMemo(() => {
+    if (!roles || !Array.isArray(roles)) {
+      console.warn('Roles not available or not an array:', roles);
+      return [];
+    }
+    
+    return roles.filter(role => {
+      if (!role || typeof role !== 'object') return false;
+      const roleIdNum = (role as any).role_id;
+      return roleIdNum && roleIdNum !== 3; // Exclude Employee role (typically role_id: 3)
+    });
+  }, [roles]);
 
   useEffect(() => {
     if (user) {
@@ -59,17 +67,22 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      console.warn('No user provided for edit');
+      return;
+    }
+    
     const updateData: { email?: string; role_id?: number; name?: string } = {};
     
-    if (email !== user?.email) {
+    if (email !== user.email) {
       updateData.email = email;
     }
     
-    if (name !== user?.user_metadata?.name) {
+    if (name !== (user.user_metadata?.name || '')) {
       updateData.name = name;
     }
     
-    if (roleId !== (user?.user_metadata?.role_id || 2)) {
+    if (roleId !== (user.user_metadata?.role_id || 2)) {
       updateData.role_id = roleId;
     }
 
@@ -77,11 +90,17 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   };
 
   const handleCancel = () => {
-    setEmail(user?.email || '');
-    setName(user?.user_metadata?.name || '');
-    setRoleId(user?.user_metadata?.role_id || 2);
+    if (user) {
+      setEmail(user.email || '');
+      setName(user.user_metadata?.name || '');
+      setRoleId(user.user_metadata?.role_id || 2);
+    }
     onCancel();
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleCancel()}>
@@ -120,11 +139,15 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                {availableRoles.map((role) => (
-                  <SelectItem key={(role as any).role_id} value={(role as any).role_id.toString()}>
-                    {role.name}
-                  </SelectItem>
-                ))}
+                {availableRoles.length > 0 ? (
+                  availableRoles.map((role) => (
+                    <SelectItem key={(role as any).role_id} value={(role as any).role_id.toString()}>
+                      {role.name || 'Rôle sans nom'}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="2" disabled>Aucun rôle disponible</SelectItem>
+                )}
               </SelectContent>
             </Select>
           </div>

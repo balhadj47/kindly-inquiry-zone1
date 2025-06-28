@@ -2,6 +2,8 @@
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeInput, sanitizeHtml } from './inputValidation';
 
+type TableName = 'branches' | 'companies' | 'mission_roles' | 'system_settings' | 'trips' | 'user_groups' | 'user_mission_roles' | 'users' | 'vans';
+
 export class SecureDataHandler {
   private static instance: SecureDataHandler;
   private requestLog: Map<string, number[]> = new Map();
@@ -33,7 +35,7 @@ export class SecureDataHandler {
 
   // Secure database query with sanitization
   async secureQuery<T>(
-    table: string,
+    table: TableName,
     operation: 'select' | 'insert' | 'update' | 'delete',
     data?: any,
     filters?: Record<string, any>
@@ -67,7 +69,7 @@ export class SecureDataHandler {
         }
       }
 
-      // Select operation
+      // Select operation with filters
       if (filters) {
         Object.keys(filters).forEach(key => {
           query = query.eq(key, filters[key]);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
@@ -7,6 +6,7 @@ import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTrip } from '@/contexts/TripContext';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import { useFastVanData } from '@/hooks/useFastVanData';
 import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
@@ -39,6 +39,18 @@ const MissionsContainer = () => {
   const { hasPermission, roles, currentUser } = useRBAC();
   const { trips, loading, error, refetch } = useTrip();
   const { refreshPage } = useCacheRefresh();
+  const { isVanDataCached } = useFastVanData();
+
+  // Show loading indicator only if we don't have cached van data
+  const showVanLoadingWarning = !isVanDataCached();
+
+  useEffect(() => {
+    if (showVanLoadingWarning) {
+      console.log('⚠️ MissionsContainer: Van data not cached, may experience slower performance');
+    } else {
+      console.log('✅ MissionsContainer: Van data is cached, performance optimized');
+    }
+  }, [showVanLoadingWarning]);
 
   // Check permissions when component mounts
   useEffect(() => {
@@ -193,6 +205,15 @@ const MissionsContainer = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      {showVanLoadingWarning && (
+        <Alert className="border-blue-200 bg-blue-50">
+          <AlertTriangle className="h-4 w-4 text-blue-600" />
+          <AlertDescription className="text-blue-800">
+            Données des véhicules en cours de chargement pour optimiser les performances...
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex items-center justify-between">
         <MissionsHeader missionsCount={trips?.length || 0} />
         <div className="flex items-center space-x-2">

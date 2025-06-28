@@ -3,12 +3,20 @@ import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useRoleData } from '@/hooks/useRoleData';
+import { useDataPreloader } from '@/hooks/useDataPreloader';
 import MissionsContainer from '@/components/missions/MissionsContainer';
 
 const MissionsPage = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const { currentUser, hasPermission, loading: rbacLoading, roles } = useRBAC();
   const { roleName } = useRoleData(currentUser?.role_id || 0);
+  
+  // Preload vans and users data when entering missions page
+  useDataPreloader({
+    preloadVans: true,
+    preloadUsers: true,
+    preloadCompanies: true
+  });
   
   console.log('🎯 MissionsPage rendering for user:', authUser?.email);
 

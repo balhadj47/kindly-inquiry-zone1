@@ -9,15 +9,56 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Helper function to check authentication
 export const requireAuth = async () => {
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) {
+    console.error('🔒 Authentication required but user not found:', error);
     throw new Error('Authentication required');
   }
+  console.log('🔒 User authenticated:', user.email);
   return user;
+};
+
+// Debug function to test RLS policies
+export const testUserPermissions = async () => {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      console.log('🔒 No authenticated user');
+      return;
+    }
+
+    console.log('🔍 Testing permissions for user:', user.email);
+    
+    // Test getting current user's permissions
+    const { data: permissions, error: permError } = await supabase.rpc('get_current_user_permissions');
+    console.log('🔍 User permissions:', permissions, 'Error:', permError);
+    
+    // Test companies read
+    const { data: companies, error: compError } = await supabase
+      .from('companies')
+      .select('*')
+      .limit(1);
+    console.log('🔍 Companies query result:', companies?.length || 0, 'items, Error:', compError);
+    
+    // Test users read
+    const { data: users, error: usersError } = await supabase
+      .from('users')
+      .select('*')
+      .limit(1);
+    console.log('🔍 Users query result:', users?.length || 0, 'items, Error:', usersError);
+    
+  } catch (error) {
+    console.error('🔍 Permission test error:', error);
+  }
 };
 
 // Admin-only function to create new users (both auth and database)

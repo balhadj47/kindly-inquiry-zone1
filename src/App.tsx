@@ -49,7 +49,7 @@ const App = () => {
                       </Routes>
                     </Router>
                   </TripProvider>
-                </ProgressiveLoadingContext>
+                </ProgressiveLoadingProvider>
               </RBACProvider>
             </AuthProvider>
           </LanguageProvider>

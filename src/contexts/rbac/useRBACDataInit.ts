@@ -8,6 +8,7 @@ import { createPermissionUtils } from './permissionUtils';
 interface UseRBACDataInitProps {
   state: RBACState;
   actions: RBACActions;
+  rolesLoaded?: boolean;
 }
 
 // Known admin emails - these will always get Administrator privileges (role_id: 1)
@@ -39,14 +40,14 @@ const getRoleIdFromAuthUser = (authUser: any): number => {
   return 2; // Supervisor
 };
 
-export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
+export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
   const initializationRef = useRef(false);
 
   useEffect(() => {
-    // Wait for auth to finish loading
-    if (authLoading) {
-      console.log('⏳ Waiting for auth to finish loading...');
+    // Wait for auth to finish loading and roles to be loaded
+    if (authLoading || !rolesLoaded) {
+      console.log('⏳ Waiting for auth and roles to finish loading...', { authLoading, rolesLoaded });
       return;
     }
 
@@ -135,7 +136,7 @@ export const useRBACDataInit = ({ state, actions }: UseRBACDataInitProps) => {
     };
 
     initializeRBAC();
-  }, [authUser?.email, authUser?.id, authUser?.user_metadata?.role_id, authLoading]);
+  }, [authUser?.email, authUser?.id, authUser?.user_metadata?.role_id, authLoading, rolesLoaded]);
 
   // Reset initialization flag when user changes
   useEffect(() => {

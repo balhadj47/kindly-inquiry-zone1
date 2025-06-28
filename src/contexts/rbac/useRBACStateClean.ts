@@ -99,17 +99,22 @@ export const useRBACStateClean = () => {
     }
   }, [roles]);
 
+  // Return structured state and actions
   return {
-    currentUser,
-    users,
-    roles,
-    permissions,
-    loading,
-    setCurrentUser: safeSetCurrentUser,
-    setUsers: safeSetUsers,
-    setRoles: safeSetRoles,
-    setPermissions: safeSetPermissions,
-    setLoading: safeSetLoading,
-    setUser,
+    state: {
+      currentUser,
+      users,
+      roles,
+      permissions,
+      loading,
+    },
+    actions: {
+      setCurrentUser: safeSetCurrentUser,
+      setUsers: safeSetUsers,
+      setRoles: safeSetRoles,
+      setPermissions: safeSetPermissions,
+      setLoading: safeSetLoading,
+      setUser,
+    }
   };
 };

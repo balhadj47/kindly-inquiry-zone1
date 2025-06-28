@@ -21,15 +21,25 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   useEffect(() => {
     const initializeRoles = async () => {
       console.log('🔄 RBACProvider: Loading roles from database...');
-      await loadRolesFromDatabase();
-      setRolesLoaded(true);
+      try {
+        await loadRolesFromDatabase();
+        console.log('✅ RBACProvider: Roles loaded from database');
+        setRolesLoaded(true);
+      } catch (error) {
+        console.error('❌ RBACProvider: Error loading roles:', error);
+        setRolesLoaded(true); // Continue even if roles fail to load
+      }
     };
     
     initializeRoles();
   }, []);
 
-  // Initialize RBAC data
-  useRBACDataInit({ state, actions });
+  // Initialize RBAC data after roles are loaded
+  useRBACDataInit({ 
+    state, 
+    actions,
+    rolesLoaded // Pass rolesLoaded flag to ensure proper initialization order
+  });
 
   // Create operations
   const operations = useRBACOperations({

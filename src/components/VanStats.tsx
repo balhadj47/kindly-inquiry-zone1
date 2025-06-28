@@ -111,7 +111,7 @@ const VanStats: React.FC<VanStatsProps> = ({ vans, onAddVan, onEditVan, onDelete
                       <Truck className="h-5 w-5 text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-lg">{van.referenceCode}</h3>
+                      <h3 className="font-semibold text-lg">{van.reference_code}</h3>
                       <p className="text-gray-600">{van.model}</p>
                     </div>
                     <Badge className={getStatusColor(van.status || 'Active')}>
@@ -120,30 +120,30 @@ const VanStats: React.FC<VanStatsProps> = ({ vans, onAddVan, onEditVan, onDelete
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
-                    {van.licensePlate && (
+                    {van.license_plate && (
                       <div className="flex items-center space-x-2">
                         <FileText className="h-4 w-4 text-gray-400" />
-                        <span>{van.licensePlate}</span>
+                        <span>{van.license_plate}</span>
                       </div>
                     )}
                     
-                    {van.driverId && (
+                    {van.driver_id && (
                       <div className="flex items-center space-x-2">
-                        <span className="text-gray-600">Chauffeur: {van.driverId}</span>
+                        <span className="text-gray-600">Chauffeur: {van.driver_id}</span>
                       </div>
                     )}
                     
-                    {van.controlDate && (
+                    {van.control_date && (
                       <div className="flex items-center space-x-2">
                         <Calendar className="h-4 w-4 text-gray-400" />
-                        <span>Contrôle: {new Date(van.controlDate).toLocaleDateString('fr-FR')}</span>
+                        <span>Contrôle: {new Date(van.control_date).toLocaleDateString('fr-FR')}</span>
                       </div>
                     )}
                     
-                    {van.insuranceDate && (
+                    {van.insurance_date && (
                       <div className="flex items-center space-x-2">
                         <Shield className="h-4 w-4 text-gray-400" />
-                        <span>Assurance: {new Date(van.insuranceDate).toLocaleDateString('fr-FR')}</span>
+                        <span>Assurance: {new Date(van.insurance_date).toLocaleDateString('fr-FR')}</span>
                       </div>
                     )}
                   </div>

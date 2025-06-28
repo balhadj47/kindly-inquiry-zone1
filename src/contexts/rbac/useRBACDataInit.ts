@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -59,9 +58,9 @@ const getRoleIdFromAuthUser = (authUser: any): number => {
     return 1; // Administrator
   }
   
-  // Default to supervisor role for authenticated users
-  console.log('📋 No role_id found, defaulting to supervisor role_id: 2');
-  return 2; // Supervisor as default for auth users
+  // Default to Utilisateur role for authenticated users (using your existing role_id: 4)
+  console.log('📋 No role_id found, defaulting to Utilisateur role_id: 4');
+  return 4; // Utilisateur as default for auth users
 };
 
 export const useRBACDataInit = ({ 

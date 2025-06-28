@@ -23,11 +23,11 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       console.log('User has permission to create users, proceeding...');
       
-      // For employees (role_id: 3), don't create auth accounts
+      // For employees, use role_id: 4 (Utilisateur) instead of 3
       const insertData: any = {
         name: userData.name,
         phone: userData.phone || null,
-        role_id: userData.role_id || 3, // Default to employee
+        role_id: userData.role_id || 4, // Default to Utilisateur role
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
@@ -39,8 +39,8 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
-      // Only set email for non-employees
-      if (userData.role_id !== 3 && userData.email && userData.email.trim() !== '') {
+      // Only set email for non-employees (roles other than 4)
+      if (userData.role_id !== 4 && userData.email && userData.email.trim() !== '') {
         insertData.email = userData.email;
       }
 

@@ -85,8 +85,8 @@ const UsersTab: React.FC<UsersTabProps> = ({
           return true; // Include users without role_id (might be admins)
         }
         
-        // Filter out employees (role_id: 3) - show only admins and supervisors
-        return roleId !== 3;
+        // Filter out employees (role_id: 4) - show only admins and supervisors
+        return roleId !== 4;
       });
       
       console.log('✅ UsersTab: Filtered non-employee users:', {

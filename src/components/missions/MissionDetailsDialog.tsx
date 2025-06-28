@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -402,7 +403,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
 
           {/* Timeline & Distance */}
           {((mission.planned_start_date || mission.startDate) || (mission.start_km || mission.startKm)) && (
-            <div className="bg-gray-50 rounded-xl p-6">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Planification & Kilométrage</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Planned Dates */}
@@ -479,25 +480,25 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
 
           {/* Notes */}
           {mission.notes && (
-            <div className="bg-amber-50 rounded-xl border border-amber-200 p-6">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
               <div className="flex items-center gap-3 mb-4">
                 <FileText className="h-5 w-5 text-amber-600" />
-                <h3 className="text-lg font-semibold text-amber-800">Notes</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Notes</h3>
               </div>
-              <p className="text-amber-800 leading-relaxed">{mission.notes}</p>
+              <p className="text-gray-700 leading-relaxed">{mission.notes}</p>
             </div>
           )}
 
           {/* Team - Simplified List */}
           {mission.userRoles && mission.userRoles.length > 0 && (
-            <div className="bg-blue-50 rounded-xl border border-blue-200 p-6">
+            <div className="bg-white rounded-xl border border-gray-100 p-6">
               <div className="flex items-center gap-3 mb-6">
                 <Users className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-blue-800">Équipe Assignée</h3>
+                <h3 className="text-lg font-semibold text-gray-900">Équipe Assignée</h3>
               </div>
               <div className="space-y-3">
                 {mission.userRoles.map((userRole, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
                     <div className="flex items-center gap-3">
                       {/* Role Icons on the left */}
                       <div className="flex gap-1">

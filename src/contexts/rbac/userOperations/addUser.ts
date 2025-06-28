@@ -8,6 +8,21 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
     console.log('Adding user to database:', userData);
     
     try {
+      // First check if current user has permission to create users
+      const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_create_users');
+      
+      if (permError) {
+        console.error('Error checking user creation permission:', permError);
+        throw new Error('Failed to verify permissions');
+      }
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to create users');
+        throw new Error('You do not have permission to create users');
+      }
+      
+      console.log('User has permission to create users, proceeding...');
+      
       // For employees (role_id: 3), don't create auth accounts
       const insertData: any = {
         name: userData.name,
@@ -38,6 +53,9 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
 
       if (error) {
         console.error('Supabase error adding user:', error);
+        if (error.code === '42501' || error.message.includes('policy')) {
+          throw new Error('You do not have permission to create users');
+        }
         throw new Error(`Failed to add user: ${error.message}`);
       }
 

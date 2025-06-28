@@ -346,6 +346,70 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_can_create_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_create_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_create_users: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_create_vans: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_delete_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_delete_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_delete_users: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_delete_vans: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_read_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_read_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_read_users: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_read_vans: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_update_companies: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_update_trips: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_update_users: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      current_user_can_update_vans: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       current_user_has_permission: {
         Args: { permission_name: string }
         Returns: boolean

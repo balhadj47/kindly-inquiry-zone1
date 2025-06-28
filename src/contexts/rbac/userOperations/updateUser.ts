@@ -4,109 +4,85 @@ import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
 
 export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStateAction<User[]>>) => {
-  const updateUser = async (id: string, userData: UserOperationData): Promise<User> => {
-    console.log('Updating user in database:', id, userData);
+  const updateUser = async (userId: string, updates: Partial<UserOperationData>): Promise<User> => {
+    console.log('Updating user in database:', userId, updates);
     
     try {
-      // First, get the current user to check if they have an auth account
-      const { data: currentUserData, error: fetchError } = await supabase
-        .from('users')
-        .select('email, auth_user_id')
-        .eq('id', parseInt(id))
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching current user:', fetchError);
-        throw new Error(`Failed to fetch current user: ${fetchError.message}`);
+      // First check if current user has permission to update users
+      const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_update_users');
+      
+      if (permError) {
+        console.error('Error checking user update permission:', permError);
+        throw new Error('Failed to verify permissions');
       }
-
-      const updateData: any = {
-        name: userData.name,
-        phone: userData.phone || null,
-        role_id: userData.role_id || 3,
-        status: userData.status,
-        profile_image: userData.profileImage || null,
-        total_trips: userData.totalTrips || 0,
-        last_trip: userData.lastTrip || null,
-        badge_number: userData.badgeNumber || null,
-        date_of_birth: userData.dateOfBirth && userData.dateOfBirth.trim() !== '' ? userData.dateOfBirth : null,
-        place_of_birth: userData.placeOfBirth && userData.placeOfBirth.trim() !== '' ? userData.placeOfBirth : null,
-        address: userData.address && userData.address.trim() !== '' ? userData.address : null,
-        driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
-      };
-
-      // Handle email updates
-      const emailChanged = userData.email !== undefined && userData.email !== currentUserData.email;
-      if (userData.email !== undefined) {
-        updateData.email = userData.email && userData.email.trim() !== '' ? userData.email : null;
+      
+      if (!hasPermission) {
+        console.error('User does not have permission to update users');
+        throw new Error('You do not have permission to update users');
       }
+      
+      console.log('User has permission to update users, proceeding...');
+      
+      // Prepare update data with proper field mapping
+      const updateData: any = {};
+      
+      if (updates.name !== undefined) updateData.name = updates.name;
+      if (updates.email !== undefined) updateData.email = updates.email;
+      if (updates.phone !== undefined) updateData.phone = updates.phone;
+      if (updates.role_id !== undefined) updateData.role_id = updates.role_id;
+      if (updates.status !== undefined) updateData.status = updates.status;
+      if (updates.profileImage !== undefined) updateData.profile_image = updates.profileImage;
+      if (updates.totalTrips !== undefined) updateData.total_trips = updates.totalTrips;
+      if (updates.lastTrip !== undefined) updateData.last_trip = updates.lastTrip;
+      if (updates.badgeNumber !== undefined) updateData.badge_number = updates.badgeNumber;
+      if (updates.dateOfBirth !== undefined) updateData.date_of_birth = updates.dateOfBirth;
+      if (updates.placeOfBirth !== undefined) updateData.place_of_birth = updates.placeOfBirth;
+      if (updates.address !== undefined) updateData.address = updates.address;
+      if (updates.driverLicense !== undefined) updateData.driver_license = updates.driverLicense;
 
-      // Update the user record first
+      // Update user in database
       const { data, error } = await supabase
         .from('users')
         .update(updateData)
-        .eq('id', parseInt(id))
-        .select();
+        .eq('id', parseInt(userId))
+        .select()
+        .single();
 
       if (error) {
         console.error('Supabase error updating user:', error);
+        if (error.code === '42501' || error.message.includes('policy')) {
+          throw new Error('You do not have permission to update users');
+        }
         throw new Error(`Failed to update user: ${error.message}`);
       }
 
-      // If user has an auth account and email changed, update auth user
-      if (emailChanged && currentUserData.auth_user_id && userData.email) {
-        console.log('Updating auth user email for user:', id);
-        try {
-          const { error: authError } = await supabase.auth.admin.updateUserById(
-            currentUserData.auth_user_id,
-            { email: userData.email }
-          );
+      // Transform database user to RBAC User format
+      const dbUser = data as any;
+      const updatedUser: User = {
+        id: dbUser.id.toString(),
+        name: dbUser.name || '',
+        email: dbUser.email || undefined,
+        phone: dbUser.phone || '',
+        role_id: dbUser.role_id || 3,
+        status: dbUser.status as UserStatus,
+        createdAt: dbUser.created_at,
+        profileImage: dbUser.profile_image || undefined,
+        totalTrips: dbUser.total_trips || 0,
+        lastTrip: dbUser.last_trip || undefined,
+        badgeNumber: dbUser.badge_number || undefined,
+        dateOfBirth: dbUser.date_of_birth || undefined,
+        placeOfBirth: dbUser.place_of_birth || undefined,
+        address: dbUser.address || undefined,
+        driverLicense: dbUser.driver_license || undefined,
+      };
 
-          if (authError) {
-            console.error('Error updating auth user email:', authError);
-            console.warn('User data updated but auth email sync failed. Manual intervention may be required.');
-          } else {
-            console.log('Auth user email updated successfully');
-          }
-        } catch (authUpdateError) {
-          console.error('Error in auth user update:', authUpdateError);
-          console.warn('User data updated but auth email sync failed. Manual intervention may be required.');
-        }
-      }
+      // Update local state
+      setUsers(prev => prev.map(user => 
+        user.id === userId ? updatedUser : user
+      ));
 
-      if (data && data[0]) {
-        const dbUser = data[0] as any;
-        const updatedUser: User = {
-          id: dbUser.id.toString(),
-          name: dbUser.name,
-          email: dbUser.email || undefined,
-          phone: dbUser.phone || 'N/A',
-          role_id: dbUser.role_id || 3,
-          status: dbUser.status as UserStatus,
-          createdAt: dbUser.created_at,
-          totalTrips: dbUser.total_trips || 0,
-          lastTrip: dbUser.last_trip || undefined,
-          profileImage: dbUser.profile_image || undefined,
-          badgeNumber: dbUser.badge_number || undefined,
-          dateOfBirth: dbUser.date_of_birth || undefined,
-          placeOfBirth: dbUser.place_of_birth || undefined,
-          address: dbUser.address || undefined,
-          driverLicense: dbUser.driver_license || undefined,
-        };
-        
-        console.log('User updated successfully, updating state:', updatedUser);
-        
-        setUsers(prev => {
-          console.log('Current users before update:', prev.length);
-          const updatedUsers = prev.map(user => user.id === id ? updatedUser : user);
-          console.log('Updated users array:', updatedUsers.length);
-          return updatedUsers;
-        });
-        
-        return updatedUser;
-      }
-
-      throw new Error('No data returned from user update');
+      console.log('User updated in database successfully:', updatedUser.id);
+      return updatedUser;
     } catch (error) {
       console.error('Error in updateUser operation:', error);
       throw error;

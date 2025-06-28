@@ -23,17 +23,33 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
   userId,
 }) => {
   const [availableRoles, setAvailableRoles] = useState<Array<{ id: number; name: string }>>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get roles from database cache
-    const roles = getAllRoles();
-    // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
-    const filteredRoles = roles
-      .filter(role => role.id !== 3) // Exclude Employee
-      .map(role => ({ id: role.id, name: role.name }));
-    
-    setAvailableRoles(filteredRoles);
+    // Get roles from database directly (no cache)
+    const loadRoles = async () => {
+      try {
+        const roles = await getAllRoles();
+        // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
+        const filteredRoles = roles
+          .filter(role => role.id !== 3) // Exclude Employee
+          .map(role => ({ id: role.id, name: role.name }));
+        
+        setAvailableRoles(filteredRoles);
+      } catch (error) {
+        console.error('Error loading roles:', error);
+        setAvailableRoles([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadRoles();
   }, []);
+
+  if (loading) {
+    return <div>Loading roles...</div>;
+  }
 
   return (
     <div className="space-y-4">

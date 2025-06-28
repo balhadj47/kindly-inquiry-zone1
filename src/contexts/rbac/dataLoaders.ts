@@ -1,9 +1,10 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
 export const loadRoles = async (): Promise<SystemGroup[]> => {
-  console.log('🔄 Loading system groups/roles from database...');
+  console.log('🔄 Loading system groups/roles directly from database...');
   const startTime = performance.now();
 
   try {

@@ -1,14 +1,58 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
-// Cache for roles loaded from database
-let rolesCache: Record<number, string> = {};
-let roleColorsCache: Record<number, string> = {};
-let cacheLoaded = false;
-
-// Load roles from database into cache
-export const loadRolesFromDatabase = async (): Promise<void> => {
+// Get role name by querying database directly (no cache)
+export const getRoleNameFromId = async (roleId: number): Promise<string> => {
   try {
-    console.log('🔄 Loading roles from database...');
+    console.log('🔍 Getting role name for role_id:', roleId);
+    
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('name')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error getting role name:', error);
+      return `Role ${roleId}`;
+    }
+
+    console.log('✅ Role name found:', data.name);
+    return data.name || `Role ${roleId}`;
+  } catch (error) {
+    console.error('❌ Exception getting role name:', error);
+    return `Role ${roleId}`;
+  }
+};
+
+// Get role color by querying database directly (no cache)
+export const getRoleColorFromId = async (roleId: number): Promise<string> => {
+  try {
+    console.log('🎨 Getting role color for role_id:', roleId);
+    
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('color')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error getting role color:', error);
+      return '#6b7280'; // Gray default
+    }
+
+    console.log('✅ Role color found:', data.color);
+    return data.color || '#6b7280';
+  } catch (error) {
+    console.error('❌ Exception getting role color:', error);
+    return '#6b7280';
+  }
+};
+
+// Get all available roles from database directly (no cache)
+export const getAllRoles = async (): Promise<Array<{ id: number; name: string; color: string }>> => {
+  try {
+    console.log('📋 Getting all roles from database...');
     
     const { data, error } = await supabase
       .from('user_groups')
@@ -16,102 +60,60 @@ export const loadRolesFromDatabase = async (): Promise<void> => {
       .order('role_id', { ascending: true });
 
     if (error) {
-      console.error('❌ Error loading roles from database:', error);
-      // Clear cache on error instead of fallback
-      rolesCache = {};
-      roleColorsCache = {};
-      cacheLoaded = false;
-      return;
+      console.error('❌ Error getting all roles:', error);
+      return [];
     }
 
-    // Clear existing cache
-    rolesCache = {};
-    roleColorsCache = {};
-    
-    // Populate cache from database only
-    data?.forEach(role => {
-      if (role.role_id) {
-        rolesCache[role.role_id] = role.name;
-        roleColorsCache[role.role_id] = role.color || '#6b7280';
-      }
-    });
+    const roles = (data || [])
+      .filter(role => role.role_id !== null)
+      .map(role => ({
+        id: role.role_id!,
+        name: role.name,
+        color: role.color || '#6b7280'
+      }));
 
-    cacheLoaded = true;
-    console.log('✅ Roles loaded from database:', rolesCache);
+    console.log('✅ All roles loaded:', roles);
+    return roles;
   } catch (error) {
-    console.error('❌ Exception loading roles from database:', error);
-    // Clear cache on error
-    rolesCache = {};
-    roleColorsCache = {};
-    cacheLoaded = false;
-  }
-};
-
-// Initialize cache on module load
-loadRolesFromDatabase();
-
-// Convert role_id to role display name (synchronous after cache is loaded)
-export const getRoleNameFromId = (roleId: number): string => {
-  if (!cacheLoaded || !rolesCache[roleId]) {
-    return `Role ${roleId}`;
-  }
-  
-  return rolesCache[roleId];
-};
-
-// Get role color from role_id (synchronous after cache is loaded)
-export const getRoleColorFromId = (roleId: number): string => {
-  if (!cacheLoaded || !roleColorsCache[roleId]) {
-    return '#6b7280'; // Gray default
-  }
-  
-  return roleColorsCache[roleId];
-};
-
-// Get all available roles from cache
-export const getAllRoles = (): Array<{ id: number; name: string; color: string }> => {
-  if (!cacheLoaded) {
+    console.error('❌ Exception getting all roles:', error);
     return [];
   }
-  
-  return Object.keys(rolesCache).map(roleId => ({
-    id: parseInt(roleId),
-    name: rolesCache[parseInt(roleId)],
-    color: roleColorsCache[parseInt(roleId)] || '#6b7280'
-  }));
 };
 
 // Convert role_id to system group name for backward compatibility
-export const getSystemGroupFromRoleId = (roleId: number): string => {
-  return getRoleNameFromId(roleId);
+export const getSystemGroupFromRoleId = async (roleId: number): Promise<string> => {
+  return await getRoleNameFromId(roleId);
 };
 
-// Check if role_id indicates a driver role - now based on database data
-export const isDriverRole = (roleId: number): boolean => {
+// Check if role_id indicates a driver role - based on database data
+export const isDriverRole = async (roleId: number): Promise<boolean> => {
   // This should be determined by permissions in the database
   // For now, keeping simple logic but could be enhanced
   return roleId >= 2; // Non-admin roles can be drivers
 };
 
-// Check if role_id indicates admin privileges - now based on database data
-export const isAdminRole = (roleId: number): boolean => {
+// Check if role_id indicates admin privileges - based on database data
+export const isAdminRole = async (roleId: number): Promise<boolean> => {
   return roleId === 1; // Typically admin is role_id 1
 };
 
-// Check if role_id indicates supervisor privileges - now based on database data
-export const isSupervisorRole = (roleId: number): boolean => {
+// Check if role_id indicates supervisor privileges - based on database data
+export const isSupervisorRole = async (roleId: number): Promise<boolean> => {
   return roleId === 2; // Typically supervisor is role_id 2
 };
 
-// Check if role_id indicates employee level - now based on database data
-export const isEmployeeRole = (roleId: number): boolean => {
+// Check if role_id indicates employee level - based on database data
+export const isEmployeeRole = async (roleId: number): Promise<boolean> => {
   return roleId >= 3; // Employee level roles
 };
 
-// Force reload roles from database
-export const reloadRolesFromDatabase = (): Promise<void> => {
-  cacheLoaded = false;
-  rolesCache = {};
-  roleColorsCache = {};
-  return loadRolesFromDatabase();
+// Remove all caching - everything is fetched fresh from database
+export const loadRolesFromDatabase = async (): Promise<void> => {
+  // This function is no longer needed since we fetch directly each time
+  console.log('ℹ️ loadRolesFromDatabase called but no longer caching - roles fetched directly from DB');
+};
+
+export const reloadRolesFromDatabase = async (): Promise<void> => {
+  // This function is no longer needed since we don't cache
+  console.log('ℹ️ reloadRolesFromDatabase called but no longer needed - roles always fresh from DB');
 };

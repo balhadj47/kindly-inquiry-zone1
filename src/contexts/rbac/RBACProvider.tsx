@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useRBACStateClean } from './useRBACStateClean';
 import { useRBACOperations } from './useRBACOperations';
 import { useRBACDataInit } from './useRBACDataInit';
-import { loadRolesFromDatabase } from '@/utils/roleUtils';
 import { RBACContext } from './context';
 import type { RBACContextType, RBACProviderProps } from './types';
 
@@ -20,14 +19,14 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   // Initialize roles from database on provider mount
   useEffect(() => {
     const initializeRoles = async () => {
-      console.log('🔄 RBACProvider: Loading roles from database...');
+      console.log('🔄 RBACProvider: Setting roles loaded flag...');
       try {
-        await loadRolesFromDatabase();
-        console.log('✅ RBACProvider: Roles loaded from database');
+        // No more caching - roles are fetched directly each time
+        console.log('✅ RBACProvider: Roles will be fetched directly from database when needed');
         setRolesLoaded(true);
       } catch (error) {
-        console.error('❌ RBACProvider: Error loading roles:', error);
-        setRolesLoaded(true); // Continue even if roles fail to load
+        console.error('❌ RBACProvider: Error setting up roles:', error);
+        setRolesLoaded(true); // Continue even if setup fails
       }
     };
     

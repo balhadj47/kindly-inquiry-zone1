@@ -2,12 +2,12 @@
 import { getRoleDisplayNameById, getRoleColorById } from './rolePermissions';
 
 // Convert role_id to role display name
-export const getRoleNameFromId = (roleId: number): string => {
+export const getRoleNameFromId = async (roleId: number): Promise<string> => {
   return getRoleDisplayNameById(roleId);
 };
 
 // Get role color from role_id
-export const getRoleColorFromId = (roleId: number): string => {
+export const getRoleColorFromId = async (roleId: number): Promise<string> => {
   return getRoleColorById(roleId);
 };
 

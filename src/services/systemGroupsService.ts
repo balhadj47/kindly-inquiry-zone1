@@ -1,7 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { SystemGroup, DEFAULT_SYSTEM_GROUPS } from '@/types/systemGroups';
-import { DatabaseCleanupService } from './databaseCleanupService';
+import { SystemGroup } from '@/types/systemGroups';
 
 export class SystemGroupsService {
   static async loadSystemGroups(): Promise<SystemGroup[]> {
@@ -11,30 +10,16 @@ export class SystemGroupsService {
       const { data, error } = await supabase
         .from('user_groups')
         .select('*')
-        .order('name', { ascending: true });
+        .order('role_id', { ascending: true });
 
       if (error) {
         console.error('❌ Error loading system groups:', error);
-        return DEFAULT_SYSTEM_GROUPS;
+        return [];
       }
 
       if (!data || data.length === 0) {
-        console.log('🔄 No groups found, running cleanup and creating defaults...');
-        await DatabaseCleanupService.runFullCleanup();
-        return DEFAULT_SYSTEM_GROUPS;
-      }
-
-      // Check if we have duplicates or old formats and clean if needed
-      const names = data.map(g => g.name);
-      const hasDuplicates = names.some((name, index) => names.indexOf(name) !== index);
-      const hasOldPermissions = data.some(g => 
-        g.permissions?.some((p: string) => p.includes('.'))
-      );
-
-      if (hasDuplicates || hasOldPermissions) {
-        console.log('🧹 Detected inconsistencies, running cleanup...');
-        await DatabaseCleanupService.runFullCleanup();
-        return DEFAULT_SYSTEM_GROUPS;
+        console.log('📝 No groups found in database');
+        return [];
       }
 
       const groups = this.transformDatabaseToSystemGroups(data);
@@ -42,30 +27,24 @@ export class SystemGroupsService {
       return groups;
     } catch (error) {
       console.error('❌ Exception loading system groups:', error);
-      return DEFAULT_SYSTEM_GROUPS;
+      return [];
     }
   }
 
   static async createSystemGroup(groupData: Partial<SystemGroup>): Promise<SystemGroup> {
     try {
-      const newGroup: SystemGroup = {
+      const newGroup = {
         id: groupData.id || Math.random().toString(36).substr(2, 9),
         name: groupData.name || 'Employee',
         description: groupData.description || '',
         permissions: groupData.permissions || [],
         color: this.standardizeColor(groupData.color || '#3b82f6'),
-        isSystemRole: false,
+        role_id: groupData.role_id || 3,
       };
 
       const { data, error } = await supabase
         .from('user_groups')
-        .insert({
-          id: newGroup.id,
-          name: newGroup.name,
-          description: newGroup.description,
-          permissions: newGroup.permissions,
-          color: newGroup.color,
-        })
+        .insert(newGroup)
         .select()
         .single();
 
@@ -84,41 +63,13 @@ export class SystemGroupsService {
 
   static async updateSystemGroup(id: string, groupData: Partial<SystemGroup>): Promise<SystemGroup> {
     try {
-      // Check if this is a system role before allowing updates
-      const isSystemRole = await this.isSystemRole(id);
-      if (isSystemRole) {
-        // Allow limited updates to system roles (description, color) but not name or core permissions
-        const allowedUpdates: Record<string, any> = {};
-        if (groupData.description) allowedUpdates.description = groupData.description;
-        if (groupData.color) allowedUpdates.color = this.standardizeColor(groupData.color);
-        
-        if (Object.keys(allowedUpdates).length === 0) {
-          throw new Error('System roles cannot be modified in this way');
-        }
-
-        const { data, error } = await supabase
-          .from('user_groups')
-          .update(allowedUpdates)
-          .eq('id', id)
-          .select()
-          .single();
-
-        if (error) {
-          console.error('❌ Error updating system group:', error);
-          throw new Error(`Failed to update system group: ${error.message}`);
-        }
-
-        console.log('✅ System group updated (limited):', data);
-        return this.transformDatabaseToSystemGroup(data);
-      }
-
-      // Full updates for custom groups
       const updateData: Record<string, any> = {};
       
       if (groupData.name) updateData.name = groupData.name;
       if (groupData.description) updateData.description = groupData.description;
       if (groupData.permissions) updateData.permissions = groupData.permissions;
       if (groupData.color) updateData.color = this.standardizeColor(groupData.color);
+      if (groupData.role_id) updateData.role_id = groupData.role_id;
 
       const { data, error } = await supabase
         .from('user_groups')
@@ -142,28 +93,14 @@ export class SystemGroupsService {
 
   static async deleteSystemGroup(id: string): Promise<void> {
     try {
-      // Database-level protection: Check if this is a system role
-      const isSystemRole = await this.isSystemRole(id);
-      if (isSystemRole) {
-        throw new Error('System roles cannot be deleted. This action is not permitted.');
-      }
-
       // Check if any users are assigned to this group
-      const groupName = await this.getGroupNameById(id);
-      if (!groupName) {
-        throw new Error('Group not found');
-      }
-
-      // Note: We're checking against a legacy 'role' field that might not exist
-      // This query might return empty results, which is fine for deletion
       const { data: usersWithGroup, error: usersError } = await supabase
         .from('users')
-        .select('id, name')
-        .eq('role_id', this.getRoleIdFromGroupName(groupName));
+        .select('id, name, role_id')
+        .eq('role_id', await this.getRoleIdByGroupId(id));
 
       if (usersError) {
         console.error('❌ Error checking user assignments:', usersError);
-        // Continue with deletion even if we can't check assignments
       }
 
       if (usersWithGroup && usersWithGroup.length > 0) {
@@ -187,54 +124,23 @@ export class SystemGroupsService {
     }
   }
 
-  // Helper method to check if a group is a system role
-  private static async isSystemRole(id: string): Promise<boolean> {
+  // Helper method to get role_id by group id
+  private static async getRoleIdByGroupId(groupId: string): Promise<number> {
     try {
       const { data, error } = await supabase
         .from('user_groups')
-        .select('name')
-        .eq('id', id)
+        .select('role_id')
+        .eq('id', groupId)
         .single();
 
       if (error || !data) {
-        return false;
+        return 3; // Default to employee
       }
 
-      // Check if the group name matches any of the default system groups
-      return DEFAULT_SYSTEM_GROUPS.some(systemGroup => systemGroup.name === data.name);
+      return data.role_id || 3;
     } catch (error) {
-      console.error('❌ Error checking if group is system role:', error);
-      return false;
-    }
-  }
-
-  // Helper method to get group name by id
-  private static async getGroupNameById(id: string): Promise<string | null> {
-    try {
-      const { data, error } = await supabase
-        .from('user_groups')
-        .select('name')
-        .eq('id', id)
-        .single();
-
-      if (error || !data) {
-        return null;
-      }
-
-      return data.name;
-    } catch (error) {
-      console.error('❌ Error getting group name:', error);
-      return null;
-    }
-  }
-
-  // Helper method to get role_id from group name
-  private static getRoleIdFromGroupName(groupName: string): number {
-    switch (groupName) {
-      case 'Administrator': return 1;
-      case 'Supervisor': return 2;
-      case 'Employee': return 3;
-      default: return 3;
+      console.error('❌ Error getting role_id for group:', error);
+      return 3;
     }
   }
 
@@ -256,50 +162,6 @@ export class SystemGroupsService {
     return colorMap[color] || '#3b82f6'; // Default to blue
   }
 
-  private static async ensureDefaultGroupsExist(): Promise<void> {
-    try {
-      for (const group of DEFAULT_SYSTEM_GROUPS) {
-        const { data: existing } = await supabase
-          .from('user_groups')
-          .select('id')
-          .eq('name', group.name)
-          .single();
-          
-        if (!existing) {
-          console.log(`🔄 Creating missing group: ${group.name}`);
-          const { error } = await supabase
-            .from('user_groups')
-            .insert({
-              id: group.id,
-              name: group.name,
-              description: group.description,
-              permissions: group.permissions,
-              color: group.color,
-            });
-          
-          if (error) {
-            console.error(`❌ Error creating group ${group.name}:`, error);
-          } else {
-            console.log(`✅ Created group: ${group.name}`);
-          }
-        }
-      }
-    } catch (error) {
-      console.error('❌ Exception ensuring default groups exist:', error);
-    }
-  }
-
-  private static async createDefaultGroups(): Promise<void> {
-    try {
-      console.log('🔄 Creating default system groups...');
-      for (const group of DEFAULT_SYSTEM_GROUPS) {
-        await this.createSystemGroup(group);
-      }
-    } catch (error) {
-      console.error('❌ Exception creating default groups:', error);
-    }
-  }
-
   private static transformDatabaseToSystemGroups(data: any[]): SystemGroup[] {
     return data.map(this.transformDatabaseToSystemGroup);
   }
@@ -311,7 +173,8 @@ export class SystemGroupsService {
       description: data.description,
       permissions: Array.isArray(data.permissions) ? data.permissions : [],
       color: data.color,
-      isSystemRole: DEFAULT_SYSTEM_GROUPS.some(g => g.name === data.name),
+      role_id: data.role_id,
+      isSystemRole: false, // All groups are now custom since we don't have hardcoded ones
     };
   }
 }

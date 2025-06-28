@@ -1,101 +1,141 @@
 
-import { SystemGroupName } from '@/types/systemGroups';
+import { supabase } from '@/integrations/supabase/client';
 
-// Permission mappings for role_id (1=Administrator, 2=Supervisor, 3=Employee)
-export const ROLE_ID_PERMISSIONS: Record<number, string[]> = {
-  1: [ // Administrator
-    'users:read', 'users:create', 'users:update', 'users:delete',
-    'auth-users:read', 'auth-users:create', 'auth-users:update', 'auth-users:delete',
-    'vans:read', 'vans:create', 'vans:update', 'vans:delete',
-    'trips:read', 'trips:create', 'trips:update', 'trips:delete',
-    'companies:read', 'companies:create', 'companies:update', 'companies:delete',
-    'missions:read', 'missions:create', 'missions:update', 'missions:delete',
-    'groups:read', 'groups:manage',
-    'dashboard:read', 'settings:read', 'settings:update'
-  ],
-  2: [ // Supervisor - Limited read-only access
-    'dashboard:read',
-    'companies:read',
-    'vans:read',
-    'trips:read'
-  ],
-  3: [ // Employee - Basic access only
-    'dashboard:read',
-    'trips:read', 'trips:create',
-    'missions:read', 'missions:create',
-    'companies:read',
-    'vans:read'
-  ]
-};
+// Cache for permissions to avoid repeated database calls
+let permissionsCache: Record<number, string[]> = {};
+let cacheTimestamp = 0;
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Legacy permission mappings for systemGroup names
-export const ROLE_PERMISSIONS: Record<SystemGroupName, string[]> = {
-  'Administrator': ROLE_ID_PERMISSIONS[1],
-  'Supervisor': ROLE_ID_PERMISSIONS[2],
-  'Employee': ROLE_ID_PERMISSIONS[3]
-};
-
-// Default permissions for unknown roles
-export const DEFAULT_PERMISSIONS: string[] = ['dashboard:read'];
-
-// Helper function to get permissions for a role_id
-export const getPermissionsForRoleId = (roleId: number): string[] => {
+// Helper function to get permissions for a role_id from database
+export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
   console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
-  const permissions = ROLE_ID_PERMISSIONS[roleId] || DEFAULT_PERMISSIONS;
-  console.log('🔐 Permissions for role_id', roleId, ':', permissions);
-  return permissions;
-};
+  
+  // Check cache first
+  const now = Date.now();
+  if (permissionsCache[roleId] && (now - cacheTimestamp < CACHE_DURATION)) {
+    console.log('🔐 Using cached permissions for role_id', roleId);
+    return permissionsCache[roleId];
+  }
 
-// Helper function to get permissions for a role name (backward compatibility)
-export const getPermissionsForRole = (systemGroup: SystemGroupName): string[] => {
-  return ROLE_PERMISSIONS[systemGroup] || DEFAULT_PERMISSIONS;
+  try {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error fetching permissions for role_id', roleId, ':', error);
+      return ['dashboard:read']; // Default fallback
+    }
+
+    const permissions = data?.permissions || ['dashboard:read'];
+    
+    // Update cache
+    permissionsCache[roleId] = permissions;
+    cacheTimestamp = now;
+    
+    console.log('🔐 Permissions for role_id', roleId, ':', permissions);
+    return permissions;
+  } catch (error) {
+    console.error('❌ Exception fetching permissions for role_id', roleId, ':', error);
+    return ['dashboard:read']; // Default fallback
+  }
 };
 
 // Check if a role_id has a specific permission
-export const roleIdHasPermission = (roleId: number, permission: string): boolean => {
+export const roleIdHasPermission = async (roleId: number, permission: string): Promise<boolean> => {
   console.log('🔐 roleIdHasPermission called with roleId:', roleId, 'permission:', permission);
-  const rolePermissions = getPermissionsForRoleId(roleId);
+  const rolePermissions = await getPermissionsForRoleId(roleId);
   const hasPermission = rolePermissions.includes(permission);
   console.log('🔐 Role', roleId, 'has permission', permission, ':', hasPermission);
   return hasPermission;
 };
 
-// Check if a role has a specific permission (backward compatibility)
-export const roleHasPermission = (systemGroup: SystemGroupName, permission: string): boolean => {
-  const rolePermissions = getPermissionsForRole(systemGroup);
+// Helper function to get role display name by role_id from database
+export const getRoleDisplayNameById = async (roleId: number): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('name')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error fetching role name for role_id', roleId, ':', error);
+      return 'Employé'; // Default fallback
+    }
+
+    return data?.name || 'Employé';
+  } catch (error) {
+    console.error('❌ Exception fetching role name for role_id', roleId, ':', error);
+    return 'Employé'; // Default fallback
+  }
+};
+
+// Helper function to get role color by role_id from database
+export const getRoleColorById = async (roleId: number): Promise<string> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('color')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error) {
+      console.error('❌ Error fetching role color for role_id', roleId, ':', error);
+      return '#6b7280'; // Default gray
+    }
+
+    return data?.color || '#6b7280';
+  } catch (error) {
+    console.error('❌ Exception fetching role color for role_id', roleId, ':', error);
+    return '#6b7280'; // Default gray
+  }
+};
+
+// Legacy functions for backward compatibility (now async)
+export const getPermissionsForRole = async (systemGroup: string): Promise<string[]> => {
+  // Map legacy group names to role_id
+  const roleIdMap: Record<string, number> = {
+    'Administrator': 1,
+    'Supervisor': 2,
+    'Employee': 3
+  };
+  
+  const roleId = roleIdMap[systemGroup] || 3;
+  return getPermissionsForRoleId(roleId);
+};
+
+export const roleHasPermission = async (systemGroup: string, permission: string): Promise<boolean> => {
+  const rolePermissions = await getPermissionsForRole(systemGroup);
   return rolePermissions.includes(permission);
 };
 
-// Role display names and colors by role_id
-export const ROLE_ID_DISPLAY_INFO: Record<number, { name: string; color: string }> = {
-  1: { name: 'Administrateur', color: '#dc2626' },
-  2: { name: 'Superviseur', color: '#ea580c' },
-  3: { name: 'Employé', color: '#3b82f6' }
+export const getRoleDisplayName = async (systemGroup: string): Promise<string> => {
+  const roleIdMap: Record<string, number> = {
+    'Administrator': 1,
+    'Supervisor': 2,
+    'Employee': 3
+  };
+  
+  const roleId = roleIdMap[systemGroup] || 3;
+  return getRoleDisplayNameById(roleId);
 };
 
-// Role display names and colors by name (backward compatibility)
-export const ROLE_DISPLAY_INFO: Record<SystemGroupName, { name: string; color: string }> = {
-  'Administrator': ROLE_ID_DISPLAY_INFO[1],
-  'Supervisor': ROLE_ID_DISPLAY_INFO[2],
-  'Employee': ROLE_ID_DISPLAY_INFO[3]
+export const getRoleColor = async (systemGroup: string): Promise<string> => {
+  const roleIdMap: Record<string, number> = {
+    'Administrator': 1,
+    'Supervisor': 2,
+    'Employee': 3
+  };
+  
+  const roleId = roleIdMap[systemGroup] || 3;
+  return getRoleColorById(roleId);
 };
 
-// Helper function to get role display name by role_id
-export const getRoleDisplayNameById = (roleId: number): string => {
-  return ROLE_ID_DISPLAY_INFO[roleId]?.name || 'Employé';
-};
-
-// Helper function to get role display name (backward compatibility)
-export const getRoleDisplayName = (systemGroup: SystemGroupName): string => {
-  return ROLE_DISPLAY_INFO[systemGroup]?.name || systemGroup;
-};
-
-// Helper function to get role color by role_id
-export const getRoleColorById = (roleId: number): string => {
-  return ROLE_ID_DISPLAY_INFO[roleId]?.color || '#6b7280';
-};
-
-// Helper function to get role color (backward compatibility)
-export const getRoleColor = (systemGroup: SystemGroupName): string => {
-  return ROLE_DISPLAY_INFO[systemGroup]?.color || '#6b7280';
+// Clear cache function for when groups are updated
+export const clearPermissionsCache = () => {
+  permissionsCache = {};
+  cacheTimestamp = 0;
 };

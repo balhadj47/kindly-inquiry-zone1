@@ -1,13 +1,13 @@
+
 import React, { useState } from 'react';
-import { Bell, Circle, StopCircle, Trash2, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { useToast } from '@/hooks/use-toast';
 import MissionDetailsDialog from './MissionDetailsDialog';
+import MissionCard from './MissionCard';
+import MissionTerminateDialog from './MissionTerminateDialog';
+import MissionsEmptyState from './MissionsEmptyState';
 
 interface MissionsListProps {
   missions: Trip[];
@@ -58,16 +58,6 @@ const MissionsList: React.FC<MissionsListProps> = ({
     return matchesSearch && matchesStatus;
   });
 
-  const handleMissionClick = (mission: Trip) => {
-    setSelectedMission(mission);
-    setIsDetailsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDetailsDialogOpen(false);
-    setSelectedMission(null);
-  };
-
   const getVanDisplayName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
     if (van) {
@@ -76,30 +66,14 @@ const MissionsList: React.FC<MissionsListProps> = ({
     return vanId;
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'text-emerald-600';
-      case 'completed':
-        return 'text-blue-600';
-      case 'terminated':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
+  const handleMissionClick = (mission: Trip) => {
+    setSelectedMission(mission);
+    setIsDetailsDialogOpen(true);
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Active';
-      case 'completed':
-        return 'Terminée';
-      case 'terminated':
-        return 'Annulée';
-      default:
-        return 'Inconnu';
-    }
+  const handleCloseDialog = () => {
+    setIsDetailsDialogOpen(false);
+    setSelectedMission(null);
   };
 
   const handleTerminateClick = (mission: Trip) => {
@@ -154,7 +128,6 @@ const MissionsList: React.FC<MissionsListProps> = ({
       setTerminateMission(null);
       setFinalKm('');
       
-      // Call the parent's terminate handler if provided
       if (onTerminateMission) {
         onTerminateMission(terminateMission);
       }
@@ -184,20 +157,10 @@ const MissionsList: React.FC<MissionsListProps> = ({
 
   if (filteredMissions.length === 0) {
     return (
-      <div className="text-center py-16">
-        <div className="text-gray-300 mb-6">
-          <Bell className="h-20 w-20 mx-auto" />
-        </div>
-        <h3 className="text-xl font-semibold text-gray-900 mb-3">
-          Aucune mission trouvée
-        </h3>
-        <p className="text-gray-500 max-w-md mx-auto">
-          {searchTerm || statusFilter !== 'all' 
-            ? 'Aucune mission ne correspond aux filtres actuels.'
-            : 'Aucune mission n\'a été créée pour le moment.'
-          }
-        </p>
-      </div>
+      <MissionsEmptyState 
+        searchTerm={searchTerm} 
+        statusFilter={statusFilter} 
+      />
     );
   }
 
@@ -205,161 +168,30 @@ const MissionsList: React.FC<MissionsListProps> = ({
     <>
       <div className="space-y-4">
         {filteredMissions.map((mission) => (
-          <div
+          <MissionCard
             key={mission.id}
-            className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group"
-          >
-            <div className="flex items-start justify-between mb-6">
-              <div className="flex-1 cursor-pointer" onClick={() => handleMissionClick(mission)}>
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                    {mission.company}
-                  </h3>
-                  <div className="flex items-center space-x-2">
-                    <Circle className={`h-2.5 w-2.5 fill-current ${
-                      mission.status === 'active' ? 'text-emerald-500' : 
-                      mission.status === 'completed' ? 'text-blue-500' : 
-                      mission.status === 'terminated' ? 'text-red-500' : 'text-gray-500'
-                    }`} />
-                    <span className={`text-sm font-medium ${getStatusColor(mission.status || 'active')}`}>
-                      {getStatusText(mission.status || 'active')}
-                    </span>
-                  </div>
-                </div>
-                <p className="text-gray-600 mb-4">{mission.branch}</p>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {canDelete && mission.status === 'active' && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleTerminateClick(mission)}
-                    disabled={actionLoading === 'loading' || isTerminating}
-                    className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
-                  >
-                    Terminer
-                  </Button>
-                )}
-                
-                {canDelete && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteClick(mission)}
-                    disabled={actionLoading === 'loading'}
-                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Chauffeur</p>
-                <p className="text-gray-900 font-medium">{mission.driver}</p>
-              </div>
-              
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-gray-500">Véhicule</p>
-                <p className="text-gray-900 font-medium">{getVanDisplayName(mission.van)}</p>
-              </div>
-              
-              {(mission.startKm || mission.start_km) && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Kilométrage</p>
-                  <p className="text-gray-900 font-medium">
-                    {mission.startKm || mission.start_km}
-                    {(mission.endKm || mission.end_km) && (
-                      <span className="text-gray-500"> → {mission.endKm || mission.end_km}</span>
-                    )}
-                  </p>
-                </div>
-              )}
-              
-              {mission.destination && (
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-gray-500">Destination</p>
-                  <p className="text-gray-900 font-medium truncate">{mission.destination}</p>
-                </div>
-              )}
-            </div>
-
-            {mission.notes && (
-              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
-                <p className="text-sm text-amber-800">
-                  <span className="font-medium">Notes:</span> {mission.notes}
-                </p>
-              </div>
-            )}
-          </div>
+            mission={mission}
+            onMissionClick={handleMissionClick}
+            onTerminateClick={handleTerminateClick}
+            onDeleteClick={handleDeleteClick}
+            getVanDisplayName={getVanDisplayName}
+            canEdit={canEdit}
+            canDelete={canDelete}
+            actionLoading={actionLoading}
+            isTerminating={isTerminating}
+          />
         ))}
       </div>
 
-      {/* Terminate Mission Prompt */}
-      {showTerminatePrompt && terminateMission && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Terminer la Mission</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleCloseTerminatePrompt}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 mb-2">
-                  Mission: <span className="font-medium">{terminateMission.company}</span>
-                </p>
-                {terminateMission.start_km && (
-                  <p className="text-sm text-gray-600 mb-4">
-                    Kilométrage initial: {terminateMission.start_km} km
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <Label htmlFor="finalKm" className="text-gray-700 font-medium">
-                  Kilométrage Final du Véhicule
-                </Label>
-                <Input
-                  id="finalKm"
-                  type="number"
-                  placeholder="Entrez le kilométrage final"
-                  value={finalKm}
-                  onChange={(e) => setFinalKm(e.target.value)}
-                  className="mt-2"
-                  min={terminateMission.start_km || 0}
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  onClick={handleTerminateSubmit}
-                  disabled={!finalKm || isTerminating}
-                  className="flex-1"
-                >
-                  {isTerminating ? 'Finalisation...' : 'Confirmer'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleCloseTerminatePrompt}
-                  className="flex-1"
-                >
-                  Annuler
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <MissionTerminateDialog
+        isOpen={showTerminatePrompt}
+        mission={terminateMission}
+        finalKm={finalKm}
+        isTerminating={isTerminating}
+        onClose={handleCloseTerminatePrompt}
+        onFinalKmChange={setFinalKm}
+        onSubmit={handleTerminateSubmit}
+      />
 
       {selectedMission && (
         <MissionDetailsDialog

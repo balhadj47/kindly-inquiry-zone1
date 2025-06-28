@@ -1,152 +1,146 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { Circle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { 
-  MoreHorizontal, 
-  Edit2, 
-  Trash2, 
-  StopCircle, 
-  Truck, 
-  User, 
-  Building,
-  MapPin,
-  Calendar,
-  Clock
-} from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Trip } from '@/contexts/TripContext';
-import { formatDate } from '@/utils/dateUtils';
 
 interface MissionCardProps {
   mission: Trip;
-  onEdit: (mission: Trip) => void;
-  onDelete: (mission: Trip) => void;
-  onTerminate: (mission: Trip) => void;
+  onMissionClick: (mission: Trip) => void;
+  onTerminateClick: (mission: Trip) => void;
+  onDeleteClick: (mission: Trip) => void;
+  getVanDisplayName: (vanId: string) => string;
   canEdit: boolean;
   canDelete: boolean;
   actionLoading: string | null;
+  isTerminating: boolean;
 }
 
 const MissionCard: React.FC<MissionCardProps> = ({
   mission,
-  onEdit,
-  onDelete,
-  onTerminate,
+  onMissionClick,
+  onTerminateClick,
+  onDeleteClick,
+  getVanDisplayName,
   canEdit,
   canDelete,
   actionLoading,
+  isTerminating,
 }) => {
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
-        return <Badge className="bg-green-100 text-green-800">Active</Badge>;
+        return 'text-emerald-600';
       case 'completed':
-        return <Badge className="bg-blue-100 text-blue-800">Terminée</Badge>;
+        return 'text-blue-600';
       case 'terminated':
-        return <Badge className="bg-red-100 text-red-800">Annulée</Badge>;
+        return 'text-red-600';
       default:
-        return <Badge className="bg-gray-100 text-gray-800">Inconnu</Badge>;
+        return 'text-gray-600';
     }
   };
 
-  const canTerminate = mission.status === 'active';
-  const isLoading = actionLoading === 'loading';
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Terminée';
+      case 'terminated':
+        return 'Annulée';
+      default:
+        return 'Inconnu';
+    }
+  };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg font-semibold text-gray-900 mb-1">
+    <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
+      <div className="flex items-start justify-between mb-6">
+        <div className="flex-1 cursor-pointer" onClick={() => onMissionClick(mission)}>
+          <div className="flex items-center space-x-3 mb-2">
+            <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
               {mission.company}
-            </CardTitle>
-            <p className="text-sm text-gray-600 mb-2">{mission.branch}</p>
-            {getStatusBadge(mission.status || 'active')}
+            </h3>
+            <div className="flex items-center space-x-2">
+              <Circle className={`h-2.5 w-2.5 fill-current ${
+                mission.status === 'active' ? 'text-emerald-500' : 
+                mission.status === 'completed' ? 'text-blue-500' : 
+                mission.status === 'terminated' ? 'text-red-500' : 'text-gray-500'
+              }`} />
+              <span className={`text-sm font-medium ${getStatusColor(mission.status || 'active')}`}>
+                {getStatusText(mission.status || 'active')}
+              </span>
+            </div>
           </div>
-          
-          {(canEdit || canDelete) && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {canEdit && (
-                  <DropdownMenuItem onClick={() => onEdit(mission)} disabled={isLoading}>
-                    <Edit2 className="mr-2 h-4 w-4" />
-                    Modifier
-                  </DropdownMenuItem>
-                )}
-                {canDelete && canTerminate && (
-                  <DropdownMenuItem onClick={() => onTerminate(mission)} disabled={isLoading}>
-                    <StopCircle className="mr-2 h-4 w-4" />
-                    Terminer
-                  </DropdownMenuItem>
-                )}
-                {canDelete && (
-                  <DropdownMenuItem 
-                    onClick={() => onDelete(mission)} 
-                    disabled={isLoading}
-                    className="text-red-600"
-                  >
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Supprimer
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-3">
-        <div className="flex items-center text-sm text-gray-600">
-          <User className="h-4 w-4 mr-2 text-gray-400" />
-          <span>Chauffeur: {mission.driver}</span>
+          <p className="text-gray-600 mb-4">{mission.branch}</p>
         </div>
         
-        <div className="flex items-center text-sm text-gray-600">
-          <Truck className="h-4 w-4 mr-2 text-gray-400" />
-          <span>Véhicule: {mission.van}</span>
+        <div className="flex items-center gap-2">
+          {canDelete && mission.status === 'active' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onTerminateClick(mission)}
+              disabled={actionLoading === 'loading' || isTerminating}
+              className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
+            >
+              Terminer
+            </Button>
+          )}
+          
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onDeleteClick(mission)}
+              disabled={actionLoading === 'loading'}
+              className="text-red-500 hover:text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
-
-        {(mission.planned_start_date || mission.startDate) && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Début: {formatDate(mission.planned_start_date || mission.startDate!)}</span>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">Chauffeur</p>
+          <p className="text-gray-900 font-medium">{mission.driver}</p>
+        </div>
+        
+        <div className="space-y-1">
+          <p className="text-sm font-medium text-gray-500">Véhicule</p>
+          <p className="text-gray-900 font-medium">{getVanDisplayName(mission.van)}</p>
+        </div>
+        
+        {(mission.startKm || mission.start_km) && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-500">Kilométrage</p>
+            <p className="text-gray-900 font-medium">
+              {mission.startKm || mission.start_km}
+              {(mission.endKm || mission.end_km) && (
+                <span className="text-gray-500"> → {mission.endKm || mission.end_km}</span>
+              )}
+            </p>
           </div>
         )}
-
-        {(mission.planned_end_date || mission.endDate) && (
-          <div className="flex items-center text-sm text-gray-600">
-            <Clock className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Fin: {formatDate(mission.planned_end_date || mission.endDate!)}</span>
+        
+        {mission.destination && (
+          <div className="space-y-1">
+            <p className="text-sm font-medium text-gray-500">Destination</p>
+            <p className="text-gray-900 font-medium truncate">{mission.destination}</p>
           </div>
         )}
+      </div>
 
-        {(mission.start_km || mission.startKm) && (
-          <div className="flex items-center text-sm text-gray-600">
-            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Km début: {mission.start_km || mission.startKm}</span>
-            {(mission.end_km || mission.endKm) && <span className="ml-2">- Km fin: {mission.end_km || mission.endKm}</span>}
-          </div>
-        )}
-
-        {mission.notes && (
-          <div className="mt-3 p-2 bg-gray-50 rounded text-sm text-gray-600">
-            <strong>Notes:</strong> {mission.notes}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {mission.notes && (
+        <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+          <p className="text-sm text-amber-800">
+            <span className="font-medium">Notes:</span> {mission.notes}
+          </p>
+        </div>
+      )}
+    </div>
   );
 };
 

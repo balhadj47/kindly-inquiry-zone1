@@ -131,7 +131,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
         )}
 
         <div className="pt-2 border-t border-gray-100 text-xs text-gray-400">
-          Créé le: {new Date(company.createdAt).toLocaleDateString('fr-FR')}
+          Créé le: {new Date(company.created_at).toLocaleDateString('fr-FR')}
         </div>
       </CardContent>
     </Card>

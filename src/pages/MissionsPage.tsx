@@ -33,9 +33,7 @@ const MissionsPage = () => {
   return (
     <MissionsLayout>
       <MissionsHeader 
-        trips={trips}
-        onNewMissionClick={canCreateMissions ? handleNewMissionClick : undefined}
-        canCreateMissions={canCreateMissions}
+        onAdd={handleNewMissionClick}
       />
       <MissionsContainer 
         isNewMissionDialogOpen={isNewMissionDialogOpen}

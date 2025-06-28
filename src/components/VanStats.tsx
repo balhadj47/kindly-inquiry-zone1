@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Truck, Calendar, Shield, FileText, Edit, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { Van } from '@/hooks/useVans';
+import { Van } from '@/types/van';
 import { useRBAC } from '@/contexts/RBACContext';
 
 interface VanStatsProps {

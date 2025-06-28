@@ -53,12 +53,13 @@ const MissionList: React.FC<MissionListProps> = ({
             {trips.slice(0, 10).map((trip) => (
               <MissionCard 
                 key={trip.id}
-                trip={trip}
-                getVanDisplayName={getVanDisplayName}
-                onTripClick={onTripClick}
-                onDeleteTrip={onDeleteTrip}
-                onTerminateTrip={onTerminateTrip}
-                deletingTripId={deletingTripId}
+                mission={trip}
+                onEdit={onTripClick}
+                onDelete={onDeleteTrip}
+                onTerminate={onTerminateTrip}
+                canEdit={true}
+                canDelete={true}
+                actionLoading={deletingTripId === trip.id ? 'loading' : null}
               />
             ))}
           </div>

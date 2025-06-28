@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -117,7 +118,7 @@ export const useRBACDataInit = ({
         setUsers([]);
 
         // Create current user from auth user data
-        const roleId = getRoleIdFromAuthUser(authUser);
+        let roleId = getRoleIdFromAuthUser(authUser);
         
         console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
         

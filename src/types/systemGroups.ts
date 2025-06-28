@@ -9,6 +9,7 @@ export interface SystemGroup {
   color: string;
   isSystemRole: boolean;
   role_id?: number;
+  accessiblePages?: string[]; // Add accessible pages for each role
 }
 
 export interface Permission {

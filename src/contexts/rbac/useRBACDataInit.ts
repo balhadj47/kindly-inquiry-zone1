@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -106,7 +107,8 @@ export const useRBACDataInit = ({
             name: g.name, 
             role_id: (g as any).role_id, 
             id: g.id,
-            permissionsCount: g.permissions.length 
+            permissionsCount: g.permissions.length,
+            accessiblePages: g.accessiblePages?.length || 0
           }))
         });
 
@@ -130,9 +132,16 @@ export const useRBACDataInit = ({
         
         // Verify the role exists in the database
         const roleExists = systemGroups.some(role => (role as any).role_id === roleId);
+        const assignedRole = systemGroups.find(role => (role as any).role_id === roleId);
+        
         console.log('🔐 useRBACDataInit: Role exists check:', {
           roleId,
           roleExists,
+          assignedRole: assignedRole ? {
+            name: assignedRole.name,
+            permissions: assignedRole.permissions,
+            accessiblePages: assignedRole.accessiblePages
+          } : null,
           availableRoles: systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
         });
         
@@ -165,14 +174,29 @@ export const useRBACDataInit = ({
         console.log('🔧 useRBACDataInit: Creating permission utils with database groups...');
         createPermissionUtils([currentUser], systemGroups);
 
+        // Log detailed role and permission information
+        const finalRole = systemGroups.find(role => (role as any).role_id === roleId);
+        if (finalRole) {
+          console.log('🎯 useRBACDataInit: Final user role details:', {
+            roleName: finalRole.name,
+            permissions: finalRole.permissions,
+            accessiblePages: finalRole.accessiblePages,
+            permissionsCount: finalRole.permissions.length,
+            pagesCount: finalRole.accessiblePages?.length || 0
+          });
+        }
+
         console.log('✅ useRBACDataInit: Database-driven RBAC initialized successfully:', {
           userId: currentUser.id,
           email: currentUser.email,
           role_id: currentUser.role_id,
+          roleName: finalRole?.name,
           metadata_role_id: authUser.user_metadata?.role_id,
           fallback_used: !authUser.user_metadata?.role_id,
           systemGroupsLoaded: systemGroups.length,
-          finalRoleAssigned: roleId
+          finalRoleAssigned: roleId,
+          userPermissions: finalRole?.permissions || [],
+          userAccessiblePages: finalRole?.accessiblePages || []
         });
 
       } catch (error) {

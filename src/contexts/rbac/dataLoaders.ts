@@ -40,16 +40,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
     }
 
     if (!groupsData || groupsData.length === 0) {
-      console.log('📝 loadRoles: No groups found in database - this might be the issue!');
-      console.log('📝 loadRoles: Checking if table exists and has data...');
-      
-      // Try a simple count query to see if the table has any data
-      const { count, error: countError } = await supabase
-        .from('user_groups')
-        .select('*', { count: 'exact', head: true });
-        
-      console.log('📝 loadRoles: Table count check:', { count, countError });
-      
+      console.log('📝 loadRoles: No groups found in database - returning empty array');
       return [];
     }
 
@@ -88,6 +79,10 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
       const permissions = Array.isArray(group.permissions) ? group.permissions : [];
       console.log(`📋 loadRoles: Final permissions for ${group.name}:`, permissions);
 
+      // Determine accessible pages based on permissions
+      const accessiblePages = getAccessiblePages(permissions);
+      console.log(`📋 loadRoles: Accessible pages for ${group.name}:`, accessiblePages);
+
       const transformedRole = {
         id: group.id.toString(),
         name: group.name as SystemGroupName,
@@ -96,6 +91,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
         color: group.color || '#3b82f6',
         role_id: group.role_id,
         isSystemRole: false, // Mark as custom since loaded from database
+        accessiblePages: accessiblePages, // Add accessible pages
       };
       
       console.log(`✅ loadRoles: Transformed role ${group.name}:`, transformedRole);
@@ -104,7 +100,7 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
 
     const endTime = performance.now();
     console.log(`✅ loadRoles: Successfully loaded ${rolesWithPermissions.length} roles from database in ${endTime - startTime}ms`);
-    console.log('📋 loadRoles: Final roles array:', rolesWithPermissions);
+    console.log('📋 loadRoles: Final roles array with permissions and pages:', rolesWithPermissions);
 
     return rolesWithPermissions as SystemGroup[];
   } catch (error) {
@@ -119,6 +115,45 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
     console.log('📋 loadRoles: Returning empty roles array due to error');
     return [];
   }
+};
+
+// Helper function to determine accessible pages based on permissions
+const getAccessiblePages = (permissions: string[]): string[] => {
+  const accessiblePages: string[] = [];
+  
+  // Define page-permission mapping
+  const pagePermissions = {
+    '/dashboard': ['dashboard:read'],
+    '/companies': ['companies:read'],
+    '/vans': ['vans:read'],
+    '/employees': ['users:read'],
+    '/auth-users': ['auth-users:read', 'users:read'],
+    '/missions': ['trips:read'],
+    '/log-trip': ['trips:create'],
+    '/trip-history': ['trips:read'],
+    '/settings': [], // Settings available to all authenticated users
+    '/user-settings': [], // User settings available to all authenticated users
+  };
+
+  // Check each page against user permissions
+  Object.entries(pagePermissions).forEach(([page, requiredPermissions]) => {
+    // If no permissions required, allow access
+    if (requiredPermissions.length === 0) {
+      accessiblePages.push(page);
+      return;
+    }
+
+    // Check if user has any of the required permissions
+    const hasAccess = requiredPermissions.some(permission => 
+      permissions.includes(permission) || permissions.includes('*')
+    );
+
+    if (hasAccess) {
+      accessiblePages.push(page);
+    }
+  });
+
+  return accessiblePages;
 };
 
 // Keep this function for backwards compatibility, but it won't be used for auth

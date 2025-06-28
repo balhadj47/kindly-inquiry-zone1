@@ -96,12 +96,18 @@ export const useSidebarMenuItems = () => {
     },
   ];
   
+  // Get current user's role and accessible pages
+  const currentRole = roles.find(role => role.role_id === currentUser?.role_id);
+  const accessiblePages = currentRole?.accessiblePages || [];
+  
   console.log('🔍 Menu items processing:', {
     userId: currentUser?.id || 'null',
     userEmail: currentUser?.email || 'null',
     roleId: currentUser?.role_id || 'null',
+    roleName: currentRole?.name || 'null',
     loading: loading,
     rolesCount: roles?.length || 0,
+    accessiblePages: accessiblePages,
     hasPermissionFunction: typeof hasPermission === 'function'
   });
 
@@ -127,7 +133,7 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // Filter menu items based on permissions
+  // Filter menu items based on both permissions and accessible pages
   const filteredMenuItems = menuItems.filter((item) => {
     try {
       if (!item.permission) {
@@ -140,10 +146,19 @@ export const useSidebarMenuItems = () => {
         return false;
       }
       
+      // Check both permission and page accessibility
       const hasAccess = hasPermission(item.permission);
-      console.log(`🔍 Permission check for ${item.title} (${item.permission}): ${hasAccess}`);
+      const pageAccessible = accessiblePages.includes(item.href) || hasPermission('*');
       
-      return hasAccess;
+      console.log(`🔍 Access check for ${item.title}:`, {
+        permission: item.permission,
+        hasPermission: hasAccess,
+        pageAccessible: pageAccessible,
+        href: item.href,
+        finalAccess: hasAccess && pageAccessible
+      });
+      
+      return hasAccess && pageAccessible;
     } catch (error) {
       console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
       return false;
@@ -153,7 +168,10 @@ export const useSidebarMenuItems = () => {
   console.log('🔍 FINAL RESULT:', {
     totalMenuItems: menuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title)
+    filteredTitles: filteredMenuItems.map(item => item.title),
+    userRole: currentRole?.name,
+    userPermissions: currentRole?.permissions || [],
+    userPages: accessiblePages
   });
   
   return filteredMenuItems;

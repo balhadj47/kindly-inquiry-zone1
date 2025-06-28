@@ -3,7 +3,7 @@ import React from 'react';
 import { Control } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getRoleDisplayNameById } from '@/utils/rolePermissions';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 interface SystemFieldsProps {
   control: Control<any>;
@@ -24,8 +24,8 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
 }) => {
   // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
   const availableRoles = [
-    { id: 1, name: getRoleDisplayNameById(1) }, // Administrator
-    { id: 2, name: getRoleDisplayNameById(2) }, // Supervisor
+    { id: 1, name: getRoleNameFromId(1) }, // Administrator
+    { id: 2, name: getRoleNameFromId(2) }, // Supervisor
   ];
 
   return (

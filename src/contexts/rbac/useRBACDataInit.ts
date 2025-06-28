@@ -30,23 +30,38 @@ const isAdminEmail = (email: string): boolean => {
   return ADMIN_EMAILS.includes(email.toLowerCase());
 };
 
-// Helper function to get role_id from auth user
+// Helper function to get role_id from auth user with better metadata handling
 const getRoleIdFromAuthUser = (authUser: any): number => {
-  // First check user metadata for role_id (this should be the primary method now)
-  if (authUser.user_metadata?.role_id) {
-    console.log('📋 Found role_id in user_metadata:', authUser.user_metadata.role_id);
-    return authUser.user_metadata.role_id;
+  console.log('🔍 getRoleIdFromAuthUser: Full auth user object:', authUser);
+  console.log('🔍 getRoleIdFromAuthUser: user_metadata:', authUser.user_metadata);
+  console.log('🔍 getRoleIdFromAuthUser: app_metadata:', authUser.app_metadata);
+  
+  // Check multiple possible locations for role_id
+  const possibleRoleId = 
+    authUser.user_metadata?.role_id || 
+    authUser.app_metadata?.role_id ||
+    authUser.role_id ||
+    authUser.user_metadata?.role ||
+    authUser.app_metadata?.role;
+  
+  console.log('🔍 getRoleIdFromAuthUser: Found possible role_id:', possibleRoleId);
+  
+  // If we found a role_id, use it (convert to number if needed)
+  if (possibleRoleId !== undefined && possibleRoleId !== null) {
+    const roleId = typeof possibleRoleId === 'string' ? parseInt(possibleRoleId) : possibleRoleId;
+    console.log('📋 Found role_id in metadata:', roleId);
+    return roleId;
   }
   
-  // Fallback to email-based admin detection for existing users without metadata
+  // Fallback to email-based admin detection
   if (isAdminEmail(authUser.email || '')) {
     console.log('📋 Admin email detected, assigning role_id: 1');
     return 1; // Administrator
   }
   
-  // Default to role_id: 1 for auth users (since role_id: 3 might not exist)
-  console.log('📋 Defaulting to admin role_id: 1 for auth users');
-  return 1; // Administrator as default for auth users
+  // Default to supervisor role for authenticated users
+  console.log('📋 No role_id found, defaulting to supervisor role_id: 2');
+  return 2; // Supervisor as default for auth users
 };
 
 export const useRBACDataInit = ({ 
@@ -91,8 +106,8 @@ export const useRBACDataInit = ({
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 useRBACDataInit: Starting database-driven RBAC initialization for user:', authUser?.email);
-      console.log('🔍 useRBACDataInit: Auth user metadata:', authUser?.user_metadata);
+      console.log('🚀 useRBACDataInit: Starting auth-based RBAC initialization for user:', authUser?.email);
+      console.log('🔍 useRBACDataInit: Auth user full object:', authUser);
       initializationRef.current = true;
       setLoading(true);
 
@@ -125,7 +140,7 @@ export const useRBACDataInit = ({
         // Don't load users table for authentication - keep it empty for auth purposes
         setUsers([]);
 
-        // Create current user from auth user data
+        // Create current user from auth user data with improved role detection
         let roleId = getRoleIdFromAuthUser(authUser);
         
         console.log('🔐 useRBACDataInit: Initial role_id assignment:', roleId, 'for email:', authUser.email);
@@ -150,8 +165,9 @@ export const useRBACDataInit = ({
           console.warn('⚠️ useRBACDataInit: Available roles:', 
             systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
           );
-          // Use the first available role as fallback
-          const fallbackRoleId = (systemGroups[0] as any).role_id;
+          // Find a suitable fallback role (prefer supervisor over admin)
+          const supervisorRole = systemGroups.find(r => (r as any).role_id === 2);
+          const fallbackRoleId = supervisorRole ? 2 : (systemGroups[0] as any).role_id;
           console.log(`🔄 useRBACDataInit: Using fallback role_id: ${fallbackRoleId}`);
           roleId = fallbackRoleId;
         }
@@ -186,13 +202,13 @@ export const useRBACDataInit = ({
           });
         }
 
-        console.log('✅ useRBACDataInit: Database-driven RBAC initialized successfully:', {
+        console.log('✅ useRBACDataInit: Auth-based RBAC initialized successfully:', {
           userId: currentUser.id,
           email: currentUser.email,
           role_id: currentUser.role_id,
           roleName: finalRole?.name,
           metadata_role_id: authUser.user_metadata?.role_id,
-          fallback_used: !authUser.user_metadata?.role_id,
+          app_metadata_role_id: authUser.app_metadata?.role_id,
           systemGroupsLoaded: systemGroups.length,
           finalRoleAssigned: roleId,
           userPermissions: finalRole?.permissions || [],
@@ -200,7 +216,7 @@ export const useRBACDataInit = ({
         });
 
       } catch (error) {
-        console.error('❌ useRBACDataInit: Database RBAC initialization error:', {
+        console.error('❌ useRBACDataInit: Auth-based RBAC initialization error:', {
           error: error?.message || error,
           stack: error?.stack,
           authUser: authUser?.email
@@ -208,12 +224,12 @@ export const useRBACDataInit = ({
         setCurrentUser(null);
       } finally {
         setLoading(false);
-        console.log('🏁 useRBACDataInit: Database-driven RBAC initialization completed');
+        console.log('🏁 useRBACDataInit: Auth-based RBAC initialization completed');
       }
     };
 
     initializeRBAC();
-  }, [authUser?.email, authUser?.id, authUser?.user_metadata?.role_id, authLoading, rolesLoaded]);
+  }, [authUser?.email, authUser?.id, authUser?.user_metadata, authUser?.app_metadata, authLoading, rolesLoaded]);
 
   // Reset initialization flag when user changes
   useEffect(() => {

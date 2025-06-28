@@ -10,7 +10,7 @@ export const useRBACStateClean = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<SystemGroup[]>([]);
-  const [permissions, setPermissions] = useState<string[]>([]); // Changed from Permission[] to string[]
+  const [permissions, setPermissions] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Safe setters with error handling
@@ -85,10 +85,6 @@ export const useRBACStateClean = () => {
     }
   }, []);
 
-  const setUser = useCallback((user: User | null) => {
-    safeSetCurrentUser(user);
-  }, [safeSetCurrentUser]);
-
   // Clear cache when roles change
   useEffect(() => {
     try {
@@ -99,22 +95,18 @@ export const useRBACStateClean = () => {
     }
   }, [roles]);
 
-  // Return structured state and actions
+  // Return state and actions directly (not nested)
   return {
-    state: {
-      currentUser,
-      users,
-      roles,
-      permissions,
-      loading,
-    },
-    actions: {
-      setCurrentUser: safeSetCurrentUser,
-      setUsers: safeSetUsers,
-      setRoles: safeSetRoles,
-      setPermissions: safeSetPermissions,
-      setLoading: safeSetLoading,
-      setUser,
-    }
+    currentUser,
+    users,
+    roles,
+    permissions,
+    loading,
+    setCurrentUser: safeSetCurrentUser,
+    setUsers: safeSetUsers,
+    setRoles: safeSetRoles,
+    setPermissions: safeSetPermissions,
+    setLoading: safeSetLoading,
+    setUser: safeSetCurrentUser, // Alias for compatibility
   };
 };

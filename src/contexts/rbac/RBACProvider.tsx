@@ -14,8 +14,8 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   const { user: authUser } = useAuth();
   const [rolesLoaded, setRolesLoaded] = useState(false);
   
-  // Initialize RBAC state
-  const { state, actions } = useRBACStateClean();
+  // Initialize RBAC state - now returns flat structure
+  const rbacState = useRBACStateClean();
   
   // Initialize roles from database on provider mount
   useEffect(() => {
@@ -36,22 +36,30 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
 
   // Initialize RBAC data after roles are loaded
   useRBACDataInit({ 
-    state, 
-    actions,
+    currentUser: rbacState.currentUser,
+    users: rbacState.users,
+    roles: rbacState.roles,
+    permissions: rbacState.permissions,
+    loading: rbacState.loading,
+    setCurrentUser: rbacState.setCurrentUser,
+    setUsers: rbacState.setUsers,
+    setRoles: rbacState.setRoles,
+    setPermissions: rbacState.setPermissions,
+    setLoading: rbacState.setLoading,
     rolesLoaded // Pass rolesLoaded flag to ensure proper initialization order
   });
 
   // Create operations
   const operations = useRBACOperations({
-    currentUser: state.currentUser,
-    roles: state.roles,
-    setUsers: actions.setUsers,
-    setRoles: actions.setRoles,
+    currentUser: rbacState.currentUser,
+    roles: rbacState.roles,
+    setUsers: rbacState.setUsers,
+    setRoles: rbacState.setRoles,
   });
 
   // Wait for both RBAC data and roles to be loaded
-  if (state.loading || !rolesLoaded) {
-    console.log('🔄 RBACProvider: Still loading...', { loading: state.loading, rolesLoaded });
+  if (rbacState.loading || !rolesLoaded) {
+    console.log('🔄 RBACProvider: Still loading...', { loading: rbacState.loading, rolesLoaded });
     return (
       <RBACContext.Provider value={{
         currentUser: null,
@@ -68,20 +76,20 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   }
 
   const contextValue: RBACContextType = {
-    currentUser: state.currentUser,
-    users: state.users,
-    roles: state.roles,
-    permissions: state.permissions,
-    loading: state.loading,
-    setUser: actions.setCurrentUser,
+    currentUser: rbacState.currentUser,
+    users: rbacState.users,
+    roles: rbacState.roles,
+    permissions: rbacState.permissions,
+    loading: rbacState.loading,
+    setUser: rbacState.setCurrentUser,
     ...operations,
   };
 
   console.log('✅ RBACProvider: Context ready', {
-    currentUser: state.currentUser?.id,
-    usersCount: state.users.length,
-    rolesCount: state.roles.length,
-    permissionsCount: state.permissions.length,
+    currentUser: rbacState.currentUser?.id,
+    usersCount: rbacState.users.length,
+    rolesCount: rbacState.roles.length,
+    permissionsCount: rbacState.permissions.length,
   });
 
   return (

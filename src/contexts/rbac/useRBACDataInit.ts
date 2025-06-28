@@ -1,13 +1,21 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { RBACState, RBACActions } from './types';
 import { loadRoles } from './dataLoaders';
 import { createPermissionUtils } from './permissionUtils';
+import { User } from '@/types/rbac';
+import { SystemGroup } from '@/types/systemGroups';
 
 interface UseRBACDataInitProps {
-  state: RBACState;
-  actions: RBACActions;
+  currentUser: User | null;
+  users: User[];
+  roles: SystemGroup[];
+  permissions: string[];
+  loading: boolean;
+  setCurrentUser: (user: User | null) => void;
+  setUsers: (users: User[] | ((prev: User[]) => User[])) => void;
+  setRoles: (roles: SystemGroup[] | ((prev: SystemGroup[]) => SystemGroup[])) => void;
+  setPermissions: (permissions: string[] | ((prev: string[]) => string[])) => void;
+  setLoading: (loading: boolean) => void;
   rolesLoaded?: boolean;
 }
 
@@ -40,7 +48,19 @@ const getRoleIdFromAuthUser = (authUser: any): number => {
   return 2; // Supervisor
 };
 
-export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInitProps) => {
+export const useRBACDataInit = ({ 
+  currentUser, 
+  users, 
+  roles, 
+  permissions, 
+  loading,
+  setCurrentUser,
+  setUsers,
+  setRoles,
+  setPermissions,
+  setLoading,
+  rolesLoaded 
+}: UseRBACDataInitProps) => {
   const { user: authUser, loading: authLoading } = useAuth();
   const initializationRef = useRef(false);
 
@@ -54,8 +74,8 @@ export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInit
     // If no user is authenticated, don't initialize RBAC
     if (!authUser) {
       console.log('❌ No authenticated user, skipping RBAC initialization');
-      actions.setCurrentUser(null);
-      actions.setLoading(false);
+      setCurrentUser(null);
+      setLoading(false);
       return;
     }
 
@@ -68,7 +88,7 @@ export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInit
       console.log('🚀 Starting database-driven RBAC initialization for user:', authUser?.email);
       console.log('🔍 Auth user metadata:', authUser?.user_metadata);
       initializationRef.current = true;
-      actions.setLoading(true);
+      setLoading(true);
 
       try {
         // Load system groups (roles) from database with their permissions
@@ -91,9 +111,9 @@ export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInit
         });
 
         // Set the roles data
-        actions.setRoles(systemGroups);
+        setRoles(systemGroups);
         // Don't load users table for authentication - keep it empty for auth purposes
-        actions.setUsers([]);
+        setUsers([]);
 
         // Create current user from auth user data
         const roleId = getRoleIdFromAuthUser(authUser);
@@ -111,7 +131,7 @@ export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInit
           createdAt: new Date().toISOString(),
         };
 
-        actions.setCurrentUser(currentUser);
+        setCurrentUser(currentUser);
 
         // Initialize permission utilities with current user and database groups
         console.log('🔧 Creating permission utils with database groups...');
@@ -128,9 +148,9 @@ export const useRBACDataInit = ({ state, actions, rolesLoaded }: UseRBACDataInit
 
       } catch (error) {
         console.error('❌ Database RBAC initialization error:', error);
-        actions.setCurrentUser(null);
+        setCurrentUser(null);
       } finally {
-        actions.setLoading(false);
+        setLoading(false);
         console.log('🏁 Database-driven RBAC initialization completed');
       }
     };

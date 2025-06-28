@@ -38,9 +38,10 @@ const MissionsList: React.FC<MissionsListProps> = ({
   const [terminateMission, setTerminateMission] = useState<Trip | null>(null);
   const [finalKm, setFinalKm] = useState('');
   const [isTerminating, setIsTerminating] = useState(false);
+  const [deletingMissionId, setDeletingMissionId] = useState<number | null>(null);
   
   const { data: vans = [] } = useVans();
-  const { updateTrip } = useTripMutations();
+  const { updateTrip, deleteTrip } = useTripMutations();
   const { toast } = useToast();
 
   const filteredMissions = missions.filter(mission => {
@@ -149,9 +150,32 @@ const MissionsList: React.FC<MissionsListProps> = ({
     setFinalKm('');
   };
 
-  const handleDeleteClick = (mission: Trip) => {
-    if (onDeleteMission) {
-      onDeleteMission(mission);
+  const handleDeleteClick = async (mission: Trip) => {
+    console.log('🗑️ MissionsList: Starting delete for mission:', mission.id);
+    
+    if (deletingMissionId === mission.id) {
+      console.log('🗑️ MissionsList: Already deleting this mission');
+      return;
+    }
+
+    setDeletingMissionId(mission.id);
+    
+    try {
+      await deleteTrip.mutateAsync(mission.id.toString());
+      console.log('🗑️ MissionsList: Mission deleted successfully:', mission.id);
+      
+      if (onDeleteMission) {
+        onDeleteMission(mission);
+      }
+    } catch (error) {
+      console.error('🗑️ MissionsList: Error deleting mission:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de supprimer la mission',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingMissionId(null);
     }
   };
 
@@ -177,8 +201,8 @@ const MissionsList: React.FC<MissionsListProps> = ({
             getVanDisplayName={getVanDisplayName}
             canEdit={canEdit}
             canDelete={canDelete}
-            actionLoading={actionLoading}
-            isTerminating={isTerminating}
+            actionLoading={deletingMissionId === mission.id ? 'loading' : null}
+            isTerminating={isTerminating && terminateMission?.id === mission.id}
           />
         ))}
       </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -474,43 +473,41 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 <Users className="h-5 w-5 text-blue-600" />
                 <h3 className="text-lg font-semibold text-blue-800">Équipe Assignée</h3>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-3">
                 {mission.userRoles.map((userRole, index) => (
-                  <div key={index} className="bg-white rounded-xl p-4 border border-blue-100">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="font-medium text-gray-900 mb-2">
-                          {getUserName(userRole.userId)}
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {userRole.roles.map((role, roleIndex) => {
-                            if (typeof role === 'string') {
-                              return (
-                                <Badge key={roleIndex} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
-                                  {role}
-                                </Badge>
-                              );
-                            } else if (typeof role === 'object' && role !== null) {
-                              const roleObj = role as any;
-                              if (roleObj.role_id) {
-                                return <TeamMemberRole key={roleIndex} roleId={roleObj.role_id} />;
-                              }
-                              return (
-                                <Badge 
-                                  key={roleIndex} 
-                                  variant="outline" 
-                                  className="text-xs bg-gray-50 text-gray-700 border-gray-200"
-                                >
-                                  {roleObj.name || 'Rôle Inconnu'}
-                                </Badge>
-                              );
+                  <div key={index} className="flex items-center gap-4 p-4 bg-white rounded-xl border border-blue-100">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                      <User className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-gray-900 mb-2 truncate">
+                        {getUserName(userRole.userId)}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {userRole.roles.map((role, roleIndex) => {
+                          if (typeof role === 'string') {
+                            return (
+                              <Badge key={roleIndex} variant="outline" className="text-xs bg-gray-50 text-gray-700 border-gray-200">
+                                {role}
+                              </Badge>
+                            );
+                          } else if (typeof role === 'object' && role !== null) {
+                            const roleObj = role as any;
+                            if (roleObj.role_id) {
+                              return <TeamMemberRole key={roleIndex} roleId={roleObj.role_id} />;
                             }
-                            return null;
-                          })}
-                        </div>
+                            return (
+                              <Badge 
+                                key={roleIndex} 
+                                variant="outline" 
+                                className="text-xs bg-gray-50 text-gray-700 border-gray-200"
+                              >
+                                {roleObj.name || 'Rôle Inconnu'}
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })}
                       </div>
                     </div>
                   </div>

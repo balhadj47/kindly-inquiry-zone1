@@ -1,49 +1,56 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Plus, Calendar } from 'lucide-react';
-import { type Trip } from '@/contexts/TripContext';
+import { Plus, RefreshCw } from 'lucide-react';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface MissionsHeaderProps {
-  trips: Trip[];
-  onNewMissionClick?: () => void;
-  canCreateMissions: boolean;
+  onAdd: () => void;
+  onRefresh?: () => void;
+  isRefreshing?: boolean;
 }
 
-const MissionsHeader: React.FC<MissionsHeaderProps> = ({
-  trips,
-  onNewMissionClick,
-  canCreateMissions,
+const MissionsHeader: React.FC<MissionsHeaderProps> = ({ 
+  onAdd, 
+  onRefresh, 
+  isRefreshing = false 
 }) => {
-  const activeMissions = trips?.filter(trip => trip.status === 'active') || [];
-  const completedMissions = trips?.filter(trip => trip.status === 'completed') || [];
+  const { hasPermission } = useRBAC();
+  
+  const canCreateTrips = hasPermission('trips:create');
 
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6">
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Missions</h1>
-        <div className="flex items-center space-x-6 mt-2">
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {activeMissions.length} active{activeMissions.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            <span className="text-sm text-gray-600">
-              {completedMissions.length} terminée{completedMissions.length !== 1 ? 's' : ''}
-            </span>
-          </div>
-        </div>
+        <p className="text-gray-600 mt-1">
+          Gérez les missions et les voyages
+        </p>
       </div>
       
-      {canCreateMissions && onNewMissionClick && (
-        <Button onClick={onNewMissionClick} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Nouvelle Mission
-        </Button>
-      )}
+      <div className="flex items-center gap-2">
+        {onRefresh && (
+          <Button
+            variant="outline"
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+        )}
+        
+        {canCreateTrips && (
+          <Button 
+            onClick={onAdd}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Nouvelle Mission
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

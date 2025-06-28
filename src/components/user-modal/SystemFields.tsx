@@ -1,9 +1,9 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Control } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { getAllRoles } from '@/utils/roleUtils';
 
 interface SystemFieldsProps {
   control: Control<any>;
@@ -22,11 +22,18 @@ const SystemFields: React.FC<SystemFieldsProps> = ({
   onEmailValidationChange,
   userId,
 }) => {
-  // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
-  const availableRoles = [
-    { id: 1, name: getRoleNameFromId(1) }, // Administrator
-    { id: 2, name: getRoleNameFromId(2) }, // Supervisor
-  ];
+  const [availableRoles, setAvailableRoles] = useState<Array<{ id: number; name: string }>>([]);
+
+  useEffect(() => {
+    // Get roles from database cache
+    const roles = getAllRoles();
+    // Only show Administrator and Supervisor roles (exclude Employee role_id: 3)
+    const filteredRoles = roles
+      .filter(role => role.id !== 3) // Exclude Employee
+      .map(role => ({ id: role.id, name: role.name }));
+    
+    setAvailableRoles(filteredRoles);
+  }, []);
 
   return (
     <div className="space-y-4">

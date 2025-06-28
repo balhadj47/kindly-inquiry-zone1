@@ -74,6 +74,11 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
 
       console.log('✅ Groups loaded from database:', transformedGroups);
       setGroups(transformedGroups);
+      
+      // Set default role to first available group or 2 (Supervisor)
+      if (transformedGroups.length > 0) {
+        setRoleId(transformedGroups[0].role_id);
+      }
     } catch (error) {
       console.error('❌ Exception fetching groups:', error);
       toast({

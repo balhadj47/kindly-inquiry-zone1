@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   Dialog,
@@ -57,9 +56,12 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   
   console.log('🎯 MissionDetailsDialog: Rendering with mission:', mission?.id || 'null');
 
-  // Function to get user name by ID
+  // Function to get user name by ID with proper type handling
   const getUserName = (userId: string) => {
-    const user = users.find(u => u.id.toString() === userId || u.id === parseInt(userId));
+    const user = users.find(u => {
+      // Handle both string and number comparisons
+      return u.id.toString() === userId || u.id === Number(userId);
+    });
     return user ? user.name : `User ${userId}`;
   };
 
@@ -125,98 +127,84 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader className="space-y-4 pb-6">
+        <DialogHeader className="pb-6">
           <div className="flex items-start justify-between">
             <div className="space-y-1">
-              <DialogTitle className="text-2xl font-bold text-gray-900">
+              <DialogTitle className="text-xl font-semibold text-gray-900">
                 {mission.company}
               </DialogTitle>
-              <DialogDescription className="text-base text-gray-600">
+              <DialogDescription className="text-sm text-gray-600">
                 {mission.branch}
               </DialogDescription>
             </div>
-            <Badge className={`px-4 py-2 text-sm font-medium rounded-full ${getStatusColor(mission.status || 'active')}`}>
+            <Badge className={`px-3 py-1 text-sm font-medium rounded-lg ${getStatusColor(mission.status || 'active')}`}>
               {getStatusText(mission.status || 'active')}
             </Badge>
           </div>
         </DialogHeader>
 
-        <div className="space-y-8">
-          {/* Basic Information Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Driver */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                  <User className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Chauffeur</p>
-                  <p className="text-lg font-semibold text-gray-900">{mission.driver}</p>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                <User className="h-4 w-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Chauffeur</p>
+                <p className="text-sm font-medium text-gray-900">{mission.driver}</p>
               </div>
             </div>
 
             {/* Vehicle */}
-            <div className="space-y-3">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                  <Truck className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Véhicule</p>
-                  <div className="space-y-1">
-                    <p className="text-lg font-semibold text-gray-900">{vanInfo.model}</p>
-                    <p className="text-sm text-gray-600">{vanInfo.licensePlate}</p>
-                  </div>
-                </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                <Truck className="h-4 w-4 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Véhicule</p>
+                <p className="text-sm font-medium text-gray-900">{vanInfo.model}</p>
+                <p className="text-xs text-gray-600">{vanInfo.licensePlate}</p>
               </div>
             </div>
 
             {/* Dates */}
             {(mission.planned_start_date || mission.startDate) && (
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Dates</p>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Début:</span> {formatDate(mission.planned_start_date || mission.startDate!)}
-                      </p>
-                      {(mission.planned_end_date || mission.endDate) && (
-                        <p className="text-sm text-gray-900">
-                          <span className="font-medium">Fin:</span> {formatDate(mission.planned_end_date || mission.endDate!)}
-                        </p>
-                      )}
-                    </div>
-                  </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Calendar className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Dates</p>
+                  <p className="text-xs text-gray-900">
+                    <span className="font-medium">Début:</span> {formatDate(mission.planned_start_date || mission.startDate!)}
+                  </p>
+                  {(mission.planned_end_date || mission.endDate) && (
+                    <p className="text-xs text-gray-900">
+                      <span className="font-medium">Fin:</span> {formatDate(mission.planned_end_date || mission.endDate!)}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
 
             {/* Kilometers */}
             {(mission.start_km || mission.startKm) && (
-              <div className="space-y-3">
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-500 uppercase tracking-wide">Kilométrage</p>
-                    <div className="space-y-1">
-                      <p className="text-sm text-gray-900">
-                        <span className="font-medium">Début:</span> {mission.start_km || mission.startKm} km
-                      </p>
-                      {(mission.end_km || mission.endKm) && (
-                        <p className="text-sm text-gray-900">
-                          <span className="font-medium">Fin:</span> {mission.end_km || mission.endKm} km
-                        </p>
-                      )}
-                    </div>
-                  </div>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                  <MapPin className="h-4 w-4 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Kilométrage</p>
+                  <p className="text-xs text-gray-900">
+                    <span className="font-medium">Début:</span> {mission.start_km || mission.startKm} km
+                  </p>
+                  {(mission.end_km || mission.endKm) && (
+                    <p className="text-xs text-gray-900">
+                      <span className="font-medium">Fin:</span> {mission.end_km || mission.endKm} km
+                    </p>
+                  )}
                 </div>
               </div>
             )}
@@ -224,52 +212,46 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
 
           {/* Destination */}
           {mission.destination && (
-            <div className="bg-gray-50 rounded-xl p-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center">
-                  <MapPin className="h-4 w-4 text-indigo-600" />
-                </div>
-                <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">Destination</h3>
+            <div className="bg-gray-50 rounded-lg p-4">
+              <div className="flex items-center space-x-2 mb-2">
+                <MapPin className="h-4 w-4 text-gray-600" />
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide">Destination</h3>
               </div>
-              <p className="text-lg text-gray-900 ml-11">{mission.destination}</p>
+              <p className="text-sm text-gray-900">{mission.destination}</p>
             </div>
           )}
 
           {/* Notes */}
           {mission.notes && (
-            <div className="bg-amber-50 rounded-xl p-6 border border-amber-200">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
-                  <FileText className="h-4 w-4 text-amber-600" />
-                </div>
-                <h3 className="text-sm font-medium text-amber-700 uppercase tracking-wide">Notes</h3>
+            <div className="bg-amber-50 rounded-lg p-4 border border-amber-200">
+              <div className="flex items-center space-x-2 mb-2">
+                <FileText className="h-4 w-4 text-amber-600" />
+                <h3 className="text-xs font-medium text-amber-700 uppercase tracking-wide">Notes</h3>
               </div>
-              <p className="text-gray-900 leading-relaxed ml-11">{mission.notes}</p>
+              <p className="text-sm text-gray-900">{mission.notes}</p>
             </div>
           )}
 
           {/* Team */}
           {mission.userRoles && mission.userRoles.length > 0 && (
-            <div className="bg-blue-50 rounded-xl p-6 border border-blue-200">
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                  <Users className="h-4 w-4 text-blue-600" />
-                </div>
-                <h3 className="text-sm font-medium text-blue-700 uppercase tracking-wide">Équipe Assignée</h3>
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <div className="flex items-center space-x-2 mb-4">
+                <Users className="h-4 w-4 text-blue-600" />
+                <h3 className="text-xs font-medium text-blue-700 uppercase tracking-wide">Équipe Assignée</h3>
               </div>
-              <div className="space-y-4 ml-11">
+              <div className="space-y-3">
                 {mission.userRoles.map((userRole, index) => (
-                  <div key={index} className="bg-white rounded-lg p-4 border border-blue-200 shadow-sm">
+                  <div key={index} className="bg-white rounded-lg p-3 border border-blue-200">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                          <User className="h-5 w-5 text-blue-600" />
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-blue-600" />
                         </div>
                         <div>
-                          <h4 className="font-semibold text-gray-900 text-lg">
+                          <h4 className="font-medium text-gray-900 text-sm">
                             {getUserName(userRole.userId)}
                           </h4>
-                          <div className="flex flex-wrap gap-2 mt-2">
+                          <div className="flex flex-wrap gap-1 mt-1">
                             {userRole.roles.map((role, roleIndex) => {
                               if (typeof role === 'string') {
                                 return (
@@ -286,7 +268,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                                   <Badge 
                                     key={roleIndex} 
                                     variant="outline" 
-                                    className="text-xs px-3 py-1"
+                                    className="text-xs px-2 py-1"
                                     style={{ 
                                       backgroundColor: roleObj.color || '#3B82F6', 
                                       color: 'white',

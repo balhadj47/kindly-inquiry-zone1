@@ -1,19 +1,21 @@
 
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { createRBACContext } from './context';
-import { useRBACDataInit } from './useRBACDataInit';
+import { useRBACStateClean } from './useRBACStateClean';
 import { useRBACOperations } from './useRBACOperations';
+import { useRBACDataInit } from './useRBACDataInit';
 import { loadRolesFromDatabase } from '@/utils/roleUtils';
+import { RBACContext } from './context';
 import type { RBACContextType, RBACProviderProps } from './types';
-
-const { RBACContext } = createRBACContext();
 
 export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   console.log('🔄 RBACProvider: Initializing...');
   
   const { user: authUser } = useAuth();
   const [rolesLoaded, setRolesLoaded] = useState(false);
+  
+  // Initialize RBAC state
+  const { state, actions } = useRBACStateClean();
   
   // Initialize roles from database on provider mount
   useEffect(() => {
@@ -27,30 +29,19 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   }, []);
 
   // Initialize RBAC data
-  const {
-    currentUser,
-    users,
-    roles,
-    permissions,
-    loading,
-    setUsers,
-    setRoles,
-    setPermissions,
-    setCurrentUser,
-    setLoading,
-  } = useRBACDataInit(authUser);
+  useRBACDataInit({ state, actions });
 
   // Create operations
   const operations = useRBACOperations({
-    currentUser,
-    roles,
-    setUsers,
-    setRoles,
+    currentUser: state.currentUser,
+    roles: state.roles,
+    setUsers: actions.setUsers,
+    setRoles: actions.setRoles,
   });
 
   // Wait for both RBAC data and roles to be loaded
-  if (loading || !rolesLoaded) {
-    console.log('🔄 RBACProvider: Still loading...', { loading, rolesLoaded });
+  if (state.loading || !rolesLoaded) {
+    console.log('🔄 RBACProvider: Still loading...', { loading: state.loading, rolesLoaded });
     return (
       <RBACContext.Provider value={{
         currentUser: null,
@@ -67,20 +58,20 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   }
 
   const contextValue: RBACContextType = {
-    currentUser,
-    users,
-    roles,
-    permissions,
-    loading,
-    setUser: setCurrentUser,
+    currentUser: state.currentUser,
+    users: state.users,
+    roles: state.roles,
+    permissions: state.permissions,
+    loading: state.loading,
+    setUser: actions.setCurrentUser,
     ...operations,
   };
 
   console.log('✅ RBACProvider: Context ready', {
-    currentUser: currentUser?.id,
-    usersCount: users.length,
-    rolesCount: roles.length,
-    permissionsCount: permissions.length,
+    currentUser: state.currentUser?.id,
+    usersCount: state.users.length,
+    rolesCount: state.roles.length,
+    permissionsCount: state.permissions.length,
   });
 
   return (

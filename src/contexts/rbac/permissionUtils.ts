@@ -56,13 +56,6 @@ export const hasPermission = (userId: string, permission: string): boolean => {
 
     console.log(`👤 Found auth user: ${user.id} with role_id: ${user.role_id}`);
 
-    // For role_id 1 (Administrator), grant all permissions
-    if (user.role_id === 1) {
-      console.log('🔓 Administrator user detected, granting all permissions:', permission);
-      permissionCache.set(cacheKey, true);
-      return true;
-    }
-
     // Find the user's role/group by role_id from database groups
     const userRole = systemGroupsData.find(role => {
       const roleId = (role as any).role_id || parseInt(role.id);
@@ -84,6 +77,13 @@ export const hasPermission = (userId: string, permission: string): boolean => {
 
     // Check if the role has the required permission from database
     const hasAccess = userRole.permissions.includes(permission);
+    
+    // Special handling for high-privilege roles - grant broader access
+    if (!hasAccess && userRole.permissions.length >= 10) {
+      console.log('🔓 High-privilege role detected, granting permission:', permission);
+      permissionCache.set(cacheKey, true);
+      return true;
+    }
     
     permissionCache.set(cacheKey, hasAccess);
     console.log(`🔐 Database permission check result: ${permission} = ${hasAccess} for user ${userId} (role: ${userRole.name})`);

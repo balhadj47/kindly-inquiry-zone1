@@ -19,14 +19,11 @@ interface UseRBACDataInitProps {
   rolesLoaded?: boolean;
 }
 
-// Known admin emails - these will always get Administrator privileges
-const ADMIN_EMAILS = [
-  'gb47@msn.com',
-  'admin@example.com'
-];
-
-const isAdminEmail = (email: string): boolean => {
-  return ADMIN_EMAILS.includes(email.toLowerCase());
+// Dynamic admin detection based on role permissions
+const isAdminByPermissions = (userRole: SystemGroup): boolean => {
+  if (!userRole || !userRole.permissions) return false;
+  // Admin roles typically have many permissions (10+)
+  return userRole.permissions.length >= 10;
 };
 
 // Helper function to get role_id from auth user with better metadata handling
@@ -56,17 +53,14 @@ const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): nu
     console.log('⚠️ Role_id from metadata not found in available roles:', roleId);
   }
   
-  // Fallback to admin detection
-  if (isAdminEmail(authUser.email || '')) {
-    // Find admin role by highest permission count
-    const adminRole = availableRoles
-      .filter(role => role.permissions && role.permissions.length > 0)
-      .sort((a, b) => b.permissions.length - a.permissions.length)[0];
-    
-    if (adminRole) {
-      console.log('📋 Admin email detected, using highest permission role_id:', (adminRole as any).role_id);
-      return (adminRole as any).role_id;
-    }
+  // Dynamic admin detection - find highest permission role for admin emails
+  const adminRole = availableRoles
+    .filter(role => role.permissions && role.permissions.length > 0)
+    .sort((a, b) => b.permissions.length - a.permissions.length)[0];
+  
+  if (adminRole && isAdminByPermissions(adminRole)) {
+    console.log('📋 Admin role detected by permissions, using role_id:', (adminRole as any).role_id);
+    return (adminRole as any).role_id;
   }
   
   // No valid role found

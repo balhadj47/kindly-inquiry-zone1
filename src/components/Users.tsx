@@ -17,7 +17,7 @@ const Users = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   
-  const { users, hasPermission, loading, currentUser } = useRBAC();
+  const { users, hasPermission, loading, currentUser, roles } = useRBAC();
   const { user: authUser } = useAuth();
   const { refreshPage } = useCacheRefresh();
 
@@ -60,8 +60,19 @@ const Users = () => {
     currentUserRoleId: currentUser?.role_id
   });
 
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = () => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
+  };
+
   // Check if user can manage groups and create users
-  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || currentUser?.role_id === 1;
+  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || isHighPrivilegeUser();
   const canCreateUsers = hasPermission('users:create');
 
   const clearFilters = () => {
@@ -88,9 +99,8 @@ const Users = () => {
     );
   }
 
-  // Check if user has permission to view users - allow admin emails even if currentUser is null
-  const isKnownAdmin = authUser.email === 'gb47@msn.com';
-  const hasUsersReadPermission = hasPermission('users:read') || isKnownAdmin;
+  // Check if user has permission to view users - dynamic privilege check
+  const hasUsersReadPermission = hasPermission('users:read') || isHighPrivilegeUser();
 
   if (!hasUsersReadPermission && !loading) {
     console.log('Users component: No permission to read users');
@@ -102,9 +112,9 @@ const Users = () => {
     );
   }
 
-  // If currentUser is not found but user is authenticated and known admin, allow access
-  if (!currentUser && !isKnownAdmin && !loading) {
-    console.log('Users component: Current user not found and not known admin');
+  // If currentUser is not found but user is authenticated and high privilege, allow access
+  if (!currentUser && !isHighPrivilegeUser() && !loading) {
+    console.log('Users component: Current user not found and not high privilege user');
     return (
       <ErrorState
         title="Profil utilisateur introuvable"

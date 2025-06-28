@@ -1,5 +1,4 @@
 
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -52,7 +51,7 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
-  const { currentUser, loading: rbacLoading, hasPermission } = useRBAC();
+  const { currentUser, loading: rbacLoading, hasPermission, roles } = useRBAC();
 
   console.log('📱 Index: State check:', {
     authUser: authUser?.email || 'null',
@@ -62,6 +61,17 @@ const Index = () => {
     isMobile,
     timestamp: new Date().toISOString()
   });
+
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = React.useCallback((): boolean => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
+  }, [currentUser?.role_id, roles]);
 
   // Enhanced permission check with better error handling
   const checkPermission = React.useCallback((permission: string): boolean => {
@@ -80,9 +90,9 @@ const Index = () => {
         return false;
       }
 
-      // Admin bypass for known admin emails
-      if (authUser.email === 'gb47@msn.com' || authUser.email === 'kacemdbz@gmail.com') {
-        console.log('📱 Index: Admin bypass granted');
+      // High privilege user bypass
+      if (isHighPrivilegeUser()) {
+        console.log('📱 Index: High privilege user bypass granted');
         return true;
       }
 
@@ -107,7 +117,7 @@ const Index = () => {
       // On error, allow access to prevent app from breaking
       return true;
     }
-  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
+  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading, isHighPrivilegeUser]);
 
   // Show loading while auth is loading
   if (authLoading) {
@@ -191,4 +201,3 @@ const Index = () => {
 };
 
 export default Index;
-

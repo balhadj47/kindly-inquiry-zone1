@@ -100,6 +100,17 @@ export const useSidebarMenuItems = () => {
   const currentRole = roles.find(role => role.role_id === currentUser?.role_id);
   const accessiblePages = currentRole?.accessiblePages || [];
   
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = () => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => role.role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
+  };
+  
   console.log('🔍 Menu items processing:', {
     userId: currentUser?.id || 'null',
     userEmail: currentUser?.email || 'null',
@@ -108,7 +119,8 @@ export const useSidebarMenuItems = () => {
     loading: loading,
     rolesCount: roles?.length || 0,
     accessiblePages: accessiblePages,
-    hasPermissionFunction: typeof hasPermission === 'function'
+    hasPermissionFunction: typeof hasPermission === 'function',
+    isHighPrivilegeUser: isHighPrivilegeUser()
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -123,10 +135,10 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // If no roles are loaded yet, wait (but allow admin access)
+  // If no roles are loaded yet, wait (but allow high privilege user access)
   if (!roles || roles.length === 0) {
-    if (currentUser.role_id === 1 || currentUser.id === 'admin-temp') {
-      console.log('🔍 Admin user detected, showing all menu items despite no roles loaded');
+    if (isHighPrivilegeUser()) {
+      console.log('🔍 High privilege user detected, showing all menu items despite no roles loaded');
       return menuItems;
     }
     console.log('🔍 No roles loaded yet, returning empty menu');
@@ -148,7 +160,7 @@ export const useSidebarMenuItems = () => {
       
       // Check both permission and page accessibility
       const hasAccess = hasPermission(item.permission);
-      const pageAccessible = accessiblePages.includes(item.href) || hasPermission('*');
+      const pageAccessible = accessiblePages.includes(item.href) || hasPermission('*') || isHighPrivilegeUser();
       
       console.log(`🔍 Access check for ${item.title}:`, {
         permission: item.permission,

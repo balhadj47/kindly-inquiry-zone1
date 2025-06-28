@@ -7,7 +7,7 @@ import AuthUsers from '@/components/AuthUsers';
 
 const AuthUsersPage = () => {
   const { user: authUser, loading: authLoading } = useAuth();
-  const { currentUser, hasPermission, loading: rbacLoading } = useRBAC();
+  const { currentUser, hasPermission, loading: rbacLoading, roles } = useRBAC();
   const { roleName } = useRoleData(currentUser?.role_id || 0);
   
   console.log('🔍 AuthUsersPage rendering for user:', authUser?.email);
@@ -30,8 +30,18 @@ const AuthUsersPage = () => {
     );
   }
 
-  const isKnownAdmin = authUser.email === 'gb47@msn.com';
-  const hasAuthUsersPermission = isKnownAdmin || (hasPermission && hasPermission('users:read'));
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = () => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
+  };
+
+  const hasAuthUsersPermission = isHighPrivilegeUser() || (hasPermission && hasPermission('users:read'));
 
   if (!hasAuthUsersPermission) {
     return (

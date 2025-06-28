@@ -11,12 +11,13 @@ interface VirtualizedCompanyCardProps {
     companies: Company[];
     onEditCompany: (company: Company) => void;
     onDeleteCompany: (company: Company) => void;
+    onAddBranch: (company: Company) => void;
   };
 }
 
 const VirtualizedCompanyCard: React.FC<VirtualizedCompanyCardProps> = ({ index, style, data }) => {
   const navigate = useNavigate();
-  const { companies, onEditCompany, onDeleteCompany } = data;
+  const { companies, onEditCompany, onDeleteCompany, onAddBranch } = data;
   const company = companies[index];
 
   if (!company) return null;
@@ -38,6 +39,7 @@ const VirtualizedCompanyCard: React.FC<VirtualizedCompanyCardProps> = ({ index, 
           company={company}
           onEdit={onEditCompany}
           onDelete={onDeleteCompany}
+          onAddBranch={onAddBranch}
         />
       </div>
     </div>

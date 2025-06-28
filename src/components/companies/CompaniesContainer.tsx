@@ -140,12 +140,18 @@ const CompaniesContainer = () => {
     }
   };
 
+  // Placeholder for adding branch functionality
+  const handleAddBranch = (company: any) => {
+    console.log('Add branch for company:', company);
+    // TODO: Implement branch creation functionality
+  };
+
   // Enhanced error state handling
   if (error) {
     console.error('❌ Companies: Fetch error:', error);
     return (
       <CompaniesErrorState
-        onAddCompany={handleAddCompany}
+        onAdd={handleAddCompany}
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
@@ -155,7 +161,7 @@ const CompaniesContainer = () => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <CompaniesHeader 
-        onAddCompany={handleAddCompany} 
+        onAdd={handleAddCompany} 
         onRefresh={handleRefresh}
         isRefreshing={isRefreshing}
       />
@@ -177,6 +183,7 @@ const CompaniesContainer = () => {
           clearFilters={clearFilters}
           onEditCompany={handleEditCompany}
           onDeleteCompany={handleDeleteCompany}
+          onAddBranch={handleAddBranch}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={handlePageChange}

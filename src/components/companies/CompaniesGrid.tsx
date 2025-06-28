@@ -22,6 +22,7 @@ interface CompaniesGridProps {
   clearFilters: () => void;
   onEditCompany: (company: Company) => void;
   onDeleteCompany: (company: Company) => void;
+  onAddBranch: (company: Company) => void;
   currentPage: number;
   itemsPerPage: number;
   onPageChange: (page: number) => void;
@@ -33,6 +34,7 @@ const CompaniesGrid: React.FC<CompaniesGridProps> = ({
   clearFilters,
   onEditCompany,
   onDeleteCompany,
+  onAddBranch,
   currentPage,
   itemsPerPage,
   onPageChange,
@@ -74,7 +76,8 @@ const CompaniesGrid: React.FC<CompaniesGridProps> = ({
   const virtualizedData = {
     companies: paginatedCompanies,
     onEditCompany,
-    onDeleteCompany
+    onDeleteCompany,
+    onAddBranch
   };
 
   return (
@@ -104,6 +107,7 @@ const CompaniesGrid: React.FC<CompaniesGridProps> = ({
                 company={company}
                 onEdit={onEditCompany}
                 onDelete={onDeleteCompany}
+                onAddBranch={onAddBranch}
               />
             </div>
           ))}

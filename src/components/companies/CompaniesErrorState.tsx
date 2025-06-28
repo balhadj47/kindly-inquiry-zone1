@@ -3,20 +3,20 @@ import React from 'react';
 import CompaniesHeader from './CompaniesHeader';
 
 interface CompaniesErrorStateProps {
-  onAddCompany: () => void;
+  onAdd: () => void;
   onRefresh: () => void;
   isRefreshing: boolean;
 }
 
 const CompaniesErrorState = ({ 
-  onAddCompany, 
+  onAdd, 
   onRefresh, 
   isRefreshing 
 }: CompaniesErrorStateProps) => {
   return (
     <div className="space-y-4 sm:space-y-6">
       <CompaniesHeader 
-        onAddCompany={onAddCompany} 
+        onAdd={onAdd} 
         onRefresh={onRefresh}
         isRefreshing={isRefreshing}
       />

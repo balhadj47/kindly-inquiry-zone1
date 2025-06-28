@@ -23,11 +23,35 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       console.log('User has permission to create users, proceeding...');
       
-      // For employees, use role_id: 4 (Utilisateur) instead of 3
+      // Get default role_id dynamically from available roles
+      let defaultRoleId = userData.role_id;
+      if (!defaultRoleId) {
+        // Fetch available roles to determine default
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('user_groups')
+          .select('role_id, name')
+          .order('role_id', { ascending: true });
+        
+        if (!rolesError && rolesData && rolesData.length > 0) {
+          // Look for employee/user role, otherwise use first available
+          const employeeRole = rolesData.find(role => 
+            role.name?.toLowerCase().includes('utilisateur') ||
+            role.name?.toLowerCase().includes('employee') ||
+            role.name?.toLowerCase().includes('employe') ||
+            role.name?.toLowerCase().includes('user')
+          );
+          defaultRoleId = employeeRole?.role_id || rolesData[0].role_id;
+          console.log('Using default role_id:', defaultRoleId, 'from available roles');
+        } else {
+          console.warn('Could not fetch roles for default, using null role_id');
+          defaultRoleId = null;
+        }
+      }
+      
       const insertData: any = {
         name: userData.name,
         phone: userData.phone || null,
-        role_id: userData.role_id || 4, // Default to Utilisateur role
+        role_id: defaultRoleId,
         status: userData.status || 'Active',
         profile_image: userData.profileImage || null,
         total_trips: userData.totalTrips || 0,
@@ -39,8 +63,32 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         driver_license: userData.driverLicense && userData.driverLicense.trim() !== '' ? userData.driverLicense : null,
       };
 
-      // Only set email for non-employees (roles other than 4)
-      if (userData.role_id !== 4 && userData.email && userData.email.trim() !== '') {
+      // Determine if this role should have email based on role permissions
+      // Only set email for roles that aren't basic employee roles
+      let shouldHaveEmail = true;
+      if (defaultRoleId) {
+        const { data: roleData, error: roleError } = await supabase
+          .from('user_groups')
+          .select('name, permissions')
+          .eq('role_id', defaultRoleId)
+          .single();
+        
+        if (!roleError && roleData) {
+          // Check if this is a basic employee role (limited permissions)
+          const isBasicEmployeeRole = roleData.name?.toLowerCase().includes('utilisateur') ||
+            roleData.name?.toLowerCase().includes('employee') ||
+            roleData.name?.toLowerCase().includes('employe');
+          
+          shouldHaveEmail = !isBasicEmployeeRole;
+          console.log('Role analysis:', {
+            roleName: roleData.name,
+            isBasicEmployeeRole,
+            shouldHaveEmail
+          });
+        }
+      }
+
+      if (shouldHaveEmail && userData.email && userData.email.trim() !== '') {
         insertData.email = userData.email;
       }
 
@@ -66,7 +114,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
         name: dbUser.name || '',
         email: dbUser.email || undefined,
         phone: dbUser.phone || '',
-        role_id: dbUser.role_id || 3,
+        role_id: dbUser.role_id || null,
         status: dbUser.status as UserStatus,
         createdAt: dbUser.created_at,
         profileImage: dbUser.profile_image || undefined,

@@ -1,3 +1,4 @@
+
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -19,7 +20,7 @@ interface UseRBACDataInitProps {
   rolesLoaded?: boolean;
 }
 
-// Known admin emails - these will always get Administrator privileges (role_id: 1)
+// Known admin emails - these will always get Administrator privileges
 const ADMIN_EMAILS = [
   'gb47@msn.com',
   'admin@example.com'
@@ -30,7 +31,7 @@ const isAdminEmail = (email: string): boolean => {
 };
 
 // Helper function to get role_id from auth user with better metadata handling
-const getRoleIdFromAuthUser = (authUser: any): number => {
+const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): number | null => {
   console.log('🔍 getRoleIdFromAuthUser: Full auth user object:', authUser);
   console.log('🔍 getRoleIdFromAuthUser: user_metadata:', authUser.user_metadata);
   console.log('🔍 getRoleIdFromAuthUser: app_metadata:', authUser.app_metadata);
@@ -45,22 +46,59 @@ const getRoleIdFromAuthUser = (authUser: any): number => {
   
   console.log('🔍 getRoleIdFromAuthUser: Found possible role_id:', possibleRoleId);
   
-  // If we found a role_id, use it (convert to number if needed)
+  // If we found a role_id, validate it exists in available roles
   if (possibleRoleId !== undefined && possibleRoleId !== null) {
     const roleId = typeof possibleRoleId === 'string' ? parseInt(possibleRoleId) : possibleRoleId;
-    console.log('📋 Found role_id in metadata:', roleId);
-    return roleId;
+    const roleExists = availableRoles.some(role => (role as any).role_id === roleId);
+    if (roleExists) {
+      console.log('📋 Found valid role_id in metadata:', roleId);
+      return roleId;
+    }
+    console.log('⚠️ Role_id from metadata not found in available roles:', roleId);
   }
   
-  // Fallback to email-based admin detection
+  // Fallback to admin detection
   if (isAdminEmail(authUser.email || '')) {
-    console.log('📋 Admin email detected, assigning role_id: 1');
-    return 1; // Administrator
+    // Find admin role dynamically
+    const adminRole = availableRoles.find(role => 
+      role.name.toLowerCase().includes('admin') || 
+      role.name.toLowerCase().includes('administrator')
+    );
+    if (adminRole) {
+      console.log('📋 Admin email detected, using admin role_id:', (adminRole as any).role_id);
+      return (adminRole as any).role_id;
+    }
   }
   
-  // Default to Utilisateur role for authenticated users (using your existing role_id: 4)
-  console.log('📋 No role_id found, defaulting to Utilisateur role_id: 4');
-  return 4; // Utilisateur as default for auth users
+  // No valid role found
+  console.log('📋 No valid role_id found, will use default from available roles');
+  return null;
+};
+
+// Helper to get default role from available roles
+const getDefaultRoleId = (availableRoles: SystemGroup[]): number | null => {
+  if (!availableRoles || availableRoles.length === 0) {
+    console.warn('⚠️ No available roles to choose default from');
+    return null;
+  }
+
+  // Priority order: look for common role names
+  const rolePriority = ['utilisateur', 'user', 'employee', 'employe', 'supervisor', 'admin'];
+  
+  for (const priority of rolePriority) {
+    const role = availableRoles.find(r => 
+      r.name.toLowerCase().includes(priority)
+    );
+    if (role) {
+      console.log('📋 Using default role:', role.name, 'with role_id:', (role as any).role_id);
+      return (role as any).role_id;
+    }
+  }
+  
+  // If no priority match, use first available role
+  const firstRole = availableRoles[0];
+  console.log('📋 Using first available role as default:', firstRole.name, 'with role_id:', (firstRole as any).role_id);
+  return (firstRole as any).role_id;
 };
 
 export const useRBACDataInit = ({ 
@@ -139,10 +177,15 @@ export const useRBACDataInit = ({
         // Don't load users table for authentication - keep it empty for auth purposes
         setUsers([]);
 
-        // Create current user from auth user data with improved role detection
-        let roleId = getRoleIdFromAuthUser(authUser);
+        // Create current user from auth user data with dynamic role detection
+        let roleId = getRoleIdFromAuthUser(authUser, systemGroups);
         
-        console.log('🔐 useRBACDataInit: Initial role_id assignment:', roleId, 'for email:', authUser.email);
+        // If no role found in metadata, use default
+        if (roleId === null) {
+          roleId = getDefaultRoleId(systemGroups);
+        }
+        
+        console.log('🔐 useRBACDataInit: Final role_id assignment:', roleId, 'for email:', authUser.email);
         
         // Verify the role exists in the database
         const roleExists = systemGroups.some(role => (role as any).role_id === roleId);
@@ -164,9 +207,8 @@ export const useRBACDataInit = ({
           console.warn('⚠️ useRBACDataInit: Available roles:', 
             systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
           );
-          // Find a suitable fallback role (prefer supervisor over admin)
-          const supervisorRole = systemGroups.find(r => (r as any).role_id === 2);
-          const fallbackRoleId = supervisorRole ? 2 : (systemGroups[0] as any).role_id;
+          // Use the first available role as fallback
+          const fallbackRoleId = (systemGroups[0] as any).role_id;
           console.log(`🔄 useRBACDataInit: Using fallback role_id: ${fallbackRoleId}`);
           roleId = fallbackRoleId;
         }

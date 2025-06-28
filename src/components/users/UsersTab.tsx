@@ -8,6 +8,7 @@ import UserListContent from './UserListContent';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useUsersFiltering } from '@/hooks/useUsersFiltering';
 import { useUsersPagination } from '@/hooks/useUsersPagination';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface UsersTabProps {
   users: User[];
@@ -39,6 +40,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
   onChangePassword,
 }) => {
   const isMobile = useIsMobile();
+  const { roles } = useRBAC();
   const [view, setView] = useState<'grid' | 'table'>(isMobile ? 'grid' : 'table');
   
   const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
@@ -52,7 +54,41 @@ const UsersTab: React.FC<UsersTabProps> = ({
     roleFilter
   });
 
-  // Enhanced filtering with comprehensive error handling for non-employee users
+  // Dynamically determine which roles are employee roles based on their permissions/names
+  const getEmployeeRoleIds = React.useMemo(() => {
+    if (!Array.isArray(roles) || roles.length === 0) {
+      console.warn('⚠️ UsersTab: No roles available for employee detection');
+      return [];
+    }
+
+    const employeeRoleIds = roles
+      .filter(role => {
+        // Check if role name suggests it's an employee role
+        const roleName = role.name?.toLowerCase() || '';
+        const isEmployeeByName = roleName.includes('utilisateur') ||
+          roleName.includes('employee') ||
+          roleName.includes('employe') ||
+          roleName.includes('user');
+
+        // Check if role has limited permissions (suggesting employee level)
+        const hasLimitedPermissions = role.permissions && role.permissions.length < 10;
+
+        // Exclude obvious admin/supervisor roles
+        const isAdminOrSupervisor = roleName.includes('admin') ||
+          roleName.includes('supervisor') ||
+          roleName.includes('superviseur') ||
+          roleName.includes('manager');
+
+        return (isEmployeeByName || hasLimitedPermissions) && !isAdminOrSupervisor;
+      })
+      .map(role => (role as any).role_id)
+      .filter(roleId => roleId !== null && roleId !== undefined);
+
+    console.log('👥 UsersTab: Detected employee role IDs:', employeeRoleIds);
+    return employeeRoleIds;
+  }, [roles]);
+
+  // Enhanced filtering with dynamic employee role detection
   const nonEmployeeUsers = React.useMemo(() => {
     try {
       // Handle null/undefined users
@@ -85,13 +121,14 @@ const UsersTab: React.FC<UsersTabProps> = ({
           return true; // Include users without role_id (might be admins)
         }
         
-        // Filter out employees (role_id: 4) - show only admins and supervisors
-        return roleId !== 4;
+        // Filter out employees dynamically - show only admins and supervisors
+        return !getEmployeeRoleIds.includes(roleId);
       });
       
       console.log('✅ UsersTab: Filtered non-employee users:', {
         originalCount: users.length,
         filteredCount: filtered.length,
+        employeeRoleIds: getEmployeeRoleIds,
         filtered: filtered.map(u => ({ id: u.id, name: u.name, role_id: u.role_id }))
       });
       
@@ -100,7 +137,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
       console.error('❌ UsersTab: Critical error filtering non-employee users:', error);
       return [];
     }
-  }, [users]);
+  }, [users, getEmployeeRoleIds]);
 
   // Use our custom filtering hook with enhanced error handling
   const filteringResult = useUsersFiltering({

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Bell, Eye, Circle, StopCircle, Trash2, X } from 'lucide-react';
+import { Bell, Circle, StopCircle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -153,6 +153,11 @@ const MissionsList: React.FC<MissionsListProps> = ({
       setShowTerminatePrompt(false);
       setTerminateMission(null);
       setFinalKm('');
+      
+      // Call the parent's terminate handler if provided
+      if (onTerminateMission) {
+        onTerminateMission(terminateMission);
+      }
     } catch (error) {
       console.error('Error terminating mission:', error);
       toast({
@@ -169,6 +174,12 @@ const MissionsList: React.FC<MissionsListProps> = ({
     setShowTerminatePrompt(false);
     setTerminateMission(null);
     setFinalKm('');
+  };
+
+  const handleDeleteClick = (mission: Trip) => {
+    if (onDeleteMission) {
+      onDeleteMission(mission);
+    }
   };
 
   if (filteredMissions.length === 0) {
@@ -219,24 +230,15 @@ const MissionsList: React.FC<MissionsListProps> = ({
               </div>
               
               <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleMissionClick(mission)}
-                  className="text-gray-400 hover:text-blue-500"
-                >
-                  <Eye className="h-4 w-4" />
-                </Button>
-                
                 {canDelete && mission.status === 'active' && (
                   <Button
-                    variant="ghost"
+                    variant="outline"
                     size="sm"
                     onClick={() => handleTerminateClick(mission)}
-                    disabled={actionLoading === 'loading'}
-                    className="text-orange-500 hover:text-orange-600 hover:bg-orange-50"
+                    disabled={actionLoading === 'loading' || isTerminating}
+                    className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
                   >
-                    <StopCircle className="h-4 w-4" />
+                    Terminer
                   </Button>
                 )}
                 
@@ -244,7 +246,7 @@ const MissionsList: React.FC<MissionsListProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onDeleteMission(mission)}
+                    onClick={() => handleDeleteClick(mission)}
                     disabled={actionLoading === 'loading'}
                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
                   >
@@ -359,12 +361,14 @@ const MissionsList: React.FC<MissionsListProps> = ({
         </div>
       )}
 
-      <MissionDetailsDialog
-        mission={selectedMission}
-        isOpen={isDetailsDialogOpen}
-        onClose={handleCloseDialog}
-        getVanDisplayName={getVanDisplayName}
-      />
+      {selectedMission && (
+        <MissionDetailsDialog
+          mission={selectedMission}
+          isOpen={isDetailsDialogOpen}
+          onClose={handleCloseDialog}
+          getVanDisplayName={getVanDisplayName}
+        />
+      )}
     </>
   );
 };

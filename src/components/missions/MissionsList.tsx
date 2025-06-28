@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { Bell, Eye, Circle } from 'lucide-react';
+import { Bell, Eye, Circle, StopCircle, Trash2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
 import MissionDetailsDialog from './MissionDetailsDialog';
@@ -116,11 +117,10 @@ const MissionsList: React.FC<MissionsListProps> = ({
         {filteredMissions.map((mission) => (
           <div
             key={mission.id}
-            className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all duration-200 cursor-pointer group"
-            onClick={() => handleMissionClick(mission)}
+            className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group"
           >
             <div className="flex items-start justify-between mb-6">
-              <div className="flex-1">
+              <div className="flex-1 cursor-pointer" onClick={() => handleMissionClick(mission)}>
                 <div className="flex items-center space-x-3 mb-2">
                   <h3 className="text-xl font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                     {mission.company}
@@ -138,7 +138,41 @@ const MissionsList: React.FC<MissionsListProps> = ({
                 </div>
                 <p className="text-gray-600 mb-4">{mission.branch}</p>
               </div>
-              <Eye className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+              
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleMissionClick(mission)}
+                  className="text-gray-400 hover:text-blue-500"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                
+                {canDelete && mission.status === 'active' && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onTerminateMission(mission)}
+                    disabled={actionLoading === 'loading'}
+                    className="text-orange-500 hover:text-orange-600 hover:bg-orange-50"
+                  >
+                    <StopCircle className="h-4 w-4" />
+                  </Button>
+                )}
+                
+                {canDelete && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDeleteMission(mission)}
+                    disabled={actionLoading === 'loading'}
+                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

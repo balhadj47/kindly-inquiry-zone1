@@ -77,7 +77,7 @@ const AuthUsersList: React.FC<AuthUsersListProps> = ({
           onDelete={onDeleteUser}
           canEdit={canEdit}
           canDelete={canDelete}
-          isLoading={actionLoading === user.id}
+          actionLoading={actionLoading}
         />
       ))}
     </div>

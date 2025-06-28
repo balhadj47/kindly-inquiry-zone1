@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Bell, Eye } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
-import MissionCard from './MissionCard';
 import MissionDetailsDialog from './MissionDetailsDialog';
 
 interface MissionsListProps {
@@ -60,6 +59,32 @@ const MissionsList: React.FC<MissionsListProps> = ({
     return vanId; // Simple implementation, can be enhanced later
   };
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'bg-green-100 text-green-800';
+      case 'completed':
+        return 'bg-blue-100 text-blue-800';
+      case 'terminated':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case 'active':
+        return 'Active';
+      case 'completed':
+        return 'Terminée';
+      case 'terminated':
+        return 'Annulée';
+      default:
+        return 'Inconnu';
+    }
+  };
+
   if (filteredMissions.length === 0) {
     return (
       <div className="text-center py-12">
@@ -86,53 +111,68 @@ const MissionsList: React.FC<MissionsListProps> = ({
           {filteredMissions.map((mission) => (
             <div
               key={mission.id}
-              className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
+              className="p-6 hover:bg-gray-50 cursor-pointer transition-colors"
               onClick={() => handleMissionClick(mission)}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-start justify-between">
                 <div className="flex-1">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-gray-900">
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {mission.company}
                       </h3>
                       <p className="text-sm text-gray-600">{mission.branch}</p>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
-                        {mission.driver}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {mission.van}
-                      </p>
+                    <div className="flex items-center space-x-3">
+                      <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(mission.status || 'active')}`}>
+                        {getStatusText(mission.status || 'active')}
+                      </span>
+                      <Eye className="h-5 w-5 text-gray-400" />
                     </div>
                   </div>
                   
-                  <div className="mt-3 flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
-                        mission.status === 'active' 
-                          ? 'bg-green-100 text-green-800' 
-                          : mission.status === 'completed'
-                          ? 'bg-blue-100 text-blue-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {mission.status === 'active' ? 'Active' : 
-                         mission.status === 'completed' ? 'Terminée' : 'Annulée'}
-                      </span>
-                      
-                      {(mission.startKm || mission.start_km) && (
-                        <span className="text-sm text-gray-600">
-                          Km: {mission.startKm || mission.start_km}
-                          {(mission.endKm || mission.end_km) && 
-                            ` - ${mission.endKm || mission.end_km}`
-                          }
-                        </span>
-                      )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-2">
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 w-20">Chauffeur:</span>
+                        <span className="text-blue-600 font-medium">{mission.driver}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="font-medium text-gray-700 w-20">Véhicule:</span>
+                        <span className="text-purple-600 font-medium">{mission.van}</span>
+                      </div>
                     </div>
                     
-                    <Eye className="h-5 w-5 text-gray-400" />
+                    <div className="space-y-2">
+                      {(mission.startKm || mission.start_km) && (
+                        <div className="flex items-center">
+                          <span className="font-medium text-gray-700 w-24">Km début:</span>
+                          <span className="text-green-600 font-medium">{mission.startKm || mission.start_km}</span>
+                          {(mission.endKm || mission.end_km) && (
+                            <>
+                              <span className="mx-2 text-gray-400">→</span>
+                              <span className="font-medium text-gray-700">Km fin:</span>
+                              <span className="text-red-600 font-medium ml-1">{mission.endKm || mission.end_km}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
+                      
+                      {mission.destination && (
+                        <div className="flex items-center">
+                          <span className="font-medium text-gray-700 w-24">Destination:</span>
+                          <span className="text-orange-600 font-medium">{mission.destination}</span>
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {mission.notes && (
+                    <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                      <span className="text-sm font-medium text-yellow-800">Notes: </span>
+                      <span className="text-sm text-yellow-700">{mission.notes}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

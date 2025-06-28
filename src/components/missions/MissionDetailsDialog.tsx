@@ -20,7 +20,7 @@ import {
   FileText,
   Users,
   Circle,
-  AlertTriangle,
+  CheckCircle,
   X
 } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
@@ -54,9 +54,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   onClose,
   getVanDisplayName,
 }) => {
-  const [showTerminateForm, setShowTerminateForm] = useState(false);
-  const [currentKm, setCurrentKm] = useState('');
-  const [isTerminating, setIsTerminating] = useState(false);
+  const [showCompleteForm, setShowCompleteForm] = useState(false);
+  const [finalKm, setFinalKm] = useState('');
+  const [isCompleting, setIsCompleting] = useState(false);
   
   const { data: vans = [] } = useVans();
   const { data: usersData } = useUsers();
@@ -93,17 +93,17 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     };
   };
 
-  const handleTerminateMission = async () => {
-    if (!mission || !currentKm) {
+  const handleCompleteMission = async () => {
+    if (!mission || !finalKm) {
       toast({
         title: 'Erreur',
-        description: 'Veuillez saisir le kilométrage actuel',
+        description: 'Veuillez saisir le kilométrage final',
         variant: 'destructive',
       });
       return;
     }
 
-    const kmNumber = parseInt(currentKm, 10);
+    const kmNumber = parseInt(finalKm, 10);
     if (isNaN(kmNumber) || kmNumber < 0) {
       toast({
         title: 'Erreur',
@@ -122,18 +122,18 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
       return;
     }
 
-    setIsTerminating(true);
+    setIsCompleting(true);
     try {
-      console.log('🎯 Terminating mission with data:', {
+      console.log('🎯 Completing mission with data:', {
         id: mission.id,
         end_km: kmNumber,
-        status: 'terminated'
+        status: 'completed'
       });
       
       await updateTrip.mutateAsync({
-        id: mission.id.toString(), // Convert to string for the mutation
+        id: mission.id.toString(),
         end_km: kmNumber,
-        status: 'terminated'
+        status: 'completed'
       });
       
       toast({
@@ -141,18 +141,18 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
         description: 'Mission terminée avec succès',
       });
       
-      setShowTerminateForm(false);
-      setCurrentKm('');
+      setShowCompleteForm(false);
+      setFinalKm('');
       onClose();
     } catch (error) {
-      console.error('Error terminating mission:', error);
+      console.error('Error completing mission:', error);
       toast({
         title: 'Erreur',
         description: 'Impossible de terminer la mission',
         variant: 'destructive',
       });
     } finally {
-      setIsTerminating(false);
+      setIsCompleting(false);
     }
   };
 
@@ -199,7 +199,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   };
 
   const vanInfo = getVanInfo(mission.van);
-  const canTerminate = mission.status === 'active';
+  const canComplete = mission.status === 'active';
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -225,14 +225,14 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                   {getStatusText(mission.status || 'active')}
                 </span>
               </div>
-              {canTerminate && (
+              {canComplete && (
                 <Button
-                  variant="destructive"
+                  variant="default"
                   size="sm"
-                  onClick={() => setShowTerminateForm(true)}
-                  className="bg-red-500 hover:bg-red-600"
+                  onClick={() => setShowCompleteForm(true)}
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  <CheckCircle className="h-4 w-4 mr-2" />
                   Terminer Mission
                 </Button>
               )}
@@ -240,20 +240,20 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           </div>
         </DialogHeader>
 
-        {/* Terminate Mission Form */}
-        {showTerminateForm && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-6 mb-6">
+        {/* Complete Mission Form */}
+        {showCompleteForm && (
+          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-                <h3 className="text-lg font-semibold text-red-800">Terminer la Mission</h3>
+                <CheckCircle className="h-5 w-5 text-green-600" />
+                <h3 className="text-lg font-semibold text-green-800">Terminer la Mission</h3>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setShowTerminateForm(false);
-                  setCurrentKm('');
+                  setShowCompleteForm(false);
+                  setFinalKm('');
                 }}
               >
                 <X className="h-4 w-4" />
@@ -261,37 +261,37 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
             </div>
             <div className="space-y-4">
               <div>
-                <Label htmlFor="currentKm" className="text-red-700 font-medium">
-                  Kilométrage Actuel du Véhicule
+                <Label htmlFor="finalKm" className="text-green-700 font-medium">
+                  Kilométrage Final du Véhicule
                 </Label>
                 <Input
-                  id="currentKm"
+                  id="finalKm"
                   type="number"
-                  placeholder="Entrez le kilométrage actuel"
-                  value={currentKm}
-                  onChange={(e) => setCurrentKm(e.target.value)}
+                  placeholder="Entrez le kilométrage final"
+                  value={finalKm}
+                  onChange={(e) => setFinalKm(e.target.value)}
                   className="mt-2"
                   min={mission.start_km || 0}
                 />
                 {mission.start_km && (
-                  <p className="text-sm text-red-600 mt-1">
+                  <p className="text-sm text-green-600 mt-1">
                     Kilométrage initial: {mission.start_km} km
                   </p>
                 )}
               </div>
               <div className="flex gap-3">
                 <Button
-                  onClick={handleTerminateMission}
-                  disabled={!currentKm || isTerminating}
-                  className="bg-red-600 hover:bg-red-700"
+                  onClick={handleCompleteMission}
+                  disabled={!finalKm || isCompleting}
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  {isTerminating ? 'Terminaison...' : 'Confirmer Terminaison'}
+                  {isCompleting ? 'Finalisation...' : 'Confirmer Finalisation'}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowTerminateForm(false);
-                    setCurrentKm('');
+                    setShowCompleteForm(false);
+                    setFinalKm('');
                   }}
                 >
                   Annuler

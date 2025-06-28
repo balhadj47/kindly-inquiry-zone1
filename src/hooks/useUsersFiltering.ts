@@ -1,7 +1,7 @@
 
 import { useMemo } from 'react';
 import { User } from '@/types/rbac';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 
 interface UseUsersFilteringProps {
   users: User[];
@@ -64,6 +64,29 @@ export const useUsersFiltering = ({
     }
   }, [searchTerm]);
 
+  // Get unique roles for filtering (we'll need to resolve these)
+  const uniqueRoles = useMemo(() => {
+    try {
+      const rolesSet = new Set<string>();
+      safeUsers.forEach(user => {
+        try {
+          if (user?.role_id && typeof user.role_id === 'number') {
+            // We'll use role_id as a string for now since we can't easily get role names in a memoized hook
+            rolesSet.add(`Role ${user.role_id}`);
+          }
+        } catch (error) {
+          console.warn('🔍 useUsersFiltering: Error processing role for user:', user?.id, error);
+        }
+      });
+      const roles = Array.from(rolesSet);
+      console.log('🔍 useUsersFiltering: Unique roles:', roles);
+      return roles;
+    } catch (error) {
+      console.error('🔍 useUsersFiltering: Error calculating unique roles:', error);
+      return [];
+    }
+  }, [safeUsers]);
+
   // Memoize filter functions for better performance
   const filterFunctions = useMemo(() => {
     try {
@@ -95,8 +118,8 @@ export const useUsersFiltering = ({
         roleFilter: (user: User) => {
           try {
             if (!roleFilter || roleFilter === 'all') return true;
-            const roleName = getRoleNameFromId(user.role_id);
-            return roleName === roleFilter;
+            // For now, we'll use a simple role_id comparison since we can't async resolve in a memo
+            return `Role ${user.role_id}` === roleFilter;
           } catch (error) {
             console.warn('🔍 useUsersFiltering: Error in role filter for user:', user.id, error);
             return false;
@@ -162,30 +185,6 @@ export const useUsersFiltering = ({
       return statuses;
     } catch (error) {
       console.error('🔍 useUsersFiltering: Error calculating unique statuses:', error);
-      return [];
-    }
-  }, [safeUsers]);
-
-  const uniqueRoles = useMemo(() => {
-    try {
-      const rolesSet = new Set<string>();
-      safeUsers.forEach(user => {
-        try {
-          if (user?.role_id && typeof user.role_id === 'number') {
-            const roleName = getRoleNameFromId(user.role_id);
-            if (roleName) {
-              rolesSet.add(roleName);
-            }
-          }
-        } catch (error) {
-          console.warn('🔍 useUsersFiltering: Error processing role for user:', user?.id, error);
-        }
-      });
-      const roles = Array.from(rolesSet);
-      console.log('🔍 useUsersFiltering: Unique roles:', roles);
-      return roles;
-    } catch (error) {
-      console.error('🔍 useUsersFiltering: Error calculating unique roles:', error);
       return [];
     }
   }, [safeUsers]);

@@ -12,7 +12,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useSystemSettings } from '@/hooks/useSystemSettings';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 
 const UserProfile = () => {
   const { user, signOut } = useAuth();
@@ -69,7 +69,7 @@ const UserProfile = () => {
   // Get user name and role information from auth metadata and RBAC context
   const userName = user.user_metadata?.name || currentUser?.name || user.email?.split('@')[0] || 'User';
   const userRoleId = user.user_metadata?.role_id || currentUser?.role_id || 2;
-  const userRole = getRoleNameFromId(userRoleId);
+  const { roleName: userRole } = useRoleData(userRoleId);
   
   const userInitials = userName
     .split(' ')

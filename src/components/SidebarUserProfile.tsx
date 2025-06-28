@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -13,7 +14,7 @@ import {
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSidebar } from '@/components/ui/sidebar';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 
 const SidebarUserProfile = () => {
   const { currentUser } = useRBAC();
@@ -26,7 +27,7 @@ const SidebarUserProfile = () => {
     (currentUser?.email ? currentUser.email.split('@')[0].substring(0, 2).toUpperCase() : 'U');
 
   const userName = currentUser?.name || currentUser?.email?.split('@')[0] || 'User';
-  const userRole = getRoleNameFromId(currentUser?.role_id || 3); // Use synchronous function
+  const { roleName: userRole } = useRoleData(currentUser?.role_id || 3);
   const isAdmin = currentUser?.role_id === 1;
 
   const handleUserProfileClick = () => {

@@ -6,7 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Phone, Mail } from 'lucide-react';
 import { User } from '@/types/rbac';
 import { getStatusColor, getUserInitials } from '@/utils/userDisplayUtils';
-import { getRoleNameFromId, getRoleColorFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 import UserActions from './UserActions';
 
 interface UserTableRowProps {
@@ -32,15 +32,7 @@ const UserTableRow: React.FC<UserTableRowProps> = React.memo(({
     [user.name]
   );
 
-  const roleName = React.useMemo(() => 
-    getRoleNameFromId(user.role_id),
-    [user.role_id]
-  );
-
-  const roleColor = React.useMemo(() => 
-    getRoleColorFromId(user.role_id),
-    [user.role_id]
-  );
+  const { roleName, roleColor } = useRoleData(user.role_id);
 
   const statusColorClasses = React.useMemo(() => 
     getStatusColor(user.status),

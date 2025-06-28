@@ -40,19 +40,24 @@ export const useDrivers = () => {
       const endTime = performance.now();
       console.log('👨‍💼 useDriversOptimized: Fetched in:', endTime - startTime, 'ms');
       
-      // Transform data to match Driver interface
-      return (data || []).map(user => ({
-        id: user.id.toString(),
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        licenseNumber: user.driver_license || '', // Use driver_license from database
-        status: user.status || 'Active',
-        systemGroup: getRoleNameFromId(user.role_id || 3), // Use role_id and convert to display name
-        totalTrips: user.total_trips || 0,
-        lastTrip: user.last_trip || null,
-        created_at: user.created_at,
+      // Transform data to match Driver interface with async role names
+      const drivers = await Promise.all((data || []).map(async (user) => {
+        const roleName = await getRoleNameFromId(user.role_id || 3);
+        return {
+          id: user.id.toString(),
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          licenseNumber: user.driver_license || '',
+          status: user.status || 'Active',
+          systemGroup: roleName,
+          totalTrips: user.total_trips || 0,
+          lastTrip: user.last_trip || null,
+          created_at: user.created_at,
+        };
       }));
+
+      return drivers;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
@@ -94,17 +99,23 @@ export const useAvailableDrivers = () => {
       const endTime = performance.now();
       console.log('👨‍💼 useDriversOptimized: Fetched available drivers in:', endTime - startTime, 'ms');
       
-      return (allDrivers || []).map(user => ({
-        id: user.id.toString(),
-        name: user.name || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        licenseNumber: user.driver_license || '',
-        status: user.status || 'Active',
-        systemGroup: getRoleNameFromId(user.role_id || 3),
-        totalTrips: user.total_trips || 0,
-        lastTrip: user.last_trip || null,
+      // Transform data with async role names
+      const drivers = await Promise.all((allDrivers || []).map(async (user) => {
+        const roleName = await getRoleNameFromId(user.role_id || 3);
+        return {
+          id: user.id.toString(),
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          licenseNumber: user.driver_license || '',
+          status: user.status || 'Active',
+          systemGroup: roleName,
+          totalTrips: user.total_trips || 0,
+          lastTrip: user.last_trip || null,
+        };
       }));
+
+      return drivers;
     },
     staleTime: 2 * 60 * 1000, // 2 minutes (shorter for availability)
     gcTime: 5 * 60 * 1000, // 5 minutes
@@ -139,6 +150,8 @@ export const useDriverWithStats = (driverId: string | null) => {
       const endTime = performance.now();
       console.log('👨‍💼 useDriversOptimized: Fetched driver with stats in:', endTime - startTime, 'ms');
       
+      const roleName = await getRoleNameFromId(driver.role_id || 3);
+      
       return {
         id: driver.id.toString(),
         name: driver.name || '',
@@ -146,7 +159,7 @@ export const useDriverWithStats = (driverId: string | null) => {
         phone: driver.phone || '',
         licenseNumber: driver.driver_license || '',
         status: driver.status || 'Active',
-        systemGroup: getRoleNameFromId(driver.role_id || 3),
+        systemGroup: roleName,
         totalTrips: driver.total_trips || 0,
         lastTrip: driver.last_trip || null,
       };

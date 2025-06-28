@@ -7,7 +7,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Search, User, Phone, Mail, Plus, RefreshCw } from 'lucide-react';
 import DriverModal from './DriverModal';
 import { useRBAC } from '@/contexts/RBACContext';
-import { getRoleNameFromId, isDriverRole } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
+import { isDriverRole } from '@/utils/roleUtils';
 
 const DriversLoadingSkeleton = () => {
   return (
@@ -70,6 +71,66 @@ const DriversLoadingSkeleton = () => {
   );
 };
 
+const DriverCard: React.FC<{ driver: any; onEditDriver: (driver: any) => void; getStatusColor: (status: string) => string }> = ({ 
+  driver, 
+  onEditDriver, 
+  getStatusColor 
+}) => {
+  const { roleName } = useRoleData(driver.role_id);
+  
+  return (
+    <Card key={driver.id} className="hover:shadow-lg transition-shadow">
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div>
+            <CardTitle className="text-lg">{driver.name}</CardTitle>
+            <p className="text-sm text-gray-600">{driver.licenseNumber}</p>
+          </div>
+          <Badge className={getStatusColor(driver.status)}>
+            {driver.status}
+          </Badge>
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <div className="flex items-center space-x-2">
+            <Phone className="h-4 w-4 text-gray-500" />
+            <span className="text-sm">{driver.phone}</span>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Mail className="h-4 w-4 text-gray-500" />
+            <span className="text-sm">{driver.email}</span>
+          </div>
+        </div>
+        
+        <div className="text-sm text-gray-600">
+          <p><span className="font-medium">Role:</span> {roleName}</p>
+          <p><span className="font-medium">Voyages Totaux:</span> {driver.totalTrips || 0}</p>
+          <p><span className="font-medium">Dernier Voyage:</span> {driver.lastTrip || 'Jamais'}</p>
+        </div>
+        
+        <div className="flex space-x-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onEditDriver(driver)}
+            className="flex-1"
+          >
+            Modifier
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+          >
+            Voir Historique
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
 const Drivers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -100,11 +161,21 @@ const Drivers = () => {
   }
 
   // Filter users who are drivers (have driver-related roles and license numbers)
-  const drivers = useMemo(() => {
-    return users.filter(user => 
+  const drivers = useMemo(async () => {
+    const driverUsers = users.filter(user => 
       user.licenseNumber && 
-      isDriverRole(user.role_id)
+      user.role_id
     );
+    
+    // Filter only those with driver roles
+    const filteredDrivers = [];
+    for (const user of driverUsers) {
+      if (await isDriverRole(user.role_id)) {
+        filteredDrivers.push(user);
+      }
+    }
+    
+    return filteredDrivers;
   }, [users]);
 
   const filteredDrivers = drivers.filter(driver =>
@@ -192,61 +263,34 @@ const Drivers = () => {
       )}
 
       {/* Drivers Grid */}
-      {filteredDrivers.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredDrivers.map((driver) => (
-            <Card key={driver.id} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <CardTitle className="text-lg">{driver.name}</CardTitle>
-                    <p className="text-sm text-gray-600">{driver.licenseNumber}</p>
-                  </div>
-                  <Badge className={getStatusColor(driver.status)}>
-                    {driver.status}
-                  </Badge>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Phone className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{driver.phone}</span>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Mail className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">{driver.email}</span>
-                  </div>
-                </div>
-                
-                <div className="text-sm text-gray-600">
-                  <p><span className="font-medium">Role:</span> {getRoleNameFromId(driver.role_id)}</p>
-                  <p><span className="font-medium">Voyages Totaux:</span> {driver.totalTrips || 0}</p>
-                  <p><span className="font-medium">Dernier Voyage:</span> {driver.lastTrip || 'Jamais'}</p>
-                </div>
-                
-                <div className="flex space-x-2 pt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditDriver(driver)}
-                    className="flex-1"
-                  >
-                    Modifier
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1"
-                  >
-                    Voir Historique
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      )}
+      {React.useMemo(() => {
+        const resolveDrivers = async () => {
+          const resolvedDrivers = await drivers;
+          const filtered = resolvedDrivers.filter(driver =>
+            driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (driver.licenseNumber && driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (driver.email && driver.email.toLowerCase().includes(searchTerm.toLowerCase()))
+          );
+          
+          if (filtered.length > 0) {
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filtered.map((driver) => (
+                  <DriverCard
+                    key={driver.id}
+                    driver={driver}
+                    onEditDriver={handleEditDriver}
+                    getStatusColor={getStatusColor}
+                  />
+                ))}
+              </div>
+            );
+          }
+          return null;
+        };
+        
+        return resolveDrivers();
+      }, [drivers, searchTerm])}
 
       <DriverModal
         isOpen={isModalOpen}

@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Users, Search } from 'lucide-react';
 import { useUserFiltering } from '@/hooks/useUserFiltering';
-import { getRoleNameFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 import type { User } from '@/types/rbac';
 
 interface UserSelectionSectionProps {
@@ -14,6 +14,11 @@ interface UserSelectionSectionProps {
   selectedUserIds: string[];
   onUserSelection: (userId: string, checked: boolean) => void;
 }
+
+const UserRoleDisplay: React.FC<{ roleId: number }> = ({ roleId }) => {
+  const { roleName } = useRoleData(roleId);
+  return <span>{roleName}</span>;
+};
 
 const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
   userSearchQuery,
@@ -44,18 +49,13 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
         }
 
         try {
-          const roleName = getRoleNameFromId(user.role_id);
-          if (!roleName) {
-            console.warn('👥 UserSelectionSection: Could not get role name for user:', user.id, 'role_id:', user.role_id);
-            return acc;
+          const roleKey = `Role ${user.role_id}`;
+          if (!acc[roleKey]) {
+            acc[roleKey] = [];
           }
-          
-          if (!acc[roleName]) {
-            acc[roleName] = [];
-          }
-          acc[roleName].push(user);
+          acc[roleKey].push(user);
         } catch (error) {
-          console.error('👥 UserSelectionSection: Error getting role name for user:', user.id, error);
+          console.error('👥 UserSelectionSection: Error grouping user:', user.id, error);
         }
         return acc;
       }, {} as Record<string, User[]>);
@@ -157,7 +157,7 @@ const UserSelectionSection: React.FC<UserSelectionSectionProps> = ({
                             <div>
                               <span className="font-medium">{user.name || 'Unknown User'}</span>
                               <span className="text-sm text-gray-500 ml-2">
-                                ({getRoleNameFromId(user.role_id) || 'Unknown Role'})
+                                (<UserRoleDisplay roleId={user.role_id} />)
                               </span>
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 user.status === 'Active' ? 'bg-green-100 text-green-800' :

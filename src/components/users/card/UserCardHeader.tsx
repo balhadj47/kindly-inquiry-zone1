@@ -5,15 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { User } from '@/types/rbac';
 import { getStatusColor, getUserInitials } from '@/utils/userDisplayUtils';
-import { getRoleNameFromId, getRoleColorFromId } from '@/utils/roleUtils';
+import { useRoleData } from '@/hooks/useRoleData';
 
 interface UserCardHeaderProps {
   user: User;
 }
 
 const UserCardHeader: React.FC<UserCardHeaderProps> = ({ user }) => {
-  const roleName = getRoleNameFromId(user.role_id);
-  const roleColor = getRoleColorFromId(user.role_id);
+  const { roleName, roleColor } = useRoleData(user.role_id);
 
   return (
     <CardHeader className="pb-4 space-y-0">

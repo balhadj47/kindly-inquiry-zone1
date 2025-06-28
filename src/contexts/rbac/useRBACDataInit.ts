@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -59,13 +58,13 @@ const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): nu
   
   // Fallback to admin detection
   if (isAdminEmail(authUser.email || '')) {
-    // Find admin role dynamically
-    const adminRole = availableRoles.find(role => 
-      role.name.toLowerCase().includes('admin') || 
-      role.name.toLowerCase().includes('administrator')
-    );
+    // Find admin role by highest permission count
+    const adminRole = availableRoles
+      .filter(role => role.permissions && role.permissions.length > 0)
+      .sort((a, b) => b.permissions.length - a.permissions.length)[0];
+    
     if (adminRole) {
-      console.log('📋 Admin email detected, using admin role_id:', (adminRole as any).role_id);
+      console.log('📋 Admin email detected, using highest permission role_id:', (adminRole as any).role_id);
       return (adminRole as any).role_id;
     }
   }
@@ -75,27 +74,25 @@ const getRoleIdFromAuthUser = (authUser: any, availableRoles: SystemGroup[]): nu
   return null;
 };
 
-// Helper to get default role from available roles
+// Helper to get default role from available roles based on permission count
 const getDefaultRoleId = (availableRoles: SystemGroup[]): number | null => {
   if (!availableRoles || availableRoles.length === 0) {
     console.warn('⚠️ No available roles to choose default from');
     return null;
   }
 
-  // Priority order: look for common role names
-  const rolePriority = ['utilisateur', 'user', 'employee', 'employe', 'supervisor', 'admin'];
+  // Sort roles by permission count (ascending) to get the role with least permissions
+  const sortedRoles = availableRoles
+    .filter(role => role.permissions && Array.isArray(role.permissions))
+    .sort((a, b) => a.permissions.length - b.permissions.length);
   
-  for (const priority of rolePriority) {
-    const role = availableRoles.find(r => 
-      r.name.toLowerCase().includes(priority)
-    );
-    if (role) {
-      console.log('📋 Using default role:', role.name, 'with role_id:', (role as any).role_id);
-      return (role as any).role_id;
-    }
+  if (sortedRoles.length > 0) {
+    const defaultRole = sortedRoles[0];
+    console.log('📋 Using role with least permissions as default:', defaultRole.name, 'with role_id:', (defaultRole as any).role_id);
+    return (defaultRole as any).role_id;
   }
   
-  // If no priority match, use first available role
+  // If no roles with permissions, use first available role
   const firstRole = availableRoles[0];
   console.log('📋 Using first available role as default:', firstRole.name, 'with role_id:', (firstRole as any).role_id);
   return (firstRole as any).role_id;

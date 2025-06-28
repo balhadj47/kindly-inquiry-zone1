@@ -23,25 +23,29 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       
       console.log('User has permission to create users, proceeding...');
       
-      // Get default role_id dynamically from available roles
+      // Get default role_id dynamically from available roles based on permission count
       let defaultRoleId = userData.role_id;
       if (!defaultRoleId) {
-        // Fetch available roles to determine default
+        // Fetch available roles to determine default (role with least permissions)
         const { data: rolesData, error: rolesError } = await supabase
           .from('user_groups')
-          .select('role_id, name')
+          .select('role_id, name, permissions')
           .order('role_id', { ascending: true });
         
         if (!rolesError && rolesData && rolesData.length > 0) {
-          // Look for employee/user role, otherwise use first available
-          const employeeRole = rolesData.find(role => 
-            role.name?.toLowerCase().includes('utilisateur') ||
-            role.name?.toLowerCase().includes('employee') ||
-            role.name?.toLowerCase().includes('employe') ||
-            role.name?.toLowerCase().includes('user')
-          );
-          defaultRoleId = employeeRole?.role_id || rolesData[0].role_id;
-          console.log('Using default role_id:', defaultRoleId, 'from available roles');
+          // Sort by permission count (ascending) and use the role with least permissions
+          const sortedRoles = rolesData
+            .filter(role => role.permissions && Array.isArray(role.permissions))
+            .sort((a, b) => a.permissions.length - b.permissions.length);
+          
+          if (sortedRoles.length > 0) {
+            defaultRoleId = sortedRoles[0].role_id;
+            console.log('Using role with least permissions as default:', sortedRoles[0].name, 'role_id:', defaultRoleId);
+          } else {
+            // Fallback to first available role
+            defaultRoleId = rolesData[0].role_id;
+            console.log('Using first available role as default:', rolesData[0].name, 'role_id:', defaultRoleId);
+          }
         } else {
           console.warn('Could not fetch roles for default, using null role_id');
           defaultRoleId = null;
@@ -64,7 +68,7 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
       };
 
       // Determine if this role should have email based on role permissions
-      // Only set email for roles that aren't basic employee roles
+      // Only set email for roles that have higher permission counts
       let shouldHaveEmail = true;
       if (defaultRoleId) {
         const { data: roleData, error: roleError } = await supabase
@@ -74,15 +78,14 @@ export const createAddUserOperation = (setUsers: React.Dispatch<React.SetStateAc
           .single();
         
         if (!roleError && roleData) {
-          // Check if this is a basic employee role (limited permissions)
-          const isBasicEmployeeRole = roleData.name?.toLowerCase().includes('utilisateur') ||
-            roleData.name?.toLowerCase().includes('employee') ||
-            roleData.name?.toLowerCase().includes('employe');
+          // Check if this is a basic role (fewer permissions)
+          const isBasicRole = roleData.permissions && roleData.permissions.length < 5;
           
-          shouldHaveEmail = !isBasicEmployeeRole;
+          shouldHaveEmail = !isBasicRole;
           console.log('Role analysis:', {
             roleName: roleData.name,
-            isBasicEmployeeRole,
+            permissionCount: roleData.permissions?.length || 0,
+            isBasicRole,
             shouldHaveEmail
           });
         }

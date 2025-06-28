@@ -118,68 +118,121 @@ export const getSystemGroupFromRoleId = async (roleId: number): Promise<string> 
   return await getRoleNameFromId(roleId);
 };
 
-// Check if role_id indicates a driver role - based on database data
+// Check if role_id indicates a driver role - based on permission analysis
 export const isDriverRole = async (roleId: number): Promise<boolean> => {
   try {
-    const roleName = await getRoleNameFromId(roleId);
-    // Check if the role name contains driver-related keywords
-    const driverKeywords = ['driver', 'chauffeur', 'conducteur'];
-    return driverKeywords.some(keyword => 
-      roleName.toLowerCase().includes(keyword.toLowerCase())
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error || !data) {
+      console.error('❌ isDriverRole: Error fetching role permissions:', error);
+      return false;
+    }
+
+    // Check if role has driving-related permissions
+    const permissions = data.permissions || [];
+    const hasDrivingPermissions = permissions.some((perm: string) => 
+      perm.includes('trips') || perm.includes('vans') || perm.includes('drive')
     );
+
+    console.log('🚗 isDriverRole: Analysis for role_id', roleId, ':', {
+      permissions,
+      hasDrivingPermissions
+    });
+
+    return hasDrivingPermissions;
   } catch (error) {
     console.error('❌ isDriverRole: Error:', error);
     return false;
   }
 };
 
-// Check if role_id indicates admin privileges - based on database data
+// Check if role_id indicates admin privileges - based on permission count
 export const isAdminRole = async (roleId: number): Promise<boolean> => {
   try {
-    const roleName = await getRoleNameFromId(roleId);
-    // Check if the role name contains admin-related keywords
-    const adminKeywords = ['admin', 'administrator', 'administrateur'];
-    return adminKeywords.some(keyword => 
-      roleName.toLowerCase().includes(keyword.toLowerCase())
-    );
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error || !data) {
+      console.error('❌ isAdminRole: Error fetching role permissions:', error);
+      return false;
+    }
+
+    // Admin roles typically have many permissions (10+)
+    const permissionCount = data.permissions ? data.permissions.length : 0;
+    const isAdmin = permissionCount >= 10;
+
+    console.log('👑 isAdminRole: Analysis for role_id', roleId, ':', {
+      permissionCount,
+      isAdmin
+    });
+
+    return isAdmin;
   } catch (error) {
     console.error('❌ isAdminRole: Error:', error);
     return false;
   }
 };
 
-// Check if role_id indicates supervisor privileges - based on database data
+// Check if role_id indicates supervisor privileges - based on permission count
 export const isSupervisorRole = async (roleId: number): Promise<boolean> => {
   try {
-    const roleName = await getRoleNameFromId(roleId);
-    // Check if the role name contains supervisor-related keywords
-    const supervisorKeywords = ['supervisor', 'superviseur', 'manager', 'chef'];
-    return supervisorKeywords.some(keyword => 
-      roleName.toLowerCase().includes(keyword.toLowerCase())
-    );
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error || !data) {
+      console.error('❌ isSupervisorRole: Error fetching role permissions:', error);
+      return false;
+    }
+
+    // Supervisor roles typically have moderate permissions (5-9)
+    const permissionCount = data.permissions ? data.permissions.length : 0;
+    const isSupervisor = permissionCount >= 5 && permissionCount < 10;
+
+    console.log('👔 isSupervisorRole: Analysis for role_id', roleId, ':', {
+      permissionCount,
+      isSupervisor
+    });
+
+    return isSupervisor;
   } catch (error) {
     console.error('❌ isSupervisorRole: Error:', error);
     return false;
   }
 };
 
-// Check if role_id indicates employee level - based on database data
+// Check if role_id indicates employee level - based on permission count
 export const isEmployeeRole = async (roleId: number): Promise<boolean> => {
   try {
-    const roleName = await getRoleNameFromId(roleId);
-    // Check if the role name contains employee-related keywords or is not admin/supervisor
-    const employeeKeywords = ['employee', 'employe', 'worker', 'staff'];
-    const isEmployee = employeeKeywords.some(keyword => 
-      roleName.toLowerCase().includes(keyword.toLowerCase())
-    );
-    
-    // If not explicitly an employee, check if it's not admin or supervisor
-    if (!isEmployee) {
-      const isAdmin = await isAdminRole(roleId);
-      const isSupervisor = await isSupervisorRole(roleId);
-      return !isAdmin && !isSupervisor;
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
+
+    if (error || !data) {
+      console.error('❌ isEmployeeRole: Error fetching role permissions:', error);
+      return true; // Default to employee if error
     }
-    
+
+    // Employee roles typically have few permissions (< 5)
+    const permissionCount = data.permissions ? data.permissions.length : 0;
+    const isEmployee = permissionCount < 5;
+
+    console.log('👷 isEmployeeRole: Analysis for role_id', roleId, ':', {
+      permissionCount,
+      isEmployee
+    });
+
     return isEmployee;
   } catch (error) {
     console.error('❌ isEmployeeRole: Error:', error);

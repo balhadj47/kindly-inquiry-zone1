@@ -54,41 +54,7 @@ const UsersTab: React.FC<UsersTabProps> = ({
     roleFilter
   });
 
-  // Dynamically determine which roles are employee roles based on their permissions/names
-  const getEmployeeRoleIds = React.useMemo(() => {
-    if (!Array.isArray(roles) || roles.length === 0) {
-      console.warn('⚠️ UsersTab: No roles available for employee detection');
-      return [];
-    }
-
-    const employeeRoleIds = roles
-      .filter(role => {
-        // Check if role name suggests it's an employee role
-        const roleName = role.name?.toLowerCase() || '';
-        const isEmployeeByName = roleName.includes('utilisateur') ||
-          roleName.includes('employee') ||
-          roleName.includes('employe') ||
-          roleName.includes('user');
-
-        // Check if role has limited permissions (suggesting employee level)
-        const hasLimitedPermissions = role.permissions && role.permissions.length < 10;
-
-        // Exclude obvious admin/supervisor roles
-        const isAdminOrSupervisor = roleName.includes('admin') ||
-          roleName.includes('supervisor') ||
-          roleName.includes('superviseur') ||
-          roleName.includes('manager');
-
-        return (isEmployeeByName || hasLimitedPermissions) && !isAdminOrSupervisor;
-      })
-      .map(role => (role as any).role_id)
-      .filter(roleId => roleId !== null && roleId !== undefined);
-
-    console.log('👥 UsersTab: Detected employee role IDs:', employeeRoleIds);
-    return employeeRoleIds;
-  }, [roles]);
-
-  // Enhanced filtering with dynamic employee role detection
+  // Filter users based on permission count - show only users with higher permission counts (admins/supervisors)
   const nonEmployeeUsers = React.useMemo(() => {
     try {
       // Handle null/undefined users
@@ -114,30 +80,48 @@ const UsersTab: React.FC<UsersTabProps> = ({
           return false;
         }
         
-        // Safe role_id check with multiple fallbacks
+        // Safe role_id check
         const roleId = user.role_id;
         if (roleId === null || roleId === undefined) {
           console.warn('⚠️ UsersTab: User missing role_id:', user);
-          return true; // Include users without role_id (might be admins)
+          return true; // Include users without role_id (might be high-privilege users)
         }
         
-        // Filter out employees dynamically - show only admins and supervisors
-        return !getEmployeeRoleIds.includes(roleId);
+        // Find the role in the roles array
+        const userRole = roles.find(role => (role as any).role_id === roleId);
+        if (!userRole) {
+          console.warn('⚠️ UsersTab: Role not found for user:', user.id, 'role_id:', roleId);
+          return true; // Include users with unknown roles (safe assumption)
+        }
+        
+        // Filter based on permission count - show users with more permissions (admins/supervisors)
+        const permissionCount = userRole.permissions ? userRole.permissions.length : 0;
+        const isHighPrivilegeUser = permissionCount >= 5; // Users with 5+ permissions are considered high-privilege
+        
+        console.log('👥 UsersTab: User role analysis:', {
+          userId: user.id,
+          userName: user.name,
+          roleId: roleId,
+          roleName: userRole.name,
+          permissionCount: permissionCount,
+          isHighPrivilegeUser: isHighPrivilegeUser
+        });
+        
+        return isHighPrivilegeUser;
       });
       
-      console.log('✅ UsersTab: Filtered non-employee users:', {
+      console.log('✅ UsersTab: Filtered high-privilege users:', {
         originalCount: users.length,
         filteredCount: filtered.length,
-        employeeRoleIds: getEmployeeRoleIds,
         filtered: filtered.map(u => ({ id: u.id, name: u.name, role_id: u.role_id }))
       });
       
       return filtered;
     } catch (error) {
-      console.error('❌ UsersTab: Critical error filtering non-employee users:', error);
+      console.error('❌ UsersTab: Critical error filtering high-privilege users:', error);
       return [];
     }
-  }, [users, getEmployeeRoleIds]);
+  }, [users, roles]);
 
   // Use our custom filtering hook with enhanced error handling
   const filteringResult = useUsersFiltering({

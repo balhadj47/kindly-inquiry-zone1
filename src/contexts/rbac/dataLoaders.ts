@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -35,68 +34,39 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
       return [];
     }
 
-    console.log('📋 Raw groups data:', groupsData);
+    console.log('📋 Raw groups data from database:', groupsData);
 
     // Transform the groups data to match SystemGroup interface
     const rolesWithPermissions = (groupsData || []).map((group) => {
-      console.log(`📋 Processing role: ${group.name} (role_id: ${group.role_id})`);
+      console.log(`📋 Processing database role: ${group.name} (role_id: ${group.role_id})`);
+      console.log(`📋 Raw permissions from database:`, group.permissions);
       
       // Use permissions directly from the user_groups table
-      const permissions = group.permissions || [];
-      console.log(`📋 Loaded ${permissions.length} permissions for ${group.name}:`, permissions);
+      const permissions = Array.isArray(group.permissions) ? group.permissions : [];
+      console.log(`📋 Processed ${permissions.length} permissions for ${group.name}:`, permissions);
 
       return {
         id: group.id.toString(),
         name: group.name as SystemGroupName,
-        description: group.description,
+        description: group.description || '',
         permissions: permissions,
-        color: group.color,
+        color: group.color || '#3b82f6',
         role_id: group.role_id,
-        isSystemRole: true,
+        isSystemRole: false, // Mark as custom since loaded from database
       };
     });
 
     const endTime = performance.now();
-    console.log(`✅ Loaded ${rolesWithPermissions.length} roles with permissions in ${endTime - startTime}ms`);
-    console.log('📋 Final roles data:', rolesWithPermissions);
+    console.log(`✅ Loaded ${rolesWithPermissions.length} roles from database in ${endTime - startTime}ms`);
+    console.log('📋 Final processed roles from database:', rolesWithPermissions);
 
     return rolesWithPermissions;
   } catch (error) {
     console.error('❌ Failed to load roles from database:', error);
     
-    // Return minimal default roles as fallback
-    const fallbackRoles = [
-      {
-        id: '1',
-        name: 'Administrator' as SystemGroupName,
-        description: 'Full system access',
-        permissions: ['dashboard:read'], // Minimal permission
-        color: '#dc2626',
-        role_id: 1,
-        isSystemRole: true,
-      },
-      {
-        id: '2', 
-        name: 'Supervisor' as SystemGroupName,
-        description: 'Limited access',
-        permissions: ['dashboard:read'],
-        color: '#ea580c',
-        role_id: 2,
-        isSystemRole: true,
-      },
-      {
-        id: '3',
-        name: 'Employee' as SystemGroupName, 
-        description: 'Basic access',
-        permissions: ['dashboard:read'],
-        color: '#3b82f6',
-        role_id: 3,
-        isSystemRole: true,
-      }
-    ];
-    
-    console.log('📋 Using fallback roles:', fallbackRoles);
-    return fallbackRoles;
+    // Return empty array instead of fallback roles to avoid confusion
+    console.log('📋 Returning empty roles array due to database error');
+    return [];
   }
 };
 

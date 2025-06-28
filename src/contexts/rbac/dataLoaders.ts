@@ -1,50 +1,49 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
 
 export const loadRoles = async (): Promise<SystemGroup[]> => {
-  console.log('🔄 Loading system groups/roles directly from database...');
+  console.log('🔄 loadRoles: Loading system groups/roles directly from database...');
   const startTime = performance.now();
 
   try {
     // First, check authentication status
     const { data: { user }, error: authError } = await supabase.auth.getUser();
-    console.log('🔐 Auth status:', { user: user?.email, authError });
+    console.log('🔐 loadRoles: Auth status:', { user: user?.email, authError });
 
     // Load user_groups with their permissions directly from the table
-    console.log('📋 Making database query to user_groups table...');
+    console.log('📋 loadRoles: Making database query to user_groups table...');
     const { data: groupsData, error: groupsError } = await supabase
       .from('user_groups')
       .select('*')
       .order('role_id');
 
-    console.log('📋 Database query result:', { 
+    console.log('📋 loadRoles: Database query result:', { 
       data: groupsData, 
       error: groupsError,
       dataLength: groupsData?.length 
     });
 
     if (groupsError) {
-      console.error('❌ Error loading user groups:', groupsError);
+      console.error('❌ loadRoles: Error loading user groups:', groupsError);
       throw groupsError;
     }
 
     if (!groupsData || groupsData.length === 0) {
-      console.log('📝 No groups found in database');
+      console.log('📝 loadRoles: No groups found in database');
       return [];
     }
 
-    console.log('📋 Raw groups data from database:', groupsData);
+    console.log('📋 loadRoles: Raw groups data from database:', groupsData);
 
     // Transform the groups data to match SystemGroup interface
     const rolesWithPermissions = (groupsData || []).map((group) => {
-      console.log(`📋 Processing database role: ${group.name} (role_id: ${group.role_id})`);
-      console.log(`📋 Raw permissions from database:`, group.permissions);
+      console.log(`📋 loadRoles: Processing database role: ${group.name} (role_id: ${group.role_id})`);
+      console.log(`📋 loadRoles: Raw permissions from database:`, group.permissions);
       
       // Use permissions directly from the user_groups table
       const permissions = Array.isArray(group.permissions) ? group.permissions : [];
-      console.log(`📋 Processed ${permissions.length} permissions for ${group.name}:`, permissions);
+      console.log(`📋 loadRoles: Processed ${permissions.length} permissions for ${group.name}:`, permissions);
 
       return {
         id: group.id.toString(),
@@ -58,22 +57,22 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
     });
 
     const endTime = performance.now();
-    console.log(`✅ Loaded ${rolesWithPermissions.length} roles from database in ${endTime - startTime}ms`);
-    console.log('📋 Final processed roles from database:', rolesWithPermissions);
+    console.log(`✅ loadRoles: Loaded ${rolesWithPermissions.length} roles from database in ${endTime - startTime}ms`);
+    console.log('📋 loadRoles: Final processed roles from database:', rolesWithPermissions);
 
     return rolesWithPermissions;
   } catch (error) {
-    console.error('❌ Failed to load roles from database:', error);
+    console.error('❌ loadRoles: Failed to load roles from database:', error);
     
     // Return empty array instead of fallback roles to avoid confusion
-    console.log('📋 Returning empty roles array due to database error');
+    console.log('📋 loadRoles: Returning empty roles array due to database error');
     return [];
   }
 };
 
 // Keep this function for backwards compatibility, but it won't be used for auth
 export const loadUsers = async (): Promise<User[]> => {
-  console.log('🔄 Loading users from database (for employee management only)...');
+  console.log('🔄 loadUsers: Loading users from database (for employee management only)...');
   const startTime = performance.now();
 
   try {
@@ -83,12 +82,12 @@ export const loadUsers = async (): Promise<User[]> => {
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('❌ Error loading users:', error);
+      console.error('❌ loadUsers: Error loading users:', error);
       throw error;
     }
 
     const endTime = performance.now();
-    console.log(`✅ Loaded ${data?.length || 0} users in ${endTime - startTime}ms`);
+    console.log(`✅ loadUsers: Loaded ${data?.length || 0} users in ${endTime - startTime}ms`);
 
     return (data || []).map(user => ({
       id: user.id.toString(),
@@ -109,7 +108,7 @@ export const loadUsers = async (): Promise<User[]> => {
       driverLicense: user.driver_license,
     }));
   } catch (error) {
-    console.error('❌ Failed to load users:', error);
+    console.error('❌ loadUsers: Failed to load users:', error);
     return [];
   }
 };

@@ -19,7 +19,7 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   // Initialize roles from database on provider mount
   useEffect(() => {
     const initializeRoles = async () => {
-      console.log('🔄 RBACProvider: Setting roles loaded flag...');
+      console.log('🔄 RBACProvider: Setting up roles to be fetched from database...');
       try {
         // No more caching - roles are fetched directly each time
         console.log('✅ RBACProvider: Roles will be fetched directly from database when needed');

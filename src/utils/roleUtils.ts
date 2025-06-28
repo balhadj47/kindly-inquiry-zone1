@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 // Get role name by querying database directly (no cache)
 export const getRoleNameFromId = async (roleId: number): Promise<string> => {
   try {
-    console.log('🔍 Getting role name for role_id:', roleId);
+    console.log('🔍 getRoleNameFromId: Querying for role_id:', roleId);
     
     const { data, error } = await supabase
       .from('user_groups')
@@ -13,14 +13,19 @@ export const getRoleNameFromId = async (roleId: number): Promise<string> => {
       .single();
 
     if (error) {
-      console.error('❌ Error getting role name:', error);
+      console.error('❌ getRoleNameFromId: Database error:', error);
       return `Role ${roleId}`;
     }
 
-    console.log('✅ Role name found:', data.name);
+    if (!data) {
+      console.warn('⚠️ getRoleNameFromId: No data found for role_id:', roleId);
+      return `Role ${roleId}`;
+    }
+
+    console.log('✅ getRoleNameFromId: Found role name:', data.name, 'for role_id:', roleId);
     return data.name || `Role ${roleId}`;
   } catch (error) {
-    console.error('❌ Exception getting role name:', error);
+    console.error('❌ getRoleNameFromId: Exception:', error);
     return `Role ${roleId}`;
   }
 };
@@ -28,7 +33,7 @@ export const getRoleNameFromId = async (roleId: number): Promise<string> => {
 // Get role color by querying database directly (no cache)
 export const getRoleColorFromId = async (roleId: number): Promise<string> => {
   try {
-    console.log('🎨 Getting role color for role_id:', roleId);
+    console.log('🎨 getRoleColorFromId: Querying for role_id:', roleId);
     
     const { data, error } = await supabase
       .from('user_groups')
@@ -37,14 +42,19 @@ export const getRoleColorFromId = async (roleId: number): Promise<string> => {
       .single();
 
     if (error) {
-      console.error('❌ Error getting role color:', error);
+      console.error('❌ getRoleColorFromId: Database error:', error);
       return '#6b7280'; // Gray default
     }
 
-    console.log('✅ Role color found:', data.color);
+    if (!data) {
+      console.warn('⚠️ getRoleColorFromId: No data found for role_id:', roleId);
+      return '#6b7280';
+    }
+
+    console.log('✅ getRoleColorFromId: Found role color:', data.color, 'for role_id:', roleId);
     return data.color || '#6b7280';
   } catch (error) {
-    console.error('❌ Exception getting role color:', error);
+    console.error('❌ getRoleColorFromId: Exception:', error);
     return '#6b7280';
   }
 };
@@ -52,7 +62,7 @@ export const getRoleColorFromId = async (roleId: number): Promise<string> => {
 // Get all available roles from database directly (no cache)
 export const getAllRoles = async (): Promise<Array<{ id: number; name: string; color: string }>> => {
   try {
-    console.log('📋 Getting all roles from database...');
+    console.log('📋 getAllRoles: Loading all roles from database...');
     
     const { data, error } = await supabase
       .from('user_groups')
@@ -60,11 +70,16 @@ export const getAllRoles = async (): Promise<Array<{ id: number; name: string; c
       .order('role_id', { ascending: true });
 
     if (error) {
-      console.error('❌ Error getting all roles:', error);
+      console.error('❌ getAllRoles: Database error:', error);
       return [];
     }
 
-    const roles = (data || [])
+    if (!data || data.length === 0) {
+      console.warn('⚠️ getAllRoles: No roles found in database');
+      return [];
+    }
+
+    const roles = data
       .filter(role => role.role_id !== null)
       .map(role => ({
         id: role.role_id!,
@@ -72,10 +87,10 @@ export const getAllRoles = async (): Promise<Array<{ id: number; name: string; c
         color: role.color || '#6b7280'
       }));
 
-    console.log('✅ All roles loaded:', roles);
+    console.log('✅ getAllRoles: Loaded roles:', roles);
     return roles;
   } catch (error) {
-    console.error('❌ Exception getting all roles:', error);
+    console.error('❌ getAllRoles: Exception:', error);
     return [];
   }
 };

@@ -43,33 +43,49 @@ const MissionsContainer = () => {
   // Check permissions when component mounts
   useEffect(() => {
     const checkPermissions = async () => {
-      // Dynamic privilege detection
-      const isHighPrivilegeUser = () => {
-        if (!currentUser?.role_id || !roles) return false;
-        
-        const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-        if (!userRole) return false;
-        
-        // High privilege users have many permissions (10+)
-        return userRole.permissions.length >= 10;
-      };
+      try {
+        // Dynamic privilege detection
+        const isHighPrivilegeUser = () => {
+          if (!currentUser?.role_id || !roles) return false;
+          
+          const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+          if (!userRole) return false;
+          
+          // High privilege users have many permissions (10+)
+          return userRole.permissions.length >= 10;
+        };
 
-      if (isHighPrivilegeUser()) {
+        if (isHighPrivilegeUser()) {
+          setPermissions({
+            canRead: true,
+            canCreate: true,
+            canEdit: true,
+            canDelete: true
+          });
+          return;
+        }
+
+        if (!hasPermission || typeof hasPermission !== 'function') {
+          console.warn('hasPermission is not available');
+          return;
+        }
+
+        const canRead = hasPermission('trips:read');
+        const canCreate = hasPermission('trips:create');
+        const canEdit = hasPermission('trips:update');
+        const canDelete = hasPermission('trips:delete');
+
+        setPermissions({ canRead, canCreate, canEdit, canDelete });
+      } catch (permissionError) {
+        console.error('Error checking permissions:', permissionError);
+        // Set minimal permissions on error
         setPermissions({
           canRead: true,
-          canCreate: true,
-          canEdit: true,
-          canDelete: true
+          canCreate: false,
+          canEdit: false,
+          canDelete: false
         });
-        return;
       }
-
-      const canRead = hasPermission('trips:read');
-      const canCreate = hasPermission('trips:create');
-      const canEdit = hasPermission('trips:update');
-      const canDelete = hasPermission('trips:delete');
-
-      setPermissions({ canRead, canCreate, canEdit, canDelete });
     };
 
     if (authUser) {
@@ -82,8 +98,14 @@ const MissionsContainer = () => {
     
     setIsRefreshing(true);
     try {
-      await refetch();
-      await refreshPage(['trips']);
+      if (refetch && typeof refetch === 'function') {
+        await refetch();
+      }
+      if (refreshPage && typeof refreshPage === 'function') {
+        await refreshPage(['trips']);
+      }
+    } catch (refreshError) {
+      console.error('Error refreshing:', refreshError);
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
@@ -119,8 +141,8 @@ const MissionsContainer = () => {
       // Close dialog and refresh
       setActionDialog({ isOpen: false, mission: null, action: null });
       await handleRefresh();
-    } catch (error) {
-      console.error('Error performing action:', error);
+    } catch (actionError) {
+      console.error('Error performing action:', actionError);
     }
   };
 
@@ -146,6 +168,7 @@ const MissionsContainer = () => {
     );
   }
 
+  // Handle error cases properly
   const showPermissionError = error && typeof error === 'string' && error.includes('Insufficient permissions');
 
   if (showPermissionError || !permissions.canRead) {

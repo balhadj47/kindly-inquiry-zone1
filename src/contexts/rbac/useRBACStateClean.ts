@@ -1,7 +1,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { clearPermissionCache } from './permissionUtils';
-import { User, Permission } from '@/types/rbac';
+import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
 export const useRBACStateClean = () => {
@@ -10,7 +10,7 @@ export const useRBACStateClean = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<SystemGroup[]>([]);
-  const [permissions, setPermissions] = useState<Permission[]>([]);
+  const [permissions, setPermissions] = useState<string[]>([]); // Changed from Permission[] to string[]
   const [loading, setLoading] = useState(true);
 
   // Safe setters with error handling
@@ -46,7 +46,7 @@ export const useRBACStateClean = () => {
     }
   }, []);
 
-  const safeSetPermissions = useCallback((newPermissions: Permission[] | ((prev: Permission[]) => Permission[])) => {
+  const safeSetPermissions = useCallback((newPermissions: string[] | ((prev: string[]) => string[])) => {
     try {
       if (typeof newPermissions === 'function') {
         setPermissions(prev => {

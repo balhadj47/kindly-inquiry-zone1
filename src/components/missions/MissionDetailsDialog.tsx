@@ -246,7 +246,6 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   };
 
   const vanInfo = getVanInfo(mission.van);
-  const canComplete = mission.status === 'active';
   const driverName = getDriverName();
 
   return (
@@ -273,81 +272,11 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                   {getStatusText(mission.status || 'active')}
                 </span>
               </div>
-              {canComplete && (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setShowCompleteForm(true)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Terminer Mission
-                </Button>
-              )}
             </div>
           </div>
         </DialogHeader>
 
-        {/* Complete Mission Form */}
-        {showCompleteForm && (
-          <div className="bg-green-50 border border-green-200 rounded-xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <CheckCircle className="h-5 w-5 text-green-600" />
-                <h3 className="text-lg font-semibold text-green-800">Terminer la Mission</h3>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setShowCompleteForm(false);
-                  setFinalKm('');
-                }}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="finalKm" className="text-green-700 font-medium">
-                  Kilométrage Final du Véhicule
-                </Label>
-                <Input
-                  id="finalKm"
-                  type="number"
-                  placeholder="Entrez le kilométrage final"
-                  value={finalKm}
-                  onChange={(e) => setFinalKm(e.target.value)}
-                  className="mt-2"
-                  min={mission.start_km || 0}
-                />
-                {mission.start_km && (
-                  <p className="text-sm text-green-600 mt-1">
-                    Kilométrage initial: {mission.start_km} km
-                  </p>
-                )}
-              </div>
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleCompleteMission}
-                  disabled={!finalKm || isCompleting}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  {isCompleting ? 'Finalisation...' : 'Confirmer Finalisation'}
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowCompleteForm(false);
-                    setFinalKm('');
-                  }}
-                >
-                  Annuler
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Complete Mission Form - Removed from dialog */}
 
         <div className="space-y-6">
           {/* Mission Overview */}
@@ -499,7 +428,6 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 {mission.userRoles.map((userRole, index) => (
                   <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
                     <div className="flex items-center gap-3">
-                      {/* Role Icons on the left */}
                       <div className="flex gap-1">
                         {userRole.roles.map((role, roleIndex) => {
                           let roleName = '';
@@ -517,13 +445,11 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                         })}
                       </div>
                       
-                      {/* User name */}
                       <span className="font-medium text-gray-900">
                         {getUserName(userRole.userId)}
                       </span>
                     </div>
                     
-                    {/* Role badges on the right */}
                     <div className="flex flex-wrap gap-1">
                       {userRole.roles.map((role, roleIndex) => {
                         if (typeof role === 'string') {

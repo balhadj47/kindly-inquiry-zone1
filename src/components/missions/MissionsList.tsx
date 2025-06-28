@@ -1,9 +1,12 @@
-
 import React, { useState } from 'react';
-import { Bell, Eye, Circle, StopCircle, Trash2 } from 'lucide-react';
+import { Bell, Eye, Circle, StopCircle, Trash2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
+import { useTripMutations } from '@/hooks/trips/useTripMutations';
+import { useToast } from '@/hooks/use-toast';
 import MissionDetailsDialog from './MissionDetailsDialog';
 
 interface MissionsListProps {
@@ -31,7 +34,14 @@ const MissionsList: React.FC<MissionsListProps> = ({
 }) => {
   const [selectedMission, setSelectedMission] = useState<Trip | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [showTerminatePrompt, setShowTerminatePrompt] = useState(false);
+  const [terminateMission, setTerminateMission] = useState<Trip | null>(null);
+  const [finalKm, setFinalKm] = useState('');
+  const [isTerminating, setIsTerminating] = useState(false);
+  
   const { data: vans = [] } = useVans();
+  const { updateTrip } = useTripMutations();
+  const { toast } = useToast();
 
   const filteredMissions = missions.filter(mission => {
     const matchesSearch = !searchTerm || 
@@ -90,6 +100,75 @@ const MissionsList: React.FC<MissionsListProps> = ({
       default:
         return 'Inconnu';
     }
+  };
+
+  const handleTerminateClick = (mission: Trip) => {
+    setTerminateMission(mission);
+    setShowTerminatePrompt(true);
+    setFinalKm('');
+  };
+
+  const handleTerminateSubmit = async () => {
+    if (!terminateMission || !finalKm) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez saisir le kilométrage final',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const kmNumber = parseInt(finalKm, 10);
+    if (isNaN(kmNumber) || kmNumber < 0) {
+      toast({
+        title: 'Erreur',
+        description: 'Veuillez saisir un kilométrage valide',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (terminateMission.start_km && kmNumber < terminateMission.start_km) {
+      toast({
+        title: 'Erreur',
+        description: 'Le kilométrage final ne peut pas être inférieur au kilométrage initial',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsTerminating(true);
+    try {
+      await updateTrip.mutateAsync({
+        id: terminateMission.id.toString(),
+        end_km: kmNumber,
+        status: 'completed'
+      });
+      
+      toast({
+        title: 'Succès',
+        description: 'Mission terminée avec succès',
+      });
+      
+      setShowTerminatePrompt(false);
+      setTerminateMission(null);
+      setFinalKm('');
+    } catch (error) {
+      console.error('Error terminating mission:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de terminer la mission',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsTerminating(false);
+    }
+  };
+
+  const handleCloseTerminatePrompt = () => {
+    setShowTerminatePrompt(false);
+    setTerminateMission(null);
+    setFinalKm('');
   };
 
   if (filteredMissions.length === 0) {
@@ -153,7 +232,7 @@ const MissionsList: React.FC<MissionsListProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onTerminateMission(mission)}
+                    onClick={() => handleTerminateClick(mission)}
                     disabled={actionLoading === 'loading'}
                     className="text-orange-500 hover:text-orange-600 hover:bg-orange-50"
                   >
@@ -216,6 +295,69 @@ const MissionsList: React.FC<MissionsListProps> = ({
           </div>
         ))}
       </div>
+
+      {/* Terminate Mission Prompt */}
+      {showTerminatePrompt && terminateMission && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Terminer la Mission</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleCloseTerminatePrompt}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-gray-600 mb-2">
+                  Mission: <span className="font-medium">{terminateMission.company}</span>
+                </p>
+                {terminateMission.start_km && (
+                  <p className="text-sm text-gray-600 mb-4">
+                    Kilométrage initial: {terminateMission.start_km} km
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <Label htmlFor="finalKm" className="text-gray-700 font-medium">
+                  Kilométrage Final du Véhicule
+                </Label>
+                <Input
+                  id="finalKm"
+                  type="number"
+                  placeholder="Entrez le kilométrage final"
+                  value={finalKm}
+                  onChange={(e) => setFinalKm(e.target.value)}
+                  className="mt-2"
+                  min={terminateMission.start_km || 0}
+                />
+              </div>
+
+              <div className="flex gap-3 pt-4">
+                <Button
+                  onClick={handleTerminateSubmit}
+                  disabled={!finalKm || isTerminating}
+                  className="flex-1"
+                >
+                  {isTerminating ? 'Finalisation...' : 'Confirmer'}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleCloseTerminatePrompt}
+                  className="flex-1"
+                >
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       <MissionDetailsDialog
         mission={selectedMission}

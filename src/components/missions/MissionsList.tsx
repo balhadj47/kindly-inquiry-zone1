@@ -1,13 +1,15 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { useToast } from '@/hooks/use-toast';
+import { useOptimizedSearch } from '@/hooks/useOptimizedSearch';
+import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
 import MissionDetailsDialog from './MissionDetailsDialog';
 import MissionCard from './MissionCard';
 import MissionTerminateDialog from './MissionTerminateDialog';
 import MissionsEmptyState from './MissionsEmptyState';
+import OptimizedVirtualList from '@/components/ui/optimized-virtual-list';
 
 interface MissionsListProps {
   missions: Trip[];
@@ -23,7 +25,7 @@ interface MissionsListProps {
 
 const MissionsList: React.FC<MissionsListProps> = ({
   missions,
-  searchTerm,
+  searchTerm: externalSearchTerm,
   statusFilter,
   onEditMission,
   onDeleteMission,
@@ -32,6 +34,8 @@ const MissionsList: React.FC<MissionsListProps> = ({
   canDelete,
   actionLoading,
 }) => {
+  usePerformanceMonitor('MissionsList');
+
   const [selectedMission, setSelectedMission] = useState<Trip | null>(null);
   const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
   const [showTerminatePrompt, setShowTerminatePrompt] = useState(false);
@@ -39,33 +43,59 @@ const MissionsList: React.FC<MissionsListProps> = ({
   const [finalKm, setFinalKm] = useState('');
   const [isTerminating, setIsTerminating] = useState(false);
   const [deletingMissionId, setDeletingMissionId] = useState<number | null>(null);
-  
+
   const { data: vans = [] } = useVans();
   const { updateTrip, deleteTrip } = useTripMutations();
   const { toast } = useToast();
 
-  const filteredMissions = missions.filter(mission => {
-    const matchesSearch = !searchTerm || 
-      mission.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mission.branch.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mission.driver.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mission.van.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'active' && mission.status === 'active') ||
-      (statusFilter === 'completed' && mission.status === 'completed') ||
-      (statusFilter === 'terminated' && mission.status === 'terminated');
-    
-    return matchesSearch && matchesStatus;
+  // Use optimized search for better performance
+  const { filteredData: searchFilteredMissions } = useOptimizedSearch({
+    data: missions,
+    searchFields: ['company', 'branch', 'driver', 'van'],
+    debounceMs: 300
   });
 
-  const getVanDisplayName = (vanId: string) => {
+  // Memoize filtered missions to avoid recalculation
+  const filteredMissions = useMemo(() => {
+    let result = searchFilteredMissions;
+
+    // Apply external search term if provided
+    if (externalSearchTerm && externalSearchTerm.trim()) {
+      const lowerSearch = externalSearchTerm.toLowerCase();
+      result = result.filter(mission => 
+        mission.company.toLowerCase().includes(lowerSearch) ||
+        mission.branch.toLowerCase().includes(lowerSearch) ||
+        mission.driver.toLowerCase().includes(lowerSearch) ||
+        mission.van.toLowerCase().includes(lowerSearch)
+      );
+    }
+
+    // Apply status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(mission => {
+        switch (statusFilter) {
+          case 'active':
+            return mission.status === 'active';
+          case 'completed':
+            return mission.status === 'completed';
+          case 'terminated':
+            return mission.status === 'terminated';
+          default:
+            return true;
+        }
+      });
+    }
+
+    return result;
+  }, [searchFilteredMissions, externalSearchTerm, statusFilter]);
+
+  const getVanDisplayName = useCallback((vanId: string) => {
     const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
     if (van) {
       return van.license_plate ? `${van.license_plate} (${van.model})` : van.model;
     }
     return vanId;
-  };
+  }, [vans]);
 
   const handleMissionClick = (mission: Trip) => {
     setSelectedMission(mission);
@@ -179,10 +209,35 @@ const MissionsList: React.FC<MissionsListProps> = ({
     }
   };
 
+  const renderMissionItem = useCallback((mission: Trip, index: number) => (
+    <MissionCard
+      key={mission.id}
+      mission={mission}
+      onMissionClick={handleMissionClick}
+      onTerminateClick={handleTerminateClick}
+      onDeleteClick={handleDeleteClick}
+      getVanDisplayName={getVanDisplayName}
+      canEdit={canEdit}
+      canDelete={canDelete}
+      actionLoading={deletingMissionId === mission.id ? 'loading' : null}
+      isTerminating={isTerminating && terminateMission?.id === mission.id}
+    />
+  ), [
+    handleMissionClick,
+    handleTerminateClick,
+    handleDeleteClick,
+    getVanDisplayName,
+    canEdit,
+    canDelete,
+    deletingMissionId,
+    isTerminating,
+    terminateMission?.id
+  ]);
+
   if (filteredMissions.length === 0) {
     return (
       <MissionsEmptyState 
-        searchTerm={searchTerm} 
+        searchTerm={externalSearchTerm} 
         statusFilter={statusFilter} 
       />
     );
@@ -190,22 +245,20 @@ const MissionsList: React.FC<MissionsListProps> = ({
 
   return (
     <>
-      <div className="space-y-4">
-        {filteredMissions.map((mission) => (
-          <MissionCard
-            key={mission.id}
-            mission={mission}
-            onMissionClick={handleMissionClick}
-            onTerminateClick={handleTerminateClick}
-            onDeleteClick={handleDeleteClick}
-            getVanDisplayName={getVanDisplayName}
-            canEdit={canEdit}
-            canDelete={canDelete}
-            actionLoading={deletingMissionId === mission.id ? 'loading' : null}
-            isTerminating={isTerminating && terminateMission?.id === mission.id}
-          />
-        ))}
-      </div>
+      {/* Use virtual scrolling for large datasets */}
+      {filteredMissions.length > 20 ? (
+        <OptimizedVirtualList
+          items={filteredMissions}
+          height={600}
+          itemHeight={180}
+          renderItem={renderMissionItem}
+          className="space-y-4"
+        />
+      ) : (
+        <div className="space-y-4">
+          {filteredMissions.map((mission, index) => renderMissionItem(mission, index))}
+        </div>
+      )}
 
       <MissionTerminateDialog
         isOpen={showTerminatePrompt}

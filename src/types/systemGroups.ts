@@ -1,8 +1,5 @@
 
-export type SystemGroupName = 
-  | 'Administrator'
-  | 'Supervisor' 
-  | 'Employee';
+export type SystemGroupName = string; // Allow any string from database
 
 export interface SystemGroup {
   id: string;
@@ -21,5 +18,5 @@ export interface Permission {
   category: string;
 }
 
-// Remove hardcoded groups - now loaded from database only
+// No hardcoded groups - everything comes from database
 export const DEFAULT_SYSTEM_GROUPS: SystemGroup[] = [];

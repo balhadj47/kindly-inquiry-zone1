@@ -1,3 +1,4 @@
+
 import { SystemGroupName, SystemGroup, Permission } from './systemGroups';
 import { MissionRole } from './missionRoles';
 
@@ -28,7 +29,7 @@ export interface User {
 export type { SystemGroup, SystemGroupName, Permission } from './systemGroups';
 export type { MissionRole } from './missionRoles';
 
-// For backward compatibility, keep these empty
+// All permissions and roles now come from database only
 export const AVAILABLE_PERMISSIONS: Permission[] = [];
 export const DEFAULT_PERMISSIONS = AVAILABLE_PERMISSIONS;
 export const DEFAULT_ROLES: SystemGroup[] = [];

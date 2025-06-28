@@ -24,47 +24,44 @@ interface RoleModalProps {
   role?: SystemGroup | null;
 }
 
-const AVAILABLE_PERMISSIONS = [
-  { id: 'dashboard:read', name: 'Tableau de bord', category: 'Dashboard' },
-  { id: 'users:read', name: 'Voir utilisateurs', category: 'Utilisateurs' },
-  { id: 'users:create', name: 'Créer utilisateurs', category: 'Utilisateurs' },
-  { id: 'users:update', name: 'Modifier utilisateurs', category: 'Utilisateurs' },
-  { id: 'users:delete', name: 'Supprimer utilisateurs', category: 'Utilisateurs' },
-  { id: 'auth-users:read', name: 'Voir comptes auth', category: 'Authentification' },
-  { id: 'auth-users:create', name: 'Créer comptes auth', category: 'Authentification' },
-  { id: 'auth-users:update', name: 'Modifier comptes auth', category: 'Authentification' },
-  { id: 'auth-users:delete', name: 'Supprimer comptes auth', category: 'Authentification' },
-  { id: 'companies:read', name: 'Voir entreprises', category: 'Entreprises' },
-  { id: 'companies:create', name: 'Créer entreprises', category: 'Entreprises' },
-  { id: 'companies:update', name: 'Modifier entreprises', category: 'Entreprises' },
-  { id: 'companies:delete', name: 'Supprimer entreprises', category: 'Entreprises' },
-  { id: 'vans:read', name: 'Voir camionnettes', category: 'Camionnettes' },
-  { id: 'vans:create', name: 'Créer camionnettes', category: 'Camionnettes' },
-  { id: 'vans:update', name: 'Modifier camionnettes', category: 'Camionnettes' },
-  { id: 'vans:delete', name: 'Supprimer camionnettes', category: 'Camionnettes' },
-  { id: 'trips:read', name: 'Voir voyages', category: 'Voyages' },
-  { id: 'trips:create', name: 'Créer voyages', category: 'Voyages' },
-  { id: 'trips:update', name: 'Modifier voyages', category: 'Voyages' },
-  { id: 'trips:delete', name: 'Supprimer voyages', category: 'Voyages' },
-  { id: 'missions:read', name: 'Voir missions', category: 'Missions' },
-  { id: 'missions:create', name: 'Créer missions', category: 'Missions' },
-  { id: 'missions:update', name: 'Modifier missions', category: 'Missions' },
-  { id: 'missions:delete', name: 'Supprimer missions', category: 'Missions' },
-  { id: 'groups:read', name: 'Voir groupes', category: 'Groupes' },
-  { id: 'groups:manage', name: 'Gérer groupes', category: 'Groupes' },
-  { id: 'settings:read', name: 'Voir paramètres', category: 'Paramètres' },
-  { id: 'settings:update', name: 'Modifier paramètres', category: 'Paramètres' },
-];
+// Get available permissions from existing roles in the system
+const getAvailablePermissions = (roles: SystemGroup[]): Array<{id: string; name: string; category: string}> => {
+  const allPermissions = new Set<string>();
+  
+  // Collect all unique permissions from existing roles
+  roles.forEach(role => {
+    role.permissions.forEach(permission => {
+      allPermissions.add(permission);
+    });
+  });
+  
+  // Convert to structured format
+  return Array.from(allPermissions).map(permission => {
+    const [category, action] = permission.split(':');
+    return {
+      id: permission,
+      name: `${action || permission} ${category}`,
+      category: category.charAt(0).toUpperCase() + category.slice(1)
+    };
+  }).sort((a, b) => a.category.localeCompare(b.category));
+};
 
 const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
-  const { addRole, updateRole } = useRBAC();
+  const { addRole, updateRole, roles } = useRBAC();
   const [formData, setFormData] = useState({
-    name: '' as SystemGroupName | '',
+    name: '',
     description: '',
     color: '#3b82f6',
     permissions: [] as string[],
   });
   const [loading, setLoading] = useState(false);
+  const [availablePermissions, setAvailablePermissions] = useState<Array<{id: string; name: string; category: string}>>([]);
+
+  useEffect(() => {
+    // Get available permissions from existing roles
+    const permissions = getAvailablePermissions(roles);
+    setAvailablePermissions(permissions);
+  }, [roles]);
 
   useEffect(() => {
     if (role) {
@@ -122,13 +119,13 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
     }
   };
 
-  const groupedPermissions = AVAILABLE_PERMISSIONS.reduce((acc, permission) => {
+  const groupedPermissions = availablePermissions.reduce((acc, permission) => {
     if (!acc[permission.category]) {
       acc[permission.category] = [];
     }
     acc[permission.category].push(permission);
     return acc;
-  }, {} as Record<string, typeof AVAILABLE_PERMISSIONS>);
+  }, {} as Record<string, typeof availablePermissions>);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -154,7 +151,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value as SystemGroupName })}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className="col-span-3"
                   required
                 />
@@ -188,30 +185,36 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
               
               <div className="space-y-4">
                 <Label className="text-sm font-medium">Permissions</Label>
-                {Object.entries(groupedPermissions).map(([category, permissions]) => (
-                  <div key={category} className="space-y-2">
-                    <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
-                    <div className="grid grid-cols-1 gap-2 ml-4">
-                      {permissions.map((permission) => (
-                        <div key={permission.id} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={permission.id}
-                            checked={formData.permissions.includes(permission.id)}
-                            onCheckedChange={(checked) => 
-                              handlePermissionChange(permission.id, checked as boolean)
-                            }
-                          />
-                          <Label 
-                            htmlFor={permission.id}
-                            className="text-sm font-normal cursor-pointer"
-                          >
-                            {permission.name}
-                          </Label>
-                        </div>
-                      ))}
+                {Object.keys(groupedPermissions).length === 0 ? (
+                  <p className="text-sm text-gray-500">
+                    Aucune permission disponible. Les permissions seront disponibles une fois que d'autres rôles auront été créés.
+                  </p>
+                ) : (
+                  Object.entries(groupedPermissions).map(([category, permissions]) => (
+                    <div key={category} className="space-y-2">
+                      <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
+                      <div className="grid grid-cols-1 gap-2 ml-4">
+                        {permissions.map((permission) => (
+                          <div key={permission.id} className="flex items-center space-x-2">
+                            <Checkbox
+                              id={permission.id}
+                              checked={formData.permissions.includes(permission.id)}
+                              onCheckedChange={(checked) => 
+                                handlePermissionChange(permission.id, checked as boolean)
+                              }
+                            />
+                            <Label 
+                              htmlFor={permission.id}
+                              className="text-sm font-normal cursor-pointer"
+                            >
+                              {permission.name}
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </div>
           </ScrollArea>

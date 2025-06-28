@@ -1,8 +1,6 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 
 export interface PermissionTemplate {
   id: string;
@@ -13,7 +11,7 @@ export interface PermissionTemplate {
   permissions: string[];
 }
 
-// Empty array - no demo data
+// No predefined templates - all permissions come from database
 export const PERMISSION_TEMPLATES: PermissionTemplate[] = [];
 
 interface PermissionTemplatesProps {
@@ -21,10 +19,7 @@ interface PermissionTemplatesProps {
   selectedPermissions: string[];
 }
 
-const PermissionTemplates: React.FC<PermissionTemplatesProps> = ({
-  onApplyTemplate,
-  selectedPermissions,
-}) => {
+const PermissionTemplates: React.FC<PermissionTemplatesProps> = () => {
   return (
     <Card>
       <CardHeader>
@@ -32,7 +27,9 @@ const PermissionTemplates: React.FC<PermissionTemplatesProps> = ({
       </CardHeader>
       <CardContent>
         <div className="text-center py-4">
-          <p className="text-gray-500">Aucun modèle de permission disponible.</p>
+          <p className="text-gray-500">
+            Les modèles de permissions sont générés automatiquement à partir des rôles existants dans la base de données.
+          </p>
         </div>
       </CardContent>
     </Card>

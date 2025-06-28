@@ -2,11 +2,13 @@
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useRoleData } from '@/hooks/useRoleData';
 import AuthUsers from '@/components/AuthUsers';
 
 const AuthUsersPage = () => {
   const { user: authUser } = useAuth();
   const { currentUser, hasPermission } = useRBAC();
+  const { roleName } = useRoleData(currentUser?.role_id || 0);
   
   console.log('🔍 AuthUsersPage rendering for user:', authUser?.email);
 
@@ -31,7 +33,7 @@ const AuthUsersPage = () => {
           Cette fonctionnalité nécessite des permissions d'administrateur.
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          Rôle actuel: {currentUser?.role_id === 1 ? 'Administrateur' : currentUser?.role_id === 2 ? 'Superviseur' : 'Employé'}
+          Rôle actuel: {roleName || 'Inconnu'}
         </p>
       </div>
     );

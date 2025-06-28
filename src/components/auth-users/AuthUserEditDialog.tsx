@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface AuthUser {
   id: string;
@@ -39,6 +40,13 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   const [email, setEmail] = useState('');
   const [name, setName] = useState('');
   const [roleId, setRoleId] = useState<number>(2);
+  const { roles } = useRBAC();
+
+  // Filter roles to show only those suitable for auth users (exclude Employee roles)
+  const availableRoles = roles.filter(role => {
+    const roleIdNum = (role as any).role_id;
+    return roleIdNum && roleIdNum !== 3; // Exclude Employee role (typically role_id: 3)
+  });
 
   useEffect(() => {
     if (user) {
@@ -112,8 +120,11 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">Administrateur</SelectItem>
-                <SelectItem value="2">Superviseur</SelectItem>
+                {availableRoles.map((role) => (
+                  <SelectItem key={(role as any).role_id} value={(role as any).role_id.toString()}>
+                    {role.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

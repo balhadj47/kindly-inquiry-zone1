@@ -3,7 +3,8 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Mail, Clock, Shield, Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, User, Calendar, Clock, Mail, Phone } from 'lucide-react';
+import { useRoleData } from '@/hooks/useRoleData';
 
 interface AuthUser {
   id: string;
@@ -22,7 +23,7 @@ interface AuthUserCardProps {
   onDelete: (user: AuthUser) => void;
   canEdit: boolean;
   canDelete: boolean;
-  isLoading: boolean;
+  actionLoading?: string | null;
 }
 
 const AuthUserCard: React.FC<AuthUserCardProps> = ({
@@ -31,99 +32,113 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
   onDelete,
   canEdit,
   canDelete,
-  isLoading,
+  actionLoading,
 }) => {
-  const getStatusBadge = () => {
-    if (user.email_confirmed_at) {
-      return <Badge className="bg-green-100 text-green-800">Confirmé</Badge>;
-    }
-    return <Badge className="bg-yellow-100 text-yellow-800">En attente</Badge>;
+  const userRoleId = user.user_metadata?.role_id || 2;
+  const { roleName, roleColor } = useRoleData(userRoleId);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatDateTime = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   const getRoleBadge = () => {
-    const roleId = user.user_metadata?.role_id || 2;
-    if (roleId === 1) {
-      return <Badge className="bg-red-100 text-red-800">Administrateur</Badge>;
+    return (
+      <Badge 
+        className="text-white"
+        style={{ backgroundColor: roleColor }}
+      >
+        {roleName}
+      </Badge>
+    );
+  };
+
+  const getStatusBadge = () => {
+    if (!user.email_confirmed_at) {
+      return <Badge variant="destructive">Non confirmé</Badge>;
     }
-    return <Badge className="bg-blue-100 text-blue-800">Superviseur</Badge>;
+    return <Badge className="bg-green-100 text-green-800">Confirmé</Badge>;
   };
 
   return (
     <Card className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-lg flex items-center space-x-2">
-            <Mail className="h-5 w-5 text-blue-500" />
-            <span className="truncate">{user.email}</span>
-          </CardTitle>
-          <div className="flex items-center space-x-2">
-            {getStatusBadge()}
-            {getRoleBadge()}
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 gap-3 text-sm">
-          <div>
-            <span className="font-medium">Nom:</span> {user.user_metadata?.name || 'Non défini'}
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">Créé:</span> 
-            <span>{new Date(user.created_at).toLocaleDateString('fr-FR')}</span>
-          </div>
-          
-          <div className="flex items-center space-x-1">
-            <Clock className="h-4 w-4 text-gray-500" />
-            <span className="font-medium">Dernière connexion:</span> 
-            <span>
-              {user.last_sign_in_at 
-                ? new Date(user.last_sign_in_at).toLocaleDateString('fr-FR')
-                : 'Jamais'
-              }
-            </span>
-          </div>
-          
-          {user.phone && (
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="w-5 h-5 text-blue-600" />
+            </div>
             <div>
-              <span className="font-medium">Téléphone:</span> {user.phone}
+              <CardTitle className="text-lg">
+                {user.user_metadata?.name || user.email?.split('@')[0] || 'Utilisateur'}
+              </CardTitle>
+              <div className="flex items-center space-x-2 mt-1">
+                {getRoleBadge()}
+                {getStatusBadge()}
+              </div>
+            </div>
+          </div>
+          {(canEdit || canDelete) && actionLoading !== 'loading' && (
+            <div className="flex space-x-1">
+              {canEdit && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onEdit(user)}
+                >
+                  <Edit className="w-4 h-4" />
+                </Button>
+              )}
+              {canDelete && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => onDelete(user)}
+                >
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                </Button>
+              )}
             </div>
           )}
         </div>
-
-        <div className="flex items-center justify-between pt-3 border-t">
-          <div className="text-xs text-gray-500 truncate">
-            ID: {user.id.substring(0, 8)}...
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            {canEdit && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onEdit(user)}
-                disabled={isLoading}
-                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            )}
-            
-            {canDelete && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onDelete(user)}
-                disabled={isLoading}
-                className="text-red-600 hover:text-red-700 hover:bg-red-50"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <Mail className="w-4 h-4" />
+          <span>{user.email}</span>
         </div>
+        
+        {user.phone && (
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Phone className="w-4 h-4" />
+            <span>{user.phone}</span>
+          </div>
+        )}
+
+        <div className="flex items-center space-x-2 text-sm text-gray-600">
+          <Calendar className="w-4 h-4" />
+          <span>Créé le {formatDate(user.created_at)}</span>
+        </div>
+
+        {user.last_sign_in_at && (
+          <div className="flex items-center space-x-2 text-sm text-gray-600">
+            <Clock className="w-4 h-4" />
+            <span>Dernière connexion: {formatDateTime(user.last_sign_in_at)}</span>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

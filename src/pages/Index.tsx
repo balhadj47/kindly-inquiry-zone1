@@ -139,12 +139,18 @@ const Index = () => {
       <Sonner />
       
       <TooltipProvider>
-        <div className="min-h-screen flex w-full overflow-hidden">
-          {!isMobile && <AppSidebar />}
+        <div className="min-h-screen flex w-full bg-gray-50">
+          {/* Desktop Sidebar - Always visible on desktop */}
+          {!isMobile && (
+            <div className="hidden md:flex">
+              <AppSidebar />
+            </div>
+          )}
           
-          <div className="flex-1 flex flex-col min-w-0 transition-all duration-200 h-screen">
+          {/* Main Content Area */}
+          <div className="flex-1 flex flex-col min-w-0">
             <TopBar />
-            <main className={`flex-1 bg-gray-50 overflow-y-auto overflow-x-hidden ${
+            <main className={`flex-1 bg-gray-50 overflow-y-auto ${
               isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
             }`}>
               <Suspense fallback={<PageLoadingSkeleton />}>
@@ -193,6 +199,7 @@ const Index = () => {
             </main>
           </div>
           
+          {/* Mobile Bottom Navigation */}
           {isMobile && <MobileBottomNav />}
         </div>
       </TooltipProvider>

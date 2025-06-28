@@ -65,6 +65,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   const { toast } = useToast();
   
   console.log('🎯 MissionDetailsDialog: Rendering with mission:', mission?.id || 'null');
+  console.log('🎯 Mission status:', mission?.status);
+  console.log('🎯 Mission start_km:', mission?.start_km);
+  console.log('🎯 Mission end_km:', mission?.end_km);
 
   // Function to get user name by ID with proper type handling
   const getUserName = (userId: string) => {
@@ -121,8 +124,14 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
 
     setIsTerminating(true);
     try {
-      await updateTrip.mutateAsync({
+      console.log('🎯 Terminating mission with data:', {
         id: mission.id,
+        end_km: kmNumber,
+        status: 'terminated'
+      });
+      
+      await updateTrip.mutateAsync({
+        id: mission.id.toString(), // Convert to string for the mutation
         end_km: kmNumber,
         status: 'terminated'
       });
@@ -336,7 +345,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 <div>
                   <p className="text-sm text-gray-500">Date de Création</p>
                   <p className="text-base font-medium text-gray-900">
-                    {formatDate(mission.created_at || new Date().toISOString())}
+                    {formatDate(mission.timestamp || new Date().toISOString())}
                   </p>
                 </div>
               </div>
@@ -389,7 +398,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                       {(mission.end_km || mission.endKm) && (
                         <div>
                           <p className="text-sm text-gray-500">Km final</p>
-                          <p className="text-base text-gray-900">{mission.end_km || mission.endKm} km</p>
+                          <p className="text-base text-gray-900 font-semibold text-blue-600">
+                            {mission.end_km || mission.endKm} km
+                          </p>
                         </div>
                       )}
                       {(mission.start_km || mission.startKm) && (mission.end_km || mission.endKm) && (
@@ -500,7 +511,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
               <div>
                 <p className="text-gray-500">Dernière MAJ</p>
                 <p className="text-gray-900">
-                  {formatDate(mission.updated_at || mission.created_at || new Date().toISOString())}
+                  {formatDate(mission.timestamp || new Date().toISOString())}
                 </p>
               </div>
             </div>

@@ -18,4 +18,6 @@ export interface Trip {
   status?: string;
   user_ids?: string[];
   user_roles?: any;
+  // Add timestamp for compatibility
+  timestamp?: string;
 }

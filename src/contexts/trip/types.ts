@@ -28,6 +28,9 @@ export interface Trip {
   planned_end_date?: string;
   start_km?: number;
   end_km?: number;
+  // Add missing timestamp properties for compatibility
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface TripContextType {

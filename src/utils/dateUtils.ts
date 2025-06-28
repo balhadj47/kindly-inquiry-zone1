@@ -46,6 +46,9 @@ export const formatDateOnly = (timestamp: string | Date): string => {
   return `${day} ${month} ${year}`;
 };
 
+// Format date - alias for formatDateOnly for consistency
+export const formatDate = formatDateOnly;
+
 // Calculate time ago in a readable format
 export const getTimeAgo = (timestamp: string): string => {
   const now = new Date();

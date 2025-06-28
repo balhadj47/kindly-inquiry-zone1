@@ -129,6 +129,9 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshTrips,
     error,
     isLoading,
+    // Add aliases for compatibility
+    loading: isLoading,
+    refetch: refreshTrips,
   };
 
   return <TripContext.Provider value={value}>{children}</TripContext.Provider>;

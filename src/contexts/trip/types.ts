@@ -23,6 +23,11 @@ export interface Trip {
   endDate?: Date;
   destination?: string;
   distance?: number;
+  // Add database-compatible properties
+  planned_start_date?: string;
+  planned_end_date?: string;
+  start_km?: number;
+  end_km?: number;
 }
 
 export interface TripContextType {
@@ -33,4 +38,7 @@ export interface TripContextType {
   refreshTrips: () => Promise<void>;
   error: string | null;
   isLoading: boolean;
+  // Add missing properties
+  loading: boolean;
+  refetch: () => Promise<void>;
 }

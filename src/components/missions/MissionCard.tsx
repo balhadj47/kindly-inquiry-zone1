@@ -68,7 +68,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
               {mission.company}
             </CardTitle>
             <p className="text-sm text-gray-600 mb-2">{mission.branch}</p>
-            {getStatusBadge(mission.status)}
+            {getStatusBadge(mission.status || 'active')}
           </div>
           
           {(canEdit || canDelete) && (
@@ -118,25 +118,25 @@ const MissionCard: React.FC<MissionCardProps> = ({
           <span>Véhicule: {mission.van}</span>
         </div>
 
-        {mission.planned_start_date && (
+        {(mission.planned_start_date || mission.startDate) && (
           <div className="flex items-center text-sm text-gray-600">
             <Calendar className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Début: {formatDate(mission.planned_start_date)}</span>
+            <span>Début: {formatDate(mission.planned_start_date || mission.startDate!)}</span>
           </div>
         )}
 
-        {mission.planned_end_date && (
+        {(mission.planned_end_date || mission.endDate) && (
           <div className="flex items-center text-sm text-gray-600">
             <Clock className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Fin: {formatDate(mission.planned_end_date)}</span>
+            <span>Fin: {formatDate(mission.planned_end_date || mission.endDate!)}</span>
           </div>
         )}
 
-        {mission.start_km && (
+        {(mission.start_km || mission.startKm) && (
           <div className="flex items-center text-sm text-gray-600">
             <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-            <span>Km début: {mission.start_km}</span>
-            {mission.end_km && <span className="ml-2">- Km fin: {mission.end_km}</span>}
+            <span>Km début: {mission.start_km || mission.startKm}</span>
+            {(mission.end_km || mission.endKm) && <span className="ml-2">- Km fin: {mission.end_km || mission.endKm}</span>}
           </div>
         )}
 

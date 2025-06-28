@@ -146,7 +146,7 @@ const MissionsContainer = () => {
     );
   }
 
-  const showPermissionError = error?.message.includes('Insufficient permissions');
+  const showPermissionError = error && typeof error === 'string' && error.includes('Insufficient permissions');
 
   if (showPermissionError || !permissions.canRead) {
     return (

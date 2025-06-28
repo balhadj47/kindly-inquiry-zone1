@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -136,7 +137,33 @@ const Drivers = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [drivers, setDrivers] = useState([]);
   const { users, loading } = useRBAC();
+
+  // Process drivers from users
+  useEffect(() => {
+    const processDrivers = async () => {
+      if (!users || loading) return;
+      
+      // Filter users who are drivers (have driver-related roles and license numbers)
+      const driverUsers = users.filter(user => 
+        user.licenseNumber && 
+        user.role_id
+      );
+      
+      // Filter only those with driver roles
+      const filteredDrivers = [];
+      for (const user of driverUsers) {
+        if (await isDriverRole(user.role_id)) {
+          filteredDrivers.push(user);
+        }
+      }
+      
+      setDrivers(filteredDrivers);
+    };
+
+    processDrivers();
+  }, [users, loading]);
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
@@ -159,24 +186,6 @@ const Drivers = () => {
   if (loading) {
     return <DriversLoadingSkeleton />;
   }
-
-  // Filter users who are drivers (have driver-related roles and license numbers)
-  const drivers = useMemo(async () => {
-    const driverUsers = users.filter(user => 
-      user.licenseNumber && 
-      user.role_id
-    );
-    
-    // Filter only those with driver roles
-    const filteredDrivers = [];
-    for (const user of driverUsers) {
-      if (await isDriverRole(user.role_id)) {
-        filteredDrivers.push(user);
-      }
-    }
-    
-    return filteredDrivers;
-  }, [users]);
 
   const filteredDrivers = drivers.filter(driver =>
     driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -263,34 +272,18 @@ const Drivers = () => {
       )}
 
       {/* Drivers Grid */}
-      {React.useMemo(() => {
-        const resolveDrivers = async () => {
-          const resolvedDrivers = await drivers;
-          const filtered = resolvedDrivers.filter(driver =>
-            driver.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (driver.licenseNumber && driver.licenseNumber.toLowerCase().includes(searchTerm.toLowerCase())) ||
-            (driver.email && driver.email.toLowerCase().includes(searchTerm.toLowerCase()))
-          );
-          
-          if (filtered.length > 0) {
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filtered.map((driver) => (
-                  <DriverCard
-                    key={driver.id}
-                    driver={driver}
-                    onEditDriver={handleEditDriver}
-                    getStatusColor={getStatusColor}
-                  />
-                ))}
-              </div>
-            );
-          }
-          return null;
-        };
-        
-        return resolveDrivers();
-      }, [drivers, searchTerm])}
+      {filteredDrivers.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredDrivers.map((driver) => (
+            <DriverCard
+              key={driver.id}
+              driver={driver}
+              onEditDriver={handleEditDriver}
+              getStatusColor={getStatusColor}
+            />
+          ))}
+        </div>
+      )}
 
       <DriverModal
         isOpen={isModalOpen}

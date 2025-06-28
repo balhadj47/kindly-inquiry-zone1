@@ -1,7 +1,6 @@
 
 import { useMemo } from 'react';
 import { User } from '@/types/rbac';
-import { useRoleData } from '@/hooks/useRoleData';
 
 interface UseUsersFilteringProps {
   users: User[];
@@ -64,14 +63,13 @@ export const useUsersFiltering = ({
     }
   }, [searchTerm]);
 
-  // Get unique roles for filtering (we'll need to resolve these)
+  // Get unique roles for filtering (we'll use simple role_id strings)
   const uniqueRoles = useMemo(() => {
     try {
       const rolesSet = new Set<string>();
       safeUsers.forEach(user => {
         try {
           if (user?.role_id && typeof user.role_id === 'number') {
-            // We'll use role_id as a string for now since we can't easily get role names in a memoized hook
             rolesSet.add(`Role ${user.role_id}`);
           }
         } catch (error) {
@@ -118,7 +116,7 @@ export const useUsersFiltering = ({
         roleFilter: (user: User) => {
           try {
             if (!roleFilter || roleFilter === 'all') return true;
-            // For now, we'll use a simple role_id comparison since we can't async resolve in a memo
+            // Use simple role_id comparison since we can't async resolve in a memo
             return `Role ${user.role_id}` === roleFilter;
           } catch (error) {
             console.warn('🔍 useUsersFiltering: Error in role filter for user:', user.id, error);

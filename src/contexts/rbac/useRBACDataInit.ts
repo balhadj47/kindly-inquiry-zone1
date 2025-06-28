@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { loadRoles } from './dataLoaders';
@@ -68,13 +67,17 @@ export const useRBACDataInit = ({
   useEffect(() => {
     // Wait for auth to finish loading and roles to be loaded
     if (authLoading || !rolesLoaded) {
-      console.log('⏳ Waiting for auth and roles to finish loading...', { authLoading, rolesLoaded });
+      console.log('⏳ useRBACDataInit: Waiting for auth and roles...', { 
+        authLoading, 
+        rolesLoaded,
+        authUser: authUser?.email || 'null'
+      });
       return;
     }
 
     // If no user is authenticated, don't initialize RBAC
     if (!authUser) {
-      console.log('❌ No authenticated user, skipping RBAC initialization');
+      console.log('❌ useRBACDataInit: No authenticated user, skipping RBAC initialization');
       setCurrentUser(null);
       setLoading(false);
       return;
@@ -82,55 +85,65 @@ export const useRBACDataInit = ({
 
     // Prevent multiple initializations
     if (initializationRef.current) {
+      console.log('🔄 useRBACDataInit: Already initialized, skipping...');
       return;
     }
 
     const initializeRBAC = async () => {
-      console.log('🚀 Starting database-driven RBAC initialization for user:', authUser?.email);
-      console.log('🔍 Auth user metadata:', authUser?.user_metadata);
+      console.log('🚀 useRBACDataInit: Starting database-driven RBAC initialization for user:', authUser?.email);
+      console.log('🔍 useRBACDataInit: Auth user metadata:', authUser?.user_metadata);
       initializationRef.current = true;
       setLoading(true);
 
       try {
         // Load system groups (roles) from database with their permissions
-        console.log('📋 Loading system groups from database...');
+        console.log('📋 useRBACDataInit: Loading system groups from database...');
         const systemGroups = await loadRoles();
 
-        if (!systemGroups || systemGroups.length === 0) {
-          console.error('⚠️ No system groups loaded from database - this might cause role resolution issues');
-          // Continue anyway, but log the warning
-        }
-
-        console.log('✅ RBAC Data loaded from database:', {
-          systemGroupsCount: systemGroups.length,
-          authUserEmail: authUser?.email,
-          authUserMetadata: authUser?.user_metadata,
-          systemGroups: systemGroups.map(g => ({ 
+        console.log('📋 useRBACDataInit: Roles loaded from database:', {
+          count: systemGroups.length,
+          roles: systemGroups.map(g => ({ 
             name: g.name, 
             role_id: (g as any).role_id, 
+            id: g.id,
             permissionsCount: g.permissions.length 
           }))
         });
 
+        if (!systemGroups || systemGroups.length === 0) {
+          console.error('⚠️ useRBACDataInit: No system groups loaded from database!');
+          console.error('⚠️ useRBACDataInit: This will cause role resolution issues');
+          console.error('⚠️ useRBACDataInit: Please check your user_groups table in the database');
+        }
+
         // Set the roles data
+        console.log('📋 useRBACDataInit: Setting roles in context...');
         setRoles(systemGroups);
+        
         // Don't load users table for authentication - keep it empty for auth purposes
         setUsers([]);
 
         // Create current user from auth user data
         let roleId = getRoleIdFromAuthUser(authUser);
         
-        console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
+        console.log('🔐 useRBACDataInit: Initial role_id assignment:', roleId, 'for email:', authUser.email);
         
         // Verify the role exists in the database
         const roleExists = systemGroups.some(role => (role as any).role_id === roleId);
+        console.log('🔐 useRBACDataInit: Role exists check:', {
+          roleId,
+          roleExists,
+          availableRoles: systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
+        });
+        
         if (!roleExists && systemGroups.length > 0) {
-          console.warn(`⚠️ Role ${roleId} not found in database. Available roles:`, 
+          console.warn(`⚠️ useRBACDataInit: Role ${roleId} not found in database!`);
+          console.warn('⚠️ useRBACDataInit: Available roles:', 
             systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
           );
           // Use the first available role as fallback
           const fallbackRoleId = (systemGroups[0] as any).role_id;
-          console.log(`🔄 Using fallback role_id: ${fallbackRoleId}`);
+          console.log(`🔄 useRBACDataInit: Using fallback role_id: ${fallbackRoleId}`);
           roleId = fallbackRoleId;
         }
         
@@ -145,27 +158,33 @@ export const useRBACDataInit = ({
           createdAt: new Date().toISOString(),
         };
 
+        console.log('👤 useRBACDataInit: Created current user profile:', currentUser);
         setCurrentUser(currentUser);
 
         // Initialize permission utilities with current user and database groups
-        console.log('🔧 Creating permission utils with database groups...');
+        console.log('🔧 useRBACDataInit: Creating permission utils with database groups...');
         createPermissionUtils([currentUser], systemGroups);
 
-        console.log('✅ Database-driven RBAC initialized with user:', {
-          id: currentUser.id,
+        console.log('✅ useRBACDataInit: Database-driven RBAC initialized successfully:', {
+          userId: currentUser.id,
           email: currentUser.email,
           role_id: currentUser.role_id,
           metadata_role_id: authUser.user_metadata?.role_id,
           fallback_used: !authUser.user_metadata?.role_id,
-          systemGroupsLoaded: systemGroups.length
+          systemGroupsLoaded: systemGroups.length,
+          finalRoleAssigned: roleId
         });
 
       } catch (error) {
-        console.error('❌ Database RBAC initialization error:', error);
+        console.error('❌ useRBACDataInit: Database RBAC initialization error:', {
+          error: error?.message || error,
+          stack: error?.stack,
+          authUser: authUser?.email
+        });
         setCurrentUser(null);
       } finally {
         setLoading(false);
-        console.log('🏁 Database-driven RBAC initialization completed');
+        console.log('🏁 useRBACDataInit: Database-driven RBAC initialization completed');
       }
     };
 
@@ -175,6 +194,7 @@ export const useRBACDataInit = ({
   // Reset initialization flag when user changes
   useEffect(() => {
     if (!authUser?.email) {
+      console.log('🔄 useRBACDataInit: Auth user changed, resetting initialization flag');
       initializationRef.current = false;
     }
   }, [authUser?.email]);

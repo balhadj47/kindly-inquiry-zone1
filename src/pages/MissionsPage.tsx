@@ -1,53 +1,63 @@
 
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import MissionsLayout from '@/components/missions/MissionsLayout';
-import MissionsHeader from '@/components/missions/MissionsHeader';
-import MissionsContainer from '@/components/missions/MissionsContainer';
-import NewTripDialog from '@/components/NewTripDialog';
-import { useTrip } from '@/contexts/TripContext';
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
+import { useRoleData } from '@/hooks/useRoleData';
+import MissionsContainer from '@/components/missions/MissionsContainer';
 
 const MissionsPage = () => {
-  console.log('🎯 MissionsPage: Component is rendering');
-  console.log('🎯 MissionsPage: Current URL:', window.location.pathname);
+  const { user: authUser, loading: authLoading } = useAuth();
+  const { currentUser, hasPermission, loading: rbacLoading, roles } = useRBAC();
+  const { roleName } = useRoleData(currentUser?.role_id || 0);
   
-  const { trips } = useTrip();
-  const { hasPermission } = useRBAC();
-  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
+  console.log('🎯 MissionsPage rendering for user:', authUser?.email);
 
-  const handleNewMissionClick = () => {
-    setIsNewMissionDialogOpen(true);
+  if (authLoading || rbacLoading) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Chargement...</h2>
+        <p className="text-gray-600">Vérification des permissions en cours...</p>
+      </div>
+    );
+  }
+
+  if (!authUser) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
+        <p className="text-gray-600">Vous devez être connecté pour accéder aux missions.</p>
+      </div>
+    );
+  }
+
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = () => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
   };
 
-  const handleDialogClose = () => {
-    setIsNewMissionDialogOpen(false);
-  };
+  const hasMissionsPermission = isHighPrivilegeUser() || (hasPermission && hasPermission('trips:read'));
 
-  const canCreateMissions = hasPermission('trips:create');
+  if (!hasMissionsPermission) {
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Accès restreint</h2>
+        <p className="text-gray-600">
+          Cette fonctionnalité nécessite des permissions d'administrateur.
+        </p>
+        <p className="text-sm text-gray-500 mt-2">
+          Rôle actuel: {roleName || 'Inconnu'}
+        </p>
+      </div>
+    );
+  }
 
-  console.log('🎯 MissionsPage: Trips loaded:', trips?.length || 0);
-  console.log('🎯 MissionsPage: Can create missions:', canCreateMissions);
-
-  return (
-    <MissionsLayout>
-      <MissionsHeader 
-        onAdd={handleNewMissionClick}
-      />
-      <MissionsContainer 
-        isNewMissionDialogOpen={isNewMissionDialogOpen}
-        setIsNewMissionDialogOpen={setIsNewMissionDialogOpen}
-      />
-
-      {canCreateMissions && (
-        <NewTripDialog
-          isOpen={isNewMissionDialogOpen}
-          onClose={handleDialogClose}
-        />
-      )}
-    </MissionsLayout>
-  );
+  return <MissionsContainer />;
 };
 
 export default MissionsPage;

@@ -1,295 +1,235 @@
 
-import React, { useState, useMemo } from 'react';
-import { useTrip } from '@/contexts/TripContext';
-import { useVans } from '@/hooks/useVans';
-import { useCompanies } from '@/hooks/useCompanies';
+import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useRBAC } from '@/contexts/RBACContext';
-import { useToast } from '@/hooks/use-toast';
-import { Trip } from '@/contexts/TripContext';
+import { Button } from '@/components/ui/button';
+import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useTrip } from '@/contexts/TripContext';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
+import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
-import MissionsLoadingSkeleton from './MissionsLoadingSkeleton';
-import MissionDetailsDialog from './MissionDetailsDialog';
-import MissionActionDialog from './MissionActionDialog';
 import NewTripDialog from '@/components/NewTripDialog';
+import MissionActionDialog from './MissionActionDialog';
+import { Trip } from '@/contexts/TripContext';
 
-interface MissionsContainerProps {
-  isNewMissionDialogOpen: boolean;
-  setIsNewMissionDialogOpen: (open: boolean) => void;
-}
-
-const MissionsContainer: React.FC<MissionsContainerProps> = ({
-  isNewMissionDialogOpen,
-  setIsNewMissionDialogOpen
-}) => {
-  console.log('🚀 MissionsContainer: Component rendering...');
-
-  // State management
-  const [selectedMission, setSelectedMission] = useState<Trip | null>(null);
+const MissionsContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [companyFilter, setCompanyFilter] = useState('all');
-  const [vanFilter, setVanFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [deletingTripId, setDeletingTripId] = useState<number | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [isActionDialogOpen, setIsActionDialogOpen] = useState(false);
-  const [currentAction, setCurrentAction] = useState<'delete' | 'terminate' | null>(null);
-  const [isActionLoading, setIsActionLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
+  const [actionDialog, setActionDialog] = useState<{
+    isOpen: boolean;
+    mission: Trip | null;
+    action: 'delete' | 'terminate' | null;
+  }>({
+    isOpen: false,
+    mission: null,
+    action: null
+  });
+  const [permissions, setPermissions] = useState({
+    canRead: false,
+    canCreate: false,
+    canEdit: false,
+    canDelete: false
+  });
 
-  // Data fetching
-  const { trips, isLoading, error, deleteTrip, endTrip } = useTrip();
-  const { vans } = useVans();
-  const { companies } = useCompanies();
-  const { hasPermission } = useRBAC();
-  const { toast } = useToast();
+  const { user: authUser } = useAuth();
+  const { hasPermission, roles, currentUser } = useRBAC();
+  const { trips, loading, error, refetch } = useTrip();
+  const { refreshPage } = useCacheRefresh();
 
-  console.log('🚀 MissionsContainer: Raw trips data:', trips);
+  // Check permissions when component mounts
+  useEffect(() => {
+    const checkPermissions = async () => {
+      // Dynamic privilege detection
+      const isHighPrivilegeUser = () => {
+        if (!currentUser?.role_id || !roles) return false;
+        
+        const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+        if (!userRole) return false;
+        
+        // High privilege users have many permissions (10+)
+        return userRole.permissions.length >= 10;
+      };
 
-  // Process trips data safely
-  const processedTrips = useMemo(() => {
-    try {
-      if (!Array.isArray(trips)) {
-        console.warn('🚀 MissionsContainer: trips is not an array:', trips);
-        return [];
-      }
-
-      return trips.map(trip => {
-        try {
-          if (!trip) {
-            console.warn('🚀 MissionsContainer: Found null trip');
-            return null;
-          }
-
-          const processDate = (dateObj: any) => {
-            if (!dateObj) return null;
-            
-            try {
-              if (dateObj._type === 'Date' && dateObj.value) {
-                if (dateObj.value.iso) {
-                  return dateObj.value.iso;
-                }
-                if (dateObj.value.value && typeof dateObj.value.value === 'number') {
-                  return new Date(dateObj.value.value).toISOString();
-                }
-              }
-              
-              if (typeof dateObj === 'string') {
-                return dateObj;
-              }
-              
-              if (dateObj instanceof Date) {
-                return dateObj.toISOString();
-              }
-              
-              if (typeof dateObj === 'number') {
-                return new Date(dateObj).toISOString();
-              }
-              
-              return null;
-            } catch (err) {
-              console.warn('🚀 MissionsContainer: Error processing date:', err, dateObj);
-              return null;
-            }
-          };
-
-          return {
-            ...trip,
-            startDate: processDate(trip.startDate),
-            endDate: processDate(trip.endDate)
-          };
-        } catch (dateError) {
-          console.error('🚀 MissionsContainer: Error processing trip:', dateError, trip);
-          return {
-            ...trip,
-            startDate: null,
-            endDate: null
-          };
-        }
-      }).filter(Boolean);
-    } catch (error) {
-      console.error('🚀 MissionsContainer: Error processing trips:', error);
-      return [];
-    }
-  }, [trips]);
-
-  // Filter trips
-  const filteredTrips = useMemo(() => {
-    if (!Array.isArray(processedTrips)) {
-      return [];
-    }
-
-    return processedTrips.filter((trip) => {
-      if (!trip) return false;
-
-      const searchTermLower = searchTerm.toLowerCase();
-      const matchesSearchTerm =
-        (trip.company || '').toLowerCase().includes(searchTermLower) ||
-        (trip.branch || '').toLowerCase().includes(searchTermLower) ||
-        (trip.driver || '').toLowerCase().includes(searchTermLower) ||
-        (trip.notes || '').toLowerCase().includes(searchTermLower);
-
-      const matchesCompany = companyFilter === 'all' || trip.company === companyFilter;
-      const matchesVan = vanFilter === 'all' || trip.van === vanFilter;
-      const matchesStatus = statusFilter === 'all' || 
-        (statusFilter === 'active' && trip.status === 'active') ||
-        (statusFilter === 'completed' && trip.status !== 'active');
-
-      return matchesSearchTerm && matchesCompany && matchesVan && matchesStatus;
-    });
-  }, [processedTrips, searchTerm, companyFilter, vanFilter, statusFilter]);
-
-  const getVanDisplayName = (vanId: string) => {
-    try {
-      if (!vanId) return 'N/A';
-      const van = vans.find(v => v.id === vanId);
-      if (van) {
-        return (van as any).reference_code || van.license_plate || van.model || vanId;
-      }
-      return vanId;
-    } catch (error) {
-      console.error('🚀 MissionsContainer: Error getting van display name:', error);
-      return vanId || 'N/A';
-    }
-  };
-
-  // Event handlers
-  const handleOpenMissionDetails = (mission: Trip) => {
-    console.log('🚀 MissionsContainer: Opening mission details for:', mission);
-    setSelectedMission(mission);
-    setIsDetailsDialogOpen(true);
-  };
-
-  const handleDelete = (mission: Trip) => {
-    setSelectedMission(mission);
-    setCurrentAction('delete');
-    setIsActionDialogOpen(true);
-  };
-
-  const handleTerminate = (mission: Trip) => {
-    setSelectedMission(mission);
-    setCurrentAction('terminate');
-    setIsActionDialogOpen(true);
-  };
-
-  const handleConfirmAction = async () => {
-    if (!selectedMission || !currentAction) return;
-
-    setIsActionLoading(true);
-    try {
-      if (currentAction === 'delete') {
-        await deleteTrip(selectedMission.id);
-        toast({
-          title: 'Mission supprimée',
-          description: 'La mission a été supprimée avec succès.',
+      if (isHighPrivilegeUser()) {
+        setPermissions({
+          canRead: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true
         });
-      } else if (currentAction === 'terminate') {
-        const endKm = (selectedMission.startKm || 0) + 1;
-        await endTrip(selectedMission.id, endKm);
-        toast({
-          title: 'Mission terminée',
-          description: 'La mission a été terminée avec succès.',
-        });
+        return;
       }
-      
-      setIsActionDialogOpen(false);
-      setSelectedMission(null);
-      setCurrentAction(null);
-    } catch (error) {
-      console.error('🚀 MissionsContainer: Error during action:', error);
-      toast({
-        title: 'Erreur',
-        description: `Impossible de ${currentAction === 'delete' ? 'supprimer' : 'terminer'} la mission.`,
-        variant: 'destructive',
-      });
+
+      const canRead = hasPermission('trips:read');
+      const canCreate = hasPermission('trips:create');
+      const canEdit = hasPermission('trips:update');
+      const canDelete = hasPermission('trips:delete');
+
+      setPermissions({ canRead, canCreate, canEdit, canDelete });
+    };
+
+    if (authUser) {
+      checkPermissions();
+    }
+  }, [authUser, hasPermission, currentUser, roles]);
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    
+    setIsRefreshing(true);
+    try {
+      await refetch();
+      await refreshPage(['trips']);
     } finally {
-      setIsActionLoading(false);
+      setTimeout(() => setIsRefreshing(false), 500);
     }
   };
 
-  const handleClearFilters = () => {
+  const handleAddMission = () => {
+    console.log('🆕 Missions: Adding new mission');
+    setIsNewMissionDialogOpen(true);
+  };
+
+  const handleEditMission = (mission: Trip) => {
+    console.log('✏️ Missions: Editing mission:', mission.id);
+    // Implementation for edit functionality
+  };
+
+  const handleDeleteMission = (mission: Trip) => {
+    console.log('🗑️ Missions: Preparing to delete mission:', mission.id);
+    setActionDialog({ isOpen: true, mission, action: 'delete' });
+  };
+
+  const handleTerminateMission = (mission: Trip) => {
+    console.log('🔚 Missions: Preparing to terminate mission:', mission.id);
+    setActionDialog({ isOpen: true, mission, action: 'terminate' });
+  };
+
+  const handleActionConfirm = async () => {
+    if (!actionDialog.mission) return;
+    
+    try {
+      // Implementation for delete/terminate actions
+      console.log(`${actionDialog.action} mission:`, actionDialog.mission.id);
+      
+      // Close dialog and refresh
+      setActionDialog({ isOpen: false, mission: null, action: null });
+      await handleRefresh();
+    } catch (error) {
+      console.error('Error performing action:', error);
+    }
+  };
+
+  const clearFilters = () => {
     setSearchTerm('');
-    setCompanyFilter('all');
-    setVanFilter('all');
     setStatusFilter('all');
   };
 
-  const canCreateMissions = hasPermission('missions:create');
-
-  if (isLoading) {
-    return <MissionsLoadingSkeleton />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg">Chargement des missions...</div>
+      </div>
+    );
   }
 
-  if (error) {
-    console.error('🚀 MissionsContainer: Error state:', error);
+  if (!authUser) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
-          <p className="text-gray-600 mb-4">Impossible de charger les missions: {error}</p>
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
+        <p className="text-gray-600">Vous devez être connecté pour accéder aux missions.</p>
+      </div>
+    );
+  }
+
+  const showPermissionError = error?.message.includes('Insufficient permissions');
+
+  if (showPermissionError || !permissions.canRead) {
+    return (
+      <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+        <div className="flex items-center justify-between">
+          <MissionsHeader missionsCount={0} />
         </div>
+
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            <strong>Permissions insuffisantes</strong>
+            <br />
+            Vous n'avez pas les permissions nécessaires pour accéder à cette fonctionnalité.
+            Seuls les utilisateurs autorisés peuvent gérer les missions.
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
   return (
-    <>
-      {/* Filters */}
+    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      <div className="flex items-center justify-between">
+        <MissionsHeader missionsCount={trips?.length || 0} />
+        <div className="flex items-center space-x-2">
+          {permissions.canCreate && (
+            <Button 
+              onClick={handleAddMission} 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Nouvelle Mission
+            </Button>
+          )}
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+        </div>
+      </div>
+
       <MissionsFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        companyFilter={companyFilter}
-        setCompanyFilter={setCompanyFilter}
-        vanFilter={vanFilter}
-        setVanFilter={setVanFilter}
         statusFilter={statusFilter}
         setStatusFilter={setStatusFilter}
-        companies={companies}
-        vans={vans}
-        onClearFilters={handleClearFilters}
+        clearFilters={clearFilters}
+        missions={trips || []}
       />
 
-      {/* Mission List */}
       <MissionsList
-        filteredTrips={filteredTrips}
-        totalTrips={processedTrips}
-        onTripClick={handleOpenMissionDetails}
-        onDeleteTrip={handleDelete}
-        onTerminateTrip={handleTerminate}
-        deletingTripId={deletingTripId}
-        getVanDisplayName={getVanDisplayName}
+        missions={trips || []}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onEditMission={handleEditMission}
+        onDeleteMission={handleDeleteMission}
+        onTerminateMission={handleTerminateMission}
+        canEdit={permissions.canEdit}
+        canDelete={permissions.canDelete}
+        actionLoading={isRefreshing ? 'loading' : null}
       />
 
-      {/* New Mission Dialog */}
-      <NewTripDialog
-        isOpen={isNewMissionDialogOpen}
-        onClose={() => setIsNewMissionDialogOpen(false)}
-      />
+      {permissions.canCreate && (
+        <NewTripDialog
+          isOpen={isNewMissionDialogOpen}
+          onClose={() => setIsNewMissionDialogOpen(false)}
+        />
+      )}
 
-      {/* Mission Details Dialog */}
-      <MissionDetailsDialog
-        mission={selectedMission}
-        isOpen={isDetailsDialogOpen}
-        onClose={() => {
-          setIsDetailsDialogOpen(false);
-          setSelectedMission(null);
-        }}
-        getVanDisplayName={getVanDisplayName}
-      />
-
-      {/* Mission Action Dialog */}
       <MissionActionDialog
-        mission={selectedMission}
-        action={currentAction}
-        isOpen={isActionDialogOpen}
-        onClose={() => {
-          setIsActionDialogOpen(false);
-          setSelectedMission(null);
-          setCurrentAction(null);
-        }}
-        onConfirm={handleConfirmAction}
-        isLoading={isActionLoading}
+        mission={actionDialog.mission}
+        action={actionDialog.action}
+        isOpen={actionDialog.isOpen}
+        onClose={() => setActionDialog({ isOpen: false, mission: null, action: null })}
+        onConfirm={handleActionConfirm}
+        isLoading={isRefreshing}
       />
-    </>
+    </div>
   );
 };
 

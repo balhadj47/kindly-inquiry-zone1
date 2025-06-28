@@ -1,55 +1,26 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
-import { useRBAC } from '@/contexts/RBACContext';
+import { Bell } from 'lucide-react';
 
 interface MissionsHeaderProps {
-  onAdd: () => void;
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
+  missionsCount: number;
 }
 
 const MissionsHeader: React.FC<MissionsHeaderProps> = ({ 
-  onAdd, 
-  onRefresh, 
-  isRefreshing = false 
+  missionsCount
 }) => {
-  const { hasPermission } = useRBAC();
-  
-  const canCreateTrips = hasPermission('trips:create');
-
   return (
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Missions</h1>
-        <p className="text-gray-600 mt-1">
-          Gérez les missions et les voyages
-        </p>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        {onRefresh && (
-          <Button
-            variant="outline"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        )}
-        
-        {canCreateTrips && (
-          <Button 
-            onClick={onAdd}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            Nouvelle Mission
-          </Button>
-        )}
+    <div className="flex items-center justify-between">
+      <div className="flex items-center space-x-3">
+        <div className="p-2 bg-blue-100 rounded-lg">
+          <Bell className="h-6 w-6 text-blue-600" />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Gestion des Missions</h1>
+          <p className="text-gray-600 mt-1">
+            {missionsCount} mission{missionsCount !== 1 ? 's' : ''} active{missionsCount !== 1 ? 's' : ''}
+          </p>
+        </div>
       </div>
     </div>
   );

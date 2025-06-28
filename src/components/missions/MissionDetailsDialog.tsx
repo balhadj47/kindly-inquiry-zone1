@@ -78,6 +78,32 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     return user ? user.name : `User ${userId}`;
   };
 
+  // Function to get the driver (person with "Chauffeur" role)
+  const getDriverName = () => {
+    if (!mission?.userRoles || mission.userRoles.length === 0) {
+      return mission?.driver || 'Aucun chauffeur assigné';
+    }
+
+    // Find user with "Chauffeur" role
+    const driverUserRole = mission.userRoles.find(userRole => 
+      userRole.roles.some(role => {
+        if (typeof role === 'string') {
+          return role === 'Chauffeur';
+        } else if (typeof role === 'object' && role !== null) {
+          const roleObj = role as any;
+          return roleObj.name === 'Chauffeur';
+        }
+        return false;
+      })
+    );
+
+    if (driverUserRole) {
+      return getUserName(driverUserRole.userId);
+    }
+
+    return mission?.driver || 'Aucun chauffeur assigné';
+  };
+
   // Local function to get van display info with separate model and plate
   const getVanInfo = (vanId: string) => {
     const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
@@ -200,6 +226,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
 
   const vanInfo = getVanInfo(mission.van);
   const canComplete = mission.status === 'active';
+  const driverName = getDriverName();
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -312,7 +339,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Chauffeur</p>
-                  <p className="text-base font-medium text-gray-900">{mission.driver}</p>
+                  <p className="text-base font-medium text-gray-900">{driverName}</p>
                 </div>
               </div>
 
@@ -345,7 +372,7 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
                 <div>
                   <p className="text-sm text-gray-500">Date de Création</p>
                   <p className="text-base font-medium text-gray-900">
-                    {formatDate(mission.timestamp || new Date().toISOString())}
+                    {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
                   </p>
                 </div>
               </div>
@@ -491,31 +518,6 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
               </div>
             </div>
           )}
-
-          {/* Mission ID and Technical Details */}
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Détails Techniques</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-              <div>
-                <p className="text-gray-500">ID Mission</p>
-                <p className="font-mono text-gray-900">{mission.id}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">ID Véhicule</p>
-                <p className="font-mono text-gray-900">{mission.van}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Statut</p>
-                <p className="text-gray-900">{getStatusText(mission.status || 'active')}</p>
-              </div>
-              <div>
-                <p className="text-gray-500">Dernière MAJ</p>
-                <p className="text-gray-900">
-                  {formatDate(mission.timestamp || new Date().toISOString())}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </DialogContent>
     </Dialog>

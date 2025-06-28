@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus, Truck } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import MissionCard from './MissionCard';
+import { useVans } from '@/hooks/useVansOptimized';
 
 interface MissionListProps {
   trips: Trip[];
@@ -24,6 +25,20 @@ const MissionList: React.FC<MissionListProps> = ({
   onTerminateTrip,
   deletingTripId
 }) => {
+  const { data: vans = [] } = useVans();
+
+  const handleMissionClick = (mission: Trip) => {
+    onTripClick(mission);
+  };
+
+  const handleTerminateClick = (mission: Trip) => {
+    onTerminateTrip(mission);
+  };
+
+  const handleDeleteClick = (mission: Trip) => {
+    onDeleteTrip(mission);
+  };
+
   return (
     <div className="bg-white border rounded-xl shadow-sm">
       <div className="p-6 border-b">
@@ -54,12 +69,14 @@ const MissionList: React.FC<MissionListProps> = ({
               <MissionCard 
                 key={trip.id}
                 mission={trip}
-                onEdit={onTripClick}
-                onDelete={onDeleteTrip}
-                onTerminate={onTerminateTrip}
+                onMissionClick={handleMissionClick}
+                onTerminateClick={handleTerminateClick}
+                onDeleteClick={handleDeleteClick}
+                getVanDisplayName={getVanDisplayName}
                 canEdit={true}
                 canDelete={true}
                 actionLoading={deletingTripId === trip.id ? 'loading' : null}
+                isTerminating={false}
               />
             ))}
           </div>

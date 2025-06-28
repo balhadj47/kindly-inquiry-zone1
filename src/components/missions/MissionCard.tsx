@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Circle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -53,6 +52,18 @@ const MissionCard: React.FC<MissionCardProps> = ({
     }
   };
 
+  const handleDeleteClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('🗑️ MissionCard: Delete button clicked for mission:', mission.id);
+    onDeleteClick(mission);
+  };
+
+  const handleTerminateClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    console.log('🔄 MissionCard: Terminate button clicked for mission:', mission.id);
+    onTerminateClick(mission);
+  };
+
   return (
     <div className="bg-white border border-gray-200 rounded-2xl p-6 hover:shadow-md transition-all duration-200 group">
       <div className="flex items-start justify-between mb-6">
@@ -80,7 +91,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onTerminateClick(mission)}
+              onClick={handleTerminateClick}
               disabled={actionLoading === 'loading' || isTerminating}
               className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
             >
@@ -92,7 +103,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDeleteClick(mission)}
+              onClick={handleDeleteClick}
               disabled={actionLoading === 'loading'}
               className="text-red-500 hover:text-red-600 hover:bg-red-50"
             >

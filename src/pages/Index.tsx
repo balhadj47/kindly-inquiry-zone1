@@ -1,4 +1,5 @@
 
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -138,45 +139,45 @@ const Index = () => {
             }`}>
               <Suspense fallback={<PageLoadingSkeleton />}>
                 <Routes>
-                  <Route path="/" element={
+                  <Route path="" element={
                     checkPermission('dashboard:read') ? (
                       <Dashboard />
                     ) : (
                       <AccessDenied />
                     )
                   } />
-                  <Route path="/dashboard" element={
+                  <Route path="dashboard" element={
                     checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
                   } />
-                  <Route path="/companies/*" element={
+                  <Route path="companies/*" element={
                     checkPermission('companies:read') ? <Companies /> : <AccessDenied />
                   } />
-                  <Route path="/vans/*" element={
+                  <Route path="vans/*" element={
                     checkPermission('vans:read') ? <Vans /> : <AccessDenied />
                   } />
-                  <Route path="/users" element={
+                  <Route path="users" element={
                     checkPermission('users:read') ? <Users /> : <AccessDenied />
                   } />
-                  <Route path="/auth-users" element={
+                  <Route path="auth-users" element={
                     checkPermission('users:read') ? <AuthUsersPage /> : <AccessDenied />
                   } />
-                  <Route path="/employees" element={
+                  <Route path="employees" element={
                     checkPermission('users:read') ? <Employees /> : <AccessDenied />
                   } />
-                  <Route path="/log-trip" element={
+                  <Route path="log-trip" element={
                     checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
                   } />
-                  <Route path="/trip-logger" element={
+                  <Route path="trip-logger" element={
                     checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
                   } />
-                  <Route path="/missions" element={
+                  <Route path="missions" element={
                     checkPermission('trips:read') ? <MissionsPage /> : <AccessDenied />
                   } />
-                  <Route path="/trip-history" element={
+                  <Route path="trip-history" element={
                     checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
                   } />
-                  <Route path="/settings" element={<SystemSettingsPage />} />
-                  <Route path="/user-settings" element={<UserSettings />} />
+                  <Route path="settings" element={<SystemSettingsPage />} />
+                  <Route path="user-settings" element={<UserSettings />} />
                 </Routes>
               </Suspense>
             </main>
@@ -190,3 +191,4 @@ const Index = () => {
 };
 
 export default Index;
+

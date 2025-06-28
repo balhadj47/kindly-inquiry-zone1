@@ -1,4 +1,5 @@
 
+
 import { Toaster } from "@/components/ui/toaster"
 import { HashRouter as Router, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -37,15 +38,14 @@ const App = () => {
                   <TripProvider>
                     <Router>
                       <Routes>
-                        <Route path="/auth" element={<AuthPage />} />
-                        <Route path="/*" element={
+                        <Route path="auth" element={<AuthPage />} />
+                        <Route path="*" element={
                           <ProtectedRoute>
                             <SidebarProvider>
                               <Index />
                             </SidebarProvider>
                           </ProtectedRoute>
                         } />
-                        <Route path="*" element={<NotFound />} />
                       </Routes>
                     </Router>
                   </TripProvider>
@@ -61,3 +61,4 @@ const App = () => {
 }
 
 export default App
+

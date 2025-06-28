@@ -1,14 +1,22 @@
 
-import { getRoleDisplayNameById, getRoleColorById } from './rolePermissions';
-
-// Convert role_id to role display name
-export const getRoleNameFromId = async (roleId: number): Promise<string> => {
-  return getRoleDisplayNameById(roleId);
+// Convert role_id to role display name using a mapping approach
+export const getRoleNameFromId = (roleId: number): string => {
+  switch (roleId) {
+    case 1: return 'Administrator';
+    case 2: return 'Supervisor';
+    case 3: return 'Employee';
+    default: return 'Employee';
+  }
 };
 
-// Get role color from role_id
-export const getRoleColorFromId = async (roleId: number): Promise<string> => {
-  return getRoleColorById(roleId);
+// Get role color from role_id using a mapping approach
+export const getRoleColorFromId = (roleId: number): string => {
+  switch (roleId) {
+    case 1: return '#dc2626'; // Red for Administrator
+    case 2: return '#ea580c'; // Orange for Supervisor  
+    case 3: return '#059669'; // Green for Employee
+    default: return '#6b7280'; // Gray default
+  }
 };
 
 // Convert role_id to system group name for backward compatibility

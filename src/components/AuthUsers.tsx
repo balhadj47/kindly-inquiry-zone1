@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Plus, ExternalLink, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -40,10 +40,47 @@ const AuthUsers = () => {
   const [createDialog, setCreateDialog] = useState<{ isOpen: boolean }>({
     isOpen: false
   });
+  const [permissions, setPermissions] = useState({
+    canRead: false,
+    canCreate: false,
+    canEdit: false,
+    canDelete: false
+  });
   const { user: authUser } = useAuth();
 
   const { data: authUsers = [], isLoading: loading, error, refetch } = useAuthUsers();
   const { deleteAuthUser, updateAuthUser, createAuthUser } = useAuthUserMutations();
+
+  // Check permissions when component mounts
+  useEffect(() => {
+    const checkPermissions = async () => {
+      const userRoleId = authUser?.user_metadata?.role_id || 0;
+      const isKnownAdmin = authUser?.email === 'gb47@msn.com';
+      
+      if (isKnownAdmin) {
+        setPermissions({
+          canRead: true,
+          canCreate: true,
+          canEdit: true,
+          canDelete: true
+        });
+        return;
+      }
+
+      const [canRead, canCreate, canEdit, canDelete] = await Promise.all([
+        roleIdHasPermission(userRoleId, 'auth-users:read'),
+        roleIdHasPermission(userRoleId, 'auth-users:create'),
+        roleIdHasPermission(userRoleId, 'auth-users:update'),
+        roleIdHasPermission(userRoleId, 'auth-users:delete')
+      ]);
+
+      setPermissions({ canRead, canCreate, canEdit, canDelete });
+    };
+
+    if (authUser) {
+      checkPermissions();
+    }
+  }, [authUser]);
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
@@ -103,13 +140,6 @@ const AuthUsers = () => {
     setStatusFilter('all');
   };
 
-  const userRoleId = authUser?.user_metadata?.role_id || 0;
-  const isKnownAdmin = authUser?.email === 'gb47@msn.com';
-  const hasAuthUsersPermission = roleIdHasPermission(userRoleId, 'auth-users:read') || isKnownAdmin;
-  const canCreateAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:create') || isKnownAdmin;
-  const canEditAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:update') || isKnownAdmin;
-  const canDeleteAuthUsers = roleIdHasPermission(userRoleId, 'auth-users:delete') || isKnownAdmin;
-
   const showAdminError = error?.message.includes('Insufficient permissions');
 
   if (loading) {
@@ -129,7 +159,7 @@ const AuthUsers = () => {
     );
   }
 
-  if (showAdminError || !hasAuthUsersPermission) {
+  if (showAdminError || !permissions.canRead) {
     return (
       <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
@@ -175,7 +205,7 @@ const AuthUsers = () => {
       <div className="flex items-center justify-between">
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
-          {canCreateAuthUsers && (
+          {permissions.canCreate && (
             <Button 
               onClick={handleAddUser} 
               className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -210,8 +240,8 @@ const AuthUsers = () => {
         statusFilter={statusFilter}
         onEditUser={handleEditUser}
         onDeleteUser={handleDeleteUserDialog}
-        canEdit={canEditAuthUsers}
-        canDelete={canDeleteAuthUsers}
+        canEdit={permissions.canEdit}
+        canDelete={permissions.canDelete}
         actionLoading={deleteAuthUser.isPending || updateAuthUser.isPending || createAuthUser.isPending ? 'loading' : null}
       />
 

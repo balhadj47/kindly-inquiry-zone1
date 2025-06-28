@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getRoleDisplayNameById } from '@/utils/rolePermissions';
+import { getRoleNameFromId } from '@/utils/roleUtils';
 
 export interface Driver {
   id: string;
@@ -48,7 +48,7 @@ export const useDrivers = () => {
         phone: user.phone || '',
         licenseNumber: user.driver_license || '', // Use driver_license from database
         status: user.status || 'Active',
-        systemGroup: getRoleDisplayNameById(user.role_id || 3), // Use role_id and convert to display name
+        systemGroup: getRoleNameFromId(user.role_id || 3), // Use role_id and convert to display name
         totalTrips: user.total_trips || 0,
         lastTrip: user.last_trip || null,
         created_at: user.created_at,
@@ -101,7 +101,7 @@ export const useAvailableDrivers = () => {
         phone: user.phone || '',
         licenseNumber: user.driver_license || '',
         status: user.status || 'Active',
-        systemGroup: getRoleDisplayNameById(user.role_id || 3),
+        systemGroup: getRoleNameFromId(user.role_id || 3),
         totalTrips: user.total_trips || 0,
         lastTrip: user.last_trip || null,
       }));
@@ -146,7 +146,7 @@ export const useDriverWithStats = (driverId: string | null) => {
         phone: driver.phone || '',
         licenseNumber: driver.driver_license || '',
         status: driver.status || 'Active',
-        systemGroup: getRoleDisplayNameById(driver.role_id || 3),
+        systemGroup: getRoleNameFromId(driver.role_id || 3),
         totalTrips: driver.total_trips || 0,
         lastTrip: driver.last_trip || null,
       };

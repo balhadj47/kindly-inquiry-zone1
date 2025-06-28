@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -7,15 +8,31 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
   const startTime = performance.now();
 
   try {
+    // First, check authentication status
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('🔐 Auth status:', { user: user?.email, authError });
+
     // Load user_groups with their permissions directly from the table
+    console.log('📋 Making database query to user_groups table...');
     const { data: groupsData, error: groupsError } = await supabase
       .from('user_groups')
       .select('*')
       .order('role_id');
 
+    console.log('📋 Database query result:', { 
+      data: groupsData, 
+      error: groupsError,
+      dataLength: groupsData?.length 
+    });
+
     if (groupsError) {
       console.error('❌ Error loading user groups:', groupsError);
       throw groupsError;
+    }
+
+    if (!groupsData || groupsData.length === 0) {
+      console.log('📝 No groups found in database');
+      return [];
     }
 
     console.log('📋 Raw groups data:', groupsData);

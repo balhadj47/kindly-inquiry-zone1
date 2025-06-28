@@ -41,7 +41,10 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   const getVanName = (vanId: string) => {
     const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
     if (van) {
-      return van.license_plate ? `${van.license_plate} (${van.model})` : van.model;
+      if (van.license_plate && van.model) {
+        return `${van.model}, ${van.license_plate}`;
+      }
+      return van.model || van.license_plate || vanId;
     }
     return getVanDisplayName(vanId) || vanId;
   };

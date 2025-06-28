@@ -6,6 +6,11 @@ export const getRoleNameFromId = async (roleId: number): Promise<string> => {
   try {
     console.log('🔍 getRoleNameFromId: Querying for role_id:', roleId);
     
+    if (!roleId) {
+      console.warn('⚠️ getRoleNameFromId: Invalid role_id:', roleId);
+      return 'Unknown Role';
+    }
+    
     const { data, error } = await supabase
       .from('user_groups')
       .select('name')
@@ -14,12 +19,16 @@ export const getRoleNameFromId = async (roleId: number): Promise<string> => {
 
     if (error) {
       console.error('❌ getRoleNameFromId: Database error:', error);
+      if (error.code === 'PGRST116') {
+        console.warn('⚠️ Role not found for role_id:', roleId);
+        return `Role ${roleId} (Not Found)`;
+      }
       return `Role ${roleId}`;
     }
 
     if (!data) {
       console.warn('⚠️ getRoleNameFromId: No data found for role_id:', roleId);
-      return `Role ${roleId}`;
+      return `Role ${roleId} (Missing)`;
     }
 
     console.log('✅ getRoleNameFromId: Found role name:', data.name, 'for role_id:', roleId);
@@ -35,6 +44,11 @@ export const getRoleColorFromId = async (roleId: number): Promise<string> => {
   try {
     console.log('🎨 getRoleColorFromId: Querying for role_id:', roleId);
     
+    if (!roleId) {
+      console.warn('⚠️ getRoleColorFromId: Invalid role_id:', roleId);
+      return '#6b7280';
+    }
+    
     const { data, error } = await supabase
       .from('user_groups')
       .select('color')
@@ -43,7 +57,11 @@ export const getRoleColorFromId = async (roleId: number): Promise<string> => {
 
     if (error) {
       console.error('❌ getRoleColorFromId: Database error:', error);
-      return '#6b7280'; // Gray default
+      if (error.code === 'PGRST116') {
+        console.warn('⚠️ Role color not found for role_id:', roleId);
+        return '#6b7280';
+      }
+      return '#6b7280';
     }
 
     if (!data) {
@@ -80,14 +98,14 @@ export const getAllRoles = async (): Promise<Array<{ id: number; name: string; c
     }
 
     const roles = data
-      .filter(role => role.role_id !== null)
+      .filter(role => role.role_id !== null && role.role_id !== undefined)
       .map(role => ({
         id: role.role_id!,
-        name: role.name,
+        name: role.name || `Role ${role.role_id}`,
         color: role.color || '#6b7280'
       }));
 
-    console.log('✅ getAllRoles: Loaded roles:', roles);
+    console.log('✅ getAllRoles: Loaded roles from database:', roles);
     return roles;
   } catch (error) {
     console.error('❌ getAllRoles: Exception:', error);
@@ -102,33 +120,69 @@ export const getSystemGroupFromRoleId = async (roleId: number): Promise<string> 
 
 // Check if role_id indicates a driver role - based on database data
 export const isDriverRole = async (roleId: number): Promise<boolean> => {
-  // This should be determined by permissions in the database
-  // For now, keeping simple logic but could be enhanced
-  return roleId >= 2; // Non-admin roles can be drivers
+  try {
+    const roleName = await getRoleNameFromId(roleId);
+    // Check if the role name contains driver-related keywords
+    const driverKeywords = ['driver', 'chauffeur', 'conducteur'];
+    return driverKeywords.some(keyword => 
+      roleName.toLowerCase().includes(keyword.toLowerCase())
+    );
+  } catch (error) {
+    console.error('❌ isDriverRole: Error:', error);
+    return false;
+  }
 };
 
 // Check if role_id indicates admin privileges - based on database data
 export const isAdminRole = async (roleId: number): Promise<boolean> => {
-  return roleId === 1; // Typically admin is role_id 1
+  try {
+    const roleName = await getRoleNameFromId(roleId);
+    // Check if the role name contains admin-related keywords
+    const adminKeywords = ['admin', 'administrator', 'administrateur'];
+    return adminKeywords.some(keyword => 
+      roleName.toLowerCase().includes(keyword.toLowerCase())
+    );
+  } catch (error) {
+    console.error('❌ isAdminRole: Error:', error);
+    return false;
+  }
 };
 
 // Check if role_id indicates supervisor privileges - based on database data
 export const isSupervisorRole = async (roleId: number): Promise<boolean> => {
-  return roleId === 2; // Typically supervisor is role_id 2
+  try {
+    const roleName = await getRoleNameFromId(roleId);
+    // Check if the role name contains supervisor-related keywords
+    const supervisorKeywords = ['supervisor', 'superviseur', 'manager', 'chef'];
+    return supervisorKeywords.some(keyword => 
+      roleName.toLowerCase().includes(keyword.toLowerCase())
+    );
+  } catch (error) {
+    console.error('❌ isSupervisorRole: Error:', error);
+    return false;
+  }
 };
 
 // Check if role_id indicates employee level - based on database data
 export const isEmployeeRole = async (roleId: number): Promise<boolean> => {
-  return roleId >= 3; // Employee level roles
-};
-
-// Remove all caching - everything is fetched fresh from database
-export const loadRolesFromDatabase = async (): Promise<void> => {
-  // This function is no longer needed since we fetch directly each time
-  console.log('ℹ️ loadRolesFromDatabase called but no longer caching - roles fetched directly from DB');
-};
-
-export const reloadRolesFromDatabase = async (): Promise<void> => {
-  // This function is no longer needed since we don't cache
-  console.log('ℹ️ reloadRolesFromDatabase called but no longer needed - roles always fresh from DB');
+  try {
+    const roleName = await getRoleNameFromId(roleId);
+    // Check if the role name contains employee-related keywords or is not admin/supervisor
+    const employeeKeywords = ['employee', 'employe', 'worker', 'staff'];
+    const isEmployee = employeeKeywords.some(keyword => 
+      roleName.toLowerCase().includes(keyword.toLowerCase())
+    );
+    
+    // If not explicitly an employee, check if it's not admin or supervisor
+    if (!isEmployee) {
+      const isAdmin = await isAdminRole(roleId);
+      const isSupervisor = await isSupervisorRole(roleId);
+      return !isAdmin && !isSupervisor;
+    }
+    
+    return isEmployee;
+  } catch (error) {
+    console.error('❌ isEmployeeRole: Error:', error);
+    return true; // Default to employee if error
+  }
 };

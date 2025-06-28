@@ -13,6 +13,14 @@ export const useRoleData = (roleId: number) => {
         setLoading(true);
         console.log('🔍 useRoleData: Loading role data for role_id:', roleId);
         
+        if (!roleId) {
+          console.warn('⚠️ useRoleData: Invalid role_id provided:', roleId);
+          setRoleName('Unknown Role');
+          setRoleColor('#6b7280');
+          setLoading(false);
+          return;
+        }
+
         const [name, color] = await Promise.all([
           getRoleNameFromId(roleId),
           getRoleColorFromId(roleId)
@@ -30,11 +38,7 @@ export const useRoleData = (roleId: number) => {
       }
     };
 
-    if (roleId) {
-      loadRoleData();
-    } else {
-      setLoading(false);
-    }
+    loadRoleData();
   }, [roleId]);
 
   return { roleName, roleColor, loading };

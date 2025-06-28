@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { User, UserStatus } from '@/types/rbac';
 import type { SystemGroup, SystemGroupName } from '@/types/systemGroups';
@@ -41,6 +42,12 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
       console.log(`📋 loadRoles: Processing database role: ${group.name} (role_id: ${group.role_id})`);
       console.log(`📋 loadRoles: Raw permissions from database:`, group.permissions);
       
+      // Ensure role_id is properly handled
+      if (!group.role_id && group.role_id !== 0) {
+        console.warn(`⚠️ loadRoles: Group ${group.name} has no role_id, skipping`);
+        return null;
+      }
+      
       // Use permissions directly from the user_groups table
       const permissions = Array.isArray(group.permissions) ? group.permissions : [];
       console.log(`📋 loadRoles: Processed ${permissions.length} permissions for ${group.name}:`, permissions);
@@ -54,13 +61,13 @@ export const loadRoles = async (): Promise<SystemGroup[]> => {
         role_id: group.role_id,
         isSystemRole: false, // Mark as custom since loaded from database
       };
-    });
+    }).filter(Boolean); // Remove null entries
 
     const endTime = performance.now();
     console.log(`✅ loadRoles: Loaded ${rolesWithPermissions.length} roles from database in ${endTime - startTime}ms`);
     console.log('📋 loadRoles: Final processed roles from database:', rolesWithPermissions);
 
-    return rolesWithPermissions;
+    return rolesWithPermissions as SystemGroup[];
   } catch (error) {
     console.error('❌ loadRoles: Failed to load roles from database:', error);
     
@@ -94,7 +101,7 @@ export const loadUsers = async (): Promise<User[]> => {
       name: user.name || '',
       email: user.email || undefined,
       phone: user.phone || '',
-      role_id: user.role_id || 3,
+      role_id: user.role_id || 1, // Default to 1 if no role_id
       status: (user.status || 'Active') as UserStatus,
       createdAt: user.created_at,
       licenseNumber: user.driver_license,

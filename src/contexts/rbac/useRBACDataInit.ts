@@ -43,9 +43,9 @@ const getRoleIdFromAuthUser = (authUser: any): number => {
     return 1; // Administrator
   }
   
-  // Default to supervisor for auth users (not employees)
-  console.log('📋 Defaulting to supervisor role_id: 2');
-  return 2; // Supervisor
+  // Default to role_id: 1 for auth users (since role_id: 3 might not exist)
+  console.log('📋 Defaulting to admin role_id: 1 for auth users');
+  return 1; // Administrator as default for auth users
 };
 
 export const useRBACDataInit = ({ 
@@ -96,7 +96,8 @@ export const useRBACDataInit = ({
         const systemGroups = await loadRoles();
 
         if (!systemGroups || systemGroups.length === 0) {
-          throw new Error('No system groups loaded from database');
+          console.error('⚠️ No system groups loaded from database - this might cause role resolution issues');
+          // Continue anyway, but log the warning
         }
 
         console.log('✅ RBAC Data loaded from database:', {
@@ -119,6 +120,18 @@ export const useRBACDataInit = ({
         const roleId = getRoleIdFromAuthUser(authUser);
         
         console.log('🔐 Assigning role_id:', roleId, 'for email:', authUser.email);
+        
+        // Verify the role exists in the database
+        const roleExists = systemGroups.some(role => (role as any).role_id === roleId);
+        if (!roleExists && systemGroups.length > 0) {
+          console.warn(`⚠️ Role ${roleId} not found in database. Available roles:`, 
+            systemGroups.map(r => ({ name: r.name, role_id: (r as any).role_id }))
+          );
+          // Use the first available role as fallback
+          const fallbackRoleId = (systemGroups[0] as any).role_id;
+          console.log(`🔄 Using fallback role_id: ${fallbackRoleId}`);
+          roleId = fallbackRoleId;
+        }
         
         // Create user profile from auth user
         const currentUser = {

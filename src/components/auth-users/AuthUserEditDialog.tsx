@@ -42,17 +42,14 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   const [roleId, setRoleId] = useState<number>(2);
   const { roles } = useRBAC();
 
-  // Filter roles to show only those suitable for auth users (exclude Employee roles)
   const availableRoles = React.useMemo(() => {
     if (!roles || !Array.isArray(roles)) {
-      console.warn('Roles not available or not an array:', roles);
       return [];
     }
     
     return roles.filter(role => {
-      if (!role || typeof role !== 'object') return false;
       const roleIdNum = (role as any).role_id;
-      return roleIdNum && roleIdNum !== 3; // Exclude Employee role (typically role_id: 3)
+      return roleIdNum && roleIdNum !== 3; // Exclude Employee role
     });
   }, [roles]);
 
@@ -67,10 +64,7 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!user) {
-      console.warn('No user provided for edit');
-      return;
-    }
+    if (!user) return;
     
     const updateData: { email?: string; role_id?: number; name?: string } = {};
     
@@ -98,9 +92,7 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
     onCancel();
   };
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleCancel()}>

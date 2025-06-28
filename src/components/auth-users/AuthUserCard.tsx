@@ -34,73 +34,28 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
   canDelete,
   actionLoading,
 }) => {
-  // Safely extract role_id with fallback
   const userRoleId = user?.user_metadata?.role_id || 2;
   const { roleName, roleColor } = useRoleData(userRoleId);
 
-  // Safe date formatters with error handling
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Non disponible';
-    try {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-      });
-    } catch (error) {
-      console.warn('Error formatting date:', error);
-      return 'Date invalide';
-    }
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
   };
 
   const formatDateTime = (dateString: string | null) => {
     if (!dateString) return 'Jamais connecté';
-    try {
-      return new Date(dateString).toLocaleDateString('fr-FR', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-      });
-    } catch (error) {
-      console.warn('Error formatting datetime:', error);
-      return 'Date invalide';
-    }
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
-
-  const getRoleBadge = () => {
-    if (!roleName) {
-      return <Badge variant="secondary">Rôle inconnu</Badge>;
-    }
-    
-    return (
-      <Badge 
-        className="text-white"
-        style={{ backgroundColor: roleColor || '#6b7280' }}
-      >
-        {roleName}
-      </Badge>
-    );
-  };
-
-  const getStatusBadge = () => {
-    if (!user?.email_confirmed_at) {
-      return <Badge variant="destructive">Non confirmé</Badge>;
-    }
-    return <Badge className="bg-green-100 text-green-800">Confirmé</Badge>;
-  };
-
-  // Handle missing user data gracefully
-  if (!user) {
-    return (
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-4">
-          <p className="text-gray-500">Données utilisateur non disponibles</p>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -115,8 +70,15 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
                 {user.user_metadata?.name || user.email?.split('@')[0] || 'Utilisateur'}
               </CardTitle>
               <div className="flex items-center space-x-2 mt-1">
-                {getRoleBadge()}
-                {getStatusBadge()}
+                <Badge 
+                  className="text-white"
+                  style={{ backgroundColor: roleColor || '#6b7280' }}
+                >
+                  {roleName || 'Rôle inconnu'}
+                </Badge>
+                <Badge className={user.email_confirmed_at ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
+                  {user.email_confirmed_at ? 'Confirmé' : 'Non confirmé'}
+                </Badge>
               </div>
             </div>
           </div>
@@ -147,7 +109,7 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
       <CardContent className="space-y-3">
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <Mail className="w-4 h-4" />
-          <span>{user.email || 'Email non disponible'}</span>
+          <span>{user.email}</span>
         </div>
         
         {user.phone && (

@@ -12,7 +12,6 @@ const AuthUsersPage = () => {
   
   console.log('🔍 AuthUsersPage rendering for user:', authUser?.email);
 
-  // Show loading while data is being fetched
   if (authLoading || rbacLoading) {
     return (
       <div className="text-center py-8">
@@ -31,7 +30,6 @@ const AuthUsersPage = () => {
     );
   }
 
-  // Simple permission check - admin email or proper permission
   const isKnownAdmin = authUser.email === 'gb47@msn.com';
   const hasAuthUsersPermission = isKnownAdmin || (hasPermission && hasPermission('users:read'));
 

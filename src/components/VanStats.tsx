@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface VanStatsProps {
   vans: any[];
@@ -12,6 +13,9 @@ interface VanStatsProps {
 
 const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
   const { t } = useLanguage();
+  const { hasPermission } = useRBAC();
+  
+  const canCreateVans = hasPermission('vans:create');
 
   return (
     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -26,18 +30,21 @@ const VanStats = ({ vans, onAddVan }: VanStatsProps) => {
           </div>
         </div>
       </div>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button onClick={onAddVan} size="icon">
-              <Plus className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>{t.addNewVanTooltip}</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      
+      {canCreateVans && (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button onClick={onAddVan} size="icon">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{t.addNewVanTooltip}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
     </div>
   );
 };

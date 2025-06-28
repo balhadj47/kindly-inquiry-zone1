@@ -50,6 +50,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     }
   };
 
+  const showActions = canEdit || canDelete;
+
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -72,27 +74,29 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
             </div>
           </div>
           
-          <div className="flex space-x-2">
-            {canEdit && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onEdit(employee)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-            )}
-            {canDelete && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onDelete(employee)}
-                className="text-red-600 hover:text-red-700"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          {showActions && (
+            <div className="flex space-x-2">
+              {canEdit && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onEdit(employee)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+              )}
+              {canDelete && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onDelete(employee)}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="space-y-2 text-sm text-gray-600">

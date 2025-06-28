@@ -25,7 +25,7 @@ const MissionsPage = () => {
     setIsNewMissionDialogOpen(false);
   };
 
-  const canCreateMissions = hasPermission('missions:create');
+  const canCreateMissions = hasPermission('trips:create');
 
   console.log('🎯 MissionsPage: Trips loaded:', trips?.length || 0);
   console.log('🎯 MissionsPage: Can create missions:', canCreateMissions);
@@ -34,7 +34,7 @@ const MissionsPage = () => {
     <MissionsLayout>
       <MissionsHeader 
         trips={trips}
-        onNewMissionClick={handleNewMissionClick}
+        onNewMissionClick={canCreateMissions ? handleNewMissionClick : undefined}
         canCreateMissions={canCreateMissions}
       />
       <MissionsContainer 
@@ -42,10 +42,12 @@ const MissionsPage = () => {
         setIsNewMissionDialogOpen={setIsNewMissionDialogOpen}
       />
 
-      <NewTripDialog
-        isOpen={isNewMissionDialogOpen}
-        onClose={handleDialogClose}
-      />
+      {canCreateMissions && (
+        <NewTripDialog
+          isOpen={isNewMissionDialogOpen}
+          onClose={handleDialogClose}
+        />
+      )}
     </MissionsLayout>
   );
 };

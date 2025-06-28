@@ -1,47 +1,53 @@
 
 import React from 'react';
-import { Building2, Plus, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useLanguage } from '@/contexts/LanguageContext';
+import { Plus, RefreshCw } from 'lucide-react';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface CompaniesHeaderProps {
-  onAddCompany: () => void;
+  onAdd: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
 }
 
-const CompaniesHeader = ({ onAddCompany, onRefresh, isRefreshing = false }: CompaniesHeaderProps) => {
-  const { t } = useLanguage();
+const CompaniesHeader: React.FC<CompaniesHeaderProps> = ({ 
+  onAdd, 
+  onRefresh, 
+  isRefreshing = false 
+}) => {
+  const { hasPermission } = useRBAC();
+  
+  const canCreateCompanies = hasPermission('companies:create');
 
   return (
-    <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-      <div className="flex items-center space-x-3">
-        <div className="p-2 bg-orange-100 rounded-lg">
-          <Building2 className="h-6 w-6 text-orange-600" />
-        </div>
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{t.companies}</h1>
-          <p className="text-gray-600 mt-1">
-            {t.manageCompaniesAndBranches}
-          </p>
-        </div>
+    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Gestion des Entreprises</h1>
+        <p className="text-gray-600 mt-1">
+          Gérez vos entreprises et leurs succursales
+        </p>
       </div>
-      <div className="flex items-center space-x-2">
-        <Button
-          onClick={onAddCompany}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter
-        </Button>
+      
+      <div className="flex items-center gap-2">
         {onRefresh && (
           <Button
+            variant="outline"
             onClick={onRefresh}
             disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            className="flex items-center gap-2"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+        )}
+        
+        {canCreateCompanies && (
+          <Button 
+            onClick={onAdd}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Ajouter une Entreprise
           </Button>
         )}
       </div>

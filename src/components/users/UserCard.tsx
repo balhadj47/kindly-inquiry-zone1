@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { User } from '@/types/rbac';
+import { useRBAC } from '@/contexts/RBACContext';
 import UserCardHeader from './card/UserCardHeader';
 import UserCardActions from './card/UserCardActions';
 import UserCardContact from './card/UserCardContact';
@@ -22,18 +23,27 @@ const UserCard: React.FC<UserCardProps> = ({
   onDelete,
   onChangePassword,
 }) => {
+  const { hasPermission } = useRBAC();
+  
+  const canUpdateUsers = hasPermission('users:update');
+  const canDeleteUsers = hasPermission('users:delete');
+  
+  const showActions = canUpdateUsers || canDeleteUsers;
+
   return (
     <Card className="group hover:shadow-lg transition-all duration-200 border hover:border-primary/20 bg-card">
       <UserCardHeader user={user} />
       
-      <div className="absolute top-4 right-4">
-        <UserCardActions
-          user={user}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onChangePassword={onChangePassword}
-        />
-      </div>
+      {showActions && (
+        <div className="absolute top-4 right-4">
+          <UserCardActions
+            user={user}
+            onEdit={onEdit}
+            onDelete={onDelete}
+            onChangePassword={onChangePassword}
+          />
+        </div>
+      )}
 
       <CardContent className="space-y-6">
         <UserCardContact user={user} />

@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { User as UserIcon, Key, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
+import { useRBAC } from '@/contexts/RBACContext';
 
 interface UserActionsProps {
   user: User;
@@ -17,34 +18,45 @@ const UserActions: React.FC<UserActionsProps> = ({
   onChangePassword,
   onDelete,
 }) => {
+  const { hasPermission } = useRBAC();
+  
+  const canUpdateUsers = hasPermission('users:update');
+  const canDeleteUsers = hasPermission('users:delete');
+
   return (
     <div className="flex items-center space-x-1">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0"
-        onClick={() => onEdit(user)}
-      >
-        <UserIcon className="h-4 w-4" />
-      </Button>
+      {canUpdateUsers && (
+        <>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => onEdit(user)}
+          >
+            <UserIcon className="h-4 w-4" />
+          </Button>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={() => onChangePassword(user)}
+          >
+            <Key className="h-4 w-4" />
+          </Button>
+        </>
+      )}
       
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0"
-        onClick={() => onChangePassword(user)}
-      >
-        <Key className="h-4 w-4" />
-      </Button>
-      
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-        onClick={() => onDelete(user)}
-      >
-        <Trash className="h-4 w-4" />
-      </Button>
+      {canDeleteUsers && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+          onClick={() => onDelete(user)}
+        >
+          <Trash className="h-4 w-4" />
+        </Button>
+      )}
     </div>
   );
 };

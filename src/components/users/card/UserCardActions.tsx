@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Key, User as UserIcon, Trash } from 'lucide-react';
+import { useRBAC } from '@/contexts/RBACContext';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,55 +29,66 @@ const UserCardActions: React.FC<UserCardActionsProps> = ({
   onDelete,
   onChangePassword,
 }) => {
+  const { hasPermission } = useRBAC();
+  
+  const canUpdateUsers = hasPermission('users:update');
+  const canDeleteUsers = hasPermission('users:delete');
+
   return (
     <div className="flex items-center space-x-1">
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-8 w-8 p-0"
-        onClick={() => onEdit(user)}
-      >
-        <UserIcon className="h-4 w-4" />
-      </Button>
-      
-      <Button 
-        variant="ghost" 
-        size="sm" 
-        className="h-8 w-8 p-0"
-        onClick={() => onChangePassword(user)}
-      >
-        <Key className="h-4 w-4" />
-      </Button>
-      
-      <AlertDialog>
-        <AlertDialogTrigger asChild>
+      {canUpdateUsers && (
+        <>
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+            className="h-8 w-8 p-0"
+            onClick={() => onEdit(user)}
           >
-            <Trash className="h-4 w-4" />
+            <UserIcon className="h-4 w-4" />
           </Button>
-        </AlertDialogTrigger>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
-            <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
-              Cette action ne peut pas être annulée.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => onDelete(user)}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={() => onChangePassword(user)}
+          >
+            <Key className="h-4 w-4" />
+          </Button>
+        </>
+      )}
+      
+      {canDeleteUsers && (
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0 text-destructive hover:text-destructive"
             >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              <Trash className="h-4 w-4" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Supprimer l'utilisateur</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir supprimer l'utilisateur "{user.name}" ? 
+                Cette action ne peut pas être annulée.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => onDelete(user)}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              >
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </div>
   );
 };

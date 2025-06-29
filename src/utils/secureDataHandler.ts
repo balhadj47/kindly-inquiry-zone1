@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeInput, sanitizeHtml } from './inputValidation';
 
@@ -59,35 +58,54 @@ export class SecureDataHandler {
             if (!filters) {
               return { data: null, error: { message: 'Update requires filters' } };
             }
-            let updateQuery = supabase.from(table).update(sanitizedData);
-            Object.keys(filters).forEach(key => {
+            // Build query with single filter to avoid complex type inference
+            const firstFilterKey = Object.keys(filters)[0];
+            let updateQuery = supabase.from(table).update(sanitizedData).eq(firstFilterKey, filters[firstFilterKey]);
+            
+            // Apply additional filters one by one
+            const remainingFilters = Object.keys(filters).slice(1);
+            for (const key of remainingFilters) {
               updateQuery = updateQuery.eq(key, filters[key]);
-            });
+            }
+            
             const updateResult = await updateQuery.select();
             return { data: updateResult.data, error: updateResult.error };
           case 'delete':
             if (!filters) {
               return { data: null, error: { message: 'Delete requires filters' } };
             }
-            let deleteQuery = supabase.from(table).delete();
-            Object.keys(filters).forEach(key => {
+            // Build query with single filter to avoid complex type inference
+            const firstDeleteKey = Object.keys(filters)[0];
+            let deleteQuery = supabase.from(table).delete().eq(firstDeleteKey, filters[firstDeleteKey]);
+            
+            // Apply additional filters one by one
+            const remainingDeleteFilters = Object.keys(filters).slice(1);
+            for (const key of remainingDeleteFilters) {
               deleteQuery = deleteQuery.eq(key, filters[key]);
-            });
+            }
+            
             const deleteResult = await deleteQuery;
             return { data: deleteResult.data, error: deleteResult.error };
         }
       }
 
       // Select operation with filters
-      let selectQuery = supabase.from(table).select();
-      if (filters) {
-        Object.keys(filters).forEach(key => {
+      if (filters && Object.keys(filters).length > 0) {
+        const firstKey = Object.keys(filters)[0];
+        let selectQuery = supabase.from(table).select().eq(firstKey, filters[firstKey]);
+        
+        // Apply additional filters one by one
+        const remainingKeys = Object.keys(filters).slice(1);
+        for (const key of remainingKeys) {
           selectQuery = selectQuery.eq(key, filters[key]);
-        });
+        }
+        
+        const selectResult = await selectQuery;
+        return { data: selectResult.data, error: selectResult.error };
+      } else {
+        const selectResult = await supabase.from(table).select();
+        return { data: selectResult.data, error: selectResult.error };
       }
-
-      const selectResult = await selectQuery;
-      return { data: selectResult.data, error: selectResult.error };
     } catch (error) {
       console.error('Secure query error:', error);
       return { data: null, error };

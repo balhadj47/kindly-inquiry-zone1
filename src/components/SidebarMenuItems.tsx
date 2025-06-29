@@ -135,45 +135,67 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // If no roles are loaded yet, wait (but allow high privilege user access)
+  // SIMPLIFIED FILTERING: If no roles are loaded yet, show basic menu items for authenticated users
   if (!roles || roles.length === 0) {
-    if (isHighPrivilegeUser()) {
-      console.log('🔍 High privilege user detected, showing all menu items despite no roles loaded');
-      return menuItems;
-    }
-    console.log('🔍 No roles loaded yet, returning empty menu');
-    return [];
+    console.log('🔍 No roles loaded yet, showing basic menu for authenticated user');
+    return [
+      {
+        title: t?.dashboard || 'Dashboard',
+        href: '/dashboard',
+        icon: Home,
+      },
+      {
+        title: t?.missions || 'Missions',
+        href: '/missions',
+        icon: Bell,
+      }
+    ];
   }
 
-  // Filter menu items based on both permissions and accessible pages
+  // Filter menu items based on permissions - with fallback for authenticated users
   const filteredMenuItems = menuItems.filter((item) => {
     try {
       if (!item.permission) {
-        console.log(`⚠️ Menu item "${item.title}" has no permission requirement`);
-        return false;
+        console.log(`⚠️ Menu item "${item.title}" has no permission requirement - allowing for authenticated user`);
+        return true; // Allow items without permission requirements for authenticated users
       }
       
       if (typeof hasPermission !== 'function') {
         console.error('⚠️ hasPermission is not a function:', typeof hasPermission);
-        return false;
+        // Fallback: show basic items for authenticated users
+        return ['dashboard:read', 'trips:read'].includes(item.permission);
       }
       
-      // Check both permission and page accessibility
+      // Check permission first
       const hasAccess = hasPermission(item.permission);
-      const pageAccessible = accessiblePages.includes(item.href) || hasPermission('*') || isHighPrivilegeUser();
+      
+      // For non-admin users, be more lenient with page accessibility
+      let pageAccessible = true;
+      if (accessiblePages.length > 0) {
+        pageAccessible = accessiblePages.includes(item.href) || hasPermission('*') || isHighPrivilegeUser();
+      }
+      
+      // Special handling for basic permissions that all authenticated users should have
+      const basicPermissions = ['dashboard:read', 'trips:read'];
+      const isBasicPermission = basicPermissions.includes(item.permission);
+      
+      const finalAccess = hasAccess && pageAccessible;
       
       console.log(`🔍 Access check for ${item.title}:`, {
         permission: item.permission,
         hasPermission: hasAccess,
         pageAccessible: pageAccessible,
         href: item.href,
-        finalAccess: hasAccess && pageAccessible
+        isBasicPermission: isBasicPermission,
+        finalAccess: finalAccess || isBasicPermission
       });
       
-      return hasAccess && pageAccessible;
+      // Grant access if user has permission OR it's a basic permission for authenticated users
+      return finalAccess || isBasicPermission;
     } catch (error) {
       console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
-      return false;
+      // Fallback: allow basic menu items for authenticated users
+      return ['dashboard:read', 'trips:read'].includes(item.permission || '');
     }
   });
 

@@ -1,4 +1,3 @@
-
 import { useContext } from 'react';
 import { RBACContext } from './context';
 import { hasPermission as checkPermission } from './permissionUtils';
@@ -143,15 +142,26 @@ export const useRBAC = () => {
         return true;
       }
 
+      // IMPROVED: Be more lenient for basic permissions
+      const basicPermissions = ['dashboard:read', 'trips:read'];
+      if (basicPermissions.includes(permission)) {
+        console.log('🔓 useRBAC: Basic permission granted for authenticated user:', {
+          permission,
+          userId: currentUser.id
+        });
+        return true;
+      }
+
       // Check if roles are loaded
       if (!Array.isArray(roles) || roles.length === 0) {
-        console.log('⚠️ useRBAC: Roles not loaded, denying permission for non-admin:', {
+        console.log('⚠️ useRBAC: Roles not loaded, allowing basic permissions only:', {
           permission,
           rolesType: typeof roles,
           rolesLength: Array.isArray(roles) ? roles.length : 'not array',
-          userId: currentUser.id
+          userId: currentUser.id,
+          isBasicPermission: basicPermissions.includes(permission)
         });
-        return false;
+        return basicPermissions.includes(permission);
       }
 
       // Use permission system with enhanced logging
@@ -179,6 +189,14 @@ export const useRBAC = () => {
         console.log('🔧 useRBAC: Fallback admin access granted due to error');
         return true;
       }
+      
+      // Fallback for basic permissions
+      const basicPermissions = ['dashboard:read', 'trips:read'];
+      if (basicPermissions.includes(permission)) {
+        console.log('🔧 useRBAC: Fallback basic permission granted due to error');
+        return true;
+      }
+      
       return false;
     }
   };
@@ -249,7 +267,7 @@ export const useRBAC = () => {
     }
   };
 
-  console.log('🔐 useRBAC: Returning enhanced context with logging');
+  console.log('🔐 useRBAC: Returning enhanced context with improved permission handling');
 
   return {
     currentUser,

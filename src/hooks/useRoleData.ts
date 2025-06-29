@@ -21,17 +21,21 @@ export const useRoleData = (roleId: number) => {
           return;
         }
 
-        // Direct database query instead of utility functions
+        // Direct database query with improved error handling
         const { data, error } = await supabase
           .from('user_groups')
           .select('name, color')
           .eq('role_id', roleId)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('❌ useRoleData: Database error:', error);
+          // More specific error handling
           if (error.code === 'PGRST116') {
             setRoleName(`Role ${roleId} (Not Found)`);
+          } else if (error.message.includes('permission denied') || error.message.includes('RLS')) {
+            console.warn('🔒 useRoleData: Permission denied - RLS policy may be blocking access');
+            setRoleName(`Role ${roleId} (Access Denied)`);
           } else {
             setRoleName(`Role ${roleId}`);
           }
@@ -40,6 +44,10 @@ export const useRoleData = (roleId: number) => {
           console.log('✅ useRoleData: Successfully loaded role data:', data);
           setRoleName(data.name || `Role ${roleId}`);
           setRoleColor(data.color || '#6b7280');
+        } else {
+          console.log('📝 useRoleData: No role data found for role_id:', roleId);
+          setRoleName(`Role ${roleId} (Not Found)`);
+          setRoleColor('#6b7280');
         }
       } catch (error) {
         console.error('❌ useRoleData: Exception:', error);

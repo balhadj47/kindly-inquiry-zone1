@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useAllVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansState } from '@/hooks/useVansState';
+import { useCommonActions } from '@/hooks/useCommonActions';
 
 export const useVansIndexState = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -11,13 +12,15 @@ export const useVansIndexState = () => {
   
   // Get vans data with caching enabled
   const { data: vansData = [], refetch, isLoading, isError } = useAllVans();
-  const { invalidateVans, refreshVans } = useVanMutations();
+  const { refreshVans } = useVanMutations();
 
-  const setVans = () => {
-    refreshVans();
-  };
+  // Use consolidated refresh actions
+  const { handleRefresh } = useCommonActions({
+    refetch,
+    onSuccess: refreshVans
+  });
 
-  const vansStateHook = useVansState(setVans);
+  const vansStateHook = useVansState(refreshVans);
 
   const handleModalSuccess = () => {
     refreshVans();
@@ -43,7 +46,7 @@ export const useVansIndexState = () => {
     vansData,
     isLoading,
     isError,
-    refreshVans,
+    refreshVans: handleRefresh,
     
     // Modal and action handlers
     ...vansStateHook,

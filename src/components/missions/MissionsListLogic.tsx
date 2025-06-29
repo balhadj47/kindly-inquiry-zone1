@@ -1,16 +1,13 @@
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { useToast } from '@/hooks/use-toast';
-import { useOptimizedSearch } from '@/hooks/useOptimizedSearch';
+import { useFilteredData } from '@/hooks/useFilteredData';
+import { useDialogState } from '@/hooks/useDialogState';
 
 export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: string, statusFilter: string) => {
-  const [selectedMission, setSelectedMission] = useState<Trip | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
-  const [showTerminatePrompt, setShowTerminatePrompt] = useState(false);
-  const [terminateMission, setTerminateMission] = useState<Trip | null>(null);
   const [finalKm, setFinalKm] = useState('');
   const [isTerminating, setIsTerminating] = useState(false);
   const [deletingMissionId, setDeletingMissionId] = useState<number | null>(null);
@@ -19,46 +16,28 @@ export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: strin
   const { updateTrip, deleteTrip } = useTripMutations();
   const { toast } = useToast();
 
-  // Use optimized search for better performance
-  const { filteredData: searchFilteredMissions } = useOptimizedSearch({
+  // Use consolidated filtering hook
+  const { filteredData: filteredMissions } = useFilteredData({
     data: missions,
+    searchTerm: externalSearchTerm,
     searchFields: ['company', 'branch', 'driver', 'van'],
+    statusFilter,
+    statusField: 'status',
     debounceMs: 300
   });
 
-  // Memoize filtered missions to avoid recalculation
-  const filteredMissions = useMemo(() => {
-    let result = searchFilteredMissions;
+  // Use consolidated dialog state management
+  const {
+    dialogState: detailsDialog,
+    openDialog: openDetailsDialog,
+    closeDialog: closeDetailsDialog
+  } = useDialogState<Trip>();
 
-    // Apply external search term if provided
-    if (externalSearchTerm && externalSearchTerm.trim()) {
-      const lowerSearch = externalSearchTerm.toLowerCase();
-      result = result.filter(mission => 
-        mission.company.toLowerCase().includes(lowerSearch) ||
-        mission.branch.toLowerCase().includes(lowerSearch) ||
-        mission.driver.toLowerCase().includes(lowerSearch) ||
-        mission.van.toLowerCase().includes(lowerSearch)
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(mission => {
-        switch (statusFilter) {
-          case 'active':
-            return mission.status === 'active';
-          case 'completed':
-            return mission.status === 'completed';
-          case 'terminated':
-            return mission.status === 'terminated';
-          default:
-            return true;
-        }
-      });
-    }
-
-    return result;
-  }, [searchFilteredMissions, externalSearchTerm, statusFilter]);
+  const {
+    dialogState: terminateDialog,
+    openDialog: openTerminateDialog,
+    closeDialog: closeTerminateDialog
+  } = useDialogState<Trip>();
 
   const getVanDisplayName = useCallback((vanId: string) => {
     const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
@@ -69,14 +48,25 @@ export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: strin
   }, [vans]);
 
   return {
-    selectedMission,
-    setSelectedMission,
-    isDetailsDialogOpen,
-    setIsDetailsDialogOpen,
-    showTerminatePrompt,
-    setShowTerminatePrompt,
-    terminateMission,
-    setTerminateMission,
+    // Legacy compatibility
+    selectedMission: detailsDialog.data,
+    setSelectedMission: (mission: Trip | null) => {
+      if (mission) openDetailsDialog(mission);
+      else closeDetailsDialog();
+    },
+    isDetailsDialogOpen: detailsDialog.isOpen,
+    setIsDetailsDialogOpen: (open: boolean) => {
+      if (!open) closeDetailsDialog();
+    },
+    showTerminatePrompt: terminateDialog.isOpen,
+    setShowTerminatePrompt: (open: boolean) => {
+      if (!open) closeTerminateDialog();
+    },
+    terminateMission: terminateDialog.data,
+    setTerminateMission: (mission: Trip | null) => {
+      if (mission) openTerminateDialog(mission);
+      else closeTerminateDialog();
+    },
     finalKm,
     setFinalKm,
     isTerminating,

@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { User } from '@/types/rbac';
 
 // Enhanced user data transformer with comprehensive error handling

@@ -47,36 +47,43 @@ export class SecureDataHandler {
         return { data: null, error: { message: 'Rate limit exceeded' } };
       }
 
-      let query = supabase.from(table);
-
       // Sanitize data if provided
       if (data) {
         const sanitizedData = this.sanitizeObject(data);
         
         switch (operation) {
           case 'insert':
-            return await query.insert(sanitizedData).select();
+            return await supabase.from(table).insert(sanitizedData).select();
           case 'update':
             if (!filters) {
               return { data: null, error: { message: 'Update requires filters' } };
             }
-            return await query.update(sanitizedData).match(filters).select();
+            let updateQuery = supabase.from(table).update(sanitizedData);
+            Object.keys(filters).forEach(key => {
+              updateQuery = updateQuery.eq(key, filters[key]);
+            });
+            return await updateQuery.select();
           case 'delete':
             if (!filters) {
               return { data: null, error: { message: 'Delete requires filters' } };
             }
-            return await query.delete().match(filters);
+            let deleteQuery = supabase.from(table).delete();
+            Object.keys(filters).forEach(key => {
+              deleteQuery = deleteQuery.eq(key, filters[key]);
+            });
+            return await deleteQuery;
         }
       }
 
       // Select operation with filters
+      let selectQuery = supabase.from(table).select();
       if (filters) {
         Object.keys(filters).forEach(key => {
-          query = query.eq(key, filters[key]);
+          selectQuery = selectQuery.eq(key, filters[key]);
         });
       }
 
-      return await query.select();
+      return await selectQuery;
     } catch (error) {
       console.error('Secure query error:', error);
       return { data: null, error };

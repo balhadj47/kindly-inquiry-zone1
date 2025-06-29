@@ -142,8 +142,14 @@ export const useRBAC = () => {
         return true;
       }
 
-      // IMPROVED: Be more lenient for basic permissions
-      const basicPermissions = ['dashboard:read', 'trips:read'];
+      // ENHANCED: More permissive approach for basic authenticated users
+      const basicPermissions = [
+        'dashboard:read', 
+        'trips:read', 
+        'companies:read',  // Add companies read as basic permission
+        'vans:read'        // Add vans read as basic permission
+      ];
+      
       if (basicPermissions.includes(permission)) {
         console.log('🔓 useRBAC: Basic permission granted for authenticated user:', {
           permission,
@@ -190,8 +196,13 @@ export const useRBAC = () => {
         return true;
       }
       
-      // Fallback for basic permissions
-      const basicPermissions = ['dashboard:read', 'trips:read'];
+      // ENHANCED: More generous fallback for basic permissions
+      const basicPermissions = [
+        'dashboard:read', 
+        'trips:read', 
+        'companies:read', 
+        'vans:read'
+      ];
       if (basicPermissions.includes(permission)) {
         console.log('🔧 useRBAC: Fallback basic permission granted due to error');
         return true;

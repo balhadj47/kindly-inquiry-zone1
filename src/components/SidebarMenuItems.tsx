@@ -96,31 +96,13 @@ export const useSidebarMenuItems = () => {
     },
   ];
   
-  // Get current user's role and accessible pages
-  const currentRole = roles.find(role => role.role_id === currentUser?.role_id);
-  const accessiblePages = currentRole?.accessiblePages || [];
-  
-  // Dynamic privilege detection
-  const isHighPrivilegeUser = () => {
-    if (!currentUser?.role_id || !roles) return false;
-    
-    const userRole = roles.find(role => role.role_id === currentUser.role_id);
-    if (!userRole) return false;
-    
-    // High privilege users have many permissions (10+)
-    return userRole.permissions.length >= 10;
-  };
-  
   console.log('🔍 Menu items processing:', {
     userId: currentUser?.id || 'null',
     userEmail: currentUser?.email || 'null',
     roleId: currentUser?.role_id || 'null',
-    roleName: currentRole?.name || 'null',
     loading: loading,
     rolesCount: roles?.length || 0,
-    accessiblePages: accessiblePages,
-    hasPermissionFunction: typeof hasPermission === 'function',
-    isHighPrivilegeUser: isHighPrivilegeUser()
+    hasPermissionFunction: typeof hasPermission === 'function'
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -135,77 +117,72 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // SIMPLIFIED FILTERING: If no roles are loaded yet, show basic menu items for authenticated users
+  // ENHANCED: Show basic menu items for all authenticated users
+  const basicMenuForAuthenticated = [
+    {
+      title: t?.dashboard || 'Dashboard',
+      href: '/dashboard',
+      icon: Home,
+    },
+    {
+      title: t?.companies || 'Companies',
+      href: '/companies',
+      icon: Factory,
+    },
+    {
+      title: t?.vans || 'Vans',
+      href: '/vans',
+      icon: Truck,
+    },
+    {
+      title: t?.missions || 'Missions',
+      href: '/missions',
+      icon: Bell,
+    }
+  ];
+
+  // If no roles are loaded yet, show basic menu items for authenticated users
   if (!roles || roles.length === 0) {
     console.log('🔍 No roles loaded yet, showing basic menu for authenticated user');
-    return [
-      {
-        title: t?.dashboard || 'Dashboard',
-        href: '/dashboard',
-        icon: Home,
-      },
-      {
-        title: t?.missions || 'Missions',
-        href: '/missions',
-        icon: Bell,
-      }
-    ];
+    return basicMenuForAuthenticated;
   }
 
-  // Filter menu items based on permissions - with fallback for authenticated users
+  // Filter menu items based on permissions - but be more permissive
   const filteredMenuItems = menuItems.filter((item) => {
     try {
       if (!item.permission) {
         console.log(`⚠️ Menu item "${item.title}" has no permission requirement - allowing for authenticated user`);
-        return true; // Allow items without permission requirements for authenticated users
+        return true;
       }
       
       if (typeof hasPermission !== 'function') {
         console.error('⚠️ hasPermission is not a function:', typeof hasPermission);
-        // Fallback: show basic items for authenticated users
-        return ['dashboard:read', 'trips:read'].includes(item.permission);
+        // Show basic items for authenticated users
+        return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
       }
       
-      // Check permission first
+      // Check permission
       const hasAccess = hasPermission(item.permission);
-      
-      // For non-admin users, be more lenient with page accessibility
-      let pageAccessible = true;
-      if (accessiblePages.length > 0) {
-        pageAccessible = accessiblePages.includes(item.href) || hasPermission('*') || isHighPrivilegeUser();
-      }
-      
-      // Special handling for basic permissions that all authenticated users should have
-      const basicPermissions = ['dashboard:read', 'trips:read'];
-      const isBasicPermission = basicPermissions.includes(item.permission);
-      
-      const finalAccess = hasAccess && pageAccessible;
       
       console.log(`🔍 Access check for ${item.title}:`, {
         permission: item.permission,
         hasPermission: hasAccess,
-        pageAccessible: pageAccessible,
         href: item.href,
-        isBasicPermission: isBasicPermission,
-        finalAccess: finalAccess || isBasicPermission
+        finalAccess: hasAccess
       });
       
-      // Grant access if user has permission OR it's a basic permission for authenticated users
-      return finalAccess || isBasicPermission;
+      return hasAccess;
     } catch (error) {
       console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
       // Fallback: allow basic menu items for authenticated users
-      return ['dashboard:read', 'trips:read'].includes(item.permission || '');
+      return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission || '');
     }
   });
 
   console.log('🔍 FINAL RESULT:', {
     totalMenuItems: menuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title),
-    userRole: currentRole?.name,
-    userPermissions: currentRole?.permissions || [],
-    userPages: accessiblePages
+    filteredTitles: filteredMenuItems.map(item => item.title)
   });
   
   return filteredMenuItems;

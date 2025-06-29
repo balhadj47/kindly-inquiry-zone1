@@ -4,7 +4,7 @@ import { User } from '@/types/rbac';
 import { userTransformer, transformBatch } from '@/services/dataTransformers';
 
 // Enhanced user data transformer with comprehensive error handling
-export const transformOptimizedUser = userTransformer.safeTransform.bind(userTransformer);
+export const transformOptimizedUser = userTransformer.safeTransformUser.bind(userTransformer);
 
 export const useProcessedEmployees = (rawEmployees: any): User[] => {
   return React.useMemo(() => {

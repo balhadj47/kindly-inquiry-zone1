@@ -51,7 +51,7 @@ export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
   }
 
   // Enhanced transformation with error handling
-  safeTransform(dbUser: DatabaseUser): User | null {
+  safeTransformUser(dbUser: DatabaseUser): User | null {
     const result = this.safeTransform(
       dbUser,
       () => this.transform(dbUser),
@@ -67,7 +67,7 @@ export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
   }
 
   // Legacy compatibility methods
-  transformOptimizedUser = this.safeTransform.bind(this);
+  transformOptimizedUser = this.safeTransformUser.bind(this);
 }
 
 // Export singleton instance

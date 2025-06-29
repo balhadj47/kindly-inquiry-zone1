@@ -11,7 +11,7 @@ export const transformDatabaseTrip = tripTransformer.transform.bind(tripTransfor
 export const transformDatabaseTrips = tripTransformer.transformArray.bind(tripTransformer);
 export const transformDatabaseUser = userTransformer.transform.bind(userTransformer);
 export const transformDatabaseUsers = userTransformer.transformArray.bind(userTransformer);
-export const transformOptimizedUser = userTransformer.safeTransform.bind(userTransformer);
+export const transformOptimizedUser = userTransformer.safeTransformUser.bind(userTransformer);
 
 // Batch transformation utilities
 export const transformBatch = <TInput, TOutput>(

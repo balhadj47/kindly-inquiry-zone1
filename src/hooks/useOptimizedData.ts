@@ -1,11 +1,6 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  expiresAt: number;
-}
+import { globalCache, CACHE_DURATIONS } from '@/services/cacheManager';
 
 interface UseOptimizedDataOptions {
   cacheTime?: number;
@@ -14,16 +9,14 @@ interface UseOptimizedDataOptions {
   enabled?: boolean;
 }
 
-const cache = new Map<string, CacheEntry<any>>();
-
 export const useOptimizedData = <T>(
   key: string,
   fetchFn: () => Promise<T>,
   options: UseOptimizedDataOptions = {}
 ) => {
   const {
-    cacheTime = 5 * 60 * 1000, // 5 minutes
-    staleTime = 30 * 1000, // 30 seconds
+    cacheTime = CACHE_DURATIONS.STALE_TIME.MEDIUM,
+    staleTime = CACHE_DURATIONS.STALE_TIME.SHORT,
     refetchOnWindowFocus = true,
     enabled = true
   } = options;
@@ -37,20 +30,11 @@ export const useOptimizedData = <T>(
   const isMountedRef = useRef(true);
 
   const getCachedData = useCallback(() => {
-    const cached = cache.get(key);
-    if (cached && Date.now() < cached.expiresAt) {
-      return cached;
-    }
-    return null;
+    return globalCache.get<T>(key);
   }, [key]);
 
   const setCachedData = useCallback((newData: T) => {
-    const now = Date.now();
-    cache.set(key, {
-      data: newData,
-      timestamp: now,
-      expiresAt: now + cacheTime
-    });
+    globalCache.set(key, newData, cacheTime);
   }, [key, cacheTime]);
 
   const fetchData = useCallback(async (force = false) => {
@@ -60,12 +44,18 @@ export const useOptimizedData = <T>(
     const cached = getCachedData();
     const now = Date.now();
     
-    if (!force && cached && (now - cached.timestamp) < staleTime) {
+    if (!force && cached && globalCache.isValid(key)) {
       if (!data) {
-        setData(cached.data);
-        setLastFetch(cached.timestamp);
+        setData(cached);
+        setLastFetch(now);
       }
-      return cached.data;
+      return cached;
+    }
+
+    // Check for existing fetch promise
+    const existingPromise = globalCache.getFetchPromise<T>(key);
+    if (existingPromise && !force) {
+      return await existingPromise;
     }
 
     // Cancel previous request
@@ -77,28 +67,35 @@ export const useOptimizedData = <T>(
     setIsLoading(true);
     setError(null);
 
-    try {
-      const result = await fetchFn();
-      
-      if (isMountedRef.current) {
-        setData(result);
-        setLastFetch(now);
-        setCachedData(result);
-        setError(null);
+    const fetchPromise = (async () => {
+      try {
+        const result = await fetchFn();
+        
+        if (isMountedRef.current) {
+          setData(result);
+          setLastFetch(now);
+          setCachedData(result);
+          setError(null);
+        }
+        
+        return result;
+      } catch (err) {
+        if (isMountedRef.current && err.name !== 'AbortError') {
+          setError(err instanceof Error ? err : new Error('Unknown error'));
+        }
+        throw err;
+      } finally {
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
-      
-      return result;
-    } catch (err) {
-      if (isMountedRef.current && err.name !== 'AbortError') {
-        setError(err instanceof Error ? err : new Error('Unknown error'));
-      }
-      throw err;
-    } finally {
-      if (isMountedRef.current) {
-        setIsLoading(false);
-      }
-    }
-  }, [enabled, getCachedData, staleTime, data, fetchFn, setCachedData]);
+    })();
+
+    // Register the promise in global cache
+    globalCache.setFetchPromise(key, fetchPromise);
+
+    return await fetchPromise;
+  }, [enabled, getCachedData, staleTime, data, fetchFn, setCachedData, key]);
 
   const refetch = useCallback(() => {
     return fetchData(true);
@@ -123,15 +120,14 @@ export const useOptimizedData = <T>(
     if (!refetchOnWindowFocus) return;
 
     const handleFocus = () => {
-      const cached = getCachedData();
-      if (!cached || (Date.now() - cached.timestamp) > staleTime) {
+      if (!globalCache.isValid(key)) {
         fetchData();
       }
     };
 
     window.addEventListener('focus', handleFocus);
     return () => window.removeEventListener('focus', handleFocus);
-  }, [refetchOnWindowFocus, getCachedData, staleTime, fetchData]);
+  }, [refetchOnWindowFocus, key, fetchData]);
 
   return {
     data,
@@ -145,9 +141,5 @@ export const useOptimizedData = <T>(
 };
 
 export const clearCache = (key?: string) => {
-  if (key) {
-    cache.delete(key);
-  } else {
-    cache.clear();
-  }
+  globalCache.clear(key);
 };

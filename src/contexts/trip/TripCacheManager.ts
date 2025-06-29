@@ -1,30 +1,33 @@
 
+import { globalCache, CACHE_DURATIONS } from '@/services/cacheManager';
+
 // Trip cache manager for optimizing data fetching
-let tripCache: { data: any[]; timestamp: number } | null = null;
-let tripFetchPromise: Promise<any[]> | null = null;
+const TRIP_CACHE_KEY = 'trips_data';
 const TRIP_CACHE_DURATION = 120000; // 2 minutes cache for trips
 
-export const getTripCache = () => tripCache;
+export const getTripCache = () => {
+  return globalCache.get(TRIP_CACHE_KEY);
+};
 
 export const isTripCacheValid = () => {
-  if (!tripCache) return false;
-  return Date.now() - tripCache.timestamp < TRIP_CACHE_DURATION;
+  return globalCache.isValid(TRIP_CACHE_KEY);
 };
 
 export const setTripCache = (data: any[]) => {
-  tripCache = {
-    data,
-    timestamp: Date.now()
-  };
+  globalCache.set(TRIP_CACHE_KEY, data, TRIP_CACHE_DURATION);
 };
 
 export const clearTripCache = () => {
   console.log('🧹 Clearing trip cache');
-  tripCache = null;
-  tripFetchPromise = null;
+  globalCache.clear('trips');
 };
 
-export const getTripFetchPromise = () => tripFetchPromise;
+export const getTripFetchPromise = () => {
+  return globalCache.getFetchPromise(TRIP_CACHE_KEY);
+};
+
 export const setTripFetchPromise = (promise: Promise<any[]> | null) => {
-  tripFetchPromise = promise;
+  if (promise) {
+    globalCache.setFetchPromise(TRIP_CACHE_KEY, promise);
+  }
 };

@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRBAC } from '@/contexts/RBACContext';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTrip } from '@/contexts/TripContext';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { useFastVanData } from '@/hooks/useFastVanData';
+import { useMissionsPermissions } from './MissionsPermissions';
+import { useMissionsActions } from './MissionsActions';
 import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
@@ -17,111 +18,24 @@ import { Trip } from '@/contexts/TripContext';
 const MissionsContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
-  const [actionDialog, setActionDialog] = useState<{
-    isOpen: boolean;
-    mission: Trip | null;
-    action: 'delete' | 'terminate' | null;
-  }>({
-    isOpen: false,
-    mission: null,
-    action: null
-  });
-  const [permissions, setPermissions] = useState({
-    canRead: false,
-    canCreate: false,
-    canEdit: false,
-    canDelete: false
-  });
 
   const { user: authUser } = useAuth();
-  const { hasPermission, roles, currentUser } = useRBAC();
-  const { trips, loading, error, refetch } = useTrip();
-  const { refreshPage } = useCacheRefresh();
+  const { trips, loading, error } = useTrip();
   const { isVanDataCached } = useFastVanData();
+  const permissions = useMissionsPermissions();
+  const {
+    isRefreshing,
+    actionDialog,
+    setActionDialog,
+    handleRefresh,
+    handleDeleteMission,
+    handleTerminateMission,
+    handleActionConfirm
+  } = useMissionsActions();
 
   // Show loading indicator only if we don't have cached van data
   const showVanLoadingWarning = !isVanDataCached();
-
-  useEffect(() => {
-    if (showVanLoadingWarning) {
-      console.log('⚠️ MissionsContainer: Van data not cached, may experience slower performance');
-    } else {
-      console.log('✅ MissionsContainer: Van data is cached, performance optimized');
-    }
-  }, [showVanLoadingWarning]);
-
-  // Check permissions when component mounts
-  useEffect(() => {
-    const checkPermissions = async () => {
-      try {
-        // Dynamic privilege detection
-        const isHighPrivilegeUser = () => {
-          if (!currentUser?.role_id || !roles) return false;
-          
-          const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-          if (!userRole) return false;
-          
-          // High privilege users have many permissions (10+)
-          return userRole.permissions.length >= 10;
-        };
-
-        if (isHighPrivilegeUser()) {
-          setPermissions({
-            canRead: true,
-            canCreate: true,
-            canEdit: true,
-            canDelete: true
-          });
-          return;
-        }
-
-        if (!hasPermission || typeof hasPermission !== 'function') {
-          console.warn('hasPermission is not available');
-          return;
-        }
-
-        const canRead = hasPermission('trips:read');
-        const canCreate = hasPermission('trips:create');
-        const canEdit = hasPermission('trips:update');
-        const canDelete = hasPermission('trips:delete');
-
-        setPermissions({ canRead, canCreate, canEdit, canDelete });
-      } catch (permissionError) {
-        console.error('Error checking permissions:', permissionError);
-        // Set minimal permissions on error
-        setPermissions({
-          canRead: true,
-          canCreate: false,
-          canEdit: false,
-          canDelete: false
-        });
-      }
-    };
-
-    if (authUser) {
-      checkPermissions();
-    }
-  }, [authUser, hasPermission, currentUser, roles]);
-
-  const handleRefresh = async () => {
-    if (isRefreshing) return;
-    
-    setIsRefreshing(true);
-    try {
-      if (refetch && typeof refetch === 'function') {
-        await refetch();
-      }
-      if (refreshPage && typeof refreshPage === 'function') {
-        await refreshPage(['trips']);
-      }
-    } catch (refreshError) {
-      console.error('Error refreshing:', refreshError);
-    } finally {
-      setTimeout(() => setIsRefreshing(false), 500);
-    }
-  };
 
   const handleAddMission = () => {
     console.log('🆕 Missions: Adding new mission');
@@ -131,31 +45,6 @@ const MissionsContainer = () => {
   const handleEditMission = (mission: Trip) => {
     console.log('✏️ Missions: Editing mission:', mission.id);
     // Implementation for edit functionality
-  };
-
-  const handleDeleteMission = (mission: Trip) => {
-    console.log('🗑️ Missions: Preparing to delete mission:', mission.id);
-    setActionDialog({ isOpen: true, mission, action: 'delete' });
-  };
-
-  const handleTerminateMission = (mission: Trip) => {
-    console.log('🔚 Missions: Preparing to terminate mission:', mission.id);
-    setActionDialog({ isOpen: true, mission, action: 'terminate' });
-  };
-
-  const handleActionConfirm = async () => {
-    if (!actionDialog.mission) return;
-    
-    try {
-      // Implementation for delete/terminate actions
-      console.log(`${actionDialog.action} mission:`, actionDialog.mission.id);
-      
-      // Close dialog and refresh
-      setActionDialog({ isOpen: false, mission: null, action: null });
-      await handleRefresh();
-    } catch (actionError) {
-      console.error('Error performing action:', actionError);
-    }
   };
 
   const clearFilters = () => {

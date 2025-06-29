@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { sanitizeInput, sanitizeHtml } from './inputValidation';
 
@@ -58,49 +59,49 @@ export class SecureDataHandler {
             if (!filters) {
               return { data: null, error: { message: 'Update requires filters' } };
             }
-            // Build query with single filter to avoid complex type inference
-            const firstFilterKey = Object.keys(filters)[0];
-            let updateQuery = supabase.from(table).update(sanitizedData).eq(firstFilterKey, filters[firstFilterKey]);
+            // Simplified query building to avoid type issues
+            const updateQuery = supabase.from(table).update(sanitizedData);
+            const filterKeys = Object.keys(filters);
+            let chainedUpdateQuery = updateQuery;
             
-            // Apply additional filters one by one
-            const remainingFilters = Object.keys(filters).slice(1);
-            for (const key of remainingFilters) {
-              updateQuery = updateQuery.eq(key, filters[key]);
+            for (let i = 0; i < filterKeys.length; i++) {
+              const key = filterKeys[i];
+              chainedUpdateQuery = (chainedUpdateQuery as any).eq(key, filters[key]);
             }
             
-            const updateResult = await updateQuery.select();
+            const updateResult = await (chainedUpdateQuery as any).select();
             return { data: updateResult.data, error: updateResult.error };
           case 'delete':
             if (!filters) {
               return { data: null, error: { message: 'Delete requires filters' } };
             }
-            // Build query with single filter to avoid complex type inference
-            const firstDeleteKey = Object.keys(filters)[0];
-            let deleteQuery = supabase.from(table).delete().eq(firstDeleteKey, filters[firstDeleteKey]);
+            // Simplified query building to avoid type issues
+            const deleteQuery = supabase.from(table).delete();
+            const deleteKeys = Object.keys(filters);
+            let chainedDeleteQuery = deleteQuery;
             
-            // Apply additional filters one by one
-            const remainingDeleteFilters = Object.keys(filters).slice(1);
-            for (const key of remainingDeleteFilters) {
-              deleteQuery = deleteQuery.eq(key, filters[key]);
+            for (let i = 0; i < deleteKeys.length; i++) {
+              const key = deleteKeys[i];
+              chainedDeleteQuery = (chainedDeleteQuery as any).eq(key, filters[key]);
             }
             
-            const deleteResult = await deleteQuery;
+            const deleteResult = await chainedDeleteQuery;
             return { data: deleteResult.data, error: deleteResult.error };
         }
       }
 
       // Select operation with filters
       if (filters && Object.keys(filters).length > 0) {
-        const firstKey = Object.keys(filters)[0];
-        let selectQuery = supabase.from(table).select().eq(firstKey, filters[firstKey]);
+        const selectQuery = supabase.from(table).select();
+        const selectKeys = Object.keys(filters);
+        let chainedSelectQuery = selectQuery;
         
-        // Apply additional filters one by one
-        const remainingKeys = Object.keys(filters).slice(1);
-        for (const key of remainingKeys) {
-          selectQuery = selectQuery.eq(key, filters[key]);
+        for (let i = 0; i < selectKeys.length; i++) {
+          const key = selectKeys[i];
+          chainedSelectQuery = (chainedSelectQuery as any).eq(key, filters[key]);
         }
         
-        const selectResult = await selectQuery;
+        const selectResult = await chainedSelectQuery;
         return { data: selectResult.data, error: selectResult.error };
       } else {
         const selectResult = await supabase.from(table).select();

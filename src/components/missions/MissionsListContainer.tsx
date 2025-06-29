@@ -2,6 +2,7 @@
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useMissionsListLogic } from './MissionsListLogic';
+import { TripBusinessLogic } from '@/services/tripBusinessLogic';
 import MissionsListContent from './MissionsListContent';
 import MissionDetailsDialog from './MissionDetailsDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
@@ -115,35 +116,27 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
         }}
         onFinalKmChange={setFinalKm}
         onSubmit={async () => {
-          if (!terminateMission || !finalKm) {
+          if (!terminateMission) return;
+
+          // Use business logic for validation
+          const validation = TripBusinessLogic.validateTripTermination(
+            terminateMission,
+            finalKm,
+            null // Current user would be passed here
+          );
+
+          if (!validation.isValid) {
             toast({
               title: 'Erreur',
-              description: 'Veuillez saisir le kilométrage final',
+              description: validation.errorMessage,
               variant: 'destructive',
             });
             return;
           }
 
           const kmNumber = parseInt(finalKm, 10);
-          if (isNaN(kmNumber) || kmNumber < 0) {
-            toast({
-              title: 'Erreur',
-              description: 'Veuillez saisir un kilométrage valide',
-              variant: 'destructive',
-            });
-            return;
-          }
-
-          if (terminateMission.start_km && kmNumber < terminateMission.start_km) {
-            toast({
-              title: 'Erreur',
-              description: 'Le kilométrage final ne peut pas être inférieur au kilométrage initial',
-              variant: 'destructive',
-            });
-            return;
-          }
-
           setIsTerminating(true);
+          
           try {
             await updateTrip.mutateAsync({
               id: terminateMission.id.toString(),

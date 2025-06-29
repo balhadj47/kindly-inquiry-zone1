@@ -1,8 +1,5 @@
 
 import { TripFormData } from '@/hooks/useTripForm';
-import { TripBusinessLogic } from '@/services/tripBusinessLogic';
-import { UserBusinessLogic } from '@/services/userBusinessLogic';
-import { VanBusinessLogic } from '@/services/vanBusinessLogic';
 
 export interface ValidationResult {
   isValid: boolean;
@@ -35,12 +32,12 @@ export const validateTripForm = (formData: TripFormData): ValidationResult => {
     };
   }
 
-  // Validate selected users are available
+  // Validate that each selected user has at least one role
   for (const userRole of formData.selectedUsersWithRoles) {
-    if (!UserBusinessLogic.isUserAvailableForTrip(userRole.user)) {
+    if (!userRole.roles || userRole.roles.length === 0) {
       return {
         isValid: false,
-        errorMessage: `User ${userRole.user.name} is not available for trips`
+        errorMessage: "Each selected user must have at least one role assigned"
       };
     }
   }
@@ -81,6 +78,12 @@ export const validateTripStep = (step: string, formData: TripFormData): Validati
     case 'team':
       if (formData.selectedUsersWithRoles.length === 0) {
         return { isValid: false, errorMessage: "Please select at least one team member" };
+      }
+      // Validate that each user has roles assigned
+      for (const userRole of formData.selectedUsersWithRoles) {
+        if (!userRole.roles || userRole.roles.length === 0) {
+          return { isValid: false, errorMessage: "Each selected team member must have at least one role assigned" };
+        }
       }
       return { isValid: true };
       

@@ -140,7 +140,7 @@ export class ReactQueryCacheManager {
     const cache = this.queryClient.getQueryCache();
     const queries = cache.getAll();
     const stale = queries.filter(q => q.isStale()).length;
-    const fetching = queries.filter(q => q.isFetching()).length;
+    const fetching = queries.filter(q => q.state.status === 'pending').length;
     
     return {
       total: queries.length,

@@ -13,10 +13,10 @@ export const fetchTripsFromDatabase = async (useCache = true, limit?: number, of
     
     // Check cache first (only for full data requests)
     if (useCache && !limit && !offset && isTripCacheValid()) {
-      const cache = getTripCache();
-      if (cache) {
+      const cached = getTripCache();
+      if (cached) {
         console.log('🚗 Using cached trips data');
-        return cache.data;
+        return cached;
       }
     }
 

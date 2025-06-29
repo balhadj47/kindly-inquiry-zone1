@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
@@ -21,7 +20,7 @@ const TripHistoryContainer = React.memo(() => {
   // Data fetching with safe defaults
   const { trips, isLoading, error, deleteTrip } = useTrip();
   const { vans } = useVans();
-  const { companies } = useCompanies();
+  const { data: companies } = useCompanies();
 
   // Memoize the trips processing to prevent recalculation
   const processedTrips = useMemo(() => {

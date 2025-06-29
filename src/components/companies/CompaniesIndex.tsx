@@ -34,6 +34,7 @@ const CompaniesIndex = () => {
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(12);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter companies based on search
   const filteredCompanies = companies.filter(company =>
@@ -70,6 +71,23 @@ const CompaniesIndex = () => {
   const handleDeleteCompany = (company: Company) => {
     setSelectedCompany(company);
     setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedCompany) return;
+    
+    setIsDeleting(true);
+    try {
+      // TODO: Implement actual delete logic here
+      console.log('Deleting company:', selectedCompany.id);
+      // await deleteCompany(selectedCompany.id);
+      setIsDeleteDialogOpen(false);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting company:', error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleViewDetails = (company: Company) => {
@@ -164,6 +182,8 @@ const CompaniesIndex = () => {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         company={selectedCompany}
+        onConfirm={handleConfirmDelete}
+        isLoading={isDeleting}
       />
 
       <CompanyDetailDialog

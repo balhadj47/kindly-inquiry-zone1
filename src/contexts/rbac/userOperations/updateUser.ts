@@ -23,7 +23,7 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       
       console.log('User has permission to update users, proceeding...');
       
-      // Prepare update data with proper field mapping
+      // Prepare update data with proper field mapping and null handling for dates
       const updateData: any = {};
       
       if (updates.name !== undefined) updateData.name = updates.name;
@@ -35,7 +35,12 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       if (updates.totalTrips !== undefined) updateData.total_trips = updates.totalTrips;
       if (updates.lastTrip !== undefined) updateData.last_trip = updates.lastTrip;
       if (updates.badgeNumber !== undefined) updateData.badge_number = updates.badgeNumber;
-      if (updates.dateOfBirth !== undefined) updateData.date_of_birth = updates.dateOfBirth;
+      
+      // Handle date fields - convert empty strings to null
+      if (updates.dateOfBirth !== undefined) {
+        updateData.date_of_birth = updates.dateOfBirth && updates.dateOfBirth.trim() !== '' ? updates.dateOfBirth : null;
+      }
+      
       if (updates.placeOfBirth !== undefined) updateData.place_of_birth = updates.placeOfBirth;
       if (updates.address !== undefined) updateData.address = updates.address;
       if (updates.driverLicense !== undefined) updateData.driver_license = updates.driverLicense;

@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Branch {
@@ -23,89 +23,82 @@ export interface Company {
 }
 
 export const useCompanies = () => {
-  const [companies, setCompanies] = useState<Company[]>([]);
-  const [error, setError] = useState<string | null>(null);
-  const cacheRef = useRef<{ data: Company[]; timestamp: number } | null>(null);
-  const isMountedRef = useRef(true);
-  const CACHE_DURATION = 30000; // 30 seconds cache
-
-  const fetchCompanies = useCallback(async (useCache = true) => {
-    try {
-      console.log('🏢 useCompanies: Starting to fetch companies data...');
-      const startTime = performance.now();
+  return useQuery({
+    queryKey: ['companies'],
+    queryFn: async (): Promise<Company[]> => {
+      console.log('🏢 useCompanies: Starting to fetch companies with branches...');
       
-      // Check cache first
-      if (useCache && cacheRef.current) {
-        const { data, timestamp } = cacheRef.current;
-        const isValid = Date.now() - timestamp < CACHE_DURATION;
-        
-        if (isValid) {
-          console.log('🏢 useCompanies: Using cached data');
-          if (isMountedRef.current) {
-            setCompanies(data);
-          }
-          return;
+      try {
+        // First fetch companies
+        const { data: companiesData, error: companiesError } = await supabase
+          .from('companies')
+          .select('*')
+          .order('name');
+
+        if (companiesError) {
+          console.error('🏢 useCompanies: Error fetching companies:', companiesError);
+          throw companiesError;
         }
-      }
 
-      const { data, error } = await (supabase as any)
-        .from('companies')
-        .select(`
-          *,
-          branches (
-            id,
-            name,
-            company_id,
-            created_at,
-            address,
-            phone,
-            email
-          )
-        `);
+        console.log('🏢 useCompanies: Companies fetched:', companiesData?.length || 0);
 
-      if (error) {
-        console.error('🏢 useCompanies: Supabase error:', error);
+        if (!companiesData || companiesData.length === 0) {
+          console.log('🏢 useCompanies: No companies found');
+          return [];
+        }
+
+        // Then fetch branches separately to debug RLS issues
+        const { data: branchesData, error: branchesError } = await supabase
+          .from('branches')
+          .select('*')
+          .order('name');
+
+        if (branchesError) {
+          console.error('🏢 useCompanies: Error fetching branches:', branchesError);
+          console.log('🏢 useCompanies: Continuing without branches due to error');
+          // Continue without branches instead of throwing
+          return companiesData.map(company => ({
+            ...company,
+            branches: []
+          }));
+        }
+
+        console.log('🏢 useCompanies: Branches fetched:', branchesData?.length || 0);
+
+        // Combine companies with their branches
+        const companiesWithBranches = companiesData.map(company => ({
+          ...company,
+          branches: branchesData?.filter(branch => branch.company_id === company.id) || []
+        }));
+
+        console.log('🏢 useCompanies: Final result:', {
+          companiesCount: companiesWithBranches.length,
+          totalBranches: companiesWithBranches.reduce((sum, c) => sum + c.branches.length, 0),
+          companiesWithBranches: companiesWithBranches.map(c => ({
+            name: c.name,
+            branchCount: c.branches.length
+          }))
+        });
+
+        return companiesWithBranches;
+      } catch (error) {
+        console.error('🏢 useCompanies: Fatal error:', error);
         throw error;
       }
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+  });
+};
 
-      const endTime = performance.now();
-      console.log('🏢 useCompanies: Successfully fetched companies data in:', endTime - startTime, 'ms');
-      
-      // Update cache
-      cacheRef.current = {
-        data: data || [],
-        timestamp: Date.now()
-      };
-      
-      // Only update state if component is still mounted
-      if (isMountedRef.current) {
-        setCompanies(data || []);
-        setError(null);
-      }
-    } catch (err) {
-      console.error('🏢 useCompanies: Error fetching companies:', err);
-      if (isMountedRef.current) {
-        setError(err instanceof Error ? err.message : 'An error occurred');
-      }
-    }
-  }, []);
+export const useCompanyMutations = () => {
+  const queryClient = useQueryClient();
 
-  // Force refresh without cache
-  const refetch = useCallback(() => {
-    console.log('🏢 useCompanies: Force refreshing data...');
-    return fetchCompanies(false);
-  }, [fetchCompanies]);
+  const invalidateCompanies = () => {
+    queryClient.invalidateQueries({ queryKey: ['companies'] });
+  };
 
-  useEffect(() => {
-    console.log('🏢 useCompanies: useEffect triggered - component mounted or fetchCompanies changed');
-    isMountedRef.current = true;
-    fetchCompanies();
-    
-    return () => {
-      console.log('🏢 useCompanies: Cleanup - component unmounting');
-      isMountedRef.current = false;
-    };
-  }, [fetchCompanies]);
-
-  return { companies, error, refetch, setCompanies };
+  return {
+    invalidateCompanies,
+  };
 };

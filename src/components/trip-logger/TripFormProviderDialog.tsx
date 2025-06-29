@@ -67,7 +67,7 @@ export const TripFormProviderDialog: React.FC<TripFormProviderDialogProps> = ({
   const { t } = useLanguage();
   const { toast } = useToast();
   const { trips } = useTrip();
-  const { companies } = useCompanies();
+  const { data: companies } = useCompanies();
   const { vans } = useVans();
   const { formData, handleInputChange, handleDateChange, handleUserRoleSelection, resetForm } = useTripForm();
   const { submitTrip } = useTripSubmission();
@@ -173,7 +173,7 @@ export const TripFormProviderDialog: React.FC<TripFormProviderDialogProps> = ({
     getStepLabel,
     allSteps,
     completedSteps,
-    companies,
+    companies: companies || [],
     availableVans,
     vans,
     lastKm,

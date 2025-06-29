@@ -32,6 +32,8 @@ const CompaniesIndex = () => {
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(12);
 
   // Filter companies based on search
   const filteredCompanies = companies.filter(company =>
@@ -95,16 +97,22 @@ const CompaniesIndex = () => {
 
   // Error state
   if (isError) {
-    return <CompaniesErrorState onRetry={refetch} />;
+    return (
+      <CompaniesErrorState 
+        onAdd={handleAddCompany}
+        onRefresh={refetch}
+        isRefreshing={isLoading}
+      />
+    );
   }
 
   return (
     <div className="space-y-6 py-8">
       {/* Header */}
       <CompaniesHeader 
-        totalCount={companies.length}
-        canCreate={canCreateCompanies}
-        onAddCompany={handleAddCompany}
+        onAdd={handleAddCompany}
+        onRefresh={refetch}
+        isRefreshing={isLoading}
       />
 
       {/* Search */}
@@ -123,17 +131,24 @@ const CompaniesIndex = () => {
       {/* Content */}
       {filteredCompanies.length === 0 && searchTerm ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">{t.noCompaniesFound}</p>
+          <p className="text-gray-500">Aucune entreprise ne correspond à votre recherche</p>
         </div>
       ) : filteredCompanies.length === 0 ? (
-        <CompaniesEmptyState onAddCompany={canCreateCompanies ? handleAddCompany : undefined} />
+        <CompaniesEmptyState 
+          onAddCompany={canCreateCompanies ? handleAddCompany : undefined}
+          searchTerm={searchTerm}
+        />
       ) : (
         <CompaniesGrid
           companies={filteredCompanies}
-          onEdit={handleEditCompany}
-          onDelete={handleDeleteCompany}
-          onViewDetails={handleViewDetails}
+          hasActiveFilters={!!searchTerm}
+          clearFilters={() => setSearchTerm('')}
+          onEditCompany={handleEditCompany}
+          onDeleteCompany={handleDeleteCompany}
           onAddBranch={handleAddBranch}
+          currentPage={currentPage}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
         />
       )}
 
@@ -149,7 +164,6 @@ const CompaniesIndex = () => {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         company={selectedCompany}
-        onSuccess={handleModalSuccess}
       />
 
       <CompanyDetailDialog

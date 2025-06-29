@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -21,7 +20,7 @@ import {
 
 const BranchDetail = () => {
   const { branchId } = useParams<{ branchId: string }>();
-  const { companies, refetch } = useCompanies();
+  const { data: companies, refetch } = useCompanies();
   const { deleteBranch, isLoading: isDeleting } = useBranchActions();
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -33,12 +32,14 @@ const BranchDetail = () => {
   let branch = null;
   let company = null;
   
-  for (const comp of companies) {
-    const foundBranch = comp.branches.find((b) => b.id === branchId);
-    if (foundBranch) {
-      branch = foundBranch;
-      company = comp;
-      break;
+  if (companies) {
+    for (const comp of companies) {
+      const foundBranch = comp.branches.find((b) => b.id === branchId);
+      if (foundBranch) {
+        branch = foundBranch;
+        company = comp;
+        break;
+      }
     }
   }
 

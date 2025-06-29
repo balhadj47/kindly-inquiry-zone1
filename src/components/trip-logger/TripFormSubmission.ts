@@ -8,7 +8,7 @@ import { useVans } from '@/hooks/useVans';
 export const useTripSubmission = () => {
   const { addTrip } = useTrip();
   const { users } = useRBAC();
-  const { companies } = useCompanies();
+  const { data: companies } = useCompanies();
   const { vans } = useVans();
 
   const submitTrip = async (formData: TripFormData) => {
@@ -23,7 +23,7 @@ export const useTripSubmission = () => {
       throw new Error('Van not found');
     }
 
-    const selectedCompany = companies.find(company => company.id === formData.companyId);
+    const selectedCompany = companies?.find(company => company.id === formData.companyId);
     const selectedBranch = selectedCompany?.branches.find(branch => branch.id === formData.branchId);
 
     if (!selectedCompany || !selectedBranch) {

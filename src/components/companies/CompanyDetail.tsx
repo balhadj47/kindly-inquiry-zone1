@@ -22,9 +22,9 @@ import {
 
 const CompanyDetail = () => {
   const { companyId } = useParams<{ companyId: string }>();
-  const { companies, refetch } = useCompanies();
+  const { data: companies, refetch } = useCompanies();
   const { deleteBranch, isLoading: isDeleting } = useBranchActions();
-  const company = companies.find((c) => c.id === companyId);
+  const company = companies?.find((c) => c.id === companyId);
   const navigate = useNavigate();
   const { t } = useLanguage();
 

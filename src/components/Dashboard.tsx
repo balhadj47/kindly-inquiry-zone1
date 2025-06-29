@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
@@ -57,7 +56,7 @@ const Dashboard = () => {
   
   const { users } = useRBAC();
   const { vans, isLoading: vansLoading, refetch: refetchVans, error: vansError } = useVans();
-  const { companies, refetch: refetchCompanies, error: companiesError } = useCompanies();
+  const { data: companies, refetch: refetchCompanies, error: companiesError } = useCompanies();
   const { trips } = useTrip();
 
   console.log('📊 Dashboard: Data state:', {
@@ -147,8 +146,8 @@ const Dashboard = () => {
   console.log('📊 Dashboard: Calculating stats and rendering main content');
 
   try {
-    const stats = calculateDashboardStats(users, vans, companies, trips);
-    const chartData = createChartData(companies, trips);
+    const stats = calculateDashboardStats(users, vans, companies || [], trips);
+    const chartData = createChartData(companies || [], trips);
 
     console.log('📊 Dashboard: Stats calculated successfully:', stats);
     console.log('📊 Dashboard: Chart data created successfully:', Object.keys(chartData));

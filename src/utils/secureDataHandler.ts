@@ -34,12 +34,12 @@ export class SecureDataHandler {
   }
 
   // Secure database query with sanitization
-  async secureQuery<T>(
+  async secureQuery(
     table: TableName,
     operation: 'select' | 'insert' | 'update' | 'delete',
     data?: any,
     filters?: Record<string, any>
-  ): Promise<{ data: T[] | null; error: any }> {
+  ): Promise<{ data: any[] | null; error: any }> {
     try {
       // Rate limiting
       const userId = (await supabase.auth.getUser()).data.user?.id || 'anonymous';
@@ -53,7 +53,8 @@ export class SecureDataHandler {
         
         switch (operation) {
           case 'insert':
-            return await supabase.from(table).insert(sanitizedData).select();
+            const insertResult = await supabase.from(table).insert(sanitizedData).select();
+            return { data: insertResult.data, error: insertResult.error };
           case 'update':
             if (!filters) {
               return { data: null, error: { message: 'Update requires filters' } };
@@ -62,7 +63,8 @@ export class SecureDataHandler {
             Object.keys(filters).forEach(key => {
               updateQuery = updateQuery.eq(key, filters[key]);
             });
-            return await updateQuery.select();
+            const updateResult = await updateQuery.select();
+            return { data: updateResult.data, error: updateResult.error };
           case 'delete':
             if (!filters) {
               return { data: null, error: { message: 'Delete requires filters' } };
@@ -71,7 +73,8 @@ export class SecureDataHandler {
             Object.keys(filters).forEach(key => {
               deleteQuery = deleteQuery.eq(key, filters[key]);
             });
-            return await deleteQuery;
+            const deleteResult = await deleteQuery;
+            return { data: deleteResult.data, error: deleteResult.error };
         }
       }
 
@@ -83,7 +86,8 @@ export class SecureDataHandler {
         });
       }
 
-      return await selectQuery;
+      const selectResult = await selectQuery;
+      return { data: selectResult.data, error: selectResult.error };
     } catch (error) {
       console.error('Secure query error:', error);
       return { data: null, error };

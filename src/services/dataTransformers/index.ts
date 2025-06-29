@@ -6,6 +6,10 @@ export type { DataTransformer, ValidationResult, TransformationResult } from './
 export { TripTransformer, tripTransformer } from './TripTransformer';
 export { UserTransformer, userTransformer } from './UserTransformer';
 
+// Import instances for convenience re-exports
+import { tripTransformer } from './TripTransformer';
+import { userTransformer } from './UserTransformer';
+
 // Convenience re-exports for common transformations
 export const transformDatabaseTrip = tripTransformer.transform.bind(tripTransformer);
 export const transformDatabaseTrips = tripTransformer.transformArray.bind(tripTransformer);

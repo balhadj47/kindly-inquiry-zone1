@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Circle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Trip } from '@/contexts/TripContext';
+import { useUsers } from '@/hooks/useUsersOptimized';
 
 interface MissionCardProps {
   mission: Trip;
@@ -26,6 +28,44 @@ const MissionCard: React.FC<MissionCardProps> = ({
   actionLoading,
   isTerminating,
 }) => {
+  const { data: usersData } = useUsers();
+  const users = usersData?.users || [];
+
+  // Function to get user name by ID with proper type handling
+  const getUserName = (userId: string) => {
+    const user = users.find(u => {
+      const userIdStr = u.id.toString();
+      return userIdStr === userId;
+    });
+    return user ? user.name : `User ${userId}`;
+  };
+
+  // Function to get the driver (person with "Chauffeur" role) - same logic as MissionDetailsDialog
+  const getDriverName = () => {
+    if (!mission?.userRoles || mission.userRoles.length === 0) {
+      return mission?.driver || 'Aucun chauffeur assigné';
+    }
+
+    // Find user with "Chauffeur" role
+    const driverUserRole = mission.userRoles.find(userRole => 
+      userRole.roles.some(role => {
+        if (typeof role === 'string') {
+          return role === 'Chauffeur';
+        } else if (typeof role === 'object' && role !== null) {
+          const roleObj = role as any;
+          return roleObj.name === 'Chauffeur';
+        }
+        return false;
+      })
+    );
+
+    if (driverUserRole) {
+      return getUserName(driverUserRole.userId);
+    }
+
+    return mission?.driver || 'Aucun chauffeur assigné';
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'active':
@@ -116,7 +156,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <div className="space-y-1">
           <p className="text-sm font-medium text-gray-500">Chauffeur</p>
-          <p className="text-gray-900 font-medium">{mission.driver}</p>
+          <p className="text-gray-900 font-medium">{getDriverName()}</p>
         </div>
         
         <div className="space-y-1">

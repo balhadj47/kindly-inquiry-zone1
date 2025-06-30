@@ -1,3 +1,4 @@
+
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -43,6 +44,18 @@ export class DatabaseService {
         name: c.name,
         branchCount: c.branches?.length || 0
       })) || []
+    });
+    
+    // Additional debug: Check if branches table has data at all
+    const { data: allBranches, error: branchError } = await supabase
+      .from('branches')
+      .select('*')
+      .limit(5);
+    
+    console.log('🔍 DatabaseService: All branches check:', {
+      branchesCount: allBranches?.length || 0,
+      sampleBranches: allBranches,
+      error: branchError
     });
     
     return data;

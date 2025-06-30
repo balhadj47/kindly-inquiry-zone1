@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export class DatabaseInitService {
@@ -25,25 +26,37 @@ export class DatabaseInitService {
   }
 }
 
-export const ensureBranchesConstraints = async () => {
-  console.log('🔧 Ensuring branches foreign key constraints...');
+export const checkBranchesData = async () => {
+  console.log('🔧 Checking branches data and relationships...');
   
   try {
-    // Check if foreign key constraint exists
-    const { data: constraints, error: constraintError } = await supabase
-      .rpc('get_table_constraints', { table_name: 'branches' });
+    // Check if we have any branches data
+    const { data: branches, error: branchesError } = await supabase
+      .from('branches')
+      .select('*')
+      .limit(5);
     
-    if (constraintError) {
-      console.error('Error checking constraints:', constraintError);
+    if (branchesError) {
+      console.error('❌ Error fetching branches:', branchesError);
       return;
     }
     
-    console.log('📋 Current branches constraints:', constraints);
+    console.log('📋 Sample branches data:', branches);
     
-    // If no foreign key constraint exists, we might need to add it
-    // This would typically be done via SQL migration
+    // Check if we have companies
+    const { data: companies, error: companiesError } = await supabase
+      .from('companies')
+      .select('id, name')
+      .limit(5);
+    
+    if (companiesError) {
+      console.error('❌ Error fetching companies:', companiesError);
+      return;
+    }
+    
+    console.log('📋 Sample companies data:', companies);
     
   } catch (error) {
-    console.error('❌ Error ensuring branches constraints:', error);
+    console.error('❌ Error checking branches data:', error);
   }
 };

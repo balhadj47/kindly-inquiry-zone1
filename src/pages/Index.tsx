@@ -120,6 +120,82 @@ const Index = () => {
     }
   }, [authUser, currentUser, hasPermission, authLoading, rbacLoading, isHighPrivilegeUser]);
 
+  // Enhanced auth-users permission check to match sidebar logic
+  const checkAuthUsersPermission = React.useCallback((): boolean => {
+    console.log('📱 Index: Checking auth-users permission specifically');
+
+    try {
+      // If still loading, allow access to prevent blank screens
+      if (authLoading || rbacLoading) {
+        console.log('📱 Index: Still loading, allowing auth-users access');
+        return true;
+      }
+
+      // If no auth user, deny access
+      if (!authUser) {
+        console.log('📱 Index: No auth user, denying auth-users access');
+        return false;
+      }
+
+      // Known admin users (hardcoded fallback) - PRIORITY CHECK
+      const knownAdmins = ['gb47@msn.com'];
+      const userEmail = authUser?.email;
+      
+      if (userEmail && knownAdmins.includes(userEmail)) {
+        console.log('📱 Index: Known admin user detected for auth-users, granting access:', userEmail);
+        return true;
+      }
+
+      // Role ID 1 is admin - PRIORITY CHECK
+      if (currentUser?.role_id === 1) {
+        console.log('📱 Index: Admin role detected for auth-users, granting access (role_id: 1)');
+        return true;
+      }
+
+      // High privilege user bypass
+      if (isHighPrivilegeUser()) {
+        console.log('📱 Index: High privilege user bypass granted for auth-users');
+        return true;
+      }
+
+      // If RBAC user exists and hasPermission function is available
+      if (currentUser && hasPermission && typeof hasPermission === 'function') {
+        try {
+          // Check for specific auth-users permissions
+          const authUsersPermissions = [
+            'auth-users:read',
+            'auth-users:create', 
+            'auth-users:update',
+            'auth-users:delete',
+            'users:read' // fallback permission
+          ];
+          
+          for (const perm of authUsersPermissions) {
+            const result = hasPermission(perm);
+            console.log(`📱 Index: Permission check for ${perm}:`, result);
+            if (result === true) {
+              return true;
+            }
+          }
+          
+          return false;
+        } catch (error) {
+          console.error('📱 Index: Error checking auth-users permission:', error);
+          // Fall back to allowing access if there's an error
+          return true;
+        }
+      }
+
+      // For authenticated users without RBAC context, allow access
+      console.log('📱 Index: Authenticated user without RBAC, allowing auth-users access');
+      return true;
+    } catch (error) {
+      console.error('📱 Index: Error in checkAuthUsersPermission:', error);
+      // On error, allow access to prevent app from breaking
+      return true;
+    }
+  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading, isHighPrivilegeUser]);
+
   // Show loading while auth is loading
   if (authLoading) {
     console.log('📱 Index: Showing loading - Auth loading');
@@ -171,7 +247,7 @@ const Index = () => {
                   checkPermission('users:read') ? <Users /> : <AccessDenied />
                 } />
                 <Route path="auth-users" element={
-                  checkPermission('users:read') ? <AuthUsersPage /> : <AccessDenied />
+                  checkAuthUsersPermission() ? <AuthUsersPage /> : <AccessDenied />
                 } />
                 <Route path="employees" element={
                   checkPermission('users:read') ? <Employees /> : <AccessDenied />

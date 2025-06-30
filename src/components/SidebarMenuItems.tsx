@@ -1,3 +1,4 @@
+
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -54,48 +55,9 @@ export const useSidebarMenuItems = () => {
   } catch (error) {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
-  
-  // Enhanced permission checking for auth-users - STRICT CHECK
-  const hasAuthUsersPermission = () => {
-    console.log('🔍 Checking auth-users permission for user:', {
-      userId: currentUser?.id,
-      email: currentUser?.email || 'no email',
-      roleId: currentUser?.role_id,
-      rolesLoaded: roles?.length > 0,
-      hasPermissionFunction: typeof hasPermission === 'function'
-    });
 
-    // If still loading, deny access to prevent showing unauthorized items
-    if (loading) {
-      console.log('🔍 Still loading, denying auth-users access');
-      return false;
-    }
-
-    // If no current user, deny access
-    if (!currentUser || !currentUser.id) {
-      console.log('🔍 No current user, denying auth-users access');
-      return false;
-    }
-
-    // If no hasPermission function, deny access
-    if (typeof hasPermission !== 'function') {
-      console.log('🔍 No hasPermission function available, denying access');
-      return false;
-    }
-
-    // Check specifically for auth-users:read permission - STRICT CHECK
-    try {
-      const result = hasPermission('auth-users:read');
-      console.log('🔍 Permission check for auth-users:read:', result);
-      return result === true;
-    } catch (error) {
-      console.error('Error checking auth-users:read permission:', error);
-      return false;
-    }
-  };
-
-  // Menu items with proper permission checks
-  const menuItems: MenuItem[] = [
+  // Define all possible menu items with their required read permissions
+  const allMenuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
       href: '/dashboard',
@@ -126,25 +88,14 @@ export const useSidebarMenuItems = () => {
       icon: Bell,
       permission: 'trips:read',
     },
-  ];
-
-  // Check auth users permission BEFORE filtering - STRICT CHECK
-  const shouldShowAuthUsers = hasAuthUsersPermission();
-  console.log('🔍 Should show Auth Users menu item:', shouldShowAuthUsers);
-  
-  // ONLY add Auth Users if permission check passes
-  if (shouldShowAuthUsers) {
-    console.log('✅ Adding Auth Users to menu');
-    menuItems.push({
+    {
       title: t?.authUsers || 'Auth Users',
       href: '/auth-users',
       icon: Shield,
       permission: 'auth-users:read',
-    });
-  } else {
-    console.log('❌ Auth Users NOT added to menu - no auth-users:read permission');
-  }
-  
+    },
+  ];
+
   console.log('🔍 Menu items processing:', {
     userId: currentUser?.id || 'null',
     userEmail: currentUser?.email || 'null',
@@ -152,8 +103,7 @@ export const useSidebarMenuItems = () => {
     loading: loading,
     rolesCount: roles?.length || 0,
     hasPermissionFunction: typeof hasPermission === 'function',
-    menuItemsCount: menuItems.length,
-    hasAuthUsersInMenu: menuItems.some(item => item.href === '/auth-users')
+    totalMenuItemsCount: allMenuItems.length
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -168,80 +118,50 @@ export const useSidebarMenuItems = () => {
     return [];
   }
 
-  // ENHANCED: Show basic menu items for all authenticated users
-  const basicMenuForAuthenticated = [
-    {
-      title: t?.dashboard || 'Dashboard',
-      href: '/dashboard',
-      icon: Home,
-    },
-    {
-      title: t?.companies || 'Companies',
-      href: '/companies',
-      icon: Factory,
-    },
-    {
-      title: t?.vans || 'Vans',
-      href: '/vans',
-      icon: Truck,
-    },
-    {
-      title: t?.missions || 'Missions',
-      href: '/missions',
-      icon: Bell,
-    }
-  ];
-
-  // If no roles are loaded yet, show basic menu items for authenticated users
+  // If no roles are loaded yet, return empty menu to prevent showing unauthorized items
   if (!roles || roles.length === 0) {
-    console.log('🔍 No roles loaded yet, showing basic menu for authenticated user');
-    return basicMenuForAuthenticated;
+    console.log('🔍 No roles loaded yet, returning empty menu');
+    return [];
   }
 
-  // Filter menu items based on permissions - but be more permissive
-  const filteredMenuItems = menuItems.filter((item) => {
+  // Filter menu items based on read permissions
+  const filteredMenuItems = allMenuItems.filter((item) => {
     try {
       if (!item.permission) {
-        console.log(`⚠️ Menu item "${item.title}" has no permission requirement - allowing for authenticated user`);
-        return true;
+        console.log(`⚠️ Menu item "${item.title}" has no permission requirement - skipping`);
+        return false;
       }
       
       if (typeof hasPermission !== 'function') {
         console.error('⚠️ hasPermission is not a function:', typeof hasPermission);
-        // Show basic items for authenticated users
-        return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
+        return false;
       }
       
-      // Special handling for auth-users permission - should already be pre-approved
-      if (item.permission === 'auth-users:read') {
-        // This item was already pre-approved when we added it above
-        console.log('🔍 Auth-users item was pre-approved - allowing');
-        return true;
-      }
-      
-      // Check permission for other items
+      // Check permission for each item
       const hasAccess = hasPermission(item.permission);
       
-      console.log(`🔍 Access check for ${item.title}:`, {
+      console.log(`🔍 Permission check for ${item.title}:`, {
         permission: item.permission,
         hasPermission: hasAccess,
-        href: item.href,
-        finalAccess: hasAccess
+        href: item.href
       });
       
       return hasAccess;
     } catch (error) {
       console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
-      // Fallback: allow basic menu items for authenticated users
-      return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission || '');
+      return false;
     }
   });
 
   console.log('🔍 FINAL RESULT:', {
-    totalMenuItems: menuItems.length,
+    totalMenuItems: allMenuItems.length,
     filteredCount: filteredMenuItems.length,
     filteredTitles: filteredMenuItems.map(item => item.title),
-    hasAuthUsers: filteredMenuItems.some(item => item.href === '/auth-users')
+    hasAuthUsers: filteredMenuItems.some(item => item.href === '/auth-users'),
+    hasVans: filteredMenuItems.some(item => item.href === '/vans'),
+    hasCompanies: filteredMenuItems.some(item => item.href === '/companies'),
+    hasUsers: filteredMenuItems.some(item => item.href === '/employees'),
+    hasMissions: filteredMenuItems.some(item => item.href === '/missions')
   });
   
   return filteredMenuItems;

@@ -1,4 +1,3 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -15,12 +14,20 @@ export class DatabaseService {
   static async getCompanies() {
     await requireAuth();
     
-    console.log('🔍 DatabaseService: Attempting to fetch companies');
+    console.log('🔍 DatabaseService: Attempting to fetch companies with branches');
     const { data, error } = await supabase
       .from('companies')
       .select(`
         *,
-        branches (*)
+        branches (
+          id,
+          name,
+          company_id,
+          created_at,
+          address,
+          phone,
+          email
+        )
       `)
       .order('name');
     
@@ -29,7 +36,15 @@ export class DatabaseService {
       throw error;
     }
     
-    console.log('🔍 DatabaseService: Companies fetched successfully:', data?.length || 0, 'items');
+    console.log('🔍 DatabaseService: Companies fetched successfully:', {
+      companiesCount: data?.length || 0,
+      totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
+      companiesWithBranches: data?.map(c => ({
+        name: c.name,
+        branchCount: c.branches?.length || 0
+      })) || []
+    });
+    
     return data;
   }
 

@@ -56,7 +56,40 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Menu items without log-trip
+  // Dynamic privilege detection
+  const isHighPrivilegeUser = () => {
+    if (!currentUser?.role_id || !roles) return false;
+    
+    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
+    if (!userRole) return false;
+    
+    // High privilege users have many permissions (10+)
+    return userRole.permissions.length >= 10;
+  };
+
+  // Check if user has auth-users permissions specifically
+  const hasAuthUsersPermission = () => {
+    if (isHighPrivilegeUser()) return true;
+    
+    // Check for specific auth-users permissions
+    const authUsersPermissions = [
+      'auth-users:read',
+      'auth-users:create',
+      'auth-users:update',
+      'auth-users:delete'
+    ];
+    
+    return authUsersPermissions.some(perm => {
+      try {
+        return hasPermission(perm);
+      } catch (error) {
+        console.error('Error checking permission:', perm, error);
+        return false;
+      }
+    });
+  };
+
+  // Menu items with proper permission checks
   const menuItems: MenuItem[] = [
     {
       title: t?.dashboard || 'Dashboard',
@@ -83,18 +116,22 @@ export const useSidebarMenuItems = () => {
       permission: 'users:read',
     },
     {
-      title: t?.authUsers || 'Auth Users',
-      href: '/auth-users',
-      icon: Shield,
-      permission: 'auth-users:read',
-    },
-    {
       title: t?.missions || 'Missions',
       href: '/missions',
       icon: Bell,
       permission: 'trips:read',
     },
   ];
+
+  // Only add Auth Users if user has proper permissions
+  if (hasAuthUsersPermission()) {
+    menuItems.push({
+      title: t?.authUsers || 'Auth Users',
+      href: '/auth-users',
+      icon: Shield,
+      permission: 'auth-users:read',
+    });
+  }
   
   console.log('🔍 Menu items processing:', {
     userId: currentUser?.id || 'null',
@@ -102,7 +139,9 @@ export const useSidebarMenuItems = () => {
     roleId: currentUser?.role_id || 'null',
     loading: loading,
     rolesCount: roles?.length || 0,
-    hasPermissionFunction: typeof hasPermission === 'function'
+    hasPermissionFunction: typeof hasPermission === 'function',
+    hasAuthUsersPermission: hasAuthUsersPermission(),
+    isHighPrivilegeUser: isHighPrivilegeUser()
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -161,7 +200,19 @@ export const useSidebarMenuItems = () => {
         return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
       }
       
-      // Check permission
+      // Special handling for auth-users permission
+      if (item.permission === 'auth-users:read') {
+        const hasAccess = hasAuthUsersPermission();
+        console.log(`🔍 Auth Users access check:`, {
+          permission: item.permission,
+          hasPermission: hasAccess,
+          href: item.href,
+          finalAccess: hasAccess
+        });
+        return hasAccess;
+      }
+      
+      // Check permission for other items
       const hasAccess = hasPermission(item.permission);
       
       console.log(`🔍 Access check for ${item.title}:`, {

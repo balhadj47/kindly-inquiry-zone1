@@ -62,10 +62,23 @@ export const useSidebarMenuItems = () => {
       userId: currentUser?.id,
       email: currentUser?.email || 'no email',
       roleId: currentUser?.role_id,
-      rolesLoaded: roles?.length > 0
+      rolesLoaded: roles?.length > 0,
+      hasPermissionFunction: typeof hasPermission === 'function'
     });
 
-    // Known admin users
+    // If still loading, deny access to prevent showing unauthorized items
+    if (loading) {
+      console.log('🔍 Still loading, denying auth-users access');
+      return false;
+    }
+
+    // If no current user, deny access
+    if (!currentUser || !currentUser.id) {
+      console.log('🔍 No current user, denying auth-users access');
+      return false;
+    }
+
+    // Known admin users (hardcoded fallback)
     const knownAdmins = ['gb47@msn.com'];
     const userEmail = currentUser?.email;
     
@@ -80,6 +93,12 @@ export const useSidebarMenuItems = () => {
       return true;
     }
 
+    // If no hasPermission function, deny access
+    if (typeof hasPermission !== 'function') {
+      console.log('🔍 No hasPermission function available, denying access');
+      return false;
+    }
+
     // For other users, check specific auth-users permissions
     const authUsersPermissions = [
       'auth-users:read',
@@ -88,16 +107,20 @@ export const useSidebarMenuItems = () => {
       'auth-users:delete'
     ];
     
-    const hasAnyAuthUsersPermission = authUsersPermissions.some(perm => {
+    let hasAnyAuthUsersPermission = false;
+    
+    for (const perm of authUsersPermissions) {
       try {
         const result = hasPermission(perm);
         console.log(`🔍 Permission check for ${perm}:`, result);
-        return result;
+        if (result === true) {
+          hasAnyAuthUsersPermission = true;
+          break;
+        }
       } catch (error) {
         console.error('Error checking permission:', perm, error);
-        return false;
       }
-    });
+    }
 
     console.log('🔍 Final auth-users permission decision:', hasAnyAuthUsersPermission);
     return hasAnyAuthUsersPermission;
@@ -137,8 +160,11 @@ export const useSidebarMenuItems = () => {
     },
   ];
 
-  // Only add Auth Users if user has proper permissions
-  if (hasAuthUsersPermission()) {
+  // Only add Auth Users if user has proper permissions - STRICT CHECK
+  const shouldShowAuthUsers = hasAuthUsersPermission();
+  console.log('🔍 Should show Auth Users menu item:', shouldShowAuthUsers);
+  
+  if (shouldShowAuthUsers) {
     console.log('✅ Adding Auth Users to menu');
     menuItems.push({
       title: t?.authUsers || 'Auth Users',
@@ -217,10 +243,12 @@ export const useSidebarMenuItems = () => {
         return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
       }
       
-      // Special handling for auth-users permission - this should already be filtered out above
+      // Special handling for auth-users permission - should already be filtered out above
       if (item.permission === 'auth-users:read') {
-        console.log('🔍 Auth-users item should have been filtered out already');
-        return false; // This shouldn't happen since we filter before adding
+        // Double-check the permission here as a safety net
+        const authUsersAccess = hasAuthUsersPermission();
+        console.log('🔍 Double-checking auth-users permission:', authUsersAccess);
+        return authUsersAccess;
       }
       
       // Check permission for other items

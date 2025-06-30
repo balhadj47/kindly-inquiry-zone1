@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -36,23 +36,30 @@ const CompaniesIndex = () => {
   const [itemsPerPage] = useState(12);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Debug companies data when it changes
+  useEffect(() => {
+    if (companies && companies.length > 0) {
+      console.log('🏢 CompaniesIndex: Companies data received:', {
+        totalCompanies: companies.length,
+        companiesWithBranches: companies.filter(c => c.branches && c.branches.length > 0).length,
+        detailedData: companies.map(c => ({
+          id: c.id,
+          name: c.name,
+          branchCount: c.branches?.length || 0,
+          branches: c.branches?.map(b => ({ id: b.id, name: b.name })) || []
+        }))
+      });
+    } else {
+      console.log('🏢 CompaniesIndex: No companies data or empty array');
+    }
+  }, [companies]);
+
   // Filter companies based on search
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     company.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  // Debug log to see what data we're getting
-  console.log('🏢 CompaniesIndex: Rendering with data:', {
-    totalCompanies: companies.length,
-    filteredCompanies: filteredCompanies.length,
-    companiesWithBranches: companies.map(c => ({
-      name: c.name,
-      branchCount: c.branches?.length || 0,
-      branches: c.branches?.map(b => b.name) || []
-    }))
-  });
 
   // Permission checks
   const canCreateCompanies = hasPermission('companies:create');
@@ -139,10 +146,25 @@ const CompaniesIndex = () => {
         onSearchChange={setSearchTerm}
       />
 
-      {/* Debug Info - Remove this in production */}
+      {/* Debug Console Output */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-xs">
-          <strong>Debug Info:</strong> Found {companies.length} companies with {companies.reduce((sum, c) => sum + (c.branches?.length || 0), 0)} total branches
+        <div className="bg-blue-50 border border-blue-200 rounded p-3 text-xs space-y-1">
+          <div><strong>Debug Info:</strong></div>
+          <div>Total companies: {companies.length}</div>
+          <div>Companies with branches: {companies.filter(c => c.branches && c.branches.length > 0).length}</div>
+          <div>Total branches across all companies: {companies.reduce((sum, c) => sum + (c.branches?.length || 0), 0)}</div>
+          {companies.length > 0 && (
+            <div className="mt-2">
+              <strong>First company example:</strong>
+              <pre className="text-xs bg-white p-2 rounded mt-1">
+                {JSON.stringify({
+                  name: companies[0].name,
+                  branchCount: companies[0].branches?.length || 0,
+                  branches: companies[0].branches?.map(b => b.name) || []
+                }, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       )}
 

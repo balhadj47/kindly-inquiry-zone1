@@ -1,4 +1,3 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -37,12 +36,14 @@ export class DatabaseService {
       throw error;
     }
     
+    console.log('🔍 DatabaseService: Raw companies data:', data);
     console.log('🔍 DatabaseService: Companies fetched successfully:', {
       companiesCount: data?.length || 0,
       totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
       companiesWithBranches: data?.map(c => ({
         name: c.name,
-        branchCount: c.branches?.length || 0
+        branchCount: c.branches?.length || 0,
+        branches: c.branches?.map(b => b.name) || []
       })) || []
     });
     
@@ -50,13 +51,24 @@ export class DatabaseService {
     const { data: allBranches, error: branchError } = await supabase
       .from('branches')
       .select('*')
-      .limit(5);
+      .limit(10);
     
-    console.log('🔍 DatabaseService: All branches check:', {
+    console.log('🔍 DatabaseService: Direct branches query:', {
       branchesCount: allBranches?.length || 0,
       sampleBranches: allBranches,
       error: branchError
     });
+    
+    // Check if any branches have matching company_ids
+    if (data && allBranches) {
+      const companyIds = data.map(c => c.id);
+      const matchingBranches = allBranches.filter(b => companyIds.includes(b.company_id));
+      console.log('🔍 DatabaseService: Branches matching companies:', {
+        companyIds,
+        matchingBranchesCount: matchingBranches.length,
+        matchingBranches
+      });
+    }
     
     return data;
   }
@@ -121,7 +133,7 @@ export class DatabaseService {
   static async getBranches(companyId?: string) {
     await requireAuth();
     
-    console.log('🔍 DatabaseService: Attempting to fetch branches');
+    console.log('🔍 DatabaseService: Attempting to fetch branches', companyId ? `for company ${companyId}` : 'all');
     let query = supabase.from('branches').select('*');
     
     if (companyId) {
@@ -134,7 +146,11 @@ export class DatabaseService {
       throw error;
     }
     
-    console.log('🔍 DatabaseService: Branches fetched successfully:', data?.length || 0, 'items');
+    console.log('🔍 DatabaseService: Branches fetched successfully:', {
+      count: data?.length || 0,
+      companyId: companyId || 'all',
+      branches: data
+    });
     return data;
   }
 

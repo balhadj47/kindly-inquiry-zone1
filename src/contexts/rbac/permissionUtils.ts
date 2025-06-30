@@ -2,94 +2,126 @@
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
-let permissionCache = new Map<string, boolean>();
-let currentAuthUser: User | null = null;
-let systemGroupsData: SystemGroup[] = [];
+// Global permission state for caching
+let globalCurrentUser: User | null = null;
+let globalRoles: SystemGroup[] = [];
 
-export const createPermissionUtils = (users: User[], systemGroups: SystemGroup[]) => {
-  console.log('🔧 Creating permission utils:', { 
-    usersCount: users.length, 
-    systemGroupsCount: systemGroups.length
-  });
-  
-  if (systemGroups.length === 0) {
-    console.warn('⚠️ No system groups provided to permission utils');
-    return;
-  }
-
-  currentAuthUser = users.length > 0 ? users[0] : null;
-  systemGroupsData = systemGroups;
-  permissionCache.clear();
-  
-  console.log('✅ Permission utilities created successfully');
+// Set global state (called from RBACProvider)
+export const setGlobalPermissionState = (user: User | null, roles: SystemGroup[]) => {
+  globalCurrentUser = user;
+  globalRoles = roles;
 };
 
+// Main permission checking function
 export const hasPermission = (userId: string, permission: string): boolean => {
-  const cacheKey = `${userId}-${permission}`;
-  
-  if (permissionCache.has(cacheKey)) {
-    return permissionCache.get(cacheKey)!;
-  }
-
   try {
-    console.log(`🔐 Checking permission: ${permission} for user ${userId}`);
-    
-    const user = currentAuthUser;
-    if (!user || user.id.toString() !== userId.toString()) {
-      console.warn(`⚠️ User not found: ${userId}`);
-      permissionCache.set(cacheKey, false);
-      return false;
-    }
-
-    const userRole = systemGroupsData.find(role => {
-      const roleId = (role as any).role_id || parseInt(role.id);
-      return roleId === user.role_id;
+    console.log('🔐 permissionUtils: hasPermission called:', {
+      userId,
+      permission,
+      currentUserId: globalCurrentUser?.id || 'null',
+      rolesCount: globalRoles.length
     });
 
-    if (!userRole) {
-      console.warn(`⚠️ Role not found for user ${userId} with role_id ${user.role_id}`);
-      permissionCache.set(cacheKey, false);
+    // Validate permission parameter
+    if (!permission || typeof permission !== 'string' || permission.trim() === '') {
+      console.warn('🚫 permissionUtils: Invalid permission parameter:', permission);
       return false;
     }
 
-    const hasAccess = userRole.permissions.includes(permission);
+    // Check for current user
+    if (!globalCurrentUser || !globalCurrentUser.id || globalCurrentUser.id !== userId) {
+      console.log('🚫 permissionUtils: User mismatch or no current user:', {
+        globalUserId: globalCurrentUser?.id || 'null',
+        requestedUserId: userId
+      });
+      return false;
+    }
+
+    // Special handling for admin users
+    if (globalCurrentUser.id === 'admin-temp' || globalCurrentUser.role_id === 1) {
+      console.log('🔓 permissionUtils: Admin user detected - granting permission');
+      return true;
+    }
+
+    // Basic permissions for authenticated users
+    const basicPermissions = [
+      'dashboard:read', 
+      'trips:read', 
+      'companies:read',
+      'vans:read'
+    ];
     
-    // High-privilege role handling
-    if (!hasAccess && userRole.permissions.length >= 10) {
-      console.log('🔓 High-privilege role, granting permission:', permission);
-      permissionCache.set(cacheKey, true);
+    if (basicPermissions.includes(permission)) {
+      console.log('🔓 permissionUtils: Basic permission granted');
+      return true;
+    }
+
+    // Check if roles are loaded
+    if (!Array.isArray(globalRoles) || globalRoles.length === 0) {
+      console.log('⚠️ permissionUtils: Roles not loaded, allowing basic permissions only');
+      return basicPermissions.includes(permission);
+    }
+
+    // Find user's role and check permissions
+    const userRole = globalRoles.find(role => (role as any).role_id === globalCurrentUser.role_id);
+    if (!userRole) {
+      console.warn('⚠️ permissionUtils: Role not found for user');
+      return basicPermissions.includes(permission);
+    }
+
+    const hasAccess = Array.isArray(userRole.permissions) && userRole.permissions.includes(permission);
+    console.log('🔐 permissionUtils: Permission check result:', {
+      permission,
+      hasAccess,
+      userPermissions: userRole.permissions || []
+    });
+
+    return hasAccess;
+
+  } catch (error) {
+    console.error('❌ permissionUtils: Critical error in permission check:', error);
+    
+    // Fallback for administrators
+    if (globalCurrentUser?.role_id === 1 || globalCurrentUser?.id === 'admin-temp') {
       return true;
     }
     
-    permissionCache.set(cacheKey, hasAccess);
-    console.log(`🔐 Permission result: ${permission} = ${hasAccess}`);
-    
-    return hasAccess;
-  } catch (error) {
-    console.error('❌ Error checking permission:', error);
-    permissionCache.set(cacheKey, false);
-    return false;
+    // Basic permissions fallback
+    const basicPermissions = ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'];
+    return basicPermissions.includes(permission);
   }
 };
 
-export const clearPermissionCache = () => {
-  console.log('🧹 Clearing permission cache');
-  permissionCache.clear();
+// Get user's role information
+export const getUserRole = (userId: string): SystemGroup | null => {
+  try {
+    if (!globalCurrentUser || globalCurrentUser.id !== userId) {
+      return null;
+    }
+    
+    if (!Array.isArray(globalRoles)) {
+      return null;
+    }
+    
+    const role = globalRoles.find(r => parseInt(r.id) === globalCurrentUser.role_id);
+    return role || null;
+  } catch (error) {
+    console.error('🔧 permissionUtils: Error in getUserRole:', error);
+    return null;
+  }
 };
 
-export const getUserPermissions = (userId: string): string[] => {
+// Check if user can perform specific action
+export const canUserPerformAction = (userId: string, action: string): boolean => {
   try {
-    const user = currentAuthUser;
-    if (!user || user.id.toString() !== userId.toString()) return [];
-
-    const userRole = systemGroupsData.find(role => {
-      const roleId = (role as any).role_id || parseInt(role.id);
-      return roleId === user.role_id;
-    });
-
-    return userRole?.permissions || [];
+    const userRole = getUserRole(userId);
+    if (!userRole) {
+      return false;
+    }
+    
+    return Array.isArray(userRole.permissions) && userRole.permissions.includes(action);
   } catch (error) {
-    console.error('❌ Error getting user permissions:', error);
-    return [];
+    console.error('🔧 permissionUtils: Error in canUserPerformAction:', error);
+    return false;
   }
 };

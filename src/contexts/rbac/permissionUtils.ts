@@ -6,10 +6,32 @@ import { SystemGroup } from '@/types/systemGroups';
 let globalCurrentUser: User | null = null;
 let globalRoles: SystemGroup[] = [];
 
+// Permission cache for performance
+let permissionCache: Map<string, boolean> = new Map();
+
 // Set global state (called from RBACProvider)
 export const setGlobalPermissionState = (user: User | null, roles: SystemGroup[]) => {
   globalCurrentUser = user;
   globalRoles = roles;
+  // Clear cache when state changes
+  permissionCache.clear();
+};
+
+// Create permission utilities (for compatibility with existing code)
+export const createPermissionUtils = (users: User[], roles: SystemGroup[]) => {
+  console.log('🔧 permissionUtils: Creating permission utilities with:', {
+    usersCount: users.length,
+    rolesCount: roles.length
+  });
+  
+  // Update global state
+  setGlobalPermissionState(users[0] || null, roles);
+};
+
+// Clear permission cache
+export const clearPermissionCache = () => {
+  console.log('🔧 permissionUtils: Clearing permission cache');
+  permissionCache.clear();
 };
 
 // Main permission checking function
@@ -22,9 +44,16 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       rolesCount: globalRoles.length
     });
 
+    // Check cache first
+    const cacheKey = `${userId}:${permission}`;
+    if (permissionCache.has(cacheKey)) {
+      return permissionCache.get(cacheKey)!;
+    }
+
     // Validate permission parameter
     if (!permission || typeof permission !== 'string' || permission.trim() === '') {
       console.warn('🚫 permissionUtils: Invalid permission parameter:', permission);
+      permissionCache.set(cacheKey, false);
       return false;
     }
 
@@ -34,12 +63,14 @@ export const hasPermission = (userId: string, permission: string): boolean => {
         globalUserId: globalCurrentUser?.id || 'null',
         requestedUserId: userId
       });
+      permissionCache.set(cacheKey, false);
       return false;
     }
 
     // Special handling for admin users
     if (globalCurrentUser.id === 'admin-temp' || globalCurrentUser.role_id === 1) {
       console.log('🔓 permissionUtils: Admin user detected - granting permission');
+      permissionCache.set(cacheKey, true);
       return true;
     }
 
@@ -53,20 +84,25 @@ export const hasPermission = (userId: string, permission: string): boolean => {
     
     if (basicPermissions.includes(permission)) {
       console.log('🔓 permissionUtils: Basic permission granted');
+      permissionCache.set(cacheKey, true);
       return true;
     }
 
     // Check if roles are loaded
     if (!Array.isArray(globalRoles) || globalRoles.length === 0) {
       console.log('⚠️ permissionUtils: Roles not loaded, allowing basic permissions only');
-      return basicPermissions.includes(permission);
+      const hasBasic = basicPermissions.includes(permission);
+      permissionCache.set(cacheKey, hasBasic);
+      return hasBasic;
     }
 
     // Find user's role and check permissions
     const userRole = globalRoles.find(role => (role as any).role_id === globalCurrentUser.role_id);
     if (!userRole) {
       console.warn('⚠️ permissionUtils: Role not found for user');
-      return basicPermissions.includes(permission);
+      const hasBasic = basicPermissions.includes(permission);
+      permissionCache.set(cacheKey, hasBasic);
+      return hasBasic;
     }
 
     const hasAccess = Array.isArray(userRole.permissions) && userRole.permissions.includes(permission);
@@ -76,6 +112,7 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       userPermissions: userRole.permissions || []
     });
 
+    permissionCache.set(cacheKey, hasAccess);
     return hasAccess;
 
   } catch (error) {

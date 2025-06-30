@@ -1,4 +1,3 @@
-
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -78,24 +77,24 @@ export const useSidebarMenuItems = () => {
       return false;
     }
 
-    // Known admin users (hardcoded fallback)
+    // Known admin users (hardcoded fallback) - PRIORITY CHECK
     const knownAdmins = ['gb47@msn.com'];
     const userEmail = currentUser?.email;
     
     if (userEmail && knownAdmins.includes(userEmail)) {
-      console.log('🔓 Known admin user detected:', userEmail);
+      console.log('🔓 Known admin user detected, granting access:', userEmail);
       return true;
     }
 
-    // Role ID 1 is admin
+    // Role ID 1 is admin - PRIORITY CHECK
     if (currentUser?.role_id === 1) {
-      console.log('🔓 Admin role detected (role_id: 1)');
+      console.log('🔓 Admin role detected, granting access (role_id: 1)');
       return true;
     }
 
-    // If no hasPermission function, deny access
+    // If no hasPermission function, deny access for non-admin users
     if (typeof hasPermission !== 'function') {
-      console.log('🔍 No hasPermission function available, denying access');
+      console.log('🔍 No hasPermission function available, denying access for non-admin user');
       return false;
     }
 
@@ -160,7 +159,7 @@ export const useSidebarMenuItems = () => {
     },
   ];
 
-  // Only add Auth Users if user has proper permissions - STRICT CHECK
+  // Check auth users permission BEFORE filtering
   const shouldShowAuthUsers = hasAuthUsersPermission();
   console.log('🔍 Should show Auth Users menu item:', shouldShowAuthUsers);
   
@@ -243,12 +242,11 @@ export const useSidebarMenuItems = () => {
         return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
       }
       
-      // Special handling for auth-users permission - should already be filtered out above
+      // Special handling for auth-users permission - should already be pre-approved
       if (item.permission === 'auth-users:read') {
-        // Double-check the permission here as a safety net
-        const authUsersAccess = hasAuthUsersPermission();
-        console.log('🔍 Double-checking auth-users permission:', authUsersAccess);
-        return authUsersAccess;
+        // This item was already pre-approved when we added it above
+        console.log('🔍 Auth-users item was pre-approved - allowing');
+        return true;
       }
       
       // Check permission for other items

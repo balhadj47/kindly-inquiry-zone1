@@ -62,27 +62,74 @@ serve(async (req) => {
       )
     }
 
-    // Check if user has admin permissions
+    // Enhanced permission checking - check user's actual permissions
     const isKnownAdmin = user.email === 'gb47@msn.com'
     const userRoleId = user.user_metadata?.role_id || 0
-    const isAdmin = userRoleId === 1 || isKnownAdmin
+    const isRoleAdmin = userRoleId === 1
     
     console.log('🔍 User permissions check:', {
       email: user.email,
       userRoleId,
       isKnownAdmin,
-      isAdmin
+      isRoleAdmin
     })
     
-    if (!isAdmin) {
-      console.error('❌ Insufficient permissions')
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions' }),
-        { 
-          status: 403, 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+    // If known admin or role admin, grant access immediately
+    if (isKnownAdmin || isRoleAdmin) {
+      console.log('✅ Admin access granted')
+    } else {
+      // For other users, check their specific permissions from user_groups table
+      try {
+        const { data: userGroupData, error: userGroupError } = await supabaseAdmin
+          .from('user_groups')
+          .select('permissions')
+          .eq('role_id', userRoleId)
+          .single()
+        
+        if (userGroupError) {
+          console.error('❌ Error fetching user group permissions:', userGroupError)
+          return new Response(
+            JSON.stringify({ error: 'Error checking permissions' }),
+            { 
+              status: 500, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
         }
-      )
+        
+        const permissions = userGroupData?.permissions || []
+        console.log('🔍 User permissions from database:', permissions)
+        
+        // Check if user has any auth-users related permissions
+        const hasAuthUsersPermission = permissions.some((perm: string) => 
+          perm.startsWith('auth-users:') || perm === 'users:read'
+        )
+        
+        // High privilege user (many permissions) can also access
+        const isHighPrivilegeUser = permissions.length >= 10
+        
+        if (!hasAuthUsersPermission && !isHighPrivilegeUser) {
+          console.error('❌ Insufficient permissions - no auth-users access')
+          return new Response(
+            JSON.stringify({ error: 'Insufficient permissions' }),
+            { 
+              status: 403, 
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+            }
+          )
+        }
+        
+        console.log('✅ Permission granted via database check')
+      } catch (permError) {
+        console.error('❌ Error during permission check:', permError)
+        return new Response(
+          JSON.stringify({ error: 'Permission check failed' }),
+          { 
+            status: 500, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+          }
+        )
+      }
     }
 
     // Handle different HTTP methods

@@ -1,4 +1,3 @@
-
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -56,7 +55,7 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Enhanced permission checking for auth-users
+  // Enhanced permission checking for auth-users - STRICT CHECK
   const hasAuthUsersPermission = () => {
     console.log('🔍 Checking auth-users permission for user:', {
       userId: currentUser?.id,
@@ -78,52 +77,21 @@ export const useSidebarMenuItems = () => {
       return false;
     }
 
-    // Known admin users (hardcoded fallback) - PRIORITY CHECK
-    const knownAdmins = ['gb47@msn.com'];
-    const userEmail = currentUser?.email;
-    
-    if (userEmail && knownAdmins.includes(userEmail)) {
-      console.log('🔓 Known admin user detected, granting access:', userEmail);
-      return true;
-    }
-
-    // Role ID 1 is admin - PRIORITY CHECK
-    if (currentUser?.role_id === 1) {
-      console.log('🔓 Admin role detected, granting access (role_id: 1)');
-      return true;
-    }
-
-    // If no hasPermission function, deny access for non-admin users
+    // If no hasPermission function, deny access
     if (typeof hasPermission !== 'function') {
-      console.log('🔍 No hasPermission function available, denying access for non-admin user');
+      console.log('🔍 No hasPermission function available, denying access');
       return false;
     }
 
-    // For other users, check specific auth-users permissions - STRICT CHECK
-    const authUsersPermissions = [
-      'auth-users:read',
-      'auth-users:create', 
-      'auth-users:update',
-      'auth-users:delete'
-    ];
-    
-    let hasAnyAuthUsersPermission = false;
-    
-    for (const perm of authUsersPermissions) {
-      try {
-        const result = hasPermission(perm);
-        console.log(`🔍 Permission check for ${perm}:`, result);
-        if (result === true) {
-          hasAnyAuthUsersPermission = true;
-          break;
-        }
-      } catch (error) {
-        console.error('Error checking permission:', perm, error);
-      }
+    // Check specifically for auth-users:read permission - STRICT CHECK
+    try {
+      const result = hasPermission('auth-users:read');
+      console.log('🔍 Permission check for auth-users:read:', result);
+      return result === true;
+    } catch (error) {
+      console.error('Error checking auth-users:read permission:', error);
+      return false;
     }
-
-    console.log('🔍 Final auth-users permission decision:', hasAnyAuthUsersPermission);
-    return hasAnyAuthUsersPermission;
   };
 
   // Menu items with proper permission checks
@@ -174,13 +142,7 @@ export const useSidebarMenuItems = () => {
       permission: 'auth-users:read',
     });
   } else {
-    console.log('❌ Auth Users NOT added to menu - insufficient permissions');
-    console.log('🔍 Current user details:', {
-      email: currentUser?.email,
-      roleId: currentUser?.role_id,
-      isKnownAdmin: ['gb47@msn.com'].includes(currentUser?.email),
-      isRoleAdmin: currentUser?.role_id === 1
-    });
+    console.log('❌ Auth Users NOT added to menu - no auth-users:read permission');
   }
   
   console.log('🔍 Menu items processing:', {

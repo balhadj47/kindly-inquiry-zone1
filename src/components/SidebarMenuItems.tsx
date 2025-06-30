@@ -56,37 +56,51 @@ export const useSidebarMenuItems = () => {
     console.warn('🔍 useSidebarMenuItems: Language context access error:', error?.message || 'Unknown error');
   }
   
-  // Dynamic privilege detection
-  const isHighPrivilegeUser = () => {
-    if (!currentUser?.role_id || !roles) return false;
-    
-    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-    if (!userRole) return false;
-    
-    // High privilege users have many permissions (10+)
-    return userRole.permissions.length >= 10;
-  };
-
-  // Check if user has auth-users permissions specifically
+  // Enhanced permission checking for auth-users
   const hasAuthUsersPermission = () => {
-    if (isHighPrivilegeUser()) return true;
+    console.log('🔍 Checking auth-users permission for user:', {
+      userId: currentUser?.id,
+      email: currentUser?.email || 'no email',
+      roleId: currentUser?.role_id,
+      rolesLoaded: roles?.length > 0
+    });
+
+    // Known admin users
+    const knownAdmins = ['gb47@msn.com'];
+    const userEmail = currentUser?.email;
     
-    // Check for specific auth-users permissions
+    if (userEmail && knownAdmins.includes(userEmail)) {
+      console.log('🔓 Known admin user detected:', userEmail);
+      return true;
+    }
+
+    // Role ID 1 is admin
+    if (currentUser?.role_id === 1) {
+      console.log('🔓 Admin role detected (role_id: 1)');
+      return true;
+    }
+
+    // For other users, check specific auth-users permissions
     const authUsersPermissions = [
       'auth-users:read',
-      'auth-users:create',
+      'auth-users:create', 
       'auth-users:update',
       'auth-users:delete'
     ];
     
-    return authUsersPermissions.some(perm => {
+    const hasAnyAuthUsersPermission = authUsersPermissions.some(perm => {
       try {
-        return hasPermission(perm);
+        const result = hasPermission(perm);
+        console.log(`🔍 Permission check for ${perm}:`, result);
+        return result;
       } catch (error) {
         console.error('Error checking permission:', perm, error);
         return false;
       }
     });
+
+    console.log('🔍 Final auth-users permission decision:', hasAnyAuthUsersPermission);
+    return hasAnyAuthUsersPermission;
   };
 
   // Menu items with proper permission checks
@@ -125,12 +139,15 @@ export const useSidebarMenuItems = () => {
 
   // Only add Auth Users if user has proper permissions
   if (hasAuthUsersPermission()) {
+    console.log('✅ Adding Auth Users to menu');
     menuItems.push({
       title: t?.authUsers || 'Auth Users',
       href: '/auth-users',
       icon: Shield,
       permission: 'auth-users:read',
     });
+  } else {
+    console.log('❌ Auth Users NOT added to menu - insufficient permissions');
   }
   
   console.log('🔍 Menu items processing:', {
@@ -140,8 +157,8 @@ export const useSidebarMenuItems = () => {
     loading: loading,
     rolesCount: roles?.length || 0,
     hasPermissionFunction: typeof hasPermission === 'function',
-    hasAuthUsersPermission: hasAuthUsersPermission(),
-    isHighPrivilegeUser: isHighPrivilegeUser()
+    menuItemsCount: menuItems.length,
+    hasAuthUsersInMenu: menuItems.some(item => item.href === '/auth-users')
   });
 
   // If still loading, return empty array to avoid flashing unauthorized menu items
@@ -200,16 +217,10 @@ export const useSidebarMenuItems = () => {
         return ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'].includes(item.permission);
       }
       
-      // Special handling for auth-users permission
+      // Special handling for auth-users permission - this should already be filtered out above
       if (item.permission === 'auth-users:read') {
-        const hasAccess = hasAuthUsersPermission();
-        console.log(`🔍 Auth Users access check:`, {
-          permission: item.permission,
-          hasPermission: hasAccess,
-          href: item.href,
-          finalAccess: hasAccess
-        });
-        return hasAccess;
+        console.log('🔍 Auth-users item should have been filtered out already');
+        return false; // This shouldn't happen since we filter before adding
       }
       
       // Check permission for other items
@@ -233,7 +244,8 @@ export const useSidebarMenuItems = () => {
   console.log('🔍 FINAL RESULT:', {
     totalMenuItems: menuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title)
+    filteredTitles: filteredMenuItems.map(item => item.title),
+    hasAuthUsers: filteredMenuItems.some(item => item.href === '/auth-users')
   });
   
   return filteredMenuItems;

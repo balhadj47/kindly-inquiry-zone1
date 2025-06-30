@@ -1,3 +1,4 @@
+
 import { Home, Truck, Factory, Clock, Users, Shield, Bell, MessageSquare, Inbox } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -98,7 +99,7 @@ export const useSidebarMenuItems = () => {
       return false;
     }
 
-    // For other users, check specific auth-users permissions
+    // For other users, check specific auth-users permissions - STRICT CHECK
     const authUsersPermissions = [
       'auth-users:read',
       'auth-users:create', 
@@ -159,10 +160,11 @@ export const useSidebarMenuItems = () => {
     },
   ];
 
-  // Check auth users permission BEFORE filtering
+  // Check auth users permission BEFORE filtering - STRICT CHECK
   const shouldShowAuthUsers = hasAuthUsersPermission();
   console.log('🔍 Should show Auth Users menu item:', shouldShowAuthUsers);
   
+  // ONLY add Auth Users if permission check passes
   if (shouldShowAuthUsers) {
     console.log('✅ Adding Auth Users to menu');
     menuItems.push({
@@ -173,6 +175,12 @@ export const useSidebarMenuItems = () => {
     });
   } else {
     console.log('❌ Auth Users NOT added to menu - insufficient permissions');
+    console.log('🔍 Current user details:', {
+      email: currentUser?.email,
+      roleId: currentUser?.role_id,
+      isKnownAdmin: ['gb47@msn.com'].includes(currentUser?.email),
+      isRoleAdmin: currentUser?.role_id === 1
+    });
   }
   
   console.log('🔍 Menu items processing:', {

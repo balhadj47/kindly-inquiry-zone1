@@ -388,7 +388,7 @@ export class DatabaseService {
     return data;
   }
 
-  // User Groups with normalized permissions (updated to handle new structure)
+  // User Groups with current permissions structure
   static async getUserGroups() {
     console.log('🔍 DatabaseService: Attempting to fetch user groups with permissions');
     
@@ -414,8 +414,7 @@ export class DatabaseService {
         throw groupsError;
       }
 
-      // For now, return groups with their existing permissions array
-      // Once the new structure is fully implemented, we'll fetch from the normalized tables
+      // Return groups with their existing permissions array
       const groupsWithPermissions = (groups || []).map(group => ({
         ...group,
         permissions: group.permissions || []
@@ -429,7 +428,7 @@ export class DatabaseService {
     }
   }
 
-  // Get all available permissions (mock data for now since new tables aren't in types yet)
+  // Get all available permissions (mock data for now)
   static async getPermissions() {
     console.log('🔍 DatabaseService: Attempting to fetch permissions');
     
@@ -440,7 +439,7 @@ export class DatabaseService {
         throw new Error('Authentication required');
       }
       
-      // Return mock permissions data matching the new structure
+      // Return mock permissions data
       const mockPermissions = [
         { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
         { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },

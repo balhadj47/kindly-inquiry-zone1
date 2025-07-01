@@ -17,8 +17,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useRBAC } from '@/contexts/RBACContext';
 import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
-import { Permission, PermissionCategory, PERMISSION_CATEGORIES } from '@/types/permissions';
-import { supabase } from '@/integrations/supabase/client';
+import { Permission } from '@/types/permissions';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -38,20 +37,11 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
   const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
   const [groupedPermissions, setGroupedPermissions] = useState<Record<string, Permission[]>>({});
 
-  // Fetch available permissions using RPC function
+  // Fetch available permissions
   useEffect(() => {
     const fetchPermissions = async () => {
       try {
-        // Use a direct query to get all permissions with proper typing
-        const { data, error } = await supabase
-          .rpc('get_permissions_by_category', { category_name: 'dashboard' });
-
-        if (error) {
-          console.error('Error fetching permissions:', error);
-          return;
-        }
-
-        // Create mock permissions data for now since the table is new
+        // Use mock permissions data since the new tables aren't in schema yet
         const mockPermissions: Permission[] = [
           { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
           { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },
@@ -99,34 +89,20 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
 
   // Load existing role data and permissions
   useEffect(() => {
-    const loadRoleData = async () => {
-      if (role) {
-        setFormData({
-          name: role.name,
-          description: role.description,
-          color: role.color,
-          permissions: [...(role.permissions || [])],
-        });
-
-        // If role has a role_id, fetch its permissions using the legacy array for now
-        if (role.permissions) {
-          setFormData(prev => ({
-            ...prev,
-            permissions: role.permissions || []
-          }));
-        }
-      } else {
-        setFormData({
-          name: '',
-          description: '',
-          color: '#3b82f6',
-          permissions: [],
-        });
-      }
-    };
-
-    if (isOpen) {
-      loadRoleData();
+    if (role) {
+      setFormData({
+        name: role.name,
+        description: role.description,
+        color: role.color,
+        permissions: [...(role.permissions || [])],
+      });
+    } else {
+      setFormData({
+        name: '',
+        description: '',
+        color: '#3b82f6',
+        permissions: [],
+      });
     }
   }, [role, isOpen]);
 

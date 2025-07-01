@@ -6,7 +6,7 @@ let permissionsCache: Record<number, string[]> = {};
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper function to get permissions for a role_id using current structure (will be updated later)
+// Helper function to get permissions for a role_id using current structure
 export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
   console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
   
@@ -18,8 +18,7 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 
   try {
-    // For now, get permissions from the legacy array structure
-    // Later this will use the new normalized tables
+    // Get permissions from the array structure in user_groups
     const { data, error } = await supabase
       .from('user_groups')
       .select('permissions')
@@ -31,7 +30,7 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
       return ['dashboard:read']; // Default fallback
     }
 
-    const permissions = data?.permissions || ['dashboard:read'];
+    const permissions = Array.isArray(data?.permissions) ? data.permissions : ['dashboard:read'];
     
     // Update cache
     permissionsCache[roleId] = permissions;
@@ -141,7 +140,7 @@ export const getPermissionsByCategory = async (category: string) => {
   }
 };
 
-// Legacy functions for backward compatibility (now using new structure)
+// Legacy functions for backward compatibility
 export const getPermissionsForRole = async (systemGroup: string): Promise<string[]> => {
   // Map legacy group names to role_id
   const roleIdMap: Record<string, number> = {

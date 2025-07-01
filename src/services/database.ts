@@ -1,3 +1,4 @@
+
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -12,65 +13,54 @@ type UserGroups = Tables['user_groups']['Row'];
 export class DatabaseService {
   // Companies
   static async getCompanies() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch companies with branches');
-    const { data, error } = await supabase
-      .from('companies')
-      .select(`
-        *,
-        branches (
-          id,
-          name,
-          company_id,
-          created_at,
-          address,
-          phone,
-          email
-        )
-      `)
-      .order('name');
     
-    if (error) {
-      console.error('🔍 DatabaseService: Companies fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user, relying on RLS policies');
+      } else {
+        console.log('🔍 DatabaseService: Authenticated user:', user.email);
+      }
+      
+      const { data, error } = await supabase
+        .from('companies')
+        .select(`
+          *,
+          branches (
+            id,
+            name,
+            company_id,
+            created_at,
+            address,
+            phone,
+            email
+          )
+        `)
+        .order('name');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Companies fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Raw companies data:', data);
+      console.log('🔍 DatabaseService: Companies fetched successfully:', {
+        companiesCount: data?.length || 0,
+        totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
+        companiesWithBranches: data?.map(c => ({
+          name: c.name,
+          branchCount: c.branches?.length || 0,
+          branches: c.branches?.map(b => b.name) || []
+        })) || []
+      });
+      
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getCompanies:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: Raw companies data:', data);
-    console.log('🔍 DatabaseService: Companies fetched successfully:', {
-      companiesCount: data?.length || 0,
-      totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
-      companiesWithBranches: data?.map(c => ({
-        name: c.name,
-        branchCount: c.branches?.length || 0,
-        branches: c.branches?.map(b => b.name) || []
-      })) || []
-    });
-    
-    // Additional debug: Check if branches table has data at all
-    const { data: allBranches, error: branchError } = await supabase
-      .from('branches')
-      .select('*')
-      .limit(10);
-    
-    console.log('🔍 DatabaseService: Direct branches query:', {
-      branchesCount: allBranches?.length || 0,
-      sampleBranches: allBranches,
-      error: branchError
-    });
-    
-    // Check if any branches have matching company_ids
-    if (data && allBranches) {
-      const companyIds = data.map(c => c.id);
-      const matchingBranches = allBranches.filter(b => companyIds.includes(b.company_id));
-      console.log('🔍 DatabaseService: Branches matching companies:', {
-        companyIds,
-        matchingBranchesCount: matchingBranches.length,
-        matchingBranches
-      });
-    }
-    
-    return data;
   }
 
   static async createCompany(company: Tables['companies']['Insert']) {
@@ -131,27 +121,39 @@ export class DatabaseService {
 
   // Branches
   static async getBranches(companyId?: string) {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch branches', companyId ? `for company ${companyId}` : 'all');
-    let query = supabase.from('branches').select('*');
     
-    if (companyId) {
-      query = query.eq('company_id', companyId);
-    }
-    
-    const { data, error } = await query.order('name');
-    if (error) {
-      console.error('🔍 DatabaseService: Branches fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for branches, relying on RLS policies');
+      } else {
+        console.log('🔍 DatabaseService: Authenticated user for branches:', user.email);
+      }
+      
+      let query = supabase.from('branches').select('*');
+      
+      if (companyId) {
+        query = query.eq('company_id', companyId);
+      }
+      
+      const { data, error } = await query.order('name');
+      if (error) {
+        console.error('🔍 DatabaseService: Branches fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Branches fetched successfully:', {
+        count: data?.length || 0,
+        companyId: companyId || 'all',
+        branches: data
+      });
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getBranches:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: Branches fetched successfully:', {
-      count: data?.length || 0,
-      companyId: companyId || 'all',
-      branches: data
-    });
-    return data;
   }
 
   static async createBranch(branch: Tables['branches']['Insert']) {
@@ -175,56 +177,87 @@ export class DatabaseService {
 
   // Users
   static async getUsers() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch users');
-    const { data, error } = await supabase
-      .from('users')
-      .select('*')
-      .order('name');
     
-    if (error) {
-      console.error('🔍 DatabaseService: Users fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for users, relying on RLS policies');
+      }
+      
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Users fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Users fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getUsers:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: Users fetched successfully:', data?.length || 0, 'items');
-    return data;
   }
 
   static async getCurrentUser() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch current user');
-    const { data, error } = await supabase
-      .rpc('get_current_user_rbac');
     
-    if (error) {
-      console.error('🔍 DatabaseService: Current user fetch error:', error);
-      throw error;
+    try {
+      // Check auth status but don't throw on error
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for getCurrentUser');
+        return null;
+      }
+      
+      const { data, error } = await supabase
+        .rpc('get_current_user_rbac');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Current user fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Current user fetched successfully:', data?.[0] || 'none');
+      return data?.[0] || null;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getCurrentUser:', error);
+      return null;
     }
-    
-    console.log('🔍 DatabaseService: Current user fetched successfully:', data?.[0] || 'none');
-    return data?.[0] || null;
   }
 
   // Vans
   static async getVans() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch vans');
-    const { data, error } = await supabase
-      .from('vans')
-      .select('*')
-      .order('reference_code');
     
-    if (error) {
-      console.error('🔍 DatabaseService: Vans fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for vans, relying on RLS policies');
+      }
+      
+      const { data, error } = await supabase
+        .from('vans')
+        .select('*')
+        .order('reference_code');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Vans fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Vans fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getVans:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: Vans fetched successfully:', data?.length || 0, 'items');
-    return data;
   }
 
   static async createVan(van: Tables['vans']['Insert']) {
@@ -248,21 +281,31 @@ export class DatabaseService {
 
   // Trips
   static async getTrips() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch trips');
-    const { data, error } = await supabase
-      .from('trips')
-      .select('*')
-      .order('created_at', { ascending: false });
     
-    if (error) {
-      console.error('🔍 DatabaseService: Trips fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for trips, relying on RLS policies');
+      }
+      
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Trips fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Trips fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getTrips:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: Trips fetched successfully:', data?.length || 0, 'items');
-    return data;
   }
 
   static async createTrip(trip: Tables['trips']['Insert']) {
@@ -286,20 +329,30 @@ export class DatabaseService {
 
   // User Groups
   static async getUserGroups() {
-    await requireAuth();
-    
     console.log('🔍 DatabaseService: Attempting to fetch user groups');
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('*')
-      .order('name');
     
-    if (error) {
-      console.error('🔍 DatabaseService: User groups fetch error:', error);
+    try {
+      // Check auth status but don't throw on error - let RLS handle permissions
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for user groups, relying on RLS policies');
+      }
+      
+      const { data, error } = await supabase
+        .from('user_groups')
+        .select('*')
+        .order('name');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: User groups fetch error:', error);
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: User groups fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getUserGroups:', error);
       throw error;
     }
-    
-    console.log('🔍 DatabaseService: User groups fetched successfully:', data?.length || 0, 'items');
-    return data;
   }
 }

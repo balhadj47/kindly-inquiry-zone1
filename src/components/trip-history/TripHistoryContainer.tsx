@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useCallback } from 'react';
 import { useTrip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVans';
@@ -8,8 +9,6 @@ import TripHistoryList from './TripHistoryList';
 import TripDetailsDialog from '../TripDetailsDialog';
 
 const TripHistoryContainer = React.memo(() => {
-  console.log('🗂️ TripHistoryContainer: Component rendering...');
-
   // State management with useCallback to prevent recreating functions
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,11 +25,8 @@ const TripHistoryContainer = React.memo(() => {
   const processedTrips = useMemo(() => {
     try {
       if (!Array.isArray(trips)) {
-        console.warn('🗂️ TripHistoryContainer: trips is not an array:', trips);
         return [];
       }
-
-      console.log('🗂️ TripHistoryContainer: Processing', trips.length, 'trips');
 
       return trips.map(trip => {
         if (!trip) return null;
@@ -62,7 +58,6 @@ const TripHistoryContainer = React.memo(() => {
             
             return null;
           } catch (err) {
-            console.warn('🗂️ TripHistoryContainer: Error processing date:', err);
             return null;
           }
         };
@@ -74,7 +69,6 @@ const TripHistoryContainer = React.memo(() => {
         };
       }).filter(Boolean);
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error processing trips:', error);
       return [];
     }
   }, [trips]);
@@ -102,7 +96,6 @@ const TripHistoryContainer = React.memo(() => {
         return matchesSearchTerm && matchesCompany && matchesVan;
       });
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error filtering trips:', error);
       return [];
     }
   }, [processedTrips, searchTerm, companyFilter, vanFilter]);
@@ -112,21 +105,20 @@ const TripHistoryContainer = React.memo(() => {
     try {
       setSelectedTrip(trip);
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error opening trip details:', error);
+      // Silent error handling
     }
   }, []);
 
   const handleDeleteTrip = useCallback(async (tripId) => {
     try {
       if (!tripId) {
-        console.warn('🗂️ TripHistoryContainer: No trip ID provided for deletion');
         return;
       }
       
       setDeletingTripId(tripId);
       await deleteTrip(tripId);
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error deleting trip:', error);
+      // Silent error handling
     } finally {
       setDeletingTripId(null);
     }
@@ -138,7 +130,7 @@ const TripHistoryContainer = React.memo(() => {
       setCompanyFilter('all');
       setVanFilter('all');
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error clearing filters:', error);
+      // Silent error handling
     }
   }, []);
 
@@ -146,7 +138,7 @@ const TripHistoryContainer = React.memo(() => {
     try {
       setSelectedTrip(null);
     } catch (error) {
-      console.error('🗂️ TripHistoryContainer: Error closing dialog:', error);
+      // Silent error handling
     }
   }, []);
 

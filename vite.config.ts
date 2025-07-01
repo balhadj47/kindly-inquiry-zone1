@@ -21,46 +21,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-avatar'
-          ],
-          'query-vendor': ['@tanstack/react-query'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'charts-vendor': ['recharts'],
-          'virtualization-vendor': ['react-window'],
-          'icons-vendor': ['lucide-react'],
-          // Feature chunks
-          'companies': [
-            './src/components/Companies.tsx',
-            './src/components/companies/CompaniesIndex.tsx',
-            './src/components/companies/CompanyDetail.tsx'
-          ],
-          'vans': [
-            './src/components/Vans.tsx',
-            './src/components/vans/VansIndex.tsx',
-            './src/components/vans/VanDetail.tsx'
-          ],
-          'users': [
-            './src/components/Users.tsx',
-            './src/components/users/UserGrid.tsx'
-          ],
-          'trips': [
-            './src/components/TripLogger.tsx',
-            './src/components/TripHistory.tsx'
-          ]
-        }
-      }
-    },
     target: 'esnext',
     minify: 'terser',
     terserOptions: {
@@ -70,6 +30,26 @@ export default defineConfig(({ mode }) => ({
       },
     },
     sourcemap: mode === 'development',
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'supabase-vendor': ['@supabase/supabase-js'],
+          'query-vendor': ['@tanstack/react-query'],
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-select',
+            '@radix-ui/react-avatar'
+          ],
+          'icons-vendor': ['lucide-react'],
+          'charts-vendor': ['recharts']
+        }
+      }
+    }
   },
   optimizeDeps: {
     include: [

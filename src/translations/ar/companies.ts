@@ -41,4 +41,7 @@ export const companies = {
   branchType: 'نوع الفرع',
   companyDetails: 'تفاصيل الشركة',
   branchDetails: 'تفاصيل الفرع',
+  
+  // Permission messages
+  noPermissionToAdd: 'لا توجد صلاحية للإضافة',
 };

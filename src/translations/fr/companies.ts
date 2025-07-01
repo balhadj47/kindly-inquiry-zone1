@@ -41,4 +41,7 @@ export const companies = {
   branchType: 'Type de Succursale',
   companyDetails: 'Détails de l\'Entreprise',
   branchDetails: 'Détails de la Succursale',
+  
+  // Permission messages
+  noPermissionToAdd: 'Pas de permission pour ajouter',
 };

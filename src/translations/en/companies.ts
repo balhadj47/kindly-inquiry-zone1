@@ -35,4 +35,7 @@ export const companies = {
   branchAddress: 'Branch Address',
   branchPhone: 'Branch Phone',
   noBranchesFound: 'No branches found',
+  
+  // Permission messages
+  noPermissionToAdd: 'No permission to add branches',
 };

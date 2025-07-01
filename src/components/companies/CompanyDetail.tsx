@@ -266,7 +266,7 @@ const CompanyDetail = () => {
               </TooltipProvider>
             ) : (
               <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded">
-                Pas de permission pour ajouter
+                {t.noPermissionToAdd}
               </div>
             )}
           </div>

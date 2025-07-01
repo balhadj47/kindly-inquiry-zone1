@@ -1,4 +1,3 @@
-
 export type SupportedLanguage = 'en' | 'fr' | 'ar';
 export type Language = SupportedLanguage;
 
@@ -430,6 +429,9 @@ export interface TranslationKeys {
   startByAddingFirstVan: string;
   addYourFirstVan: string;
   manageYourFleet: string;
+
+  // Permission messages
+  noPermissionToAdd: string;
 
   // Vans specific
   addNewVan: string;

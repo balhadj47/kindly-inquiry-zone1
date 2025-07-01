@@ -149,52 +149,17 @@ export const useSecurePermissions = () => {
     }
   };
 
-  // Synchronous permission checker (uses fresh query data only)
+  // Synchronous permission checker (uses database query data only)
   const hasPermission = (permission: string): boolean => {
     if (!authUser) {
       console.log('🚫 No auth user for permission check:', permission);
       return false;
     }
     
-    // CRITICAL FIX: For users without roles, grant all basic permissions
-    if (!currentUser?.role_id) {
-      const basicPermissions = [
-        'dashboard:read',
-        'companies:read', 
-        'companies:create',
-        'companies:update', 
-        'companies:delete',
-        'vans:read',
-        'vans:create',
-        'vans:update',
-        'vans:delete',
-        'users:read',
-        'users:create',
-        'users:update',
-        'users:delete',
-        'trips:read',
-        'trips:create',
-        'trips:update',
-        'trips:delete',
-        'auth-users:read'
-      ];
-      
-      if (basicPermissions.includes(permission)) {
-        console.log('🔓 Basic permission granted to user without role:', permission);
-        return true;
-      }
-    }
-    
-    // Admin has all permissions
-    if (isAdmin) {
-      console.log('🔓 Admin permission granted:', permission);
-      return true;
-    }
-    
-    // Check if user has the specific permission in their permissions array
+    // Use the permissions from database query (already handles null role_id)
     const hasDirectPermission = userPermissions.includes(permission);
     if (hasDirectPermission) {
-      console.log('🔓 Direct permission granted:', permission);
+      console.log('🔓 Permission granted via database:', permission);
       return true;
     }
     

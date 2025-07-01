@@ -14,6 +14,29 @@ const Dashboard = () => {
   const { user } = useAuth();
   const permissions = useSecurePermissions();
 
+  // Default data for dashboard components
+  const stats = [
+    { title: 'Total des trajets', value: '0', change: '0', color: 'text-blue-600' },
+    { title: 'Camionnettes actives', value: '0', change: '0', color: 'text-green-600' },
+    { title: 'Entreprises', value: '0', change: '0', color: 'text-purple-600' },
+    { title: 'Utilisateurs', value: '0', change: '0', color: 'text-orange-600' }
+  ];
+
+  const chartData = {
+    dailyTrips: [
+      { date: 'Lun', trips: 0 },
+      { date: 'Mar', trips: 0 },
+      { date: 'Mer', trips: 0 },
+      { date: 'Jeu', trips: 0 },
+      { date: 'Ven', trips: 0 },
+      { date: 'Sam', trips: 0 },
+      { date: 'Dim', trips: 0 }
+    ],
+    topBranches: [
+      { name: 'Aucune entreprise', visits: 1, color: '#8884d8' }
+    ]
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -29,10 +52,10 @@ const Dashboard = () => {
         )}
       </div>
       
-      <StatsGrid />
+      <StatsGrid stats={stats} />
       <QuickActions />
-      <ChartsSection />
-      <SystemStatus />
+      <ChartsSection chartData={chartData} />
+      <SystemStatus totalUsers={0} activeVans={0} totalCompanies={0} />
     </div>
   );
 };

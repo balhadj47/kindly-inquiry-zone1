@@ -9,7 +9,6 @@ import { TripProvider } from '@/contexts/TripContext'
 import { ProgressiveLoadingProvider } from '@/contexts/ProgressiveLoadingContext'
 import { ThemeProvider } from "next-themes"
 import { SidebarProvider } from "@/components/ui/sidebar"
-import ErrorBoundary from '@/components/ErrorBoundary'
 import ProtectedRoute from '@/components/ProtectedRoute'
 import Index from '@/pages/Index'
 import AuthPage from '@/pages/AuthPage'
@@ -27,35 +26,33 @@ const queryClient = new QueryClient({
 
 const App = () => {
   return (
-    <ErrorBoundary>
-      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-        <QueryClientProvider client={queryClient}>
-          <LanguageProvider>
-            <AuthProvider>
-              <RBACProvider>
-                <ProgressiveLoadingProvider>
-                  <TripProvider>
-                    <Router>
-                      <Routes>
-                        <Route path="auth" element={<AuthPage />} />
-                        <Route path="*" element={
-                          <ProtectedRoute>
-                            <SidebarProvider>
-                              <Index />
-                            </SidebarProvider>
-                          </ProtectedRoute>
-                        } />
-                      </Routes>
-                    </Router>
-                  </TripProvider>
-                </ProgressiveLoadingProvider>
-              </RBACProvider>
-            </AuthProvider>
-          </LanguageProvider>
-        </QueryClientProvider>
-        <Toaster />
-      </ThemeProvider>
-    </ErrorBoundary>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <RBACProvider>
+              <ProgressiveLoadingProvider>
+                <TripProvider>
+                  <Router>
+                    <Routes>
+                      <Route path="auth" element={<AuthPage />} />
+                      <Route path="*" element={
+                        <ProtectedRoute>
+                          <SidebarProvider>
+                            <Index />
+                          </SidebarProvider>
+                        </ProtectedRoute>
+                      } />
+                    </Routes>
+                  </Router>
+                </TripProvider>
+              </ProgressiveLoadingProvider>
+            </RBACProvider>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+      <Toaster />
+    </ThemeProvider>
   )
 }
 

@@ -1,12 +1,9 @@
 
 import { useState, useEffect, useCallback } from 'react';
-import { clearPermissionCache } from './permissionUtils';
 import { User } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
 export const useRBACStateClean = () => {
-  console.log('🔧 useRBACStateClean: Initializing RBAC state...');
-  
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [roles, setRoles] = useState<SystemGroup[]>([]);
@@ -25,7 +22,6 @@ export const useRBACStateClean = () => {
         setUsers(Array.isArray(newUsers) ? newUsers : []);
       }
     } catch (error) {
-      console.error('Error setting users:', error);
       setUsers([]);
     }
   }, []);
@@ -41,7 +37,6 @@ export const useRBACStateClean = () => {
         setRoles(Array.isArray(newRoles) ? newRoles : []);
       }
     } catch (error) {
-      console.error('Error setting roles:', error);
       setRoles([]);
     }
   }, []);
@@ -57,43 +52,25 @@ export const useRBACStateClean = () => {
         setPermissions(Array.isArray(newPermissions) ? newPermissions : []);
       }
     } catch (error) {
-      console.error('Error setting permissions:', error);
       setPermissions([]);
     }
   }, []);
 
   const safeSetCurrentUser = useCallback((user: User | null) => {
     try {
-      console.log('Setting user in RBAC state:', user?.id);
-      // Clear permission cache when user changes
-      if (currentUser?.id !== user?.id) {
-        clearPermissionCache();
-      }
       setCurrentUser(user);
     } catch (error) {
-      console.error('Error setting current user:', error);
       setCurrentUser(null);
     }
-  }, [currentUser?.id]);
+  }, []);
 
   const safeSetLoading = useCallback((isLoading: boolean) => {
     try {
       setLoading(Boolean(isLoading));
     } catch (error) {
-      console.error('Error setting loading state:', error);
       setLoading(false);
     }
   }, []);
-
-  // Clear cache when roles change
-  useEffect(() => {
-    try {
-      console.log('System groups changed, clearing permission cache. New groups count:', roles.length);
-      clearPermissionCache();
-    } catch (error) {
-      console.error('Error clearing permission cache on roles change:', error);
-    }
-  }, [roles]);
 
   // Return state and actions directly (not nested)
   return {

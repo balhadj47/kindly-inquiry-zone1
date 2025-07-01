@@ -23,10 +23,7 @@ export const useRBACOperations = ({
     throw new Error('React hooks not available');
   }
 
-  // Create role operations  
   const roleOperations = createRoleOperations(setRoles);
-  
-  // Create user operations
   const userOperations = createUserOperations(setUsers);
 
   const hasPermission = (permission: string): boolean => {
@@ -34,7 +31,6 @@ export const useRBACOperations = ({
       return false;
     }
 
-    // Check permission using current auth user
     try {
       return checkPermission(currentUser.id.toString(), permission);
     } catch (error) {
@@ -47,7 +43,6 @@ export const useRBACOperations = ({
       return null;
     }
     
-    // Find role by role_id
     const role = roles.find(r => parseInt(r.id) === currentUser.role_id);
     return role || null;
   };
@@ -62,18 +57,13 @@ export const useRBACOperations = ({
   };
 
   return {
-    // User operations (now functional for employees)
     addUser: userOperations.addUser,
     updateUser: userOperations.updateUser,
     deleteUser: userOperations.deleteUser,
     changeUserPassword: userOperations.changeUserPassword,
-    
-    // Role operations (still functional)
     addRole: roleOperations.addRole,
     updateRole: roleOperations.updateRole,
     deleteRole: roleOperations.deleteRole,
-    
-    // Permission operations (using auth user)
     hasPermission,
     getUserRole,
     canUserPerformAction,

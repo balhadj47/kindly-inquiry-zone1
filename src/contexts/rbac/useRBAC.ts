@@ -17,13 +17,10 @@ export const useRBAC = () => {
     return createFallbackContext();
   }
 
-  // Extract and validate context values
   const { currentUser, users, roles, permissions, loading } = extractContextValues(context);
   
-  // Update global permission state for permission utilities
   setGlobalPermissionState(currentUser, roles);
   
-  // Create permission checking function with current user context
   const hasPermissionForCurrentUser = (permission: string): boolean => {
     if (!currentUser?.id) {
       return false;
@@ -31,12 +28,10 @@ export const useRBAC = () => {
     return hasPermission(currentUser.id, permission);
   };
 
-  // Create getUserRole function with current user context
   const getUserRoleForCurrentUser = (userId: string) => {
     return getUserRole(userId);
   };
 
-  // Create canUserPerformAction function with current user context
   const canUserPerformActionForCurrentUser = (userId: string, action: string): boolean => {
     return canUserPerformAction(userId, action);
   };

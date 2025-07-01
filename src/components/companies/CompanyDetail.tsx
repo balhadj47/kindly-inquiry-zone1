@@ -33,7 +33,6 @@ const CompanyDetail = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
 
-  // Enhanced debugging for company and branches
   React.useEffect(() => {
     console.log('🏢 CompanyDetail: Component mounted with companyId:', companyId);
     console.log('🏢 CompanyDetail: All companies:', companies);
@@ -113,13 +112,11 @@ const CompanyDetail = () => {
     );
   }
 
-  // Debug the branches data specifically
   const branches = company.branches || [];
   console.log('🏢 CompanyDetail: Rendering with branches:', branches);
 
   return (
     <div className="space-y-6 py-8">
-      {/* Breadcrumb Navigation */}
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -134,7 +131,6 @@ const CompanyDetail = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Company Information Card */}
       <Card>
         <CardHeader>
           <div className="flex items-start space-x-4">
@@ -152,7 +148,6 @@ const CompanyDetail = () => {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Contact Information */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">{t.companyInformation}</h3>
               <div className="space-y-3">
@@ -188,7 +183,6 @@ const CompanyDetail = () => {
               </div>
             </div>
 
-            {/* Company Stats */}
             <div className="space-y-4">
               <h3 className="font-semibold text-lg">{t.companyContext}</h3>
               <div className="space-y-3">
@@ -206,7 +200,6 @@ const CompanyDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Branches Section */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">{t.branches}</h2>
@@ -231,16 +224,6 @@ const CompanyDetail = () => {
               </Tooltip>
             </TooltipProvider>
           </div>
-        </div>
-
-        {/* Debug information for branches */}
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
-          <h4 className="font-medium text-yellow-800 mb-2">Debug Info:</h4>
-          <p className="text-sm text-yellow-700">
-            Company ID: {company.id}<br/>
-            Branches Array Length: {branches.length}<br/>
-            Branches Data: {JSON.stringify(branches, null, 2)}
-          </p>
         </div>
 
         {branches.length === 0 ? (
@@ -287,7 +270,6 @@ const CompanyDetail = () => {
         )}
       </div>
 
-      {/* Modals */}
       <BranchModal
         isOpen={isBranchModalOpen}
         onClose={() => setIsBranchModalOpen(false)}

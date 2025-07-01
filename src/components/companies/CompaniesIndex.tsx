@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { useCompanies } from '@/hooks/useCompanies';
-import { useRBAC } from '@/contexts/RBACContext';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -22,7 +22,7 @@ import { Company } from '@/hooks/useCompanies';
 const CompaniesIndex = () => {
   const navigate = useNavigate();
   const { t } = useLanguage();
-  const { hasPermission } = useRBAC();
+  const permissions = useSecurePermissions();
   const { data: companies = [], isLoading, isError, refetch } = useCompanies();
 
   // State management
@@ -40,7 +40,9 @@ const CompaniesIndex = () => {
     companiesCount: companies.length,
     isLoading,
     isError,
-    hasData: companies.length > 0
+    hasData: companies.length > 0,
+    canReadCompanies: permissions.canReadCompanies,
+    canCreateCompanies: permissions.canCreateCompanies
   });
 
   // Filter companies based on search
@@ -50,21 +52,35 @@ const CompaniesIndex = () => {
     company.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Permission checks
-  const canCreateCompanies = hasPermission('companies:create');
+  // Permission checks - only check what's needed for each action
+  const canCreateCompanies = permissions.canCreateCompanies;
+  const canEditCompanies = permissions.canUpdateCompanies;
+  const canDeleteCompanies = permissions.canDeleteCompanies;
 
   // Event handlers
   const handleAddCompany = () => {
+    if (!canCreateCompanies) {
+      console.log('🚫 User cannot create companies');
+      return;
+    }
     setSelectedCompany(null);
     setIsCompanyModalOpen(true);
   };
 
   const handleEditCompany = (company: Company) => {
+    if (!canEditCompanies) {
+      console.log('🚫 User cannot edit companies');
+      return;
+    }
     setSelectedCompany(company);
     setIsCompanyModalOpen(true);
   };
 
   const handleDeleteCompany = (company: Company) => {
+    if (!canDeleteCompanies) {
+      console.log('🚫 User cannot delete companies');
+      return;
+    }
     setSelectedCompany(company);
     setIsDeleteDialogOpen(true);
   };
@@ -115,7 +131,7 @@ const CompaniesIndex = () => {
     console.log('📊 CompaniesIndex: Showing error state');
     return (
       <CompaniesErrorState 
-        onAdd={handleAddCompany}
+        onAdd={canCreateCompanies ? handleAddCompany : undefined}
         onRefresh={refetch}
         isRefreshing={isLoading}
       />
@@ -128,7 +144,7 @@ const CompaniesIndex = () => {
     <div className="space-y-6 py-8">
       {/* Header */}
       <CompaniesHeader 
-        onAdd={handleAddCompany}
+        onAdd={canCreateCompanies ? handleAddCompany : undefined}
         onRefresh={refetch}
         isRefreshing={isLoading}
       />
@@ -154,8 +170,8 @@ const CompaniesIndex = () => {
           companies={filteredCompanies}
           hasActiveFilters={!!searchTerm}
           clearFilters={() => setSearchTerm('')}
-          onEditCompany={handleEditCompany}
-          onDeleteCompany={handleDeleteCompany}
+          onEditCompany={canEditCompanies ? handleEditCompany : undefined}
+          onDeleteCompany={canDeleteCompanies ? handleDeleteCompany : undefined}
           onAddBranch={handleAddBranch}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}

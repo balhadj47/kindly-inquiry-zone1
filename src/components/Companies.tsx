@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 
 // Lazy load company-related components
 const CompaniesIndex = React.lazy(() => import('./companies/CompaniesIndex'));
@@ -23,8 +24,30 @@ const CompanyLoadingSkeleton = () => (
   </div>
 );
 
+const AccessDenied = () => (
+  <div className="flex items-center justify-center h-full min-h-[400px]">
+    <div className="text-center">
+      <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès refusé</h2>
+      <p className="text-gray-600">Vous n'avez pas les permissions nécessaires pour voir les entreprises.</p>
+    </div>
+  </div>
+);
+
 const Companies = () => {
   console.log('🏢 Companies component mounted');
+  
+  const permissions = useSecurePermissions();
+  
+  console.log('🏢 Companies: Permission check:', {
+    canReadCompanies: permissions.canReadCompanies,
+    isAuthenticated: permissions.isAuthenticated
+  });
+
+  // Check if user can read companies
+  if (!permissions.canReadCompanies) {
+    console.log('🚫 Companies: Access denied - user cannot read companies');
+    return <AccessDenied />;
+  }
 
   return (
     <Suspense fallback={<CompanyLoadingSkeleton />}>

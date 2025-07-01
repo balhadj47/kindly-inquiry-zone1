@@ -93,59 +93,25 @@ const ErrorTracker = () => {
         
         // Filter out browser extension errors
         if (isBrowserExtensionError(message)) {
-          console.log('🔇 Filtered browser extension error:', message.substring(0, 100));
           return;
         }
         
-        // Categorize and store error
-        const errorType = isContextError(message) ? 'CONTEXT' : 
-                         isReactHookError(message) ? 'REACT-HOOK' : 
-                         isPermissionError(message) ? 'PERMISSION' :
-                         isTypeError(message) ? 'TYPE-ERROR' : 
-                         isNetworkError(message) ? 'NETWORK' :
-                         isSupabaseError(message) ? 'SUPABASE' : 'GENERAL';
-        
-        errors.push({
-          message: `[${errorType}] ${message}`,
-          source: 'error',
-          timestamp: Date.now()
-        });
-        
-        // Enhanced logging for critical errors
+        // Store critical errors only
         if (isContextError(message) || isReactHookError(message) || isPermissionError(message) || isTypeError(message)) {
-          console.log('🚨 CRITICAL APPLICATION ERROR:', {
-            type: errorType,
-            message: message.substring(0, 200),
-            timestamp: new Date().toISOString(),
-            component: message.includes('Component') ? message.match(/Component:\s*(\w+)/)?.[1] : 'Unknown',
-            stackTrace: new Error().stack?.split('\n').slice(1, 5).join('\n')
+          errors.push({
+            message: `[ERROR] ${message}`,
+            source: 'error',
+            timestamp: Date.now()
           });
-          
-          // Add debugging info for specific error types
-          if (isContextError(message)) {
-            console.log('🔍 Context Debug Info:', {
-              availableContexts: ['RBACContext', 'LanguageContext', 'AuthContext', 'TripContext'],
-              checkProviderHierarchy: 'Ensure component is wrapped in provider'
-            });
-          }
-          
-          if (isPermissionError(message)) {
-            console.log('🔍 Permission Debug Info:', {
-              currentUser: 'Check if user is loaded',
-              hasPermissionFunction: 'Verify function exists and works',
-              roleData: 'Check if roles are loaded from database'
-            });
-          }
         }
         
         // Keep only recent errors
-        if (errors.length > 20) {
-          errors.splice(0, errors.length - 20);
+        if (errors.length > 10) {
+          errors.splice(0, errors.length - 10);
         }
         
       } catch (trackingError) {
         originalConsoleError.apply(console, args);
-        originalConsoleError('🚨 ErrorTracker failed:', trackingError);
       }
     };
 
@@ -166,59 +132,29 @@ const ErrorTracker = () => {
         // Always call original console.warn first
         originalConsoleWarn.apply(console, args);
         
-        // Filter out browser extension warnings
-        if (isBrowserExtensionError(message)) {
+        // Filter out browser extension warnings and non-critical warnings
+        if (isBrowserExtensionError(message) ||
+            message.includes('React Router') || 
+            message.includes('deprecated') || 
+            message.includes('Warning: ReactDOM.render') ||
+            message.includes('DevTools') ||
+            message.includes('defaultProps')) {
           return;
-        }
-        
-        // Filter out known non-critical warnings but include important ones
-        if (!message.includes('React Router') && 
-            !message.includes('deprecated') && 
-            !message.includes('Warning: ReactDOM.render') &&
-            !message.includes('DevTools') &&
-            !message.includes('defaultProps')) {
-          
-          const errorType = isContextError(message) ? 'CONTEXT-WARN' : 
-                           isPermissionError(message) ? 'PERMISSION-WARN' :
-                           isTypeError(message) ? 'TYPE-WARN' : 
-                           isSupabaseError(message) ? 'SUPABASE-WARN' : 'WARNING';
-          
-          errors.push({
-            message: `[${errorType}] ${message}`,
-            source: 'warning',
-            timestamp: Date.now()
-          });
-
-          // Log important warnings
-          if (isContextError(message) || isPermissionError(message) || isSupabaseError(message)) {
-            console.log('⚠️ IMPORTANT WARNING:', {
-              type: errorType,
-              message: message.substring(0, 200),
-              timestamp: new Date().toISOString()
-            });
-          }
         }
         
       } catch (trackingError) {
         originalConsoleWarn.apply(console, args);
-        originalConsoleError('⚠️ ErrorTracker warn failed:', trackingError);
       }
     };
 
-    // Enhanced console.log override for debugging
+    // Simplified console.log override - only keep critical debugging
     console.log = (...args) => {
       try {
-        // Always call original first
-        originalConsoleLog.apply(console, args);
-        
-        // Track application flow for debugging
         const message = args.join(' ');
-        if (message.includes('🚨') || message.includes('❌') || message.includes('⚠️')) {
-          console.log('📊 Debug Info:', {
-            timestamp: new Date().toISOString(),
-            location: window.location.pathname,
-            userAgent: navigator.userAgent.substring(0, 100)
-          });
+        
+        // Only show critical errors, suppress debug info
+        if (message.includes('🚨') || message.includes('❌')) {
+          originalConsoleLog.apply(console, args);
         }
         
       } catch (trackingError) {
@@ -234,17 +170,13 @@ const ErrorTracker = () => {
           return;
         }
         
-        console.error('🚨 UNHANDLED GLOBAL ERROR:', {
+        console.error('UNHANDLED GLOBAL ERROR:', {
           message: event.message,
           filename: event.filename,
-          lineno: event.lineno,
-          colno: event.colno,
-          stack: event.error?.stack?.substring(0, 500),
-          timestamp: new Date().toISOString(),
-          url: window.location.href
+          stack: event.error?.stack?.substring(0, 200)
         });
       } catch (error) {
-        originalConsoleError('🚨 UNHANDLED ERROR (fallback):', event);
+        originalConsoleError('UNHANDLED ERROR:', event);
       }
     };
 
@@ -255,27 +187,18 @@ const ErrorTracker = () => {
           return;
         }
         
-        console.error('🚨 UNHANDLED PROMISE REJECTION:', {
+        console.error('UNHANDLED PROMISE REJECTION:', {
           reason: event.reason,
-          stack: event.reason?.stack?.substring(0, 500),
-          timestamp: new Date().toISOString(),
-          url: window.location.href
+          stack: event.reason?.stack?.substring(0, 200)
         });
       } catch (error) {
-        originalConsoleError('🚨 UNHANDLED PROMISE REJECTION (fallback):', event);
+        originalConsoleError('UNHANDLED PROMISE REJECTION:', event);
       }
     };
 
     // Add global listeners
     window.addEventListener('error', handleGlobalError);
     window.addEventListener('unhandledrejection', handleUnhandledRejection);
-
-    // Log initialization
-    console.log('✅ Enhanced ErrorTracker initialized:', {
-      timestamp: new Date().toISOString(),
-      location: window.location.pathname,
-      features: ['Context errors', 'Permission errors', 'Type errors', 'Network errors', 'Supabase errors']
-    });
 
     // Cleanup function
     return () => {
@@ -284,7 +207,6 @@ const ErrorTracker = () => {
       console.log = originalConsoleLog;
       window.removeEventListener('error', handleGlobalError);
       window.removeEventListener('unhandledrejection', handleUnhandledRejection);
-      console.log('🧹 ErrorTracker cleaned up');
     };
   }, []);
 

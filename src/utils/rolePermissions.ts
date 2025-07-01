@@ -8,12 +8,9 @@ const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Helper function to get permissions for a role_id using secure database functions
 export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
-  console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
-  
   // Check cache first
   const now = Date.now();
   if (permissionsCache[roleId] && (now - cacheTimestamp < CACHE_DURATION)) {
-    console.log('🔐 Using cached permissions for role_id', roleId);
     return permissionsCache[roleId];
   }
 
@@ -26,7 +23,6 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
       .single();
 
     if (error) {
-      console.error('❌ Error fetching permissions for role_id', roleId, ':', error);
       return ['dashboard:read']; // Default fallback
     }
 
@@ -37,18 +33,14 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
     permissionsCache[roleId] = permissions;
     cacheTimestamp = now;
     
-    console.log('🔐 Permissions for role_id', roleId, ':', permissions);
     return permissions;
   } catch (error) {
-    console.error('❌ Exception fetching permissions for role_id', roleId, ':', error);
     return ['dashboard:read']; // Default fallback
   }
 };
 
 // Check if a role_id has a specific permission using secure functions
 export const roleIdHasPermission = async (roleId: number, permission: string): Promise<boolean> => {
-  console.log('🔐 roleIdHasPermission called with roleId:', roleId, 'permission:', permission);
-  
   try {
     // Use the database function for permission checking
     const { data, error } = await supabase.rpc('current_user_has_permission', {
@@ -56,7 +48,6 @@ export const roleIdHasPermission = async (roleId: number, permission: string): P
     });
 
     if (error) {
-      console.error('❌ Database permission check failed:', error);
       // Fallback to local permission check
       const rolePermissions = await getPermissionsForRoleId(roleId);
       return rolePermissions.includes(permission);
@@ -64,7 +55,6 @@ export const roleIdHasPermission = async (roleId: number, permission: string): P
 
     return data === true;
   } catch (error) {
-    console.error('❌ Exception in roleIdHasPermission:', error);
     // Fallback to local permission check
     const rolePermissions = await getPermissionsForRoleId(roleId);
     return rolePermissions.includes(permission);
@@ -81,13 +71,11 @@ export const getRoleDisplayNameById = async (roleId: number): Promise<string> =>
       .single();
 
     if (error) {
-      console.error('❌ Error fetching role name for role_id', roleId, ':', error);
       return 'Employé'; // Default fallback
     }
 
     return data?.name || 'Employé';
   } catch (error) {
-    console.error('❌ Exception fetching role name for role_id', roleId, ':', error);
     return 'Employé'; // Default fallback
   }
 };
@@ -102,13 +90,11 @@ export const getRoleColorById = async (roleId: number): Promise<string> => {
       .single();
 
     if (error) {
-      console.error('❌ Error fetching role color for role_id', roleId, ':', error);
       return '#6b7280'; // Default gray
     }
 
     return data?.color || '#6b7280';
   } catch (error) {
-    console.error('❌ Exception fetching role color for role_id', roleId, ':', error);
     return '#6b7280'; // Default gray
   }
 };
@@ -123,14 +109,12 @@ export const getAllPermissions = async () => {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('❌ Error fetching permissions:', error);
       // Return empty array if no access
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('❌ Exception fetching all permissions:', error);
     return [];
   }
 };
@@ -145,13 +129,11 @@ export const getPermissionsByCategory = async (category: string) => {
       .order('name', { ascending: true });
 
     if (error) {
-      console.error('❌ Error fetching permissions for category', category, ':', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
-    console.error('❌ Exception fetching permissions for category', category, ':', error);
     return [];
   }
 };

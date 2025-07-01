@@ -19,10 +19,7 @@ export const useRBACOperations = ({
   setUsers, 
   setRoles 
 }: UseRBACOperationsProps) => {
-  console.log('🔧 useRBACOperations: Initializing operations');
-
   if (!React || !React.useState) {
-    console.error('❌ CRITICAL: React hooks not available in useRBACOperations');
     throw new Error('React hooks not available');
   }
 
@@ -41,7 +38,6 @@ export const useRBACOperations = ({
     try {
       return checkPermission(currentUser.id.toString(), permission);
     } catch (error) {
-      console.error('Error checking permission:', error);
       return false;
     }
   };

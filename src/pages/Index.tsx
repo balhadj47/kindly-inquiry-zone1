@@ -48,32 +48,19 @@ const AccessDenied = () => (
 );
 
 const Index = () => {
-  console.log('📱 Index: Starting render process...');
-  
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
   const permissions = useSecurePermissions();
 
-  console.log('📱 Index: Permissions state:', {
-    isAuthenticated: permissions.isAuthenticated,
-    isAdmin: permissions.isAdmin,
-    authLoading,
-    timestamp: new Date().toISOString()
-  });
-
   // Show loading while auth is loading
   if (authLoading) {
-    console.log('📱 Index: Showing loading - Auth loading');
     return <PageLoadingSkeleton />;
   }
 
   // If no auth user, show access denied
   if (!authUser) {
-    console.log('📱 Index: No auth user - showing access denied');
     return <AccessDenied />;
   }
-
-  console.log('📱 Index: Rendering main application');
 
   return (
     <>

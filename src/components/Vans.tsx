@@ -32,14 +32,12 @@ const Vans = () => {
 
   // Refresh data when component mounts (user enters the page)
   useEffect(() => {
-    console.log('🚐 Vans component mounted, refreshing data');
     refreshVans();
   }, [refreshVans]);
 
   const handleRefresh = async () => {
     if (isRefreshing) return;
     
-    console.log('🔄 Vans: Manual refresh triggered');
     setIsRefreshing(true);
     
     try {

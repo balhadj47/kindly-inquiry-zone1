@@ -130,7 +130,7 @@ export const useSecurePermissions = () => {
     canReadTrips: hasPermission('trips:read'),
     canCreateTrips: hasPermission('trips:create'),
     canUpdateTrips: hasPermission('trips:update'),
-    canDeleteTriips: hasPermission('trips:delete'),
+    canDeleteTrips: hasPermission('trips:delete'),
     canReadAuthUsers: hasPermission('auth-users:read'),
     canAccessDashboard: hasPermission('dashboard:read'),
   };

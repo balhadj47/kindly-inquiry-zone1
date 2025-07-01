@@ -45,52 +45,37 @@ const UsersTab: React.FC<UsersTabProps> = ({
   
   const itemsPerPage = view === 'grid' ? (isMobile ? 6 : 12) : (isMobile ? 10 : 25);
 
-  console.log('👥 UsersTab: Starting with users:', {
-    usersCount: Array.isArray(users) ? users.length : 'not array',
-    usersType: typeof users,
-    usersValue: users,
-    searchTerm,
-    statusFilter,
-    roleFilter
-  });
-
   // Filter users based on permission count - show only users with higher permission counts (admins/supervisors)
   const nonEmployeeUsers = React.useMemo(() => {
     try {
       // Handle null/undefined users
       if (!users) {
-        console.warn('⚠️ UsersTab: Users data is null/undefined');
         return [];
       }
       
       if (!Array.isArray(users)) {
-        console.warn('⚠️ UsersTab: Users is not an array:', typeof users, users);
         return [];
       }
       
       const filtered = users.filter(user => {
         // Comprehensive null checks
         if (!user) {
-          console.warn('⚠️ UsersTab: Null user object found');
           return false;
         }
         
         if (typeof user !== 'object') {
-          console.warn('⚠️ UsersTab: Invalid user object type:', typeof user);
           return false;
         }
         
         // Safe role_id check
         const roleId = user.role_id;
         if (roleId === null || roleId === undefined) {
-          console.warn('⚠️ UsersTab: User missing role_id:', user);
           return true; // Include users without role_id (might be high-privilege users)
         }
         
         // Find the role in the roles array
         const userRole = roles.find(role => (role as any).role_id === roleId);
         if (!userRole) {
-          console.warn('⚠️ UsersTab: Role not found for user:', user.id, 'role_id:', roleId);
           return true; // Include users with unknown roles (safe assumption)
         }
         
@@ -98,27 +83,11 @@ const UsersTab: React.FC<UsersTabProps> = ({
         const permissionCount = userRole.permissions ? userRole.permissions.length : 0;
         const isHighPrivilegeUser = permissionCount >= 5; // Users with 5+ permissions are considered high-privilege
         
-        console.log('👥 UsersTab: User role analysis:', {
-          userId: user.id,
-          userName: user.name,
-          roleId: roleId,
-          roleName: userRole.name,
-          permissionCount: permissionCount,
-          isHighPrivilegeUser: isHighPrivilegeUser
-        });
-        
         return isHighPrivilegeUser;
-      });
-      
-      console.log('✅ UsersTab: Filtered high-privilege users:', {
-        originalCount: users.length,
-        filteredCount: filtered.length,
-        filtered: filtered.map(u => ({ id: u.id, name: u.name, role_id: u.role_id }))
       });
       
       return filtered;
     } catch (error) {
-      console.error('❌ UsersTab: Critical error filtering high-privilege users:', error);
       return [];
     }
   }, [users, roles]);
@@ -161,13 +130,11 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const handleViewChange = useCallback((newView: 'grid' | 'table') => {
     try {
       if (!newView || (newView !== 'grid' && newView !== 'table')) {
-        console.warn('⚠️ UsersTab: Invalid view change requested:', newView);
         return;
       }
-      console.log('👥 UsersTab: View change requested:', newView);
       setView(newView);
     } catch (error) {
-      console.error('❌ UsersTab: Error changing view:', error);
+      // Handle error silently
     }
   }, []);
 
@@ -175,85 +142,62 @@ const UsersTab: React.FC<UsersTabProps> = ({
   const safeOnEditUser = useCallback((user: User) => {
     try {
       if (!user) {
-        console.warn('⚠️ UsersTab: Attempted to edit null user');
         return;
       }
       
       if (typeof user !== 'object') {
-        console.warn('⚠️ UsersTab: Invalid user object for edit:', typeof user);
         return;
       }
       
       if (!user.id) {
-        console.warn('⚠️ UsersTab: User missing ID for edit:', user);
         return;
       }
       
-      console.log('✏️ UsersTab: Editing user:', user.id, user.name);
       onEditUser(user);
     } catch (error) {
-      console.error('❌ UsersTab: Error in edit user handler:', error);
+      // Handle error silently
     }
   }, [onEditUser]);
 
   const safeOnDeleteUser = useCallback((user: User) => {
     try {
       if (!user) {
-        console.warn('⚠️ UsersTab: Attempted to delete null user');
         return;
       }
       
       if (typeof user !== 'object') {
-        console.warn('⚠️ UsersTab: Invalid user object for delete:', typeof user);
         return;
       }
       
       if (!user.id) {
-        console.warn('⚠️ UsersTab: User missing ID for delete:', user);
         return;
       }
       
-      console.log('🗑️ UsersTab: Deleting user:', user.id, user.name);
       onDeleteUser(user);
     } catch (error) {
-      console.error('❌ UsersTab: Error in delete user handler:', error);
+      // Handle error silently
     }
   }, [onDeleteUser]);
 
   const safeOnChangePassword = useCallback((user: User) => {
     try {
       if (!user) {
-        console.warn('⚠️ UsersTab: Attempted to change password for null user');
         return;
       }
       
       if (typeof user !== 'object') {
-        console.warn('⚠️ UsersTab: Invalid user object for password change:', typeof user);
         return;
       }
       
       if (!user.id) {
-        console.warn('⚠️ UsersTab: User missing ID for password change:', user);
         return;
       }
       
-      console.log('🔑 UsersTab: Changing password for user:', user.id, user.name);
       onChangePassword(user);
     } catch (error) {
-      console.error('❌ UsersTab: Error in change password handler:', error);
+      // Handle error silently
     }
   }, [onChangePassword]);
-
-  console.log('👥 UsersTab: Rendering with processed data:', {
-    nonEmployeeUsersCount: nonEmployeeUsers.length,
-    safeUsersCount: safeUsers.length,
-    filteredUsersCount: filteredUsers.length,
-    paginatedUsersCount: paginatedUsers.length,
-    currentPage,
-    totalPages,
-    view,
-    isMobile
-  });
 
   return (
     <TabsContent value="users" className="space-y-4">

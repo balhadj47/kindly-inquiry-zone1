@@ -7,7 +7,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTrip } from '@/contexts/TripContext';
 import { useFastVanData } from '@/hooks/useFastVanData';
 import { useMissionsPermissions } from './MissionsPermissions';
-import { useMissionsActions } from './MissionsActions';
+import { useMissionsActions } from './useMissionsActions';
 import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';

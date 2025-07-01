@@ -1,10 +1,11 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { usePermissions } from '@/hooks/usePermissions';
 import { SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
@@ -51,112 +52,14 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
-  const { currentUser, loading: rbacLoading, hasPermission, roles } = useRBAC();
+  const permissions = usePermissions();
 
-  console.log('📱 Index: State check:', {
-    authUser: authUser?.email || 'null',
+  console.log('📱 Index: Permissions state:', {
+    isAuthenticated: permissions.isAuthenticated,
+    isHighPrivilegeUser: permissions.isHighPrivilegeUser,
     authLoading,
-    currentUser: currentUser?.id || 'null',
-    rbacLoading,
-    isMobile,
     timestamp: new Date().toISOString()
   });
-
-  // Dynamic privilege detection
-  const isHighPrivilegeUser = React.useCallback((): boolean => {
-    if (!currentUser?.role_id || !roles) return false;
-    
-    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-    if (!userRole) return false;
-    
-    // High privilege users have many permissions (10+)
-    return userRole.permissions.length >= 10;
-  }, [currentUser?.role_id, roles]);
-
-  // Enhanced permission check with better error handling
-  const checkPermission = React.useCallback((permission: string): boolean => {
-    console.log('📱 Index: Checking permission:', permission);
-
-    try {
-      // If still loading, allow access to prevent blank screens
-      if (authLoading || rbacLoading) {
-        console.log('📱 Index: Still loading, allowing access');
-        return true;
-      }
-
-      // If no auth user, deny access
-      if (!authUser) {
-        console.log('📱 Index: No auth user, denying access');
-        return false;
-      }
-
-      // High privilege user bypass
-      if (isHighPrivilegeUser()) {
-        console.log('📱 Index: High privilege user bypass granted');
-        return true;
-      }
-
-      // If RBAC user exists and hasPermission function is available
-      if (currentUser && hasPermission && typeof hasPermission === 'function') {
-        try {
-          const result = hasPermission(permission);
-          console.log('📱 Index: Permission result:', result);
-          return result;
-        } catch (error) {
-          console.error('📱 Index: Error checking permission:', error);
-          // Fall back to allowing access if there's an error
-          return true;
-        }
-      }
-
-      // For authenticated users without RBAC context, allow access
-      console.log('📱 Index: Authenticated user without RBAC, allowing access');
-      return true;
-    } catch (error) {
-      console.error('📱 Index: Error in checkPermission:', error);
-      // On error, allow access to prevent app from breaking
-      return true;
-    }
-  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading, isHighPrivilegeUser]);
-
-  // Enhanced auth-users permission check - STRICT CHECK for auth-users:read
-  const checkAuthUsersPermission = React.useCallback((): boolean => {
-    console.log('📱 Index: Checking auth-users permission specifically');
-
-    try {
-      // If still loading, deny access
-      if (authLoading || rbacLoading) {
-        console.log('📱 Index: Still loading, denying auth-users access');
-        return false;
-      }
-
-      // If no auth user, deny access
-      if (!authUser) {
-        console.log('📱 Index: No auth user, denying auth-users access');
-        return false;
-      }
-
-      // If RBAC user exists and hasPermission function is available
-      if (currentUser && hasPermission && typeof hasPermission === 'function') {
-        try {
-          // Check specifically for auth-users:read permission
-          const result = hasPermission('auth-users:read');
-          console.log('📱 Index: Permission check for auth-users:read:', result);
-          return result === true;
-        } catch (error) {
-          console.error('📱 Index: Error checking auth-users:read permission:', error);
-          return false;
-        }
-      }
-
-      // If no RBAC context, deny access
-      console.log('📱 Index: No RBAC context, denying auth-users access');
-      return false;
-    } catch (error) {
-      console.error('📱 Index: Error in checkAuthUsersPermission:', error);
-      return false;
-    }
-  }, [authUser, currentUser, hasPermission, authLoading, rbacLoading]);
 
   // Show loading while auth is loading
   if (authLoading) {
@@ -190,41 +93,37 @@ const Index = () => {
             <Suspense fallback={<PageLoadingSkeleton />}>
               <Routes>
                 <Route path="" element={
-                  checkPermission('dashboard:read') ? (
-                    <Dashboard />
-                  ) : (
-                    <AccessDenied />
-                  )
+                  permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />
                 } />
                 <Route path="dashboard" element={
-                  checkPermission('dashboard:read') ? <Dashboard /> : <AccessDenied />
+                  permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />
                 } />
                 <Route path="companies/*" element={
-                  checkPermission('companies:read') ? <Companies /> : <AccessDenied />
+                  permissions.canReadCompanies ? <Companies /> : <AccessDenied />
                 } />
                 <Route path="vans/*" element={
-                  checkPermission('vans:read') ? <Vans /> : <AccessDenied />
+                  permissions.canReadVans ? <Vans /> : <AccessDenied />
                 } />
                 <Route path="users" element={
-                  checkPermission('users:read') ? <Users /> : <AccessDenied />
+                  permissions.canReadUsers ? <Users /> : <AccessDenied />
                 } />
                 <Route path="auth-users" element={
-                  checkAuthUsersPermission() ? <AuthUsersPage /> : <AccessDenied />
+                  permissions.canReadAuthUsers ? <AuthUsersPage /> : <AccessDenied />
                 } />
                 <Route path="employees" element={
-                  checkPermission('users:read') ? <Employees /> : <AccessDenied />
+                  permissions.canReadUsers ? <Employees /> : <AccessDenied />
                 } />
                 <Route path="log-trip" element={
-                  checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                  permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />
                 } />
                 <Route path="trip-logger" element={
-                  checkPermission('trips:create') ? <TripLoggerPage /> : <AccessDenied />
+                  permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />
                 } />
                 <Route path="missions" element={
-                  checkPermission('trips:read') ? <MissionsPage /> : <AccessDenied />
+                  permissions.canReadTrips ? <MissionsPage /> : <AccessDenied />
                 } />
                 <Route path="trip-history" element={
-                  checkPermission('trips:read') ? <TripHistoryPage /> : <AccessDenied />
+                  permissions.canReadTrips ? <TripHistoryPage /> : <AccessDenied />
                 } />
                 <Route path="settings" element={<SystemSettingsPage />} />
                 <Route path="user-settings" element={<UserSettings />} />

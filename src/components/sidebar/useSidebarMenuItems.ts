@@ -1,39 +1,24 @@
 
 import { MenuItem } from './types';
 import { createMenuItems } from './menuConfig';
-import { useContextAccess } from './useContextAccess';
-import { usePermissionCheck } from './usePermissionCheck';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useSidebarMenuItems = (): MenuItem[] => {
   console.log('🔍 useSidebarMenuItems: Starting hook execution');
   
-  const { hasPermission, currentUser, loading, roles, t } = useContextAccess();
-  const { checkItemPermission } = usePermissionCheck(hasPermission);
+  const permissions = usePermissions();
+  const { t } = useLanguage();
 
   console.log('🔍 Menu items processing:', {
-    userId: currentUser?.id || 'null',
-    userEmail: currentUser?.email || 'null',
-    roleId: currentUser?.role_id || 'null',
-    loading: loading,
-    rolesCount: roles?.length || 0,
-    hasPermissionFunction: typeof hasPermission === 'function'
+    isAuthenticated: permissions.isAuthenticated,
+    isHighPrivilegeUser: permissions.isHighPrivilegeUser,
+    timestamp: new Date().toISOString()
   });
 
-  // If still loading, return empty array to avoid flashing unauthorized menu items
-  if (loading) {
-    console.log('🔍 RBAC context still loading, returning empty menu');
-    return [];
-  }
-
-  // If no user is logged in, return empty menu
-  if (!currentUser) {
-    console.log('🔍 No current user, returning empty menu');
-    return [];
-  }
-
-  // If no roles are loaded yet, return empty menu to prevent showing unauthorized items
-  if (!roles || roles.length === 0) {
-    console.log('🔍 No roles loaded yet, returning empty menu');
+  // If not authenticated, return empty menu
+  if (!permissions.isAuthenticated) {
+    console.log('🔍 No authenticated user, returning empty menu');
     return [];
   }
 
@@ -42,7 +27,31 @@ export const useSidebarMenuItems = (): MenuItem[] => {
   
   const filteredMenuItems = allMenuItems.filter((item) => {
     try {
-      const hasAccess = checkItemPermission(item.permission);
+      let hasAccess = false;
+      
+      // Map menu permissions to our permission helpers
+      switch (item.permission) {
+        case 'dashboard:read':
+          hasAccess = permissions.canAccessDashboard;
+          break;
+        case 'companies:read':
+          hasAccess = permissions.canReadCompanies;
+          break;
+        case 'vans:read':
+          hasAccess = permissions.canReadVans;
+          break;
+        case 'users:read':
+          hasAccess = permissions.canReadUsers;
+          break;
+        case 'trips:read':
+          hasAccess = permissions.canReadTrips;
+          break;
+        case 'auth-users:read':
+          hasAccess = permissions.canReadAuthUsers;
+          break;
+        default:
+          hasAccess = permissions.checkPermission(item.permission || '');
+      }
       
       console.log(`🔍 Permission check for ${item.title}:`, {
         permission: item.permission,
@@ -60,12 +69,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
   console.log('🔍 FINAL RESULT:', {
     totalMenuItems: allMenuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title),
-    hasAuthUsers: filteredMenuItems.some(item => item.href === '/auth-users'),
-    hasVans: filteredMenuItems.some(item => item.href === '/vans'),
-    hasCompanies: filteredMenuItems.some(item => item.href === '/companies'),
-    hasUsers: filteredMenuItems.some(item => item.href === '/employees'),
-    hasMissions: filteredMenuItems.some(item => item.href === '/missions')
+    filteredTitles: filteredMenuItems.map(item => item.title)
   });
   
   return filteredMenuItems;

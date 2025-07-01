@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Key, User as UserIcon, Trash } from 'lucide-react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,7 +29,7 @@ const UserCardActions: React.FC<UserCardActionsProps> = ({
   onDelete,
   onChangePassword,
 }) => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   
   const canUpdateUsers = permissions.canUpdateUsers;
   const canDeleteUsers = permissions.canDeleteUsers;

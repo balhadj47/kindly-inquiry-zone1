@@ -1,18 +1,18 @@
 
 import { MenuItem } from './types';
 import { createMenuItems } from './menuConfig';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 export const useSidebarMenuItems = (): MenuItem[] => {
-  console.log('🔍 useSidebarMenuItems: Starting hook execution');
+  console.log('🔍 useSidebarMenuItems: Starting secure menu generation');
   
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   const { t } = useLanguage();
 
-  console.log('🔍 Menu items processing:', {
+  console.log('🔍 Secure menu processing:', {
     isAuthenticated: permissions.isAuthenticated,
-    isHighPrivilegeUser: permissions.isHighPrivilegeUser,
+    isAdmin: permissions.isAdmin,
     timestamp: new Date().toISOString()
   });
 
@@ -22,14 +22,14 @@ export const useSidebarMenuItems = (): MenuItem[] => {
     return [];
   }
 
-  // Get all menu items and filter based on permissions
+  // Get all menu items and filter based on secure permissions
   const allMenuItems = createMenuItems(t);
   
   const filteredMenuItems = allMenuItems.filter((item) => {
     try {
       let hasAccess = false;
       
-      // Map menu permissions to our permission helpers (synchronous)
+      // Use secure permission helpers (database-backed)
       switch (item.permission) {
         case 'dashboard:read':
           hasAccess = permissions.canAccessDashboard;
@@ -53,7 +53,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
           hasAccess = permissions.hasPermission(item.permission || '');
       }
       
-      console.log(`🔍 Permission check for ${item.title}:`, {
+      console.log(`🔍 Secure permission check for ${item.title}:`, {
         permission: item.permission,
         hasPermission: hasAccess,
         href: item.href
@@ -66,7 +66,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
     }
   });
 
-  console.log('🔍 FINAL RESULT:', {
+  console.log('🔍 SECURE MENU RESULT:', {
     totalMenuItems: allMenuItems.length,
     filteredCount: filteredMenuItems.length,
     filteredTitles: filteredMenuItems.map(item => item.title)

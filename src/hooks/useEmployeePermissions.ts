@@ -1,15 +1,15 @@
 
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from './useSecurePermissions';
 
 export const useEmployeePermissions = () => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
 
-  console.log('🔐 Employees: Permissions:', {
+  console.log('🔐 Employees: Secure Permissions:', {
     canCreateUsers: permissions.canCreateUsers,
     canUpdateUsers: permissions.canUpdateUsers,
     canDeleteUsers: permissions.canDeleteUsers,
     canReadUsers: permissions.canReadUsers,
-    isHighPrivilegeUser: permissions.isHighPrivilegeUser
+    isAdmin: permissions.isAdmin
   });
 
   return {

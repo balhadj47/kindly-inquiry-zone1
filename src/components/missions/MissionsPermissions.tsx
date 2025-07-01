@@ -1,5 +1,5 @@
 
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 
 interface MissionsPermissions {
   canRead: boolean;
@@ -9,7 +9,7 @@ interface MissionsPermissions {
 }
 
 export const useMissionsPermissions = (): MissionsPermissions => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
 
   return {
     canRead: permissions.canReadTrips,

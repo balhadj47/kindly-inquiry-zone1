@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useRoleData } from '@/hooks/useRoleData';
 import { useDataPreloader } from '@/hooks/useDataPreloader';
 import MissionsContainer from '@/components/missions/MissionsContainer';
 
 const MissionsPage = () => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   const { roleName } = useRoleData(0); // Default role for display
   
   // Preload vans and users data when entering missions page

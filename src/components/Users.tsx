@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import UsersHeader from './users/UsersHeader';
 import UsersNavigation from './users/UsersNavigation';
 import UsersTab from './users/UsersTab';
@@ -20,7 +20,7 @@ const Users = () => {
   
   const { users, loading, currentUser, roles } = useRBAC();
   const { user: authUser } = useAuth();
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   const { refreshPage } = useCacheRefresh();
 
   console.log('Users component render state:', {
@@ -53,8 +53,8 @@ const Users = () => {
     refreshPage(['users', 'user_groups']);
   };
 
-  // Check if user can manage groups and create users
-  const canManageGroups = permissions.canReadUsers || permissions.isHighPrivilegeUser;
+  // Check if user can manage groups and create users using secure permissions
+  const canManageGroups = permissions.canReadUsers || permissions.isAdmin;
   const canCreateUsers = permissions.canCreateUsers;
 
   const clearFilters = () => {
@@ -81,7 +81,7 @@ const Users = () => {
     );
   }
 
-  // Check if user has permission to view users - using database-first approach
+  // Check if user has permission to view users using secure database check
   if (!permissions.canReadUsers && !loading) {
     console.log('Users component: No permission to read users');
     return (

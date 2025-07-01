@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { User as UserIcon, Key, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 
 interface UserActionsProps {
   user: User;
@@ -18,7 +18,7 @@ const UserActions: React.FC<UserActionsProps> = ({
   onChangePassword,
   onDelete,
 }) => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   
   const canUpdateUsers = permissions.canUpdateUsers;
   const canDeleteUsers = permissions.canDeleteUsers;

@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useRoleData } from '@/hooks/useRoleData';
 import AuthUsers from '@/components/AuthUsers';
 
 const AuthUsersPage = () => {
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
   const { roleName } = useRoleData(0); // Default role for display
   
   console.log('🔍 AuthUsersPage rendering:', {

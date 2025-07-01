@@ -1,0 +1,66 @@
+
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import { Edit, Trash2, Eye } from 'lucide-react';
+import { usePermissionCheck } from '@/hooks/usePermissionCheck';
+
+interface Van {
+  id: string;
+  reference_code: string;
+  model: string;
+  license_plate?: string;
+  status?: string;
+}
+
+interface VanCardActionsProps {
+  van: Van;
+  onEdit: (van: Van) => void;
+  onDelete: (van: Van) => void;
+  onView: (van: Van) => void;
+}
+
+const VanCardActions: React.FC<VanCardActionsProps> = ({
+  van,
+  onEdit,
+  onDelete,
+  onView
+}) => {
+  const { canUpdateVans, canDeleteVans } = usePermissionCheck();
+
+  return (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onView(van)}
+        className="h-8 w-8 p-0"
+      >
+        <Eye className="h-4 w-4" />
+      </Button>
+      
+      {canUpdateVans && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onEdit(van)}
+          className="h-8 w-8 p-0"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      )}
+      
+      {canDeleteVans && (
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => onDelete(van)}
+          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+};
+
+export default VanCardActions;

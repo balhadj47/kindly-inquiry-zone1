@@ -4,18 +4,18 @@ import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { usePermissionCheck } from '@/hooks/usePermissionCheck';
 
-interface MissionsActionsProps {
-  onCreateMission: () => void;
+interface CompaniesActionsProps {
+  onCreateCompany: () => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
 }
 
-const MissionsActions: React.FC<MissionsActionsProps> = ({
-  onCreateMission,
+const CompaniesActions: React.FC<CompaniesActionsProps> = ({
+  onCreateCompany,
   onRefresh,
   isRefreshing = false
 }) => {
-  const { canCreateTrips } = usePermissionCheck();
+  const { canCreateCompanies } = usePermissionCheck();
 
   return (
     <div className="flex items-center gap-2">
@@ -29,18 +29,18 @@ const MissionsActions: React.FC<MissionsActionsProps> = ({
         <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
       </Button>
       
-      {canCreateTrips && (
+      {canCreateCompanies && (
         <Button
-          onClick={onCreateMission}
+          onClick={onCreateCompany}
           size="sm"
           className="h-9"
         >
           <Plus className="h-4 w-4 mr-1" />
-          Nouvelle Mission
+          Nouvelle Entreprise
         </Button>
       )}
     </div>
   );
 };
 
-export default MissionsActions;
+export default CompaniesActions;

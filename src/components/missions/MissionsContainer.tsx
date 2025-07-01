@@ -34,16 +34,13 @@ const MissionsContainer = () => {
     handleActionConfirm
   } = useMissionsActions();
 
-  // Show loading indicator only if we don't have cached van data
   const showVanLoadingWarning = !isVanDataCached();
 
   const handleAddMission = () => {
-    console.log('🆕 Missions: Adding new mission');
     setIsNewMissionDialogOpen(true);
   };
 
   const handleEditMission = (mission: Trip) => {
-    console.log('✏️ Missions: Editing mission:', mission.id);
     // Implementation for edit functionality
   };
 
@@ -69,7 +66,6 @@ const MissionsContainer = () => {
     );
   }
 
-  // Handle error cases properly
   const showPermissionError = error && typeof error === 'string' && error.includes('Insufficient permissions');
 
   if (showPermissionError || !permissions.canRead) {

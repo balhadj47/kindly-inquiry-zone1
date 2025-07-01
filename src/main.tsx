@@ -4,12 +4,9 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Import React and ensure it's globally available
 import * as React from 'react';
 
-// Enhanced browser compatibility checks
 const isBrowserSupported = () => {
-  // Check for essential modern browser features
   const requiredFeatures = [
     'Promise',
     'fetch',
@@ -24,41 +21,26 @@ const isBrowserSupported = () => {
       ? feature.split('.').reduce((obj, prop) => obj && obj[prop], window)
       : window[feature];
     
-    if (!hasFeature) {
-      console.warn(`❌ Missing browser feature: ${feature}`);
-      return false;
-    }
-    return true;
+    return !!hasFeature;
   });
 };
 
-// Critical: Ensure React is available before any other code runs
 if (typeof window !== 'undefined') {
   (window as any).React = React;
   (globalThis as any).React = React;
 }
 
-// Simplified React validation - check for React object existence
 const validateReact = () => {
   if (!React || typeof React !== 'object') {
-    console.error('❌ CRITICAL: React not available');
     throw new Error('React not available - React not properly loaded');
   }
-  
-  console.log('✅ React validation passed:', {
-    version: React.version,
-    reactObjectExists: !!React
-  });
   
   return true;
 };
 
-// Run React validation
 validateReact();
 
-// Browser compatibility check
 if (!isBrowserSupported()) {
-  console.error('❌ Browser not supported');
   document.body.innerHTML = `
     <div style="
       display: flex;
@@ -106,7 +88,6 @@ if (!rootElement) {
 
 const root = createRoot(rootElement);
 
-// Enhanced error fallback component
 const ErrorFallback = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -138,16 +119,13 @@ const ErrorFallback = () => {
   );
 };
 
-// Wrap the App with enhanced error handling
 const SafeApp = () => {
   try {
-    // Check React is properly available as an object
     if (!React || typeof React !== 'object') {
       throw new Error('React is not available at runtime');
     }
     return <App />;
   } catch (error) {
-    console.error('❌ App render error:', error);
     return <ErrorFallback />;
   }
 };
@@ -158,19 +136,14 @@ root.render(
   </StrictMode>
 );
 
-// Enhanced service worker registration with better error handling
 if (import.meta.env.PROD && typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-  // Add a small delay to ensure the app loads first
   setTimeout(() => {
     import('./utils/serviceWorker').then(({ registerServiceWorker }) => {
-      registerServiceWorker().catch(error => {
-        console.warn('🔧 Service Worker registration failed:', error);
-        // App continues to work without service worker
+      registerServiceWorker().catch(() => {
+        // Service worker registration failed, app continues to work
       });
     }).catch(() => {
-      console.warn('🔧 Service Worker module failed to load');
+      // Service worker module failed to load
     });
   }, 1000);
-} else {
-  console.log('🔧 Service Worker registration skipped (development mode or not supported)');
 }

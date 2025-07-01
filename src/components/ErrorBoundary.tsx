@@ -22,12 +22,9 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    console.error('ErrorBoundary caught an error:', error);
-    
     const errorMessage = error.message || 'Unknown error occurred';
     const errorStack = error.stack;
     
-    // Enhanced error categorization
     const isReactHooksError = errorMessage.includes('useState') || 
                              errorMessage.includes('useEffect') ||
                              errorMessage.includes('useContext') ||
@@ -49,14 +46,6 @@ class ErrorBoundary extends Component<Props, State> {
                              errorMessage.includes('access denied') ||
                              errorMessage.includes('unauthorized');
     
-    console.log('🔍 Error analysis:', {
-      isReactHooksError,
-      isServerError,
-      isBrowserCompatError,
-      isPermissionError,
-      errorMessage: errorMessage.substring(0, 100)
-    });
-    
     return { 
       hasError: true, 
       shouldRedirectToAuth: isServerError || isPermissionError,
@@ -66,8 +55,6 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('🚨 Uncaught error:', error, errorInfo);
-    
     const errorReport = {
       message: error.message,
       stack: error.stack,
@@ -77,16 +64,11 @@ class ErrorBoundary extends Component<Props, State> {
       url: window.location.href
     };
     
-    console.error('📊 Error report:', errorReport);
-    
-    // Only redirect for server errors, not React hooks errors
     if (this.state.shouldRedirectToAuth) {
       setTimeout(() => {
-        console.log('Server/Permission error detected, redirecting...');
         try {
           window.location.href = '/auth';
         } catch (redirectError) {
-          console.error('Failed to redirect:', redirectError);
           window.location.reload();
         }
       }, 1000);
@@ -94,7 +76,6 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   private handleRetry = () => {
-    console.log('🔄 User triggered retry');
     this.setState({
       hasError: false,
       shouldRedirectToAuth: false,
@@ -104,17 +85,14 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   private handleReload = () => {
-    console.log('🔄 User triggered reload');
     try {
       window.location.reload();
     } catch (error) {
-      console.error('Failed to reload:', error);
       window.location.href = '/';
     }
   };
 
   private handleClearCacheAndReload = () => {
-    console.log('🧹 User triggered cache clear and reload');
     try {
       localStorage.clear();
       sessionStorage.clear();
@@ -124,7 +102,7 @@ class ErrorBoundary extends Component<Props, State> {
           registrations.forEach(registration => {
             registration.unregister();
           });
-        }).catch(console.warn);
+        }).catch(() => {});
       }
       
       if ('caches' in window) {
@@ -132,12 +110,11 @@ class ErrorBoundary extends Component<Props, State> {
           names.forEach(name => {
             caches.delete(name);
           });
-        }).catch(console.warn);
+        }).catch(() => {});
       }
       
       window.location.reload();
     } catch (error) {
-      console.error('Failed to clear cache:', error);
       window.location.reload();
     }
   };

@@ -12,7 +12,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
 
   console.log('🔍 Secure menu processing:', {
     isAuthenticated: permissions.isAuthenticated,
-    userPermissions: permissions.userPermissions || [],
+    isAdmin: permissions.isAdmin,
     timestamp: new Date().toISOString()
   });
 
@@ -47,7 +47,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
     totalMenuItems: allMenuItems.length,
     filteredCount: filteredMenuItems.length,
     filteredTitles: filteredMenuItems.map(item => item.title),
-    userPermissions: permissions.userPermissions || []
+    isAdmin: permissions.isAdmin
   });
   
   return filteredMenuItems;

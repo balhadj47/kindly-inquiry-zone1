@@ -52,7 +52,7 @@ const Dashboard = () => {
     enabled: permissions.canReadCompanies,
   });
 
-  const { data: trips = [], isLoading: tripsLoading } = useQuery({
+  const { data: rawTrips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ['trips'],
     queryFn: async () => {
       const { data, error } = await supabase.from('trips').select('*');
@@ -63,6 +63,17 @@ const Dashboard = () => {
   });
 
   const isLoading = usersLoading || vansLoading || companiesLoading || tripsLoading;
+
+  // Transform database trips to match expected Trip interface
+  const trips = rawTrips.map(trip => ({
+    ...trip,
+    timestamp: trip.created_at,
+    userIds: trip.user_ids || [],
+    // Add compatibility for both naming conventions
+    start_date: trip.planned_start_date,
+    end_date: trip.planned_end_date,
+    destination: trip.notes || ''
+  }));
 
   // Calculate dashboard stats and chart data
   const stats = calculateDashboardStats(users, vans, companies, trips);

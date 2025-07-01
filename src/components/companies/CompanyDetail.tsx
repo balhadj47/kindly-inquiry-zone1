@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -31,6 +32,17 @@ const CompanyDetail = () => {
   const [isBranchModalOpen, setIsBranchModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState<Branch | null>(null);
+
+  // Enhanced debugging for company and branches
+  React.useEffect(() => {
+    console.log('🏢 CompanyDetail: Component mounted with companyId:', companyId);
+    console.log('🏢 CompanyDetail: All companies:', companies);
+    console.log('🏢 CompanyDetail: Found company:', company);
+    if (company) {
+      console.log('🏢 CompanyDetail: Company branches:', company.branches);
+      console.log('🏢 CompanyDetail: Branches count:', company.branches?.length || 0);
+    }
+  }, [companyId, companies, company]);
 
   const handleBranchClick = (branch: Branch) => {
     navigate(`/companies/branch/${branch.id}`);
@@ -100,6 +112,10 @@ const CompanyDetail = () => {
       </div>
     );
   }
+
+  // Debug the branches data specifically
+  const branches = company.branches || [];
+  console.log('🏢 CompanyDetail: Rendering with branches:', branches);
 
   return (
     <div className="space-y-6 py-8">
@@ -178,7 +194,7 @@ const CompanyDetail = () => {
               <div className="space-y-3">
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <span className="font-medium text-sm text-gray-700">{t.totalBranchesLabel}:</span>
-                  <p className="text-2xl font-bold text-blue-600 mt-1">{company.branches.length}</p>
+                  <p className="text-2xl font-bold text-blue-600 mt-1">{branches.length}</p>
                 </div>
                 <div className="bg-gray-50 p-3 rounded-lg">
                   <span className="font-medium text-sm text-gray-700">{t.companyStatus}:</span>
@@ -196,7 +212,7 @@ const CompanyDetail = () => {
           <h2 className="text-2xl font-bold">{t.branches}</h2>
           <div className="flex items-center space-x-4">
             <span className="text-sm text-gray-500">
-              {company.branches.length} {company.branches.length === 1 ? t.branch : t.branches.toLowerCase()}
+              {branches.length} {branches.length === 1 ? t.branch : t.branches.toLowerCase()}
             </span>
             <TooltipProvider>
               <Tooltip>
@@ -217,7 +233,17 @@ const CompanyDetail = () => {
           </div>
         </div>
 
-        {company.branches.length === 0 ? (
+        {/* Debug information for branches */}
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+          <h4 className="font-medium text-yellow-800 mb-2">Debug Info:</h4>
+          <p className="text-sm text-yellow-700">
+            Company ID: {company.id}<br/>
+            Branches Array Length: {branches.length}<br/>
+            Branches Data: {JSON.stringify(branches, null, 2)}
+          </p>
+        </div>
+
+        {branches.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Building2 className="h-12 w-12 text-gray-400 mb-4" />
@@ -245,15 +271,18 @@ const CompanyDetail = () => {
           </Card>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-            {company.branches.map((branch) => (
-              <BranchCard
-                key={branch.id}
-                branch={branch}
-                onClick={handleBranchClick}
-                onEdit={handleEditBranch}
-                onDelete={handleDeleteBranch}
-              />
-            ))}
+            {branches.map((branch) => {
+              console.log('🏢 CompanyDetail: Rendering branch:', branch);
+              return (
+                <BranchCard
+                  key={branch.id}
+                  branch={branch}
+                  onClick={handleBranchClick}
+                  onEdit={handleEditBranch}
+                  onDelete={handleDeleteBranch}
+                />
+              );
+            })}
           </div>
         )}
       </div>

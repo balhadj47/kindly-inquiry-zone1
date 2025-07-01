@@ -36,15 +36,30 @@ export const useCompanies = () => {
           return [];
         }
 
-        console.log('🏢 useCompanies: Final result:', {
-          companiesCount: data.length,
-          totalBranches: data.reduce((sum, c) => sum + (c.branches?.length || 0), 0)
+        // Enhanced logging to debug branch data
+        console.log('🏢 useCompanies: Raw data from database:', JSON.stringify(data, null, 2));
+        
+        const processedData = data.map(company => {
+          const branches = company.branches || [];
+          console.log(`🏢 Company "${company.name}" has ${branches.length} branches:`, branches);
+          
+          return {
+            ...company,
+            branches: branches
+          };
         });
 
-        return data.map(company => ({
-          ...company,
-          branches: company.branches || []
-        }));
+        console.log('🏢 useCompanies: Final processed result:', {
+          companiesCount: processedData.length,
+          totalBranches: processedData.reduce((sum, c) => sum + (c.branches?.length || 0), 0),
+          companiesWithBranches: processedData.map(c => ({
+            name: c.name,
+            branchCount: c.branches?.length || 0,
+            branchNames: c.branches?.map(b => b.name) || []
+          }))
+        });
+
+        return processedData;
       } catch (error) {
         console.error('🏢 useCompanies: Error:', error);
         throw error;

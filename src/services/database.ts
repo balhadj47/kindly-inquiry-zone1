@@ -24,6 +24,7 @@ export class DatabaseService {
         console.log('🔍 DatabaseService: Authenticated user:', user.email);
       }
       
+      console.log('🔍 DatabaseService: Executing companies query with branches...');
       const { data, error } = await supabase
         .from('companies')
         .select(`
@@ -42,10 +43,33 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Companies fetch error:', error);
+        console.error('🔍 DatabaseService: Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
-      console.log('🔍 DatabaseService: Raw companies data:', data);
+      console.log('🔍 DatabaseService: Raw companies data received:', data);
+      
+      // Log detailed information about each company and its branches
+      if (data && data.length > 0) {
+        data.forEach((company, index) => {
+          console.log(`🔍 Company ${index + 1}: "${company.name}"`);
+          console.log(`   - ID: ${company.id}`);
+          console.log(`   - Branches count: ${company.branches?.length || 0}`);
+          if (company.branches && company.branches.length > 0) {
+            company.branches.forEach((branch, branchIndex) => {
+              console.log(`   - Branch ${branchIndex + 1}: "${branch.name}" (ID: ${branch.id})`);
+            });
+          } else {
+            console.log('   - No branches found for this company');
+          }
+        });
+      }
+      
       console.log('🔍 DatabaseService: Companies fetched successfully:', {
         companiesCount: data?.length || 0,
         totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,

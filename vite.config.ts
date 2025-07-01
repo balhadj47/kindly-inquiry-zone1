@@ -30,26 +30,6 @@ export default defineConfig(({ mode }) => ({
       },
     },
     sourcemap: mode === 'development',
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          // Core vendor chunks
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          'query-vendor': ['@tanstack/react-query'],
-          'ui-vendor': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-select',
-            '@radix-ui/react-avatar'
-          ],
-          'icons-vendor': ['lucide-react'],
-          'charts-vendor': ['recharts']
-        }
-      }
-    }
   },
   optimizeDeps: {
     include: [

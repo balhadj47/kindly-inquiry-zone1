@@ -16,12 +16,18 @@ export const useSecurePermissions = () => {
     queryFn: async () => {
       if (!authUser) return null;
       
-      const { data, error } = await supabase.rpc('get_current_user_rbac');
+      // Fetch user data directly from users table
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('auth_user_id', authUser.id)
+        .single();
+      
       if (error) {
-        console.error('Error fetching current user RBAC:', error);
+        console.error('Error fetching current user:', error);
         return null;
       }
-      console.log('🔒 Current user RBAC data:', data);
+      console.log('🔒 Current user data:', data);
       return data;
     },
     enabled: !!authUser,
@@ -33,7 +39,7 @@ export const useSecurePermissions = () => {
   const { data: isAdmin = false } = useQuery({
     queryKey: ['secure-admin-status', authUser?.id],
     queryFn: async () => {
-      if (!authUser || !currentUser) return false;
+      if (!authUser) return false;
       
       const { data, error } = await supabase.rpc('current_user_is_admin');
       if (error) {
@@ -43,7 +49,7 @@ export const useSecurePermissions = () => {
       console.log('🔒 Admin status:', data);
       return data === true;
     },
-    enabled: !!authUser && !!currentUser,
+    enabled: !!authUser,
     staleTime: 30000,
     gcTime: 60000,
   });
@@ -52,7 +58,7 @@ export const useSecurePermissions = () => {
   const { data: userPermissions = [] } = useQuery({
     queryKey: ['secure-permissions', authUser?.id, currentUser?.role_id],
     queryFn: async () => {
-      if (!authUser || !currentUser) return [];
+      if (!authUser) return [];
       
       const { data, error } = await supabase.rpc('get_current_user_permissions');
       if (error) {
@@ -62,7 +68,7 @@ export const useSecurePermissions = () => {
       console.log('🔒 User permissions:', data);
       return data || [];
     },
-    enabled: !!authUser && !!currentUser,
+    enabled: !!authUser,
     staleTime: 30000,
     gcTime: 60000,
   });
@@ -90,16 +96,22 @@ export const useSecurePermissions = () => {
 
   // Synchronous permission checker (uses database query data only)
   const hasPermission = (permission: string): boolean => {
-    if (!authUser || !currentUser) {
+    if (!authUser) {
       return false;
+    }
+    
+    // For admins, grant all permissions
+    if (isAdmin) {
+      return true;
     }
     
     // STRICT: Only return true if permission is explicitly found
     const hasDirectPermission = Array.isArray(userPermissions) && userPermissions.includes(permission);
     console.log(`🔒 Permission check: ${permission} = ${hasDirectPermission}`, {
       userPermissions,
-      roleId: currentUser.role_id,
-      isViewOnly: currentUser.role_id === 2
+      roleId: currentUser?.role_id,
+      isViewOnly: currentUser?.role_id === 2,
+      isAdmin
     });
     return hasDirectPermission;
   };

@@ -66,7 +66,7 @@ const CompaniesErrorState: React.FC<CompaniesErrorStateProps> = ({
             {onAdd && !isPermissionError && (
               <Button onClick={onAdd}>
                 <Plus className="h-4 w-4 mr-2" />
-                {t.addCompany}
+                {t.addNewCompany}
               </Button>
             )}
           </div>

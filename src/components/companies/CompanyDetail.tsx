@@ -266,7 +266,7 @@ const CompanyDetail = () => {
               </TooltipProvider>
             ) : (
               <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded">
-                {t.noPermissionToAdd || 'No permission to add branches'}
+                Pas de permission pour ajouter
               </div>
             )}
           </div>
@@ -318,7 +318,7 @@ const CompanyDetail = () => {
         )}
       </div>
 
-      {permissions.canCreateCompanies || permissions.canUpdateCompanies ? (
+      {(permissions.canCreateCompanies || permissions.canUpdateCompanies) && (
         <BranchModal
           isOpen={isBranchModalOpen}
           onClose={() => setIsBranchModalOpen(false)}
@@ -327,9 +327,9 @@ const CompanyDetail = () => {
           companyName={company.name}
           onSuccess={handleBranchModalSuccess}
         />
-      ) : null}
+      )}
 
-      {permissions.canDeleteCompanies ? (
+      {permissions.canDeleteCompanies && (
         <BranchDeleteDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}
@@ -337,7 +337,7 @@ const CompanyDetail = () => {
           onConfirm={handleConfirmDelete}
           isLoading={isDeleting}
         />
-      ) : null}
+      )}
     </div>
   );
 };

@@ -93,15 +93,33 @@ export const useSecurePermissions = () => {
   // Synchronous permission checker (uses fresh query data only)
   const hasPermission = (permission: string): boolean => {
     if (!authUser) return false;
-    if (isAdmin) return true; // Admin has all permissions
     
-    // Basic permissions that all authenticated users should have
-    const basicPermissions = ['dashboard:read'];
-    if (basicPermissions.includes(permission)) {
-      return true; // Grant basic access to all authenticated users
+    // Admin has all permissions
+    if (isAdmin) return true;
+    
+    // Check if user has the specific permission in their permissions array
+    const hasDirectPermission = userPermissions.includes(permission);
+    if (hasDirectPermission) {
+      console.log('🔓 Direct permission granted:', permission);
+      return true;
     }
     
-    return userPermissions.includes(permission);
+    // Basic permissions that all authenticated users should have
+    const basicPermissions = [
+      'dashboard:read',
+      'companies:read', 
+      'vans:read',
+      'users:read',
+      'trips:read'
+    ];
+    
+    if (basicPermissions.includes(permission)) {
+      console.log('🔓 Basic permission granted to authenticated user:', permission);
+      return true;
+    }
+    
+    console.log('🚫 Permission denied:', permission, 'User permissions:', userPermissions);
+    return false;
   };
 
   const permissions = {
@@ -135,6 +153,10 @@ export const useSecurePermissions = () => {
     isAuthenticated: permissions.isAuthenticated,
     isAdmin: permissions.isAdmin,
     canAccessDashboard: permissions.canAccessDashboard,
+    canReadCompanies: permissions.canReadCompanies,
+    canReadVans: permissions.canReadVans,
+    canReadUsers: permissions.canReadUsers,
+    canReadTrips: permissions.canReadTrips,
     userPermissions: userPermissions.length,
     permissions: userPermissions,
     currentUser: currentUser?.id || 'null'

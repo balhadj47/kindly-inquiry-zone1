@@ -32,10 +32,6 @@ const PermissionsDebug = () => {
         <CardContent>
           <div className="space-y-2">
             <p><strong>Current User:</strong> {permissions.currentUser ? JSON.stringify(permissions.currentUser, null, 2) : 'No user data'}</p>
-            <p><strong>User Role Info:</strong></p>
-            <pre className="bg-gray-100 p-2 rounded text-sm">
-              {permissions.userRoleInfo ? JSON.stringify(permissions.userRoleInfo, null, 2) : 'No role info'}
-            </pre>
           </div>
         </CardContent>
       </Card>

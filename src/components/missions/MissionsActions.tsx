@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
-import { usePermissionCheck } from '@/hooks/usePermissionCheck';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 
 interface MissionsActionsProps {
   onCreateMission: () => void;
@@ -15,7 +15,7 @@ const MissionsActions: React.FC<MissionsActionsProps> = ({
   onRefresh,
   isRefreshing = false
 }) => {
-  const { canCreateTrips } = usePermissionCheck();
+  const { canCreateTrips } = useSecurePermissions();
 
   return (
     <div className="flex items-center gap-2">

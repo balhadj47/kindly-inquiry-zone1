@@ -31,6 +31,25 @@ export const useSecurePermissions = () => {
     gcTime: 60000, // 1 minute cache time
   });
 
+  // Real-time user data check via database
+  const { data: currentUser = null } = useQuery({
+    queryKey: ['secure-current-user', authUser?.id],
+    queryFn: async () => {
+      if (!authUser) return null;
+      
+      const { data, error } = await supabase.rpc('get_current_user_rbac');
+      if (error) {
+        console.error('❌ User data fetch failed:', error);
+        return null;
+      }
+      console.log('🔐 Current user data result:', data);
+      return data;
+    },
+    enabled: !!authUser,
+    staleTime: 30000, // 30 seconds cache for user data
+    gcTime: 60000, // 1 minute cache time
+  });
+
   // Real-time permissions check via database
   const { data: userPermissions = [] } = useQuery({
     queryKey: ['secure-permissions', authUser?.id],
@@ -75,6 +94,13 @@ export const useSecurePermissions = () => {
   const hasPermission = (permission: string): boolean => {
     if (!authUser) return false;
     if (isAdmin) return true; // Admin has all permissions
+    
+    // Basic permissions that all authenticated users should have
+    const basicPermissions = ['dashboard:read'];
+    if (basicPermissions.includes(permission)) {
+      return true; // Grant basic access to all authenticated users
+    }
+    
     return userPermissions.includes(permission);
   };
 
@@ -83,6 +109,7 @@ export const useSecurePermissions = () => {
     isAdmin,
     checkPermission,
     hasPermission,
+    currentUser,
     // Specific secure permission helpers
     canReadCompanies: hasPermission('companies:read'),
     canCreateCompanies: hasPermission('companies:create'),
@@ -101,7 +128,7 @@ export const useSecurePermissions = () => {
     canUpdateTrips: hasPermission('trips:update'),
     canDeleteTrips: hasPermission('trips:delete'),
     canReadAuthUsers: hasPermission('auth-users:read'),
-    canAccessDashboard: hasPermission('dashboard:read') || isAdmin, // Always allow dashboard for admins
+    canAccessDashboard: hasPermission('dashboard:read'), // Now uses the improved hasPermission logic
   };
 
   console.log('🔐 useSecurePermissions: Final permissions:', {
@@ -109,7 +136,8 @@ export const useSecurePermissions = () => {
     isAdmin: permissions.isAdmin,
     canAccessDashboard: permissions.canAccessDashboard,
     userPermissions: userPermissions.length,
-    permissions: userPermissions
+    permissions: userPermissions,
+    currentUser: currentUser?.id || 'null'
   });
 
   return permissions;

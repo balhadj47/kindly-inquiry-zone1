@@ -1,9 +1,7 @@
 
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useCompanies } from '@/hooks/useCompanies';
-import { useQueryClient } from '@tanstack/react-query';
 
 // Lazy load company-related components
 const CompaniesIndex = React.lazy(() => import('./companies/CompaniesIndex'));
@@ -26,19 +24,7 @@ const CompanyLoadingSkeleton = () => (
 );
 
 const Companies = () => {
-  const { refetch: refetchCompanies } = useCompanies();
-  const queryClient = useQueryClient();
-
-  // Clear cache and refresh data when component mounts after RLS fix
-  useEffect(() => {
-    console.log('🏢 Companies component mounted after RLS fix, clearing cache and refreshing data');
-    
-    // Clear all company-related cached data
-    queryClient.removeQueries({ queryKey: ['companies'] });
-    
-    // Force fresh fetch
-    refetchCompanies?.();
-  }, [refetchCompanies, queryClient]);
+  console.log('🏢 Companies component mounted');
 
   return (
     <Suspense fallback={<CompanyLoadingSkeleton />}>

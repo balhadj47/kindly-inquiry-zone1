@@ -26,22 +26,9 @@ export const useCompanies = () => {
   return useQuery({
     queryKey: ['companies'],
     queryFn: async (): Promise<Company[]> => {
-      console.log('🏢 useCompanies: Starting fresh fetch after RLS policy update...');
+      console.log('🏢 useCompanies: Fetching companies with branches...');
       
       try {
-        // First, let's verify we can access branches directly
-        console.log('🔍 Testing direct branches access...');
-        const { data: testBranches, error: testError } = await supabase
-          .from('branches')
-          .select('*')
-          .limit(3);
-
-        if (testError) {
-          console.error('🔍 Direct branches test failed:', testError);
-        } else {
-          console.log('🔍 Direct branches test successful:', testBranches?.length || 0, 'branches found');
-        }
-
         // Fetch companies
         const { data: companiesData, error: companiesError } = await supabase
           .from('companies')
@@ -60,14 +47,14 @@ export const useCompanies = () => {
           return [];
         }
 
-        // Now fetch all branches
+        // Fetch all branches
         const { data: branchesData, error: branchesError } = await supabase
           .from('branches')
           .select('*')
           .order('name');
 
         if (branchesError) {
-          console.error('🏢 useCompanies: Error fetching branches (after RLS fix):', branchesError);
+          console.error('🏢 useCompanies: Error fetching branches:', branchesError);
           // Continue without branches instead of throwing
           return companiesData.map(company => ({
             ...company,
@@ -77,39 +64,27 @@ export const useCompanies = () => {
 
         console.log('🏢 useCompanies: Branches fetched successfully:', branchesData?.length || 0);
 
-        // Debug: Show which branches belong to which companies
-        if (branchesData && branchesData.length > 0) {
-          const branchMapping = branchesData.reduce((acc, branch) => {
-            acc[branch.company_id] = (acc[branch.company_id] || 0) + 1;
-            return acc;
-          }, {} as Record<string, number>);
-          console.log('🔍 Branch distribution by company:', branchMapping);
-        }
-
         // Combine companies with their branches
         const companiesWithBranches = companiesData.map(company => ({
           ...company,
           branches: branchesData?.filter(branch => branch.company_id === company.id) || []
         }));
 
-        console.log('🏢 useCompanies: Final result after RLS fix:', {
+        console.log('🏢 useCompanies: Final result:', {
           companiesCount: companiesWithBranches.length,
-          totalBranches: companiesWithBranches.reduce((sum, c) => sum + c.branches.length, 0),
-          companiesWithBranches: companiesWithBranches.map(c => ({
-            name: c.name,
-            branchCount: c.branches.length,
-            sampleBranches: c.branches.slice(0, 2).map(b => b.name)
-          }))
+          totalBranches: companiesWithBranches.reduce((sum, c) => sum + c.branches.length, 0)
         });
 
         return companiesWithBranches;
       } catch (error) {
-        console.error('🏢 useCompanies: Fatal error after RLS fix:', error);
+        console.error('🏢 useCompanies: Fatal error:', error);
         throw error;
       }
     },
-    staleTime: 0, // Force fresh fetch
-    gcTime: 0, // Don't cache after RLS update
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
+    retry: 2,
+    retryDelay: 1000,
   });
 };
 

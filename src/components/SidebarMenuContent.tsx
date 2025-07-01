@@ -6,7 +6,7 @@ import {
   SidebarMenuItem,
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
-import { useSidebarMenuItems } from './SidebarMenuItems';
+import { useSidebarMenuItems } from './sidebar/useSidebarMenuItems';
 
 const SidebarMenuContent = React.memo(() => {
   const location = useLocation();
@@ -19,17 +19,16 @@ const SidebarMenuContent = React.memo(() => {
     const colorMap = {
       '/dashboard': isActive ? 'text-blue-600' : 'text-blue-500 group-hover:text-blue-600',
       '/companies': isActive ? 'text-purple-600' : 'text-purple-500 group-hover:text-purple-600',
-      '/vans-drivers': isActive ? 'text-green-600' : 'text-green-500 group-hover:text-green-600',
+      '/vans': isActive ? 'text-green-600' : 'text-green-500 group-hover:text-green-600',
       '/employees': isActive ? 'text-orange-600' : 'text-orange-500 group-hover:text-orange-600',
       '/auth-users': isActive ? 'text-red-600' : 'text-red-500 group-hover:text-red-600',
-      '/log-trip': isActive ? 'text-indigo-600' : 'text-indigo-500 group-hover:text-indigo-600',
-      '/trip-history': isActive ? 'text-amber-600' : 'text-amber-500 group-hover:text-amber-600',
+      '/missions': isActive ? 'text-indigo-600' : 'text-indigo-500 group-hover:text-indigo-600',
     };
     
     return colorMap[href] || (isActive ? 'text-gray-600' : 'text-gray-500 group-hover:text-gray-600');
   };
 
-  // Add active state for menu items without badges
+  // Add active state for menu items
   const menuItemsWithActiveState = useMemo(() => {
     return menuItems.map((item) => {
       const isActive = location.pathname === item.href || 
@@ -41,6 +40,15 @@ const SidebarMenuContent = React.memo(() => {
       };
     });
   }, [menuItems, location.pathname]);
+
+  if (menuItems.length === 0) {
+    console.log('🔍 SidebarMenuContent: No menu items to render');
+    return (
+      <div className="px-2 py-2 text-center text-gray-500">
+        <p className="text-sm">No menu items available</p>
+      </div>
+    );
+  }
 
   return (
     <div className="px-2 py-2 space-y-1 group-data-[collapsible=icon]:px-1">

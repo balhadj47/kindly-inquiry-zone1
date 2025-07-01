@@ -12,7 +12,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
 
   console.log('🔍 Secure menu processing:', {
     isAuthenticated: permissions.isAuthenticated,
-    isAdmin: permissions.isAdmin,
+    userPermissions: permissions.userPermissions || [],
     timestamp: new Date().toISOString()
   });
 
@@ -26,50 +26,28 @@ export const useSidebarMenuItems = (): MenuItem[] => {
   const allMenuItems = createMenuItems(t);
   
   const filteredMenuItems = allMenuItems.filter((item) => {
-    try {
-      let hasAccess = false;
-      
-      // Use secure permission helpers (database-backed)
-      switch (item.permission) {
-        case 'dashboard:read':
-          hasAccess = permissions.canAccessDashboard;
-          break;
-        case 'companies:read':
-          hasAccess = permissions.canReadCompanies;
-          break;
-        case 'vans:read':
-          hasAccess = permissions.canReadVans;
-          break;
-        case 'users:read':
-          hasAccess = permissions.canReadUsers;
-          break;
-        case 'trips:read':
-          hasAccess = permissions.canReadTrips;
-          break;
-        case 'auth-users:read':
-          hasAccess = permissions.canReadAuthUsers;
-          break;
-        default:
-          hasAccess = permissions.hasPermission(item.permission || '');
-      }
-      
-      console.log(`🔍 Secure permission check for ${item.title}:`, {
-        permission: item.permission,
-        hasPermission: hasAccess,
-        href: item.href
-      });
-      
-      return hasAccess;
-    } catch (error) {
-      console.error(`🔍 Error checking permission for ${item.title}:`, error?.message || 'Unknown error');
-      return false;
+    if (!item.permission) {
+      console.log(`🔍 Menu item ${item.title} has no permission requirement - including by default`);
+      return true;
     }
+
+    // Use the hasPermission function which checks database permissions
+    const hasAccess = permissions.hasPermission(item.permission);
+    
+    console.log(`🔍 Permission check for ${item.title}:`, {
+      permission: item.permission,
+      hasPermission: hasAccess,
+      href: item.href
+    });
+    
+    return hasAccess;
   });
 
   console.log('🔍 SECURE MENU RESULT:', {
     totalMenuItems: allMenuItems.length,
     filteredCount: filteredMenuItems.length,
-    filteredTitles: filteredMenuItems.map(item => item.title)
+    filteredTitles: filteredMenuItems.map(item => item.title),
+    userPermissions: permissions.userPermissions || []
   });
   
   return filteredMenuItems;

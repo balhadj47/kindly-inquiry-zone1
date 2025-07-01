@@ -27,8 +27,8 @@ export const useSecurePermissions = () => {
       return data === true;
     },
     enabled: !!authUser,
-    staleTime: 30000, // 30 seconds cache for admin status
-    gcTime: 60000, // 1 minute cache time
+    staleTime: 30000,
+    gcTime: 60000,
   });
 
   // Real-time user data check via database
@@ -46,8 +46,8 @@ export const useSecurePermissions = () => {
       return data;
     },
     enabled: !!authUser,
-    staleTime: 30000, // 30 seconds cache for user data
-    gcTime: 60000, // 1 minute cache time
+    staleTime: 30000,
+    gcTime: 60000,
   });
 
   // Real-time permissions check via database
@@ -65,8 +65,8 @@ export const useSecurePermissions = () => {
       return data || [];
     },
     enabled: !!authUser,
-    staleTime: 30000, // 30 seconds cache for permissions
-    gcTime: 60000, // 1 minute cache time
+    staleTime: 30000,
+    gcTime: 60000,
   });
 
   // Secure permission checker - always hits database
@@ -128,7 +128,7 @@ export const useSecurePermissions = () => {
     canUpdateTrips: hasPermission('trips:update'),
     canDeleteTrips: hasPermission('trips:delete'),
     canReadAuthUsers: hasPermission('auth-users:read'),
-    canAccessDashboard: hasPermission('dashboard:read'), // Now uses the improved hasPermission logic
+    canAccessDashboard: hasPermission('dashboard:read'),
   };
 
   console.log('🔐 useSecurePermissions: Final permissions:', {

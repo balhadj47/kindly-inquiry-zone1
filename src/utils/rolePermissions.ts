@@ -1,21 +1,9 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Cache for permissions to avoid repeated database calls
-let permissionsCache: Record<number, string[]> = {};
-let cacheTimestamp = 0;
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
-
 // Helper function to get permissions for a role_id using secure database functions
 export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
-  // Check cache first
-  const now = Date.now();
-  if (permissionsCache[roleId] && (now - cacheTimestamp < CACHE_DURATION)) {
-    return permissionsCache[roleId];
-  }
-
   try {
-    // Get permissions from the user_groups table (simplified approach)
     const { data, error } = await supabase
       .from('user_groups')
       .select('permissions')
@@ -23,39 +11,30 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
       .single();
 
     if (error) {
-      return ['dashboard:read']; // Default fallback
+      return ['dashboard:read'];
     }
 
-    // Use the permissions array directly
     const permissions = Array.isArray(data?.permissions) ? data.permissions : ['dashboard:read'];
-    
-    // Update cache
-    permissionsCache[roleId] = permissions;
-    cacheTimestamp = now;
-    
     return permissions;
   } catch (error) {
-    return ['dashboard:read']; // Default fallback
+    return ['dashboard:read'];
   }
 };
 
 // Check if a role_id has a specific permission using secure functions
 export const roleIdHasPermission = async (roleId: number, permission: string): Promise<boolean> => {
   try {
-    // Use the database function for permission checking
     const { data, error } = await supabase.rpc('current_user_has_permission', {
       permission_name: permission
     });
 
     if (error) {
-      // Fallback to local permission check
       const rolePermissions = await getPermissionsForRoleId(roleId);
       return rolePermissions.includes(permission);
     }
 
     return data === true;
   } catch (error) {
-    // Fallback to local permission check
     const rolePermissions = await getPermissionsForRoleId(roleId);
     return rolePermissions.includes(permission);
   }
@@ -71,12 +50,12 @@ export const getRoleDisplayNameById = async (roleId: number): Promise<string> =>
       .single();
 
     if (error) {
-      return 'Employé'; // Default fallback
+      return 'Employé';
     }
 
     return data?.name || 'Employé';
   } catch (error) {
-    return 'Employé'; // Default fallback
+    return 'Employé';
   }
 };
 
@@ -90,12 +69,12 @@ export const getRoleColorById = async (roleId: number): Promise<string> => {
       .single();
 
     if (error) {
-      return '#6b7280'; // Default gray
+      return '#6b7280';
     }
 
     return data?.color || '#6b7280';
   } catch (error) {
-    return '#6b7280'; // Default gray
+    return '#6b7280';
   }
 };
 
@@ -109,7 +88,6 @@ export const getAllPermissions = async () => {
       .order('name', { ascending: true });
 
     if (error) {
-      // Return empty array if no access
       return [];
     }
 
@@ -140,7 +118,6 @@ export const getPermissionsByCategory = async (category: string) => {
 
 // Legacy functions for backward compatibility
 export const getPermissionsForRole = async (systemGroup: string): Promise<string[]> => {
-  // Map legacy group names to role_id
   const roleIdMap: Record<string, number> = {
     'Administrator': 1,
     'Supervisor': 2,
@@ -176,10 +153,4 @@ export const getRoleColor = async (systemGroup: string): Promise<string> => {
   
   const roleId = roleIdMap[systemGroup] || 3;
   return getRoleColorById(roleId);
-};
-
-// Clear cache function for when groups are updated
-export const clearPermissionsCache = () => {
-  permissionsCache = {};
-  cacheTimestamp = 0;
 };

@@ -4,41 +4,27 @@ import { SystemGroup } from '@/types/systemGroups';
 
 let globalCurrentUser: User | null = null;
 let globalRoles: SystemGroup[] = [];
-let permissionCache: Map<string, boolean> = new Map();
 
 export const setGlobalPermissionState = (user: User | null, roles: SystemGroup[]) => {
   globalCurrentUser = user;
   globalRoles = roles;
-  permissionCache.clear();
 };
 
 export const createPermissionUtils = (users: User[], roles: SystemGroup[]) => {
   setGlobalPermissionState(users[0] || null, roles);
 };
 
-export const clearPermissionCache = () => {
-  permissionCache.clear();
-};
-
 export const hasPermission = (userId: string, permission: string): boolean => {
   try {
-    const cacheKey = `${userId}:${permission}`;
-    if (permissionCache.has(cacheKey)) {
-      return permissionCache.get(cacheKey)!;
-    }
-
     if (!permission || typeof permission !== 'string' || permission.trim() === '') {
-      permissionCache.set(cacheKey, false);
       return false;
     }
 
     if (!globalCurrentUser || !globalCurrentUser.id || globalCurrentUser.id !== userId) {
-      permissionCache.set(cacheKey, false);
       return false;
     }
 
     if (globalCurrentUser.id === 'admin-temp' || globalCurrentUser.role_id === 1) {
-      permissionCache.set(cacheKey, true);
       return true;
     }
 
@@ -50,27 +36,19 @@ export const hasPermission = (userId: string, permission: string): boolean => {
     ];
     
     if (basicPermissions.includes(permission)) {
-      permissionCache.set(cacheKey, true);
       return true;
     }
 
     if (!Array.isArray(globalRoles) || globalRoles.length === 0) {
-      const hasBasic = basicPermissions.includes(permission);
-      permissionCache.set(cacheKey, hasBasic);
-      return hasBasic;
+      return basicPermissions.includes(permission);
     }
 
     const userRole = globalRoles.find(role => (role as any).role_id === globalCurrentUser.role_id);
     if (!userRole) {
-      const hasBasic = basicPermissions.includes(permission);
-      permissionCache.set(cacheKey, hasBasic);
-      return hasBasic;
+      return basicPermissions.includes(permission);
     }
 
-    const hasAccess = Array.isArray(userRole.permissions) && userRole.permissions.includes(permission);
-
-    permissionCache.set(cacheKey, hasAccess);
-    return hasAccess;
+    return Array.isArray(userRole.permissions) && userRole.permissions.includes(permission);
 
   } catch (error) {
     if (globalCurrentUser?.role_id === 1 || globalCurrentUser?.id === 'admin-temp') {

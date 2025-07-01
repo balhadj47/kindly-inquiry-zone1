@@ -9,6 +9,7 @@ import QuickActions from './dashboard/QuickActions';
 import SystemStatus from './dashboard/SystemStatus';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
 import PermissionsDebug from './PermissionsDebug';
+import AdminSetup from './AdminSetup';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const Dashboard = () => {
@@ -110,6 +111,9 @@ const Dashboard = () => {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">{t.dashboard}</h1>
       </div>
+
+      {/* Admin Setup - for users without roles */}
+      <AdminSetup />
 
       {/* Temporary Debug Section */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">

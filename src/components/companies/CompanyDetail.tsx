@@ -162,12 +162,17 @@ const CompanyDetail = () => {
         </CardHeader>
         <CardContent>
           <div className="text-sm text-yellow-700 space-y-1">
-            <p><strong>Current User Role ID:</strong> {permissions.currentUser?.role_id || 'Not found'}</p>
+            <p><strong>Current User Role ID:</strong> {
+              permissions.currentUser?.role_id !== undefined 
+                ? permissions.currentUser.role_id 
+                : 'No role assigned'
+            }</p>
             <p><strong>Is Admin:</strong> {permissions.isAdmin ? 'Yes' : 'No'}</p>
             <p><strong>Is View Only:</strong> {permissions.isViewOnly ? 'Yes' : 'No'}</p>
             <p><strong>Can Create Companies:</strong> {permissions.canCreateCompanies ? 'Yes' : 'No'}</p>
             <p><strong>Can Update Companies:</strong> {permissions.canUpdateCompanies ? 'Yes' : 'No'}</p>
             <p><strong>Can Delete Companies:</strong> {permissions.canDeleteCompanies ? 'Yes' : 'No'}</p>
+            <p><strong>Current User Data:</strong> {JSON.stringify(permissions.currentUser, null, 2)}</p>
           </div>
         </CardContent>
       </Card>

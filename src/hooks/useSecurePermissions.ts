@@ -28,6 +28,7 @@ export const useSecurePermissions = () => {
         return null;
       }
       console.log('🔒 Current user data:', data);
+      console.log('🔒 Current user role_id specifically:', data?.role_id);
       return data;
     },
     enabled: !!authUser,

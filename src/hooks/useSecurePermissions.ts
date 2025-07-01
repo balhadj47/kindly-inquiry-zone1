@@ -69,6 +69,65 @@ export const useSecurePermissions = () => {
     gcTime: 60000,
   });
 
+  // Debug: Let's also check the user's role directly
+  const { data: userRoleInfo = null } = useQuery({
+    queryKey: ['user-role-debug', authUser?.id],
+    queryFn: async () => {
+      if (!authUser) return null;
+      
+      try {
+        // Check if user exists in users table
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('id, name, email, role_id, auth_user_id')
+          .eq('auth_user_id', authUser.id)
+          .single();
+        
+        if (userError) {
+          console.error('❌ User lookup failed:', userError);
+          return { userExists: false, error: userError.message };
+        }
+
+        console.log('🔍 User found in database:', userData);
+
+        // Check role information
+        if (userData.role_id) {
+          const { data: roleData, error: roleError } = await supabase
+            .from('user_groups')
+            .select('*')
+            .eq('role_id', userData.role_id)
+            .single();
+          
+          if (roleError) {
+            console.error('❌ Role lookup failed:', roleError);
+            return { 
+              userExists: true, 
+              userData, 
+              roleExists: false, 
+              roleError: roleError.message 
+            };
+          }
+
+          console.log('🔍 Role found:', roleData);
+          return { 
+            userExists: true, 
+            userData, 
+            roleExists: true, 
+            roleData 
+          };
+        }
+
+        return { userExists: true, userData, roleExists: false };
+      } catch (error) {
+        console.error('❌ Debug query failed:', error);
+        return { error: error.message };
+      }
+    },
+    enabled: !!authUser,
+    staleTime: 30000,
+    gcTime: 60000,
+  });
+
   // Secure permission checker - always hits database
   const checkPermission = async (permission: string): Promise<boolean> => {
     if (!authUser) return false;
@@ -92,10 +151,16 @@ export const useSecurePermissions = () => {
 
   // Synchronous permission checker (uses fresh query data only)
   const hasPermission = (permission: string): boolean => {
-    if (!authUser) return false;
+    if (!authUser) {
+      console.log('🚫 No auth user for permission check:', permission);
+      return false;
+    }
     
     // Admin has all permissions
-    if (isAdmin) return true;
+    if (isAdmin) {
+      console.log('🔓 Admin permission granted:', permission);
+      return true;
+    }
     
     // Check if user has the specific permission in their permissions array
     const hasDirectPermission = userPermissions.includes(permission);
@@ -104,7 +169,7 @@ export const useSecurePermissions = () => {
       return true;
     }
     
-    // Basic permissions that all authenticated users should have
+    // Enhanced basic permissions that all authenticated users should have
     const basicPermissions = [
       'dashboard:read',
       'companies:read', 
@@ -118,7 +183,12 @@ export const useSecurePermissions = () => {
       return true;
     }
     
-    console.log('🚫 Permission denied:', permission, 'User permissions:', userPermissions);
+    console.log('🚫 Permission denied:', permission, {
+      userPermissions,
+      isAdmin,
+      currentUser: currentUser?.id,
+      userRoleInfo
+    });
     return false;
   };
 
@@ -128,6 +198,7 @@ export const useSecurePermissions = () => {
     checkPermission,
     hasPermission,
     currentUser,
+    userRoleInfo, // Debug info
     // Specific secure permission helpers
     canReadCompanies: hasPermission('companies:read'),
     canCreateCompanies: hasPermission('companies:create'),
@@ -159,7 +230,8 @@ export const useSecurePermissions = () => {
     canReadTrips: permissions.canReadTrips,
     userPermissions: userPermissions.length,
     permissions: userPermissions,
-    currentUser: currentUser?.id || 'null'
+    currentUser: currentUser?.id || 'null',
+    userRoleInfo: userRoleInfo ? 'loaded' : 'null'
   });
 
   return permissions;

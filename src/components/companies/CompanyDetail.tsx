@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -44,6 +43,7 @@ const CompanyDetail = () => {
       canUpdateCompanies: permissions.canUpdateCompanies,
       canDeleteCompanies: permissions.canDeleteCompanies,
       isAdmin: permissions.isAdmin,
+      isViewOnly: permissions.isViewOnly,
       currentUser: permissions.currentUser
     });
     if (company) {
@@ -58,7 +58,7 @@ const CompanyDetail = () => {
 
   const handleAddBranch = () => {
     console.log('🔒 Attempting to add branch - canCreateCompanies:', permissions.canCreateCompanies);
-    if (!permissions.canCreateCompanies) {
+    if (!permissions.canCreateCompanies || permissions.isViewOnly) {
       console.log('❌ Permission denied: Cannot create branches');
       return;
     }
@@ -68,7 +68,7 @@ const CompanyDetail = () => {
 
   const handleEditBranch = (branch: Branch) => {
     console.log('🔒 Attempting to edit branch - canUpdateCompanies:', permissions.canUpdateCompanies);
-    if (!permissions.canUpdateCompanies) {
+    if (!permissions.canUpdateCompanies || permissions.isViewOnly) {
       console.log('❌ Permission denied: Cannot edit branches');
       return;
     }
@@ -78,7 +78,7 @@ const CompanyDetail = () => {
 
   const handleDeleteBranch = (branch: Branch) => {
     console.log('🔒 Attempting to delete branch - canDeleteCompanies:', permissions.canDeleteCompanies);
-    if (!permissions.canDeleteCompanies) {
+    if (!permissions.canDeleteCompanies || permissions.isViewOnly) {
       console.log('❌ Permission denied: Cannot delete branches');
       return;
     }
@@ -155,7 +155,7 @@ const CompanyDetail = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Debug Panel for Permission Testing */}
+      {/* Permission Debug Panel */}
       <Card className="bg-yellow-50 border-yellow-200">
         <CardHeader>
           <CardTitle className="text-yellow-800">Permission Debug Info</CardTitle>
@@ -164,6 +164,7 @@ const CompanyDetail = () => {
           <div className="text-sm text-yellow-700 space-y-1">
             <p><strong>Current User Role ID:</strong> {permissions.currentUser?.role_id || 'Not found'}</p>
             <p><strong>Is Admin:</strong> {permissions.isAdmin ? 'Yes' : 'No'}</p>
+            <p><strong>Is View Only:</strong> {permissions.isViewOnly ? 'Yes' : 'No'}</p>
             <p><strong>Can Create Companies:</strong> {permissions.canCreateCompanies ? 'Yes' : 'No'}</p>
             <p><strong>Can Update Companies:</strong> {permissions.canUpdateCompanies ? 'Yes' : 'No'}</p>
             <p><strong>Can Delete Companies:</strong> {permissions.canDeleteCompanies ? 'Yes' : 'No'}</p>
@@ -247,7 +248,7 @@ const CompanyDetail = () => {
             <span className="text-sm text-gray-500">
               {branches.length} {branches.length === 1 ? t.branch : t.branches.toLowerCase()}
             </span>
-            {permissions.canCreateCompanies ? (
+            {permissions.canCreateCompanies && !permissions.isViewOnly ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -266,7 +267,7 @@ const CompanyDetail = () => {
               </TooltipProvider>
             ) : (
               <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded">
-                {t.noPermissionToAdd}
+                {permissions.isViewOnly ? 'View-only mode' : t.noPermissionToAdd}
               </div>
             )}
           </div>
@@ -280,7 +281,7 @@ const CompanyDetail = () => {
               <p className="text-gray-500 text-center mb-4">
                 Cette entreprise n'a pas encore de succursales enregistrées.
               </p>
-              {permissions.canCreateCompanies && (
+              {permissions.canCreateCompanies && !permissions.isViewOnly && (
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -309,8 +310,8 @@ const CompanyDetail = () => {
                   key={branch.id}
                   branch={branch}
                   onClick={handleBranchClick}
-                  onEdit={permissions.canUpdateCompanies ? handleEditBranch : undefined}
-                  onDelete={permissions.canDeleteCompanies ? handleDeleteBranch : undefined}
+                  onEdit={permissions.canUpdateCompanies && !permissions.isViewOnly ? handleEditBranch : undefined}
+                  onDelete={permissions.canDeleteCompanies && !permissions.isViewOnly ? handleDeleteBranch : undefined}
                 />
               );
             })}
@@ -318,7 +319,7 @@ const CompanyDetail = () => {
         )}
       </div>
 
-      {(permissions.canCreateCompanies || permissions.canUpdateCompanies) && (
+      {(permissions.canCreateCompanies || permissions.canUpdateCompanies) && !permissions.isViewOnly && (
         <BranchModal
           isOpen={isBranchModalOpen}
           onClose={() => setIsBranchModalOpen(false)}
@@ -329,7 +330,7 @@ const CompanyDetail = () => {
         />
       )}
 
-      {permissions.canDeleteCompanies && (
+      {permissions.canDeleteCompanies && !permissions.isViewOnly && (
         <BranchDeleteDialog
           isOpen={isDeleteDialogOpen}
           onClose={() => setIsDeleteDialogOpen(false)}

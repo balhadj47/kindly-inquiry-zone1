@@ -14,32 +14,51 @@ interface UseRBACOperationsProps {
 export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: UseRBACOperationsProps) => {
   const [loading, setLoading] = useState(false);
 
-  // Fetch all available permissions
+  // Fetch all available permissions (mock implementation for now)
   const getAvailablePermissions = async (): Promise<Permission[]> => {
     try {
-      const { data, error } = await supabase
-        .from('permissions')
-        .select('*')
-        .order('category', { ascending: true })
-        .order('name', { ascending: true });
+      // Return mock permissions matching the new structure
+      const mockPermissions: Permission[] = [
+        { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
+        { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },
+        { id: 3, name: 'companies:create', description: 'Create companies', category: 'companies', created_at: new Date().toISOString() },
+        { id: 4, name: 'companies:update', description: 'Update companies', category: 'companies', created_at: new Date().toISOString() },
+        { id: 5, name: 'companies:delete', description: 'Delete companies', category: 'companies', created_at: new Date().toISOString() },
+        { id: 6, name: 'vans:read', description: 'View vans', category: 'vans', created_at: new Date().toISOString() },
+        { id: 7, name: 'vans:create', description: 'Create vans', category: 'vans', created_at: new Date().toISOString() },
+        { id: 8, name: 'vans:update', description: 'Update vans', category: 'vans', created_at: new Date().toISOString() },
+        { id: 9, name: 'vans:delete', description: 'Delete vans', category: 'vans', created_at: new Date().toISOString() },
+        { id: 10, name: 'users:read', description: 'View users', category: 'users', created_at: new Date().toISOString() },
+        { id: 11, name: 'users:create', description: 'Create users', category: 'users', created_at: new Date().toISOString() },
+        { id: 12, name: 'users:update', description: 'Update users', category: 'users', created_at: new Date().toISOString() },
+        { id: 13, name: 'users:delete', description: 'Delete users', category: 'users', created_at: new Date().toISOString() },
+        { id: 14, name: 'trips:read', description: 'View trips', category: 'trips', created_at: new Date().toISOString() },
+        { id: 15, name: 'trips:create', description: 'Create trips', category: 'trips', created_at: new Date().toISOString() },
+        { id: 16, name: 'trips:update', description: 'Update trips', category: 'trips', created_at: new Date().toISOString() },
+        { id: 17, name: 'trips:delete', description: 'Delete trips', category: 'trips', created_at: new Date().toISOString() },
+        { id: 18, name: 'auth-users:read', description: 'View auth users', category: 'auth-users', created_at: new Date().toISOString() },
+        { id: 19, name: 'groups:read', description: 'View system groups', category: 'groups', created_at: new Date().toISOString() },
+        { id: 20, name: 'groups:manage', description: 'Manage system groups', category: 'groups', created_at: new Date().toISOString() },
+      ];
 
-      if (error) throw error;
-      return data || [];
+      return mockPermissions;
     } catch (error) {
       console.error('Error fetching permissions:', error);
       return [];
     }
   };
 
-  // Get permissions for a specific role
+  // Get permissions for a specific role (using legacy array for now)
   const getRolePermissions = async (roleId: number): Promise<string[]> => {
     try {
-      const { data, error } = await supabase.rpc('get_role_permissions', {
-        role_id_param: roleId
-      });
+      const { data, error } = await supabase
+        .from('user_groups')
+        .select('permissions')
+        .eq('role_id', roleId)
+        .single();
 
       if (error) throw error;
-      return data?.map((row: any) => row.permission_name) || [];
+      return data?.permissions || [];
     } catch (error) {
       console.error('Error fetching role permissions:', error);
       return [];
@@ -57,28 +76,18 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
           name: roleData.name,
           description: roleData.description || '',
           color: roleData.color || '#3b82f6',
-          role_id: roleData.role_id
+          role_id: roleData.role_id,
+          permissions: roleData.permissions || []
         })
         .select()
         .single();
 
       if (roleError) throw roleError;
 
-      // Assign permissions using the new normalized structure
-      if (roleData.permissions && roleData.permissions.length > 0 && newRole.role_id) {
-        for (const permissionName of roleData.permissions) {
-          await supabase.rpc('assign_permission_to_role', {
-            role_id_param: newRole.role_id,
-            permission_name_param: permissionName
-          });
-        }
-      }
-
       // Update local state
-      const updatedPermissions = await getRolePermissions(newRole.role_id);
       const roleWithPermissions = {
         ...newRole,
-        permissions: updatedPermissions
+        permissions: roleData.permissions || []
       };
 
       setRoles(prev => [...prev, roleWithPermissions]);
@@ -100,7 +109,8 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
         .update({
           name: roleData.name,
           description: roleData.description,
-          color: roleData.color
+          color: roleData.color,
+          permissions: roleData.permissions || []
         })
         .eq('id', id)
         .select()
@@ -108,39 +118,9 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
 
       if (roleError) throw roleError;
 
-      // Update permissions if provided and role_id exists
-      if (roleData.permissions && updatedRole.role_id) {
-        // Get current permissions
-        const currentPermissions = await getRolePermissions(updatedRole.role_id);
-        
-        // Remove permissions not in the new list
-        for (const currentPerm of currentPermissions) {
-          if (!roleData.permissions.includes(currentPerm)) {
-            await supabase.rpc('remove_permission_from_role', {
-              role_id_param: updatedRole.role_id,
-              permission_name_param: currentPerm
-            });
-          }
-        }
-
-        // Add new permissions
-        for (const newPerm of roleData.permissions) {
-          if (!currentPermissions.includes(newPerm)) {
-            await supabase.rpc('assign_permission_to_role', {
-              role_id_param: updatedRole.role_id,
-              permission_name_param: newPerm
-            });
-          }
-        }
-      }
-
-      // Get updated permissions
-      const updatedPermissions = updatedRole.role_id ? 
-        await getRolePermissions(updatedRole.role_id) : [];
-
       const roleWithPermissions = {
         ...updatedRole,
-        permissions: updatedPermissions
+        permissions: roleData.permissions || []
       };
 
       // Update local state
@@ -161,16 +141,6 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
   const deleteRole = async (id: string): Promise<void> => {
     setLoading(true);
     try {
-      const roleToDelete = roles.find(role => role.id === id);
-      
-      if (roleToDelete?.role_id) {
-        // Remove all role permissions first (cascade should handle this, but being explicit)
-        await supabase
-          .from('role_permissions')
-          .delete()
-          .eq('role_id', roleToDelete.role_id);
-      }
-
       // Delete the role
       const { error } = await supabase
         .from('user_groups')

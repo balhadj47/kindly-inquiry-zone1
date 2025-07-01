@@ -6,7 +6,7 @@ let permissionsCache: Record<number, string[]> = {};
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper function to get permissions for a role_id using the new normalized structure
+// Helper function to get permissions for a role_id using current structure (will be updated later)
 export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
   console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
   
@@ -18,17 +18,20 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 
   try {
-    // Use the new normalized structure via database function
-    const { data, error } = await supabase.rpc('get_role_permissions', {
-      role_id_param: roleId
-    });
+    // For now, get permissions from the legacy array structure
+    // Later this will use the new normalized tables
+    const { data, error } = await supabase
+      .from('user_groups')
+      .select('permissions')
+      .eq('role_id', roleId)
+      .single();
 
     if (error) {
       console.error('❌ Error fetching permissions for role_id', roleId, ':', error);
       return ['dashboard:read']; // Default fallback
     }
 
-    const permissions = data?.map((row: any) => row.permission_name) || ['dashboard:read'];
+    const permissions = data?.permissions || ['dashboard:read'];
     
     // Update cache
     permissionsCache[roleId] = permissions;
@@ -42,7 +45,7 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 };
 
-// Check if a role_id has a specific permission using the new structure
+// Check if a role_id has a specific permission
 export const roleIdHasPermission = async (roleId: number, permission: string): Promise<boolean> => {
   console.log('🔐 roleIdHasPermission called with roleId:', roleId, 'permission:', permission);
   const rolePermissions = await getPermissionsForRoleId(roleId);
@@ -93,40 +96,45 @@ export const getRoleColorById = async (roleId: number): Promise<string> => {
   }
 };
 
-// Get all available permissions with categories
+// Get all available permissions (mock data for now)
 export const getAllPermissions = async () => {
   try {
-    const { data, error } = await supabase
-      .from('permissions')
-      .select('*')
-      .order('category')
-      .order('name');
+    // Return mock permissions matching the new structure
+    const mockPermissions = [
+      { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
+      { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },
+      { id: 3, name: 'companies:create', description: 'Create companies', category: 'companies', created_at: new Date().toISOString() },
+      { id: 4, name: 'companies:update', description: 'Update companies', category: 'companies', created_at: new Date().toISOString() },
+      { id: 5, name: 'companies:delete', description: 'Delete companies', category: 'companies', created_at: new Date().toISOString() },
+      { id: 6, name: 'vans:read', description: 'View vans', category: 'vans', created_at: new Date().toISOString() },
+      { id: 7, name: 'vans:create', description: 'Create vans', category: 'vans', created_at: new Date().toISOString() },
+      { id: 8, name: 'vans:update', description: 'Update vans', category: 'vans', created_at: new Date().toISOString() },
+      { id: 9, name: 'vans:delete', description: 'Delete vans', category: 'vans', created_at: new Date().toISOString() },
+      { id: 10, name: 'users:read', description: 'View users', category: 'users', created_at: new Date().toISOString() },
+      { id: 11, name: 'users:create', description: 'Create users', category: 'users', created_at: new Date().toISOString() },
+      { id: 12, name: 'users:update', description: 'Update users', category: 'users', created_at: new Date().toISOString() },
+      { id: 13, name: 'users:delete', description: 'Delete users', category: 'users', created_at: new Date().toISOString() },
+      { id: 14, name: 'trips:read', description: 'View trips', category: 'trips', created_at: new Date().toISOString() },
+      { id: 15, name: 'trips:create', description: 'Create trips', category: 'trips', created_at: new Date().toISOString() },
+      { id: 16, name: 'trips:update', description: 'Update trips', category: 'trips', created_at: new Date().toISOString() },
+      { id: 17, name: 'trips:delete', description: 'Delete trips', category: 'trips', created_at: new Date().toISOString() },
+      { id: 18, name: 'auth-users:read', description: 'View auth users', category: 'auth-users', created_at: new Date().toISOString() },
+      { id: 19, name: 'groups:read', description: 'View system groups', category: 'groups', created_at: new Date().toISOString() },
+      { id: 20, name: 'groups:manage', description: 'Manage system groups', category: 'groups', created_at: new Date().toISOString() },
+    ];
 
-    if (error) {
-      console.error('❌ Error fetching all permissions:', error);
-      return [];
-    }
-
-    return data || [];
+    return mockPermissions;
   } catch (error) {
     console.error('❌ Exception fetching all permissions:', error);
     return [];
   }
 };
 
-// Get permissions by category
+// Get permissions by category (mock implementation)
 export const getPermissionsByCategory = async (category: string) => {
   try {
-    const { data, error } = await supabase.rpc('get_permissions_by_category', {
-      category_name: category
-    });
-
-    if (error) {
-      console.error('❌ Error fetching permissions for category', category, ':', error);
-      return [];
-    }
-
-    return data || [];
+    const allPermissions = await getAllPermissions();
+    return allPermissions.filter(p => p.category === category);
   } catch (error) {
     console.error('❌ Exception fetching permissions for category', category, ':', error);
     return [];

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
@@ -11,6 +10,7 @@ import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 import { useProcessedEmployees } from './EmployeesDataTransformer';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const EmployeesContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,12 +37,13 @@ const EmployeesContainer = () => {
   } = useEmployeeActions(refetch);
 
   const {
-    authUser,
     canCreateUsers,
     canEditUsers,
     canDeleteUsers,
     hasUsersReadPermission,
   } = useEmployeePermissions();
+
+  const permissions = usePermissions();
 
   // Enhanced component mount effect with error handling
   useEffect(() => {
@@ -128,7 +129,7 @@ const EmployeesContainer = () => {
     );
   }
 
-  if (!authUser) {
+  if (!permissions.isAuthenticated) {
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>

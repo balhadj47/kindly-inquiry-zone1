@@ -52,12 +52,10 @@ const Index = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const permissions = useSecurePermissions();
 
-  // Show loading while auth is loading
   if (authLoading) {
     return <PageLoadingSkeleton />;
   }
 
-  // If no auth user, show access denied
   if (!authUser) {
     return <AccessDenied />;
   }
@@ -68,10 +66,8 @@ const Index = () => {
       <Sonner />
       
       <TooltipProvider>
-        {/* Desktop Sidebar */}
         {!isMobile && <AppSidebar />}
         
-        {/* Main Content Area */}
         <SidebarInset>
           <TopBar />
           <main className={`flex-1 bg-gray-50 overflow-y-auto ${
@@ -119,7 +115,6 @@ const Index = () => {
           </main>
         </SidebarInset>
         
-        {/* Mobile Bottom Navigation */}
         {isMobile && <MobileBottomNav />}
       </TooltipProvider>
     </>

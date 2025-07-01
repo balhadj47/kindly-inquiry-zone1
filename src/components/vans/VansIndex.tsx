@@ -81,12 +81,10 @@ const VansIndex: React.FC<VansIndexProps> = ({ onRefresh, isRefreshing = false }
     sortDirection,
   });
 
-  // Show loading only when actually loading
   if (isLoading) {
     return <VansLoadingSkeleton />;
   }
 
-  // Show error state
   if (isError) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">

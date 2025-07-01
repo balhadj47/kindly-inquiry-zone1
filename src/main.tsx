@@ -30,16 +30,6 @@ if (typeof window !== 'undefined') {
   (globalThis as any).React = React;
 }
 
-const validateReact = () => {
-  if (!React || typeof React !== 'object') {
-    throw new Error('React not available - React not properly loaded');
-  }
-  
-  return true;
-};
-
-validateReact();
-
 if (!isBrowserSupported()) {
   document.body.innerHTML = `
     <div style="
@@ -121,9 +111,6 @@ const ErrorFallback = () => {
 
 const SafeApp = () => {
   try {
-    if (!React || typeof React !== 'object') {
-      throw new Error('React is not available at runtime');
-    }
     return <App />;
   } catch (error) {
     return <ErrorFallback />;

@@ -8,8 +8,6 @@ import { RBACContext } from './context';
 import type { RBACContextType, RBACProviderProps } from './types';
 
 export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
-  console.log('🔄 RBACProvider: Initializing...');
-  
   const { user: authUser } = useAuth();
   const [rolesLoaded, setRolesLoaded] = useState(false);
   
@@ -19,13 +17,9 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
   // Initialize roles from database on provider mount
   useEffect(() => {
     const initializeRoles = async () => {
-      console.log('🔄 RBACProvider: Setting up roles to be fetched from database...');
       try {
-        // No more caching - roles are fetched directly each time
-        console.log('✅ RBACProvider: Roles will be fetched directly from database when needed');
         setRolesLoaded(true);
       } catch (error) {
-        console.error('❌ RBACProvider: Error setting up roles:', error);
         setRolesLoaded(true); // Continue even if setup fails
       }
     };
@@ -58,7 +52,6 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
 
   // Wait for both RBAC data and roles to be loaded
   if (rbacState.loading || !rolesLoaded) {
-    console.log('🔄 RBACProvider: Still loading...', { loading: rbacState.loading, rolesLoaded });
     return (
       <RBACContext.Provider value={{
         currentUser: null,
@@ -83,13 +76,6 @@ export const RBACProvider: React.FC<RBACProviderProps> = ({ children }) => {
     setUser: rbacState.setCurrentUser,
     ...operations,
   };
-
-  console.log('✅ RBACProvider: Context ready', {
-    currentUser: rbacState.currentUser?.id,
-    usersCount: rbacState.users.length,
-    rolesCount: rbacState.roles.length,
-    permissionsCount: rbacState.permissions.length,
-  });
 
   return (
     <RBACContext.Provider value={contextValue}>

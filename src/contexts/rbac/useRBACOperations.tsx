@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { supabase, createUserAsAdmin } from '@/integrations/supabase/client';
 import { User } from '@/types/rbac';
@@ -14,83 +15,88 @@ interface UseRBACOperationsProps {
 export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: UseRBACOperationsProps) => {
   const [loading, setLoading] = useState(false);
 
-  // Fetch all available permissions (mock implementation for now)
+  // Fetch all available permissions using secure database access
   const getAvailablePermissions = async (): Promise<Permission[]> => {
     try {
-      // Return mock permissions matching the new structure
-      const mockPermissions: Permission[] = [
-        { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
-        { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 3, name: 'companies:create', description: 'Create companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 4, name: 'companies:update', description: 'Update companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 5, name: 'companies:delete', description: 'Delete companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 6, name: 'vans:read', description: 'View vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 7, name: 'vans:create', description: 'Create vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 8, name: 'vans:update', description: 'Update vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 9, name: 'vans:delete', description: 'Delete vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 10, name: 'users:read', description: 'View users', category: 'users', created_at: new Date().toISOString() },
-        { id: 11, name: 'users:create', description: 'Create users', category: 'users', created_at: new Date().toISOString() },
-        { id: 12, name: 'users:update', description: 'Update users', category: 'users', created_at: new Date().toISOString() },
-        { id: 13, name: 'users:delete', description: 'Delete users', category: 'users', created_at: new Date().toISOString() },
-        { id: 14, name: 'trips:read', description: 'View trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 15, name: 'trips:create', description: 'Create trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 16, name: 'trips:update', description: 'Update trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 17, name: 'trips:delete', description: 'Delete trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 18, name: 'auth-users:read', description: 'View auth users', category: 'auth-users', created_at: new Date().toISOString() },
-        { id: 19, name: 'groups:read', description: 'View system groups', category: 'groups', created_at: new Date().toISOString() },
-        { id: 20, name: 'groups:manage', description: 'Manage system groups', category: 'groups', created_at: new Date().toISOString() },
-      ];
+      const { data: permissions, error } = await supabase
+        .from('permissions')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
 
-      return mockPermissions;
+      if (error) {
+        console.error('Error fetching permissions:', error);
+        return [];
+      }
+
+      return permissions || [];
     } catch (error) {
       console.error('Error fetching permissions:', error);
       return [];
     }
   };
 
-  // Get permissions for a specific role (using legacy array for now)
+  // Get permissions for a specific role using secure database access
   const getRolePermissions = async (roleId: number): Promise<string[]> => {
     try {
       const { data, error } = await supabase
         .from('user_groups')
-        .select('permissions')
+        .select(`
+          permissions,
+          role_permissions!inner(
+            permissions!inner(name)
+          )
+        `)
         .eq('role_id', roleId)
         .single();
 
       if (error) throw error;
-      return data?.permissions || [];
+      
+      // Combine array permissions and relational permissions
+      const arrayPermissions = data?.permissions || [];
+      const relationalPermissions = data?.role_permissions?.map((rp: any) => rp.permissions.name) || [];
+      
+      return [...new Set([...arrayPermissions, ...relationalPermissions])];
     } catch (error) {
       console.error('Error fetching role permissions:', error);
       return [];
     }
   };
 
-  // Add role with permissions
+  // Add role with permissions using secure admin function
   const addRole = async (roleData: Partial<SystemGroup>): Promise<void> => {
     setLoading(true);
     try {
-      // Create the role in user_groups (keeping existing structure for compatibility)
-      const { data: newRole, error: roleError } = await supabase
-        .from('user_groups')
-        .insert({
-          name: roleData.name,
-          description: roleData.description || '',
-          color: roleData.color || '#3b82f6',
-          role_id: roleData.role_id,
-          permissions: roleData.permissions || []
-        })
-        .select()
-        .single();
+      // Use the secure admin function
+      const { data: newRole, error: roleError } = await supabase.rpc('admin_create_role', {
+        p_name: roleData.name,
+        p_description: roleData.description || '',
+        p_color: roleData.color || '#3b82f6',
+        p_permissions: roleData.permissions || []
+      });
 
-      if (roleError) throw roleError;
+      if (roleError) {
+        console.error('Error creating role:', roleError);
+        if (roleError.message?.includes('Admin privileges required')) {
+          throw new Error('You do not have permission to create roles');
+        }
+        throw roleError;
+      }
 
       // Update local state
-      const roleWithPermissions = {
-        ...newRole,
-        permissions: roleData.permissions || []
-      };
+      if (newRole && newRole.length > 0) {
+        const roleWithPermissions = {
+          id: newRole[0].id,
+          name: newRole[0].name,
+          description: newRole[0].description,
+          color: newRole[0].color,
+          role_id: newRole[0].role_id,
+          permissions: newRole[0].permissions || [],
+          isSystemRole: false
+        };
 
-      setRoles(prev => [...prev, roleWithPermissions]);
+        setRoles(prev => [...prev, roleWithPermissions]);
+      }
     } catch (error) {
       console.error('Error adding role:', error);
       throw error;
@@ -99,24 +105,39 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
     }
   };
 
-  // Update role with permissions
+  // Update role with permissions using secure admin function
   const updateRole = async (id: string, roleData: Partial<SystemGroup>): Promise<SystemGroup> => {
     setLoading(true);
     try {
-      // Update the role in user_groups
-      const { data: updatedRole, error: roleError } = await supabase
+      // Use the secure admin function
+      const { data: success, error: roleError } = await supabase.rpc('admin_update_role', {
+        p_role_id: id,
+        p_name: roleData.name,
+        p_description: roleData.description,
+        p_color: roleData.color,
+        p_permissions: roleData.permissions || []
+      });
+
+      if (roleError) {
+        console.error('Error updating role:', roleError);
+        if (roleError.message?.includes('Admin privileges required')) {
+          throw new Error('You do not have permission to update roles');
+        }
+        throw roleError;
+      }
+
+      if (!success) {
+        throw new Error('Failed to update role');
+      }
+
+      // Fetch updated role data
+      const { data: updatedRole, error: fetchError } = await supabase
         .from('user_groups')
-        .update({
-          name: roleData.name,
-          description: roleData.description,
-          color: roleData.color,
-          permissions: roleData.permissions || []
-        })
+        .select('*')
         .eq('id', id)
-        .select()
         .single();
 
-      if (roleError) throw roleError;
+      if (fetchError) throw fetchError;
 
       const roleWithPermissions = {
         ...updatedRole,
@@ -137,17 +158,30 @@ export const useRBACOperations = ({ currentUser, roles, setUsers, setRoles }: Us
     }
   };
 
-  // Delete role
+  // Delete role using database access with permission check
   const deleteRole = async (id: string): Promise<void> => {
     setLoading(true);
     try {
+      // Check if user is admin first
+      const { data: isAdmin, error: adminCheckError } = await supabase.rpc('current_user_is_admin');
+      
+      if (adminCheckError || !isAdmin) {
+        throw new Error('You do not have permission to delete roles');
+      }
+
       // Delete the role
       const { error } = await supabase
         .from('user_groups')
         .delete()
         .eq('id', id);
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error deleting role:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          throw new Error('You do not have permission to delete roles');
+        }
+        throw error;
+      }
 
       // Update local state
       setRoles(prev => prev.filter(role => role.id !== id));

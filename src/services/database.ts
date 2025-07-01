@@ -23,6 +23,19 @@ export class DatabaseService {
       
       console.log('🔍 DatabaseService: Authenticated user:', user.email);
       
+      // Check permission using database function
+      const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_read_companies');
+      
+      if (permError) {
+        console.error('🔍 DatabaseService: Permission check failed:', permError);
+        return [];
+      }
+      
+      if (!hasPermission) {
+        console.warn('🔍 DatabaseService: User does not have permission to read companies');
+        return [];
+      }
+      
       console.log('🔍 DatabaseService: Executing companies query with branches...');
       const { data, error } = await supabase
         .from('companies')
@@ -52,24 +65,6 @@ export class DatabaseService {
         throw error;
       }
       
-      console.log('🔍 DatabaseService: Raw companies data received:', data);
-      
-      // Log detailed information about each company and its branches
-      if (data && data.length > 0) {
-        data.forEach((company, index) => {
-          console.log(`🔍 Company ${index + 1}: "${company.name}"`);
-          console.log(`   - ID: ${company.id}`);
-          console.log(`   - Branches count: ${company.branches?.length || 0}`);
-          if (company.branches && company.branches.length > 0) {
-            company.branches.forEach((branch, branchIndex) => {
-              console.log(`   - Branch ${branchIndex + 1}: "${branch.name}" (ID: ${branch.id})`);
-            });
-          } else {
-            console.log('   - No branches found for this company');
-          }
-        });
-      }
-      
       console.log('🔍 DatabaseService: Companies fetched successfully:', {
         companiesCount: data?.length || 0,
         totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
@@ -91,7 +86,16 @@ export class DatabaseService {
     await requireAuth();
     
     console.log('🔍 DatabaseService: Attempting to create company');
-    const { data, error }= await supabase
+    
+    // Check permission using database function
+    const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_create_companies');
+    
+    if (permError || !hasPermission) {
+      console.error('🔍 DatabaseService: No permission to create companies');
+      throw new Error('You do not have permission to create companies');
+    }
+    
+    const { data, error } = await supabase
       .from('companies')
       .insert(company)
       .select()
@@ -113,6 +117,15 @@ export class DatabaseService {
     await requireAuth();
     
     console.log('🔍 DatabaseService: Attempting to update company:', id);
+    
+    // Check permission using database function
+    const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_update_companies');
+    
+    if (permError || !hasPermission) {
+      console.error('🔍 DatabaseService: No permission to update companies');
+      throw new Error('You do not have permission to update companies');
+    }
+    
     const { data, error } = await supabase
       .from('companies')
       .update(updates)
@@ -136,6 +149,15 @@ export class DatabaseService {
     await requireAuth();
     
     console.log('🔍 DatabaseService: Attempting to delete company:', id);
+    
+    // Check permission using database function
+    const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_delete_companies');
+    
+    if (permError || !hasPermission) {
+      console.error('🔍 DatabaseService: No permission to delete companies');
+      throw new Error('You do not have permission to delete companies');
+    }
+    
     const { error } = await supabase
       .from('companies')
       .delete()
@@ -388,7 +410,7 @@ export class DatabaseService {
     return data;
   }
 
-  // User Groups with current permissions structure
+  // User Groups with secure permissions structure
   static async getUserGroups() {
     console.log('🔍 DatabaseService: Attempting to fetch user groups with permissions');
     
@@ -399,10 +421,20 @@ export class DatabaseService {
         throw new Error('Authentication required');
       }
       
-      // Fetch user groups
+      // Fetch user groups with both array and relational permissions
       const { data: groups, error: groupsError } = await supabase
         .from('user_groups')
-        .select('*')
+        .select(`
+          *,
+          role_permissions!left(
+            permissions!inner(
+              id,
+              name,
+              description,
+              category
+            )
+          )
+        `)
         .order('name');
       
       if (groupsError) {
@@ -414,11 +446,17 @@ export class DatabaseService {
         throw groupsError;
       }
 
-      // Return groups with their existing permissions array
-      const groupsWithPermissions = (groups || []).map(group => ({
-        ...group,
-        permissions: group.permissions || []
-      }));
+      // Combine array permissions and relational permissions
+      const groupsWithPermissions = (groups || []).map(group => {
+        const arrayPermissions = group.permissions || [];
+        const relationalPermissions = group.role_permissions?.map((rp: any) => rp.permissions.name) || [];
+        const allPermissions = [...new Set([...arrayPermissions, ...relationalPermissions])];
+        
+        return {
+          ...group,
+          permissions: allPermissions
+        };
+      });
       
       console.log('🔍 DatabaseService: User groups with permissions fetched successfully:', groupsWithPermissions.length, 'items');
       return groupsWithPermissions;
@@ -428,7 +466,7 @@ export class DatabaseService {
     }
   }
 
-  // Get all available permissions (mock data for now)
+  // Get all available permissions using secure access
   static async getPermissions() {
     console.log('🔍 DatabaseService: Attempting to fetch permissions');
     
@@ -439,51 +477,164 @@ export class DatabaseService {
         throw new Error('Authentication required');
       }
       
-      // Return mock permissions data
-      const mockPermissions = [
-        { id: 1, name: 'dashboard:read', description: 'View dashboard', category: 'dashboard', created_at: new Date().toISOString() },
-        { id: 2, name: 'companies:read', description: 'View companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 3, name: 'companies:create', description: 'Create companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 4, name: 'companies:update', description: 'Update companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 5, name: 'companies:delete', description: 'Delete companies', category: 'companies', created_at: new Date().toISOString() },
-        { id: 6, name: 'vans:read', description: 'View vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 7, name: 'vans:create', description: 'Create vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 8, name: 'vans:update', description: 'Update vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 9, name: 'vans:delete', description: 'Delete vans', category: 'vans', created_at: new Date().toISOString() },
-        { id: 10, name: 'users:read', description: 'View users', category: 'users', created_at: new Date().toISOString() },
-        { id: 11, name: 'users:create', description: 'Create users', category: 'users', created_at: new Date().toISOString() },
-        { id: 12, name: 'users:update', description: 'Update users', category: 'users', created_at: new Date().toISOString() },
-        { id: 13, name: 'users:delete', description: 'Delete users', category: 'users', created_at: new Date().toISOString() },
-        { id: 14, name: 'trips:read', description: 'View trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 15, name: 'trips:create', description: 'Create trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 16, name: 'trips:update', description: 'Update trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 17, name: 'trips:delete', description: 'Delete trips', category: 'trips', created_at: new Date().toISOString() },
-        { id: 18, name: 'auth-users:read', description: 'View auth users', category: 'auth-users', created_at: new Date().toISOString() },
-        { id: 19, name: 'groups:read', description: 'View system groups', category: 'groups', created_at: new Date().toISOString() },
-        { id: 20, name: 'groups:manage', description: 'Manage system groups', category: 'groups', created_at: new Date().toISOString() },
-      ];
+      const { data: permissions, error: permError } = await supabase
+        .from('permissions')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('name', { ascending: true });
       
-      console.log('🔍 DatabaseService: Permissions fetched successfully:', mockPermissions.length, 'items');
-      return mockPermissions;
+      if (permError) {
+        console.error('🔍 DatabaseService: Permissions fetch error:', permError);
+        if (permError.code === 'PGRST301' || permError.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for permissions access');
+          return [];
+        }
+        throw permError;
+      }
+      
+      console.log('🔍 DatabaseService: Permissions fetched successfully:', permissions?.length || 0, 'items');
+      return permissions || [];
     } catch (error) {
       console.error('🔍 DatabaseService: Exception in getPermissions:', error);
       throw error;
     }
   }
 
-  // Get permissions by category (mock implementation)
+  // Get permissions by category using secure access
   static async getPermissionsByCategory(category: string) {
     console.log('🔍 DatabaseService: Attempting to fetch permissions by category:', category);
     
     try {
-      const allPermissions = await this.getPermissions();
-      const filtered = allPermissions.filter(p => p.category === category);
+      const { data: permissions, error: permError } = await supabase
+        .from('permissions')
+        .select('*')
+        .eq('category', category)
+        .order('name', { ascending: true });
       
-      console.log('🔍 DatabaseService: Permissions by category fetched successfully:', filtered.length, 'items');
-      return filtered;
+      if (permError) {
+        console.error('🔍 DatabaseService: Permissions by category fetch error:', permError);
+        if (permError.code === 'PGRST301' || permError.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for permissions by category access');
+          return [];
+        }
+        throw permError;
+      }
+      
+      console.log('🔍 DatabaseService: Permissions by category fetched successfully:', permissions?.length || 0, 'items');
+      return permissions || [];
     } catch (error) {
       console.error('🔍 DatabaseService: Exception in getPermissionsByCategory:', error);
       throw error;
     }
+  }
+
+  // Vans
+  static async getVans() {
+    console.log('🔍 DatabaseService: Attempting to fetch vans');
+    
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for vans');
+        throw new Error('Authentication required');
+      }
+      
+      const { data, error } = await supabase
+        .from('vans')
+        .select('*')
+        .order('reference_code');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Vans fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for vans access');
+          return [];
+        }
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Vans fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getVans:', error);
+      throw error;
+    }
+  }
+
+  static async createVan(van: Tables['vans']['Insert']) {
+    await requireAuth();
+    
+    console.log('🔍 DatabaseService: Attempting to create van');
+    const { data, error } = await supabase
+      .from('vans')
+      .insert(van)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('🔍 DatabaseService: Van creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create vans');
+      }
+      throw error;
+    }
+    
+    console.log('🔍 DatabaseService: Van created successfully');
+    return data;
+  }
+
+  // Trips
+  static async getTrips() {
+    console.log('🔍 DatabaseService: Attempting to fetch trips');
+    
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for trips');
+        throw new Error('Authentication required');
+      }
+      
+      const { data, error } = await supabase
+        .from('trips')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Trips fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for trips access');
+          return [];
+        }
+        throw error;
+      }
+      
+      console.log('🔍 DatabaseService: Trips fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getTrips:', error);
+      throw error;
+    }
+  }
+
+  static async createTrip(trip: Tables['trips']['Insert']) {
+    await requireAuth();
+    
+    console.log('🔍 DatabaseService: Attempting to create trip');
+    const { data, error } = await supabase
+      .from('trips')
+      .insert(trip)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('🔍 DatabaseService: Trip creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create trips');
+      }
+      throw error;
+    }
+    
+    console.log('🔍 DatabaseService: Trip created successfully');
+    return data;
   }
 }

@@ -98,6 +98,89 @@ export type Database = {
         }
         Relationships: []
       }
+      permission_audit_log: {
+        Row: {
+          action: string
+          created_at: string | null
+          details: Json | null
+          id: number
+          target_id: string
+          target_type: string
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          details?: Json | null
+          id?: number
+          target_id: string
+          target_type: string
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          details?: Json | null
+          id?: number
+          target_id?: string
+          target_type?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      permissions: {
+        Row: {
+          category: string
+          created_at: string | null
+          description: string
+          id: number
+          name: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string | null
+          description: string
+          id?: number
+          name: string
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          description?: string
+          id?: number
+          name?: string
+        }
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          granted_at: string | null
+          id: number
+          permission_id: number
+          role_id: number
+        }
+        Insert: {
+          granted_at?: string | null
+          id?: number
+          permission_id: number
+          role_id: number
+        }
+        Update: {
+          granted_at?: string | null
+          id?: number
+          permission_id?: number
+          role_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_permission_id_fkey"
+            columns: ["permission_id"]
+            isOneToOne: false
+            referencedRelation: "permissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       system_settings: {
         Row: {
           created_at: string
@@ -346,6 +429,40 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_assign_permission_to_role: {
+        Args: { p_role_id: number; p_permission_name: string }
+        Returns: boolean
+      }
+      admin_create_role: {
+        Args: {
+          p_name: string
+          p_description: string
+          p_color?: string
+          p_permissions?: string[]
+        }
+        Returns: {
+          id: string
+          name: string
+          description: string
+          color: string
+          role_id: number
+          permissions: string[]
+        }[]
+      }
+      admin_remove_permission_from_role: {
+        Args: { p_role_id: number; p_permission_name: string }
+        Returns: boolean
+      }
+      admin_update_role: {
+        Args: {
+          p_role_id: string
+          p_name?: string
+          p_description?: string
+          p_color?: string
+          p_permissions?: string[]
+        }
+        Returns: boolean
+      }
       current_user_can_create_companies: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -442,6 +559,15 @@ export type Database = {
           status: string
           total_trips: number | null
         }
+      }
+      log_permission_change: {
+        Args: {
+          p_action: string
+          p_target_type: string
+          p_target_id: string
+          p_details?: Json
+        }
+        Returns: undefined
       }
     }
     Enums: {

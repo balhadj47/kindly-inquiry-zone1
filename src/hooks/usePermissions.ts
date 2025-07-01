@@ -12,7 +12,7 @@ export const usePermissions = () => {
   const { user: authUser } = useAuth();
   const { currentUser, roles } = useRBAC();
 
-  // Query to get user permissions from database
+  // Query to get user permissions from secure database functions
   const { data: dbPermissions = [] } = useQuery({
     queryKey: ['user-permissions', authUser?.id],
     queryFn: async () => {
@@ -34,21 +34,35 @@ export const usePermissions = () => {
     },
     enabled: !!authUser,
     staleTime: CACHE_DURATION,
-    gcTime: CACHE_DURATION, // Updated from cacheTime
+    gcTime: CACHE_DURATION,
   });
 
-  // Simple helper to check if user is high privilege (admin/supervisor)
-  const isHighPrivilegeUser = (): boolean => {
-    if (!currentUser?.role_id || !roles) return false;
-    
-    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-    if (!userRole) return false;
-    
-    // High privilege users have many permissions (10+)
-    return userRole.permissions.length >= 10;
-  };
+  // Check if user is admin using secure database function
+  const { data: isAdmin = false } = useQuery({
+    queryKey: ['user-is-admin', authUser?.id],
+    queryFn: async () => {
+      if (!authUser) return false;
+      
+      try {
+        const { data, error } = await supabase.rpc('current_user_is_admin');
+        
+        if (error) {
+          console.error('❌ Error checking admin status:', error);
+          return false;
+        }
+        
+        return data === true;
+      } catch (error) {
+        console.error('❌ Exception checking admin status:', error);
+        return false;
+      }
+    },
+    enabled: !!authUser,
+    staleTime: CACHE_DURATION,
+    gcTime: CACHE_DURATION,
+  });
 
-  // Database-first permission checker with fallbacks
+  // Database-first permission checker using secure functions
   const checkPermission = async (permission: string): Promise<boolean> => {
     // If no auth user, deny access
     if (!authUser) return false;
@@ -61,43 +75,33 @@ export const usePermissions = () => {
     }
 
     try {
-      // Use database function for permission check
+      // Use secure database function for permission check
       const { data, error } = await supabase.rpc('current_user_has_permission', {
         permission_name: permission
       });
 
       if (error) {
-        console.warn('⚠️ Database permission check failed, using fallback:', error);
-        // Fallback to local role-based check
-        return fallbackPermissionCheck(permission);
+        console.warn('⚠️ Database permission check failed:', error);
+        return false;
       }
 
       // Cache the result
       permissionCache.set(cacheKey, data);
       setTimeout(() => permissionCache.delete(cacheKey), CACHE_DURATION);
       
-      return data;
+      return data === true;
     } catch (error) {
-      console.warn('⚠️ Database permission check exception, using fallback:', error);
-      return fallbackPermissionCheck(permission);
+      console.warn('⚠️ Database permission check exception:', error);
+      return false;
     }
-  };
-
-  // Fallback permission check using local role data
-  const fallbackPermissionCheck = (permission: string): boolean => {
-    // High privilege user bypass
-    if (isHighPrivilegeUser()) return true;
-
-    // Check if permission is in the cached permissions from query
-    if (dbPermissions.includes(permission)) return true;
-
-    // Default deny
-    return false;
   };
 
   // Synchronous permission checker (uses cache and fallbacks)
   const hasPermission = (permission: string): boolean => {
     if (!authUser) return false;
+
+    // Admin users have all permissions
+    if (isAdmin) return true;
 
     // Check cache first
     const cacheKey = `${authUser.id}:${permission}`;
@@ -106,16 +110,17 @@ export const usePermissions = () => {
       return cachedResult;
     }
 
-    // Use fallback for immediate response
-    return fallbackPermissionCheck(permission);
+    // Check if permission is in the cached permissions from query
+    return dbPermissions.includes(permission);
   };
 
   return {
     isAuthenticated: !!authUser,
-    isHighPrivilegeUser: isHighPrivilegeUser(),
+    isHighPrivilegeUser: isAdmin,
+    isAdmin,
     checkPermission,
     hasPermission,
-    // Specific permission helpers using database functions
+    // Specific permission helpers using secure database functions
     canReadCompanies: hasPermission('companies:read'),
     canCreateCompanies: hasPermission('companies:create'),
     canUpdateCompanies: hasPermission('companies:update'),

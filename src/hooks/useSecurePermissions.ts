@@ -10,6 +10,8 @@ import { useQuery } from '@tanstack/react-query';
 export const useSecurePermissions = () => {
   const { user: authUser } = useAuth();
 
+  console.log('🔐 useSecurePermissions: Auth user:', authUser?.id);
+
   // Real-time admin status check via database
   const { data: isAdmin = false } = useQuery({
     queryKey: ['secure-admin-status', authUser?.id],
@@ -21,11 +23,12 @@ export const useSecurePermissions = () => {
         console.error('❌ Admin check failed:', error);
         return false;
       }
+      console.log('🔐 Admin status result:', data);
       return data === true;
     },
     enabled: !!authUser,
-    staleTime: 0, // Always fetch fresh data for security
-    gcTime: 0, // No caching for security-critical data
+    staleTime: 30000, // 30 seconds cache for admin status
+    gcTime: 60000, // 1 minute cache time
   });
 
   // Real-time permissions check via database
@@ -39,11 +42,12 @@ export const useSecurePermissions = () => {
         console.error('❌ Permissions fetch failed:', error);
         return [];
       }
+      console.log('🔐 User permissions result:', data);
       return data || [];
     },
     enabled: !!authUser,
-    staleTime: 0, // Always fetch fresh data for security
-    gcTime: 0, // No caching for security-critical data
+    staleTime: 30000, // 30 seconds cache for permissions
+    gcTime: 60000, // 1 minute cache time
   });
 
   // Secure permission checker - always hits database
@@ -74,7 +78,7 @@ export const useSecurePermissions = () => {
     return userPermissions.includes(permission);
   };
 
-  return {
+  const permissions = {
     isAuthenticated: !!authUser,
     isAdmin,
     checkPermission,
@@ -97,6 +101,16 @@ export const useSecurePermissions = () => {
     canUpdateTrips: hasPermission('trips:update'),
     canDeleteTrips: hasPermission('trips:delete'),
     canReadAuthUsers: hasPermission('auth-users:read'),
-    canAccessDashboard: hasPermission('dashboard:read'),
+    canAccessDashboard: hasPermission('dashboard:read') || isAdmin, // Always allow dashboard for admins
   };
+
+  console.log('🔐 useSecurePermissions: Final permissions:', {
+    isAuthenticated: permissions.isAuthenticated,
+    isAdmin: permissions.isAdmin,
+    canAccessDashboard: permissions.canAccessDashboard,
+    userPermissions: userPermissions.length,
+    permissions: userPermissions
+  });
+
+  return permissions;
 };

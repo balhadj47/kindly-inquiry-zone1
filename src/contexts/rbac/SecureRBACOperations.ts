@@ -1,7 +1,7 @@
 
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { User } from '@/types/rbac';
+import { User, UserStatus } from '@/types/rbac';
 import { SystemGroup } from '@/types/systemGroups';
 
 /**
@@ -152,7 +152,7 @@ export const useSecureRBACOperations = (
           email: userData.email,
           phone: userData.phone,
           role_id: userData.role_id,
-          status: userData.status,
+          status: userData.status as UserStatus,
         })
         .eq('id', parseInt(id))
         .select()
@@ -167,7 +167,7 @@ export const useSecureRBACOperations = (
         email: data.email,
         phone: data.phone,
         role_id: data.role_id,
-        status: data.status,
+        status: data.status as UserStatus,
         createdAt: data.created_at,
         licenseNumber: data.driver_license,
         totalTrips: data.total_trips,

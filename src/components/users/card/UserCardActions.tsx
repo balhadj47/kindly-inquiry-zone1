@@ -18,9 +18,9 @@ import { User } from '@/types/rbac';
 
 interface UserCardActionsProps {
   user: User;
-  onEdit: (user: User) => void;
-  onDelete: (user: User) => void;
-  onChangePassword: (user: User) => void;
+  onEdit?: (user: User) => void;
+  onDelete?: (user: User) => void;
+  onChangePassword?: (user: User) => void;
 }
 
 const UserCardActions: React.FC<UserCardActionsProps> = ({
@@ -31,12 +31,12 @@ const UserCardActions: React.FC<UserCardActionsProps> = ({
 }) => {
   const permissions = useSecurePermissions();
   
-  const canUpdateUsers = permissions.canUpdateUsers;
-  const canDeleteUsers = permissions.canDeleteUsers;
+  const canUpdateUsers = permissions.canUpdateUsers === true;
+  const canDeleteUsers = permissions.canDeleteUsers === true;
 
   return (
     <div className="flex items-center space-x-1">
-      {canUpdateUsers && (
+      {canUpdateUsers && onEdit && (
         <>
           <Button 
             variant="ghost" 
@@ -47,18 +47,20 @@ const UserCardActions: React.FC<UserCardActionsProps> = ({
             <UserIcon className="h-4 w-4" />
           </Button>
           
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 w-8 p-0"
-            onClick={() => onChangePassword(user)}
-          >
-            <Key className="h-4 w-4" />
-          </Button>
+          {onChangePassword && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 w-8 p-0"
+              onClick={() => onChangePassword(user)}
+            >
+              <Key className="h-4 w-4" />
+            </Button>
+          )}
         </>
       )}
       
-      {canDeleteUsers && (
+      {canDeleteUsers && onDelete && (
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button 

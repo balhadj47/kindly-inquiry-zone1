@@ -86,13 +86,9 @@ export const useSecurePermissions = () => {
       return false;
     }
     
-    // Use the permissions from database query (already handles null role_id)
-    const hasDirectPermission = userPermissions.includes(permission);
-    if (hasDirectPermission) {
-      return true;
-    }
-    
-    return false;
+    // STRICT: Only return true if permission is explicitly found
+    const hasDirectPermission = Array.isArray(userPermissions) && userPermissions.includes(permission);
+    return hasDirectPermission;
   };
 
   const permissions = {
@@ -101,7 +97,7 @@ export const useSecurePermissions = () => {
     checkPermission,
     hasPermission,
     currentUser,
-    // Specific secure permission helpers
+    // Specific secure permission helpers - STRICT checking
     canReadCompanies: hasPermission('companies:read'),
     canCreateCompanies: hasPermission('companies:create'),
     canUpdateCompanies: hasPermission('companies:update'),

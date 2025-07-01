@@ -14,8 +14,8 @@ interface Van {
 
 interface VanCardActionsProps {
   van: Van;
-  onEdit: (van: Van) => void;
-  onDelete: (van: Van) => void;
+  onEdit?: (van: Van) => void;
+  onDelete?: (van: Van) => void;
   onView: (van: Van) => void;
 }
 
@@ -38,7 +38,7 @@ const VanCardActions: React.FC<VanCardActionsProps> = ({
         <Eye className="h-4 w-4" />
       </Button>
       
-      {canUpdateVans && (
+      {canUpdateVans && onEdit && (
         <Button
           variant="ghost"
           size="sm"
@@ -49,7 +49,7 @@ const VanCardActions: React.FC<VanCardActionsProps> = ({
         </Button>
       )}
       
-      {canDeleteVans && (
+      {canDeleteVans && onDelete && (
         <Button
           variant="ghost"
           size="sm"

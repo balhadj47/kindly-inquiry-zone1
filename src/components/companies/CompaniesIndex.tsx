@@ -36,15 +36,6 @@ const CompaniesIndex = () => {
   const [itemsPerPage] = useState(12);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  console.log('📊 CompaniesIndex: Rendering with data:', {
-    companiesCount: companies.length,
-    isLoading,
-    isError,
-    hasData: companies.length > 0,
-    canReadCompanies: permissions.canReadCompanies,
-    canCreateCompanies: permissions.canCreateCompanies
-  });
-
   // Filter companies based on search
   const filteredCompanies = companies.filter(company =>
     company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -52,15 +43,14 @@ const CompaniesIndex = () => {
     company.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Permission checks - only check what's needed for each action
-  const canCreateCompanies = permissions.canCreateCompanies;
-  const canEditCompanies = permissions.canUpdateCompanies;
-  const canDeleteCompanies = permissions.canDeleteCompanies;
+  // STRICT Permission checks - only allow actions if user has explicit permissions
+  const canCreateCompanies = permissions.canCreateCompanies === true;
+  const canEditCompanies = permissions.canUpdateCompanies === true;
+  const canDeleteCompanies = permissions.canDeleteCompanies === true;
 
-  // Event handlers
+  // Event handlers with strict permission checking
   const handleAddCompany = () => {
     if (!canCreateCompanies) {
-      console.log('🚫 User cannot create companies');
       return;
     }
     setSelectedCompany(null);
@@ -69,7 +59,6 @@ const CompaniesIndex = () => {
 
   const handleEditCompany = (company: Company) => {
     if (!canEditCompanies) {
-      console.log('🚫 User cannot edit companies');
       return;
     }
     setSelectedCompany(company);
@@ -78,7 +67,6 @@ const CompaniesIndex = () => {
 
   const handleDeleteCompany = (company: Company) => {
     if (!canDeleteCompanies) {
-      console.log('🚫 User cannot delete companies');
       return;
     }
     setSelectedCompany(company);
@@ -86,17 +74,15 @@ const CompaniesIndex = () => {
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedCompany) return;
+    if (!selectedCompany || !canDeleteCompanies) return;
     
     setIsDeleting(true);
     try {
       // TODO: Implement actual delete logic here
-      console.log('Deleting company:', selectedCompany.id);
-      // await deleteCompany(selectedCompany.id);
       setIsDeleteDialogOpen(false);
       refetch();
     } catch (error) {
-      console.error('Error deleting company:', error);
+      // Handle error
     } finally {
       setIsDeleting(false);
     }
@@ -108,6 +94,9 @@ const CompaniesIndex = () => {
   };
 
   const handleAddBranch = (company: Company) => {
+    if (!canCreateCompanies) {
+      return;
+    }
     setSelectedCompany(company);
     setIsBranchModalOpen(true);
   };
@@ -122,13 +111,11 @@ const CompaniesIndex = () => {
 
   // Loading state
   if (isLoading) {
-    console.log('📊 CompaniesIndex: Showing loading state');
     return <CompaniesLoadingSkeleton />;
   }
 
   // Error state
   if (isError) {
-    console.log('📊 CompaniesIndex: Showing error state');
     return (
       <CompaniesErrorState 
         onAdd={canCreateCompanies ? handleAddCompany : undefined}
@@ -137,8 +124,6 @@ const CompaniesIndex = () => {
       />
     );
   }
-
-  console.log('📊 CompaniesIndex: Rendering main content with', filteredCompanies.length, 'companies');
 
   return (
     <div className="space-y-6 py-8">
@@ -172,28 +157,32 @@ const CompaniesIndex = () => {
           clearFilters={() => setSearchTerm('')}
           onEditCompany={canEditCompanies ? handleEditCompany : undefined}
           onDeleteCompany={canDeleteCompanies ? handleDeleteCompany : undefined}
-          onAddBranch={handleAddBranch}
+          onAddBranch={canCreateCompanies ? handleAddBranch : undefined}
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />
       )}
 
-      {/* Modals */}
-      <CompanyModal
-        isOpen={isCompanyModalOpen}
-        onClose={() => setIsCompanyModalOpen(false)}
-        company={selectedCompany}
-        onSuccess={handleModalSuccess}
-      />
+      {/* Modals - Only render if user has permissions */}
+      {canCreateCompanies && (
+        <CompanyModal
+          isOpen={isCompanyModalOpen}
+          onClose={() => setIsCompanyModalOpen(false)}
+          company={selectedCompany}
+          onSuccess={handleModalSuccess}
+        />
+      )}
 
-      <CompanyDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        company={selectedCompany}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
-      />
+      {canDeleteCompanies && (
+        <CompanyDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          company={selectedCompany}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
+        />
+      )}
 
       <CompanyDetailDialog
         company={selectedCompany}
@@ -202,14 +191,16 @@ const CompaniesIndex = () => {
         onBranchClick={handleBranchClick}
       />
 
-      <BranchModal
-        isOpen={isBranchModalOpen}
-        onClose={() => setIsBranchModalOpen(false)}
-        branch={null}
-        companyId={selectedCompany?.id || ''}
-        companyName={selectedCompany?.name || ''}
-        onSuccess={handleModalSuccess}
-      />
+      {canCreateCompanies && (
+        <BranchModal
+          isOpen={isBranchModalOpen}
+          onClose={() => setIsBranchModalOpen(false)}
+          branch={null}
+          companyId={selectedCompany?.id || ''}
+          companyName={selectedCompany?.name || ''}
+          onSuccess={handleModalSuccess}
+        />
+      )}
     </div>
   );
 };

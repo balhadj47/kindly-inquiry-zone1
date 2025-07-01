@@ -14,8 +14,8 @@ interface Company {
 
 interface CompanyCardActionsProps {
   company: Company;
-  onEdit: (company: Company) => void;
-  onDelete: (company: Company) => void;
+  onEdit?: (company: Company) => void;
+  onDelete?: (company: Company) => void;
   onView: (company: Company) => void;
 }
 
@@ -38,7 +38,7 @@ const CompanyCardActions: React.FC<CompanyCardActionsProps> = ({
         <Eye className="h-4 w-4" />
       </Button>
       
-      {canUpdateCompanies && (
+      {canUpdateCompanies && onEdit && (
         <Button
           variant="ghost"
           size="sm"
@@ -49,7 +49,7 @@ const CompanyCardActions: React.FC<CompanyCardActionsProps> = ({
         </Button>
       )}
       
-      {canDeleteCompanies && (
+      {canDeleteCompanies && onDelete && (
         <Button
           variant="ghost"
           size="sm"

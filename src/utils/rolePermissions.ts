@@ -18,15 +18,10 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 
   try {
-    // Get permissions from the secure database structure
+    // Get permissions from the user_groups table (simplified approach)
     const { data, error } = await supabase
       .from('user_groups')
-      .select(`
-        permissions,
-        role_permissions!inner(
-          permissions!inner(name)
-        )
-      `)
+      .select('permissions')
       .eq('role_id', roleId)
       .single();
 
@@ -35,12 +30,8 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
       return ['dashboard:read']; // Default fallback
     }
 
-    // Combine array permissions and relational permissions
-    const arrayPermissions = Array.isArray(data?.permissions) ? data.permissions : [];
-    const relationalPermissions = data?.role_permissions?.map((rp: any) => rp.permissions.name) || [];
-    
-    const allPermissions = [...new Set([...arrayPermissions, ...relationalPermissions])];
-    const permissions = allPermissions.length > 0 ? allPermissions : ['dashboard:read'];
+    // Use the permissions array directly
+    const permissions = Array.isArray(data?.permissions) ? data.permissions : ['dashboard:read'];
     
     // Update cache
     permissionsCache[roleId] = permissions;

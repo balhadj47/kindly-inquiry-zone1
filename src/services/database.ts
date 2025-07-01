@@ -1,3 +1,4 @@
+
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -421,20 +422,10 @@ export class DatabaseService {
         throw new Error('Authentication required');
       }
       
-      // Fetch user groups with both array and relational permissions
+      // Fetch user groups with permissions array (simplified approach)
       const { data: groups, error: groupsError } = await supabase
         .from('user_groups')
-        .select(`
-          *,
-          role_permissions!left(
-            permissions!inner(
-              id,
-              name,
-              description,
-              category
-            )
-          )
-        `)
+        .select('*')
         .order('name');
       
       if (groupsError) {
@@ -446,17 +437,12 @@ export class DatabaseService {
         throw groupsError;
       }
 
-      // Combine array permissions and relational permissions
-      const groupsWithPermissions = (groups || []).map(group => {
-        const arrayPermissions = group.permissions || [];
-        const relationalPermissions = group.role_permissions?.map((rp: any) => rp.permissions.name) || [];
-        const allPermissions = [...new Set([...arrayPermissions, ...relationalPermissions])];
-        
-        return {
-          ...group,
-          permissions: allPermissions
-        };
-      });
+      // For now, use the permissions array directly from user_groups
+      // Later we can enhance this to also fetch from role_permissions table
+      const groupsWithPermissions = (groups || []).map(group => ({
+        ...group,
+        permissions: group.permissions || []
+      }));
       
       console.log('🔍 DatabaseService: User groups with permissions fetched successfully:', groupsWithPermissions.length, 'items');
       return groupsWithPermissions;
@@ -526,115 +512,5 @@ export class DatabaseService {
       console.error('🔍 DatabaseService: Exception in getPermissionsByCategory:', error);
       throw error;
     }
-  }
-
-  // Vans
-  static async getVans() {
-    console.log('🔍 DatabaseService: Attempting to fetch vans');
-    
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for vans');
-        throw new Error('Authentication required');
-      }
-      
-      const { data, error } = await supabase
-        .from('vans')
-        .select('*')
-        .order('reference_code');
-      
-      if (error) {
-        console.error('🔍 DatabaseService: Vans fetch error:', error);
-        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
-          console.warn('🔍 DatabaseService: Permission denied for vans access');
-          return [];
-        }
-        throw error;
-      }
-      
-      console.log('🔍 DatabaseService: Vans fetched successfully:', data?.length || 0, 'items');
-      return data;
-    } catch (error) {
-      console.error('🔍 DatabaseService: Exception in getVans:', error);
-      throw error;
-    }
-  }
-
-  static async createVan(van: Tables['vans']['Insert']) {
-    await requireAuth();
-    
-    console.log('🔍 DatabaseService: Attempting to create van');
-    const { data, error } = await supabase
-      .from('vans')
-      .insert(van)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('🔍 DatabaseService: Van creation error:', error);
-      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
-        throw new Error('You do not have permission to create vans');
-      }
-      throw error;
-    }
-    
-    console.log('🔍 DatabaseService: Van created successfully');
-    return data;
-  }
-
-  // Trips
-  static async getTrips() {
-    console.log('🔍 DatabaseService: Attempting to fetch trips');
-    
-    try {
-      const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for trips');
-        throw new Error('Authentication required');
-      }
-      
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('🔍 DatabaseService: Trips fetch error:', error);
-        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
-          console.warn('🔍 DatabaseService: Permission denied for trips access');
-          return [];
-        }
-        throw error;
-      }
-      
-      console.log('🔍 DatabaseService: Trips fetched successfully:', data?.length || 0, 'items');
-      return data;
-    } catch (error) {
-      console.error('🔍 DatabaseService: Exception in getTrips:', error);
-      throw error;
-    }
-  }
-
-  static async createTrip(trip: Tables['trips']['Insert']) {
-    await requireAuth();
-    
-    console.log('🔍 DatabaseService: Attempting to create trip');
-    const { data, error } = await supabase
-      .from('trips')
-      .insert(trip)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('🔍 DatabaseService: Trip creation error:', error);
-      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
-        throw new Error('You do not have permission to create trips');
-      }
-      throw error;
-    }
-    
-    console.log('🔍 DatabaseService: Trip created successfully');
-    return data;
   }
 }

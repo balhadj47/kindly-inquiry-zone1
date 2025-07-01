@@ -305,12 +305,13 @@ serve(async (req) => {
 
         console.log('🔄 Update payload:', userUpdatePayload)
 
+        // Update auth user
         const { data: updatedUser, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(userId, userUpdatePayload)
         
         if (updateError) {
-          console.error('❌ Error updating user:', updateError)
+          console.error('❌ Error updating auth user:', updateError)
           return new Response(
-            JSON.stringify({ error: `Failed to update user: ${updateError.message}` }),
+            JSON.stringify({ error: `Failed to update auth user: ${updateError.message}` }),
             { 
               status: 500, 
               headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -318,7 +319,36 @@ serve(async (req) => {
           )
         }
 
-        console.log('✅ Successfully updated user:', updatedUser.user?.id)
+        console.log('✅ Successfully updated auth user:', updatedUser.user?.id)
+
+        // SYNC: Also update the public.users table if role_id or email changed
+        if (updateData.role_id !== undefined || updateData.email !== undefined) {
+          console.log('🔄 Syncing changes to public.users table...')
+          
+          const publicUserUpdate: any = {}
+          if (updateData.email !== undefined) {
+            publicUserUpdate.email = updateData.email
+          }
+          if (updateData.role_id !== undefined) {
+            publicUserUpdate.role_id = updateData.role_id
+          }
+          if (updateData.name !== undefined) {
+            publicUserUpdate.name = updateData.name
+          }
+
+          const { data: syncData, error: syncError } = await supabaseAdmin
+            .from('users')
+            .update(publicUserUpdate)
+            .eq('auth_user_id', userId)
+            .select()
+
+          if (syncError) {
+            console.error('⚠️ Warning: Failed to sync with public.users table:', syncError)
+            // Don't fail the request, just log the warning
+          } else {
+            console.log('✅ Successfully synced with public.users table:', syncData)
+          }
+        }
 
         return new Response(
           JSON.stringify({ success: true, user: updatedUser.user }),

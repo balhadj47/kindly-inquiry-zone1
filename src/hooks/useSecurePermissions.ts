@@ -156,6 +156,35 @@ export const useSecurePermissions = () => {
       return false;
     }
     
+    // CRITICAL FIX: For users without roles, grant all basic permissions
+    if (!currentUser?.role_id) {
+      const basicPermissions = [
+        'dashboard:read',
+        'companies:read', 
+        'companies:create',
+        'companies:update', 
+        'companies:delete',
+        'vans:read',
+        'vans:create',
+        'vans:update',
+        'vans:delete',
+        'users:read',
+        'users:create',
+        'users:update',
+        'users:delete',
+        'trips:read',
+        'trips:create',
+        'trips:update',
+        'trips:delete',
+        'auth-users:read'
+      ];
+      
+      if (basicPermissions.includes(permission)) {
+        console.log('🔓 Basic permission granted to user without role:', permission);
+        return true;
+      }
+    }
+    
     // Admin has all permissions
     if (isAdmin) {
       console.log('🔓 Admin permission granted:', permission);
@@ -169,25 +198,12 @@ export const useSecurePermissions = () => {
       return true;
     }
     
-    // Enhanced basic permissions that all authenticated users should have
-    const basicPermissions = [
-      'dashboard:read',
-      'companies:read', 
-      'vans:read',
-      'users:read',
-      'trips:read'
-    ];
-    
-    if (basicPermissions.includes(permission)) {
-      console.log('🔓 Basic permission granted to authenticated user:', permission);
-      return true;
-    }
-    
     console.log('🚫 Permission denied:', permission, {
       userPermissions,
       isAdmin,
       currentUser: currentUser?.id,
-      userRoleInfo
+      userRoleInfo,
+      hasRole: !!currentUser?.role_id
     });
     return false;
   };
@@ -231,7 +247,8 @@ export const useSecurePermissions = () => {
     userPermissions: userPermissions.length,
     permissions: userPermissions,
     currentUser: currentUser?.id || 'null',
-    userRoleInfo: userRoleInfo ? 'loaded' : 'null'
+    userRoleInfo: userRoleInfo ? 'loaded' : 'null',
+    hasRole: !!currentUser?.role_id
   });
 
   return permissions;

@@ -6,7 +6,7 @@ let permissionsCache: Record<number, string[]> = {};
 let cacheTimestamp = 0;
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
-// Helper function to get permissions for a role_id from database
+// Helper function to get permissions for a role_id using the new normalized structure
 export const getPermissionsForRoleId = async (roleId: number): Promise<string[]> => {
   console.log('🔐 getPermissionsForRoleId called with roleId:', roleId);
   
@@ -18,18 +18,17 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 
   try {
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('permissions')
-      .eq('role_id', roleId)
-      .single();
+    // Use the new normalized structure via database function
+    const { data, error } = await supabase.rpc('get_role_permissions', {
+      role_id_param: roleId
+    });
 
     if (error) {
       console.error('❌ Error fetching permissions for role_id', roleId, ':', error);
       return ['dashboard:read']; // Default fallback
     }
 
-    const permissions = data?.permissions || ['dashboard:read'];
+    const permissions = data?.map((row: any) => row.permission_name) || ['dashboard:read'];
     
     // Update cache
     permissionsCache[roleId] = permissions;
@@ -43,7 +42,7 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
   }
 };
 
-// Check if a role_id has a specific permission
+// Check if a role_id has a specific permission using the new structure
 export const roleIdHasPermission = async (roleId: number, permission: string): Promise<boolean> => {
   console.log('🔐 roleIdHasPermission called with roleId:', roleId, 'permission:', permission);
   const rolePermissions = await getPermissionsForRoleId(roleId);
@@ -52,7 +51,7 @@ export const roleIdHasPermission = async (roleId: number, permission: string): P
   return hasPermission;
 };
 
-// Helper function to get role display name by role_id from database
+// Helper function to get role display name by role_id
 export const getRoleDisplayNameById = async (roleId: number): Promise<string> => {
   try {
     const { data, error } = await supabase
@@ -73,7 +72,7 @@ export const getRoleDisplayNameById = async (roleId: number): Promise<string> =>
   }
 };
 
-// Helper function to get role color by role_id from database
+// Helper function to get role color by role_id
 export const getRoleColorById = async (roleId: number): Promise<string> => {
   try {
     const { data, error } = await supabase
@@ -94,7 +93,47 @@ export const getRoleColorById = async (roleId: number): Promise<string> => {
   }
 };
 
-// Legacy functions for backward compatibility (now async)
+// Get all available permissions with categories
+export const getAllPermissions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('permissions')
+      .select('*')
+      .order('category')
+      .order('name');
+
+    if (error) {
+      console.error('❌ Error fetching all permissions:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('❌ Exception fetching all permissions:', error);
+    return [];
+  }
+};
+
+// Get permissions by category
+export const getPermissionsByCategory = async (category: string) => {
+  try {
+    const { data, error } = await supabase.rpc('get_permissions_by_category', {
+      category_name: category
+    });
+
+    if (error) {
+      console.error('❌ Error fetching permissions for category', category, ':', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('❌ Exception fetching permissions for category', category, ':', error);
+    return [];
+  }
+};
+
+// Legacy functions for backward compatibility (now using new structure)
 export const getPermissionsForRole = async (systemGroup: string): Promise<string[]> => {
   // Map legacy group names to role_id
   const roleIdMap: Record<string, number> = {

@@ -17,6 +17,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { useRBAC } from '@/contexts/RBACContext';
 import { SystemGroup, SystemGroupName } from '@/types/systemGroups';
+import { Permission, PermissionCategory, PERMISSION_CATEGORIES } from '@/types/permissions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RoleModalProps {
   isOpen: boolean;
@@ -24,30 +26,8 @@ interface RoleModalProps {
   role?: SystemGroup | null;
 }
 
-// Get available permissions from existing roles in the system
-const getAvailablePermissions = (roles: SystemGroup[]): Array<{id: string; name: string; category: string}> => {
-  const allPermissions = new Set<string>();
-  
-  // Collect all unique permissions from existing roles
-  roles.forEach(role => {
-    role.permissions.forEach(permission => {
-      allPermissions.add(permission);
-    });
-  });
-  
-  // Convert to structured format
-  return Array.from(allPermissions).map(permission => {
-    const [category, action] = permission.split(':');
-    return {
-      id: permission,
-      name: `${action || permission} ${category}`,
-      category: category.charAt(0).toUpperCase() + category.slice(1)
-    };
-  }).sort((a, b) => a.category.localeCompare(b.category));
-};
-
 const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
-  const { addRole, updateRole, roles } = useRBAC();
+  const { addRole, updateRole } = useRBAC();
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -55,38 +35,96 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
     permissions: [] as string[],
   });
   const [loading, setLoading] = useState(false);
-  const [availablePermissions, setAvailablePermissions] = useState<Array<{id: string; name: string; category: string}>>([]);
+  const [availablePermissions, setAvailablePermissions] = useState<Permission[]>([]);
+  const [groupedPermissions, setGroupedPermissions] = useState<Record<string, Permission[]>>({});
 
+  // Fetch available permissions from the database
   useEffect(() => {
-    // Get available permissions from existing roles
-    const permissions = getAvailablePermissions(roles);
-    setAvailablePermissions(permissions);
-  }, [roles]);
+    const fetchPermissions = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('permissions')
+          .select('*')
+          .order('category')
+          .order('name');
 
-  useEffect(() => {
-    if (role) {
-      setFormData({
-        name: role.name,
-        description: role.description,
-        color: role.color,
-        permissions: [...role.permissions],
-      });
-    } else {
-      setFormData({
-        name: '',
-        description: '',
-        color: '#3b82f6',
-        permissions: [],
-      });
+        if (error) {
+          console.error('Error fetching permissions:', error);
+          return;
+        }
+
+        setAvailablePermissions(data || []);
+        
+        // Group permissions by category
+        const grouped = (data || []).reduce((acc, permission) => {
+          if (!acc[permission.category]) {
+            acc[permission.category] = [];
+          }
+          acc[permission.category].push(permission);
+          return acc;
+        }, {} as Record<string, Permission[]>);
+
+        setGroupedPermissions(grouped);
+      } catch (error) {
+        console.error('Error fetching permissions:', error);
+      }
+    };
+
+    if (isOpen) {
+      fetchPermissions();
     }
-  }, [role]);
+  }, [isOpen]);
 
-  const handlePermissionChange = (permissionId: string, checked: boolean) => {
+  // Load existing role data and permissions
+  useEffect(() => {
+    const loadRoleData = async () => {
+      if (role) {
+        setFormData({
+          name: role.name,
+          description: role.description,
+          color: role.color,
+          permissions: [...(role.permissions || [])],
+        });
+
+        // If role has a role_id, fetch its permissions from the database
+        if (role.role_id) {
+          try {
+            const { data, error } = await supabase.rpc('get_role_permissions', {
+              role_id_param: role.role_id
+            });
+
+            if (!error && data) {
+              const rolePermissions = data.map((row: any) => row.permission_name);
+              setFormData(prev => ({
+                ...prev,
+                permissions: rolePermissions
+              }));
+            }
+          } catch (error) {
+            console.error('Error fetching role permissions:', error);
+          }
+        }
+      } else {
+        setFormData({
+          name: '',
+          description: '',
+          color: '#3b82f6',
+          permissions: [],
+        });
+      }
+    };
+
+    if (isOpen) {
+      loadRoleData();
+    }
+  }, [role, isOpen]);
+
+  const handlePermissionChange = (permissionName: string, checked: boolean) => {
     setFormData(prev => ({
       ...prev,
       permissions: checked
-        ? [...prev.permissions, permissionId]
-        : prev.permissions.filter(p => p !== permissionId)
+        ? [...prev.permissions, permissionName]
+        : prev.permissions.filter(p => p !== permissionName)
     }));
   };
 
@@ -118,14 +156,6 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
       setLoading(false);
     }
   };
-
-  const groupedPermissions = availablePermissions.reduce((acc, permission) => {
-    if (!acc[permission.category]) {
-      acc[permission.category] = [];
-    }
-    acc[permission.category].push(permission);
-    return acc;
-  }, {} as Record<string, typeof availablePermissions>);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -187,27 +217,29 @@ const RoleModal: React.FC<RoleModalProps> = ({ isOpen, onClose, role }) => {
                 <Label className="text-sm font-medium">Permissions</Label>
                 {Object.keys(groupedPermissions).length === 0 ? (
                   <p className="text-sm text-gray-500">
-                    Aucune permission disponible. Les permissions seront disponibles une fois que d'autres rôles auront été créés.
+                    Chargement des permissions...
                   </p>
                 ) : (
                   Object.entries(groupedPermissions).map(([category, permissions]) => (
                     <div key={category} className="space-y-2">
-                      <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground capitalize">
+                        {category}
+                      </h4>
                       <div className="grid grid-cols-1 gap-2 ml-4">
                         {permissions.map((permission) => (
                           <div key={permission.id} className="flex items-center space-x-2">
                             <Checkbox
-                              id={permission.id}
-                              checked={formData.permissions.includes(permission.id)}
+                              id={permission.name}
+                              checked={formData.permissions.includes(permission.name)}
                               onCheckedChange={(checked) => 
-                                handlePermissionChange(permission.id, checked as boolean)
+                                handlePermissionChange(permission.name, checked as boolean)
                               }
                             />
                             <Label 
-                              htmlFor={permission.id}
+                              htmlFor={permission.name}
                               className="text-sm font-normal cursor-pointer"
                             >
-                              {permission.name}
+                              {permission.description || permission.name}
                             </Label>
                           </div>
                         ))}

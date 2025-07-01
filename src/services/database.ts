@@ -1,4 +1,3 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -389,9 +388,9 @@ export class DatabaseService {
     return data;
   }
 
-  // User Groups
+  // User Groups with normalized permissions
   static async getUserGroups() {
-    console.log('🔍 DatabaseService: Attempting to fetch user groups');
+    console.log('🔍 DatabaseService: Attempting to fetch user groups with permissions');
     
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -400,24 +399,104 @@ export class DatabaseService {
         throw new Error('Authentication required');
       }
       
-      const { data, error } = await supabase
+      // Fetch user groups
+      const { data: groups, error: groupsError } = await supabase
         .from('user_groups')
         .select('*')
         .order('name');
       
-      if (error) {
-        console.error('🔍 DatabaseService: User groups fetch error:', error);
-        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+      if (groupsError) {
+        console.error('🔍 DatabaseService: User groups fetch error:', groupsError);
+        if (groupsError.code === 'PGRST301' || groupsError.message?.includes('permission')) {
           console.warn('🔍 DatabaseService: Permission denied for user groups access');
+          return [];
+        }
+        throw groupsError;
+      }
+
+      // Fetch permissions for each group using the new normalized structure
+      const groupsWithPermissions = await Promise.all(
+        (groups || []).map(async (group) => {
+          if (group.role_id) {
+            try {
+              const { data: permissionData, error: permError } = await supabase.rpc('get_role_permissions', {
+                role_id_param: group.role_id
+              });
+
+              if (!permError && permissionData) {
+                const permissions = permissionData.map((row: any) => row.permission_name);
+                return { ...group, permissions };
+              }
+            } catch (error) {
+              console.error('Error fetching permissions for role:', group.role_id, error);
+            }
+          }
+          
+          // Fallback to legacy permissions array or empty array
+          return { ...group, permissions: group.permissions || [] };
+        })
+      );
+      
+      console.log('🔍 DatabaseService: User groups with permissions fetched successfully:', groupsWithPermissions.length, 'items');
+      return groupsWithPermissions;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getUserGroups:', error);
+      throw error;
+    }
+  }
+
+  // Get all available permissions
+  static async getPermissions() {
+    console.log('🔍 DatabaseService: Attempting to fetch permissions');
+    
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.log('🔍 DatabaseService: No authenticated user for permissions');
+        throw new Error('Authentication required');
+      }
+      
+      const { data, error } = await supabase
+        .from('permissions')
+        .select('*')
+        .order('category')
+        .order('name');
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Permissions fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for permissions access');
           return [];
         }
         throw error;
       }
       
-      console.log('🔍 DatabaseService: User groups fetched successfully:', data?.length || 0, 'items');
+      console.log('🔍 DatabaseService: Permissions fetched successfully:', data?.length || 0, 'items');
       return data;
     } catch (error) {
-      console.error('🔍 DatabaseService: Exception in getUserGroups:', error);
+      console.error('🔍 DatabaseService: Exception in getPermissions:', error);
+      throw error;
+    }
+  }
+
+  // Get permissions by category
+  static async getPermissionsByCategory(category: string) {
+    console.log('🔍 DatabaseService: Attempting to fetch permissions by category:', category);
+    
+    try {
+      const { data, error } = await supabase.rpc('get_permissions_by_category', {
+        category_name: category
+      });
+      
+      if (error) {
+        console.error('🔍 DatabaseService: Permissions by category fetch error:', error);
+        return [];
+      }
+      
+      console.log('🔍 DatabaseService: Permissions by category fetched successfully:', data?.length || 0, 'items');
+      return data;
+    } catch (error) {
+      console.error('🔍 DatabaseService: Exception in getPermissionsByCategory:', error);
       throw error;
     }
   }

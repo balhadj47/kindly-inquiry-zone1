@@ -16,13 +16,13 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch companies with branches');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user, relying on RLS policies');
-      } else {
-        console.log('🔍 DatabaseService: Authenticated user:', user.email);
+        console.log('🔍 DatabaseService: No authenticated user, cannot access companies');
+        throw new Error('Authentication required');
       }
+      
+      console.log('🔍 DatabaseService: Authenticated user:', user.email);
       
       console.log('🔍 DatabaseService: Executing companies query with branches...');
       const { data, error } = await supabase
@@ -43,12 +43,13 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Companies fetch error:', error);
-        console.error('🔍 DatabaseService: Error details:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint
-        });
+        
+        // Handle RLS permission errors gracefully
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for companies access');
+          return [];
+        }
+        
         throw error;
       }
       
@@ -99,6 +100,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Company creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create companies');
+      }
       throw error;
     }
     
@@ -119,6 +123,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Company update error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to update companies');
+      }
       throw error;
     }
     
@@ -137,6 +144,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Company deletion error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to delete companies');
+      }
       throw error;
     }
     
@@ -148,13 +158,13 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch branches', companyId ? `for company ${companyId}` : 'all');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for branches, relying on RLS policies');
-      } else {
-        console.log('🔍 DatabaseService: Authenticated user for branches:', user.email);
+        console.log('🔍 DatabaseService: No authenticated user for branches');
+        throw new Error('Authentication required');
       }
+      
+      console.log('🔍 DatabaseService: Authenticated user for branches:', user.email);
       
       let query = supabase.from('branches').select('*');
       
@@ -165,6 +175,10 @@ export class DatabaseService {
       const { data, error } = await query.order('name');
       if (error) {
         console.error('🔍 DatabaseService: Branches fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for branches access');
+          return [];
+        }
         throw error;
       }
       
@@ -192,6 +206,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Branch creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create branches');
+      }
       throw error;
     }
     
@@ -204,10 +221,10 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch users');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for users, relying on RLS policies');
+        console.log('🔍 DatabaseService: No authenticated user for users');
+        throw new Error('Authentication required');
       }
       
       const { data, error } = await supabase
@@ -217,6 +234,10 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Users fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for users access');
+          return [];
+        }
         throw error;
       }
       
@@ -232,7 +253,6 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch current user');
     
     try {
-      // Check auth status but don't throw on error
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
         console.log('🔍 DatabaseService: No authenticated user for getCurrentUser');
@@ -244,6 +264,10 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Current user fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for current user access');
+          return null;
+        }
         throw error;
       }
       
@@ -260,10 +284,10 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch vans');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for vans, relying on RLS policies');
+        console.log('🔍 DatabaseService: No authenticated user for vans');
+        throw new Error('Authentication required');
       }
       
       const { data, error } = await supabase
@@ -273,6 +297,10 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Vans fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for vans access');
+          return [];
+        }
         throw error;
       }
       
@@ -296,6 +324,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Van creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create vans');
+      }
       throw error;
     }
     
@@ -308,10 +339,10 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch trips');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for trips, relying on RLS policies');
+        console.log('🔍 DatabaseService: No authenticated user for trips');
+        throw new Error('Authentication required');
       }
       
       const { data, error } = await supabase
@@ -321,6 +352,10 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: Trips fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for trips access');
+          return [];
+        }
         throw error;
       }
       
@@ -344,6 +379,9 @@ export class DatabaseService {
     
     if (error) {
       console.error('🔍 DatabaseService: Trip creation error:', error);
+      if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+        throw new Error('You do not have permission to create trips');
+      }
       throw error;
     }
     
@@ -356,10 +394,10 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Attempting to fetch user groups');
     
     try {
-      // Check auth status but don't throw on error - let RLS handle permissions
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user for user groups, relying on RLS policies');
+        console.log('🔍 DatabaseService: No authenticated user for user groups');
+        throw new Error('Authentication required');
       }
       
       const { data, error } = await supabase
@@ -369,6 +407,10 @@ export class DatabaseService {
       
       if (error) {
         console.error('🔍 DatabaseService: User groups fetch error:', error);
+        if (error.code === 'PGRST301' || error.message?.includes('permission')) {
+          console.warn('🔍 DatabaseService: Permission denied for user groups access');
+          return [];
+        }
         throw error;
       }
       

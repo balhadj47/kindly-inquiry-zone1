@@ -62,12 +62,27 @@ export const useCompanies = () => {
         return processedData;
       } catch (error) {
         console.error('🏢 useCompanies: Error:', error);
+        
+        // For permission errors, return empty array instead of throwing
+        if (error instanceof Error && 
+            (error.message?.includes('permission') || error.message?.includes('Authentication required'))) {
+          console.warn('🏢 useCompanies: Permission denied, returning empty array');
+          return [];
+        }
+        
         throw error;
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
-    retry: 2,
+    retry: (failureCount, error) => {
+      // Don't retry permission errors
+      if (error instanceof Error && 
+          (error.message?.includes('permission') || error.message?.includes('Authentication required'))) {
+        return false;
+      }
+      return failureCount < 2;
+    },
     retryDelay: 1000,
   });
 };

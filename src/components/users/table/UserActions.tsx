@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { User as UserIcon, Key, Trash } from 'lucide-react';
 import { User } from '@/types/rbac';
-import { useRBAC } from '@/contexts/RBACContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface UserActionsProps {
   user: User;
@@ -18,10 +18,10 @@ const UserActions: React.FC<UserActionsProps> = ({
   onChangePassword,
   onDelete,
 }) => {
-  const { hasPermission } = useRBAC();
+  const permissions = usePermissions();
   
-  const canUpdateUsers = hasPermission('users:update');
-  const canDeleteUsers = hasPermission('users:delete');
+  const canUpdateUsers = permissions.canUpdateUsers;
+  const canDeleteUsers = permissions.canDeleteUsers;
 
   return (
     <div className="flex items-center space-x-1">

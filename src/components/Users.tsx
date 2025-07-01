@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import UsersHeader from './users/UsersHeader';
 import UsersNavigation from './users/UsersNavigation';
 import UsersTab from './users/UsersTab';
@@ -17,8 +18,9 @@ const Users = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [roleFilter, setRoleFilter] = useState('all');
   
-  const { users, hasPermission, loading, currentUser, roles } = useRBAC();
+  const { users, loading, currentUser, roles } = useRBAC();
   const { user: authUser } = useAuth();
+  const permissions = usePermissions();
   const { refreshPage } = useCacheRefresh();
 
   console.log('Users component render state:', {
@@ -51,29 +53,9 @@ const Users = () => {
     refreshPage(['users', 'user_groups']);
   };
 
-  // Debug permissions
-  console.log('Users component - Permission checks:', {
-    'users:read': hasPermission('users:read'),
-    'users:create': hasPermission('users:create'),
-    'groups:read': hasPermission('groups:read'),
-    'groups:manage': hasPermission('groups:manage'),
-    currentUserRoleId: currentUser?.role_id
-  });
-
-  // Dynamic privilege detection
-  const isHighPrivilegeUser = () => {
-    if (!currentUser?.role_id || !roles) return false;
-    
-    const userRole = roles.find(role => (role as any).role_id === currentUser.role_id);
-    if (!userRole) return false;
-    
-    // High privilege users have many permissions (10+)
-    return userRole.permissions.length >= 10;
-  };
-
   // Check if user can manage groups and create users
-  const canManageGroups = hasPermission('groups:read') || hasPermission('groups:manage') || isHighPrivilegeUser();
-  const canCreateUsers = hasPermission('users:create');
+  const canManageGroups = permissions.canReadUsers || permissions.isHighPrivilegeUser;
+  const canCreateUsers = permissions.canCreateUsers;
 
   const clearFilters = () => {
     setSearchTerm('');
@@ -89,7 +71,7 @@ const Users = () => {
   }
 
   // Show message if user is not authenticated
-  if (!authUser) {
+  if (!permissions.isAuthenticated) {
     console.log('Users component: No auth user, showing auth required message');
     return (
       <ErrorState
@@ -99,26 +81,13 @@ const Users = () => {
     );
   }
 
-  // Check if user has permission to view users - dynamic privilege check
-  const hasUsersReadPermission = hasPermission('users:read') || isHighPrivilegeUser();
-
-  if (!hasUsersReadPermission && !loading) {
+  // Check if user has permission to view users - using database-first approach
+  if (!permissions.canReadUsers && !loading) {
     console.log('Users component: No permission to read users');
     return (
       <ErrorState
         title="Accès non autorisé"
         message="Vous n'avez pas les permissions nécessaires pour accéder à la gestion des utilisateurs."
-      />
-    );
-  }
-
-  // If currentUser is not found but user is authenticated and high privilege, allow access
-  if (!currentUser && !isHighPrivilegeUser() && !loading) {
-    console.log('Users component: Current user not found and not high privilege user');
-    return (
-      <ErrorState
-        title="Profil utilisateur introuvable"
-        message="Votre profil utilisateur n'a pas été trouvé dans le système. Veuillez contacter un administrateur."
       />
     );
   }

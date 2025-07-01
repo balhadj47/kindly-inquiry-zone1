@@ -46,7 +46,7 @@ export const useSecureRBACOperations = (
       if (error) throw error;
 
       if (newRole && newRole.length > 0) {
-        const roleWithPermissions = {
+        const roleWithPermissions: SystemGroup = {
           id: newRole[0].id,
           name: newRole[0].name,
           description: newRole[0].description,
@@ -90,9 +90,14 @@ export const useSecureRBACOperations = (
 
       if (fetchError) throw fetchError;
 
-      const roleWithPermissions = {
-        ...updatedRole,
-        permissions: roleData.permissions || []
+      const roleWithPermissions: SystemGroup = {
+        id: updatedRole.id,
+        name: updatedRole.name,
+        description: updatedRole.description,
+        color: updatedRole.color,
+        role_id: updatedRole.role_id,
+        permissions: roleData.permissions || [],
+        isSystemRole: false
       };
 
       setRoles(prev => prev.map(role => 
@@ -149,14 +154,34 @@ export const useSecureRBACOperations = (
           role_id: userData.role_id,
           status: userData.status,
         })
-        .eq('id', id)
+        .eq('id', parseInt(id))
         .select()
         .single();
 
       if (error) throw error;
 
-      setUsers(prev => prev.map(user => user.id === id ? data : user));
-      return data;
+      // Transform database response to User type
+      const updatedUser: User = {
+        id: data.id.toString(),
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+        role_id: data.role_id,
+        status: data.status,
+        createdAt: data.created_at,
+        licenseNumber: data.driver_license,
+        totalTrips: data.total_trips,
+        lastTrip: data.last_trip,
+        profileImage: data.profile_image,
+        badgeNumber: data.badge_number,
+        dateOfBirth: data.date_of_birth,
+        placeOfBirth: data.place_of_birth,
+        address: data.address,
+        driverLicense: data.driver_license
+      };
+
+      setUsers(prev => prev.map(user => user.id === id ? updatedUser : user));
+      return updatedUser;
     } catch (error) {
       console.error('❌ Error updating user:', error);
       throw error;
@@ -178,7 +203,7 @@ export const useSecureRBACOperations = (
       const { error } = await supabase
         .from('users')
         .delete()
-        .eq('id', id);
+        .eq('id', parseInt(id));
 
       if (error) throw error;
 

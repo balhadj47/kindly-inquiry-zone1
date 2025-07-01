@@ -5,7 +5,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { usePermissions } from '@/hooks/usePermissions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
@@ -52,11 +52,11 @@ const Index = () => {
   
   const isMobile = useIsMobile();
   const { user: authUser, loading: authLoading } = useAuth();
-  const permissions = usePermissions();
+  const permissions = useSecurePermissions();
 
   console.log('📱 Index: Permissions state:', {
     isAuthenticated: permissions.isAuthenticated,
-    isHighPrivilegeUser: permissions.isHighPrivilegeUser,
+    isAdmin: permissions.isAdmin,
     authLoading,
     timestamp: new Date().toISOString()
   });

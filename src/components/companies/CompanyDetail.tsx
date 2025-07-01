@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
 import { useBranchActions } from '@/hooks/useBranchActions';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -25,6 +26,7 @@ const CompanyDetail = () => {
   const { companyId } = useParams<{ companyId: string }>();
   const { data: companies, refetch } = useCompanies();
   const { deleteBranch, isLoading: isDeleting } = useBranchActions();
+  const permissions = useSecurePermissions();
   const company = companies?.find((c) => c.id === companyId);
   const navigate = useNavigate();
   const { t } = useLanguage();
@@ -37,27 +39,49 @@ const CompanyDetail = () => {
     console.log('🏢 CompanyDetail: Component mounted with companyId:', companyId);
     console.log('🏢 CompanyDetail: All companies:', companies);
     console.log('🏢 CompanyDetail: Found company:', company);
+    console.log('🔒 CompanyDetail: User permissions:', {
+      canCreateCompanies: permissions.canCreateCompanies,
+      canUpdateCompanies: permissions.canUpdateCompanies,
+      canDeleteCompanies: permissions.canDeleteCompanies,
+      isAdmin: permissions.isAdmin,
+      currentUser: permissions.currentUser
+    });
     if (company) {
       console.log('🏢 CompanyDetail: Company branches:', company.branches);
       console.log('🏢 CompanyDetail: Branches count:', company.branches?.length || 0);
     }
-  }, [companyId, companies, company]);
+  }, [companyId, companies, company, permissions]);
 
   const handleBranchClick = (branch: Branch) => {
     navigate(`/companies/branch/${branch.id}`);
   };
 
   const handleAddBranch = () => {
+    console.log('🔒 Attempting to add branch - canCreateCompanies:', permissions.canCreateCompanies);
+    if (!permissions.canCreateCompanies) {
+      console.log('❌ Permission denied: Cannot create branches');
+      return;
+    }
     setSelectedBranch(null);
     setIsBranchModalOpen(true);
   };
 
   const handleEditBranch = (branch: Branch) => {
+    console.log('🔒 Attempting to edit branch - canUpdateCompanies:', permissions.canUpdateCompanies);
+    if (!permissions.canUpdateCompanies) {
+      console.log('❌ Permission denied: Cannot edit branches');
+      return;
+    }
     setSelectedBranch(branch);
     setIsBranchModalOpen(true);
   };
 
   const handleDeleteBranch = (branch: Branch) => {
+    console.log('🔒 Attempting to delete branch - canDeleteCompanies:', permissions.canDeleteCompanies);
+    if (!permissions.canDeleteCompanies) {
+      console.log('❌ Permission denied: Cannot delete branches');
+      return;
+    }
     setSelectedBranch(branch);
     setIsDeleteDialogOpen(true);
   };
@@ -130,6 +154,22 @@ const CompanyDetail = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
+
+      {/* Debug Panel for Permission Testing */}
+      <Card className="bg-yellow-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="text-yellow-800">Permission Debug Info</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-yellow-700 space-y-1">
+            <p><strong>Current User Role ID:</strong> {permissions.currentUser?.role_id || 'Not found'}</p>
+            <p><strong>Is Admin:</strong> {permissions.isAdmin ? 'Yes' : 'No'}</p>
+            <p><strong>Can Create Companies:</strong> {permissions.canCreateCompanies ? 'Yes' : 'No'}</p>
+            <p><strong>Can Update Companies:</strong> {permissions.canUpdateCompanies ? 'Yes' : 'No'}</p>
+            <p><strong>Can Delete Companies:</strong> {permissions.canDeleteCompanies ? 'Yes' : 'No'}</p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -207,33 +247,7 @@ const CompanyDetail = () => {
             <span className="text-sm text-gray-500">
               {branches.length} {branches.length === 1 ? t.branch : t.branches.toLowerCase()}
             </span>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button 
-                    onClick={handleAddBranch} 
-                    size="icon"
-                    className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
-                  >
-                    <Plus className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t.addNewBranch}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          </div>
-        </div>
-
-        {branches.length === 0 ? (
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-12">
-              <Building2 className="h-12 w-12 text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noBranchesAvailable}</h3>
-              <p className="text-gray-500 text-center mb-4">
-                Cette entreprise n'a pas encore de succursales enregistrées.
-              </p>
+            {permissions.canCreateCompanies ? (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -246,10 +260,44 @@ const CompanyDetail = () => {
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p>{t.addFirstBranch}</p>
+                    <p>{t.addNewBranch}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+            ) : (
+              <div className="text-sm text-gray-500 bg-gray-100 px-3 py-2 rounded">
+                {t.noPermissionToAdd || 'No permission to add branches'}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {branches.length === 0 ? (
+          <Card>
+            <CardContent className="flex flex-col items-center justify-center py-12">
+              <Building2 className="h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">{t.noBranchesAvailable}</h3>
+              <p className="text-gray-500 text-center mb-4">
+                Cette entreprise n'a pas encore de succursales enregistrées.
+              </p>
+              {permissions.canCreateCompanies && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        onClick={handleAddBranch} 
+                        size="icon"
+                        className="w-12 h-12 rounded-md bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                      >
+                        <Plus className="h-5 w-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>{t.addFirstBranch}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
             </CardContent>
           </Card>
         ) : (
@@ -261,8 +309,8 @@ const CompanyDetail = () => {
                   key={branch.id}
                   branch={branch}
                   onClick={handleBranchClick}
-                  onEdit={handleEditBranch}
-                  onDelete={handleDeleteBranch}
+                  onEdit={permissions.canUpdateCompanies ? handleEditBranch : undefined}
+                  onDelete={permissions.canDeleteCompanies ? handleDeleteBranch : undefined}
                 />
               );
             })}
@@ -270,22 +318,26 @@ const CompanyDetail = () => {
         )}
       </div>
 
-      <BranchModal
-        isOpen={isBranchModalOpen}
-        onClose={() => setIsBranchModalOpen(false)}
-        branch={selectedBranch}
-        companyId={company.id}
-        companyName={company.name}
-        onSuccess={handleBranchModalSuccess}
-      />
+      {permissions.canCreateCompanies || permissions.canUpdateCompanies ? (
+        <BranchModal
+          isOpen={isBranchModalOpen}
+          onClose={() => setIsBranchModalOpen(false)}
+          branch={selectedBranch}
+          companyId={company.id}
+          companyName={company.name}
+          onSuccess={handleBranchModalSuccess}
+        />
+      ) : null}
 
-      <BranchDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        branch={selectedBranch}
-        onConfirm={handleConfirmDelete}
-        isLoading={isDeleting}
-      />
+      {permissions.canDeleteCompanies ? (
+        <BranchDeleteDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+          branch={selectedBranch}
+          onConfirm={handleConfirmDelete}
+          isLoading={isDeleting}
+        />
+      ) : null}
     </div>
   );
 };

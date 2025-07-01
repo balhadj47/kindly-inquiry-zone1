@@ -34,7 +34,7 @@ export const usePermissions = () => {
     },
     enabled: !!authUser,
     staleTime: CACHE_DURATION,
-    cacheTime: CACHE_DURATION,
+    gcTime: CACHE_DURATION, // Updated from cacheTime
   });
 
   // Simple helper to check if user is high privilege (admin/supervisor)

@@ -29,7 +29,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
     try {
       let hasAccess = false;
       
-      // Map menu permissions to our permission helpers
+      // Map menu permissions to our permission helpers (synchronous)
       switch (item.permission) {
         case 'dashboard:read':
           hasAccess = permissions.canAccessDashboard;
@@ -50,7 +50,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
           hasAccess = permissions.canReadAuthUsers;
           break;
         default:
-          hasAccess = permissions.checkPermission(item.permission || '');
+          hasAccess = permissions.hasPermission(item.permission || '');
       }
       
       console.log(`🔍 Permission check for ${item.title}:`, {

@@ -9,19 +9,16 @@ import TripHistoryList from './TripHistoryList';
 import TripDetailsDialog from '../TripDetailsDialog';
 
 const TripHistoryContainer = React.memo(() => {
-  // State management with useCallback to prevent recreating functions
   const [selectedTrip, setSelectedTrip] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [companyFilter, setCompanyFilter] = useState('all');
   const [vanFilter, setVanFilter] = useState('all');
   const [deletingTripId, setDeletingTripId] = useState(null);
 
-  // Data fetching with safe defaults
   const { trips, isLoading, error, deleteTrip } = useTrip();
   const { vans } = useVans();
   const { data: companies } = useCompanies();
 
-  // Memoize the trips processing to prevent recalculation
   const processedTrips = useMemo(() => {
     try {
       if (!Array.isArray(trips)) {
@@ -73,7 +70,6 @@ const TripHistoryContainer = React.memo(() => {
     }
   }, [trips]);
 
-  // Memoize filtered trips to prevent recalculation
   const filteredTrips = useMemo(() => {
     try {
       if (!Array.isArray(processedTrips)) {
@@ -100,7 +96,6 @@ const TripHistoryContainer = React.memo(() => {
     }
   }, [processedTrips, searchTerm, companyFilter, vanFilter]);
 
-  // Memoize event handlers to prevent recreating functions
   const handleOpenTripDetails = useCallback((trip) => {
     try {
       setSelectedTrip(trip);
@@ -159,7 +154,6 @@ const TripHistoryContainer = React.memo(() => {
 
   return (
     <>
-      {/* Filters */}
       <TripHistoryFilters
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
@@ -172,7 +166,6 @@ const TripHistoryContainer = React.memo(() => {
         onClearFilters={handleClearFilters}
       />
 
-      {/* Trip List */}
       <TripHistoryList
         filteredTrips={filteredTrips}
         totalTrips={processedTrips}
@@ -181,7 +174,6 @@ const TripHistoryContainer = React.memo(() => {
         deletingTripId={deletingTripId}
       />
 
-      {/* Trip Details Dialog */}
       <TripDetailsDialog
         trip={selectedTrip}
         isOpen={!!selectedTrip}

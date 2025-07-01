@@ -47,10 +47,24 @@ const CompaniesIndex = () => {
   const canCreateCompanies = permissions.canCreateCompanies === true;
   const canEditCompanies = permissions.canUpdateCompanies === true;
   const canDeleteCompanies = permissions.canDeleteCompanies === true;
+  const canReadCompanies = permissions.canReadCompanies === true;
+
+  // Debug permissions for view-only users
+  React.useEffect(() => {
+    console.log('🔒 CompaniesIndex: Current user permissions:', {
+      canReadCompanies,
+      canCreateCompanies,
+      canEditCompanies,
+      canDeleteCompanies,
+      currentUser: permissions.currentUser,
+      isAdmin: permissions.isAdmin
+    });
+  }, [permissions]);
 
   // Event handlers with strict permission checking
   const handleAddCompany = () => {
     if (!canCreateCompanies) {
+      console.log('❌ Cannot add company - permission denied');
       return;
     }
     setSelectedCompany(null);
@@ -59,6 +73,7 @@ const CompaniesIndex = () => {
 
   const handleEditCompany = (company: Company) => {
     if (!canEditCompanies) {
+      console.log('❌ Cannot edit company - permission denied');
       return;
     }
     setSelectedCompany(company);
@@ -67,6 +82,7 @@ const CompaniesIndex = () => {
 
   const handleDeleteCompany = (company: Company) => {
     if (!canDeleteCompanies) {
+      console.log('❌ Cannot delete company - permission denied');
       return;
     }
     setSelectedCompany(company);
@@ -82,7 +98,7 @@ const CompaniesIndex = () => {
       setIsDeleteDialogOpen(false);
       refetch();
     } catch (error) {
-      // Handle error
+      console.error('Error deleting company:', error);
     } finally {
       setIsDeleting(false);
     }
@@ -95,6 +111,7 @@ const CompaniesIndex = () => {
 
   const handleAddBranch = (company: Company) => {
     if (!canCreateCompanies) {
+      console.log('❌ Cannot add branch - permission denied');
       return;
     }
     setSelectedCompany(company);
@@ -122,6 +139,18 @@ const CompaniesIndex = () => {
         onRefresh={refetch}
         isRefreshing={isLoading}
       />
+    );
+  }
+
+  // Check if user can read companies
+  if (!canReadCompanies) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[400px]">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Accès refusé</h2>
+          <p className="text-gray-600">Vous n'avez pas les permissions nécessaires pour voir les entreprises.</p>
+        </div>
+      </div>
     );
   }
 
@@ -165,7 +194,7 @@ const CompaniesIndex = () => {
       )}
 
       {/* Modals - Only render if user has permissions */}
-      {canCreateCompanies && (
+      {(canCreateCompanies || canEditCompanies) && (
         <CompanyModal
           isOpen={isCompanyModalOpen}
           onClose={() => setIsCompanyModalOpen(false)}

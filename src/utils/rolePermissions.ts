@@ -11,12 +11,14 @@ export const getPermissionsForRoleId = async (roleId: number): Promise<string[]>
       .single();
 
     if (error) {
+      console.error('Error fetching permissions for role:', roleId, error);
       return ['dashboard:read'];
     }
 
     const permissions = Array.isArray(data?.permissions) ? data.permissions : ['dashboard:read'];
     return permissions;
   } catch (error) {
+    console.error('Exception fetching permissions for role:', roleId, error);
     return ['dashboard:read'];
   }
 };
@@ -40,6 +42,11 @@ export const roleIdHasPermission = async (roleId: number, permission: string): P
   }
 };
 
+// Helper function to check if role is view-only
+export const isViewOnlyRole = (roleId: number): boolean => {
+  return roleId === 2;
+};
+
 // Helper function to get role display name by role_id
 export const getRoleDisplayNameById = async (roleId: number): Promise<string> => {
   try {
@@ -50,12 +57,28 @@ export const getRoleDisplayNameById = async (roleId: number): Promise<string> =>
       .single();
 
     if (error) {
-      return 'Employé';
+      console.error('Error fetching role name:', error);
+      return getRoleDisplayNameFallback(roleId);
     }
 
-    return data?.name || 'Employé';
+    return data?.name || getRoleDisplayNameFallback(roleId);
   } catch (error) {
-    return 'Employé';
+    console.error('Exception fetching role name:', error);
+    return getRoleDisplayNameFallback(roleId);
+  }
+};
+
+// Fallback role names for consistency
+const getRoleDisplayNameFallback = (roleId: number): string => {
+  switch (roleId) {
+    case 1:
+      return 'Administrator';
+    case 2:
+      return 'Viewer';
+    case 3:
+      return 'Employee';
+    default:
+      return `Role ${roleId}`;
   }
 };
 
@@ -69,12 +92,28 @@ export const getRoleColorById = async (roleId: number): Promise<string> => {
       .single();
 
     if (error) {
-      return '#6b7280';
+      console.error('Error fetching role color:', error);
+      return getRoleColorFallback(roleId);
     }
 
-    return data?.color || '#6b7280';
+    return data?.color || getRoleColorFallback(roleId);
   } catch (error) {
-    return '#6b7280';
+    console.error('Exception fetching role color:', error);
+    return getRoleColorFallback(roleId);
+  }
+};
+
+// Fallback role colors
+const getRoleColorFallback = (roleId: number): string => {
+  switch (roleId) {
+    case 1:
+      return '#dc2626'; // Red for admin
+    case 2:
+      return '#6b7280'; // Gray for viewer
+    case 3:
+      return '#059669'; // Green for employee
+    default:
+      return '#6b7280';
   }
 };
 
@@ -88,11 +127,13 @@ export const getAllPermissions = async () => {
       .order('name', { ascending: true });
 
     if (error) {
+      console.error('Error fetching all permissions:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
+    console.error('Exception fetching all permissions:', error);
     return [];
   }
 };
@@ -107,11 +148,13 @@ export const getPermissionsByCategory = async (category: string) => {
       .order('name', { ascending: true });
 
     if (error) {
+      console.error('Error fetching permissions by category:', error);
       return [];
     }
 
     return data || [];
   } catch (error) {
+    console.error('Exception fetching permissions by category:', error);
     return [];
   }
 };
@@ -120,7 +163,7 @@ export const getPermissionsByCategory = async (category: string) => {
 export const getPermissionsForRole = async (systemGroup: string): Promise<string[]> => {
   const roleIdMap: Record<string, number> = {
     'Administrator': 1,
-    'Supervisor': 2,
+    'Viewer': 2,
     'Employee': 3
   };
   
@@ -136,7 +179,7 @@ export const roleHasPermission = async (systemGroup: string, permission: string)
 export const getRoleDisplayName = async (systemGroup: string): Promise<string> => {
   const roleIdMap: Record<string, number> = {
     'Administrator': 1,
-    'Supervisor': 2,
+    'Viewer': 2,
     'Employee': 3
   };
   
@@ -147,7 +190,7 @@ export const getRoleDisplayName = async (systemGroup: string): Promise<string> =
 export const getRoleColor = async (systemGroup: string): Promise<string> => {
   const roleIdMap: Record<string, number> = {
     'Administrator': 1,
-    'Supervisor': 2,
+    'Viewer': 2,
     'Employee': 3
   };
   

@@ -12,19 +12,35 @@ export const getRoleNameFromId = async (roleId: number): Promise<string> => {
       .from('user_groups')
       .select('name')
       .eq('role_id', roleId)
-      .maybeSingle(); // Use maybeSingle to handle no results gracefully
+      .maybeSingle();
 
     if (error) {
-      return `Role ${roleId}`;
+      console.error('Error fetching role name:', error);
+      return getRoleNameFallback(roleId);
     }
 
     if (!data) {
-      return `Role ${roleId} (Not Found)`;
+      return getRoleNameFallback(roleId);
     }
 
-    return data.name || `Role ${roleId}`;
+    return data.name || getRoleNameFallback(roleId);
   } catch (error) {
-    return `Role ${roleId}`;
+    console.error('Exception fetching role name:', error);
+    return getRoleNameFallback(roleId);
+  }
+};
+
+// Fallback role names
+const getRoleNameFallback = (roleId: number): string => {
+  switch (roleId) {
+    case 1:
+      return 'Administrator';
+    case 2:
+      return 'Viewer';
+    case 3:
+      return 'Employee';
+    default:
+      return `Role ${roleId}`;
   }
 };
 
@@ -41,16 +57,32 @@ export const getRoleColorFromId = async (roleId: number): Promise<string> => {
       .maybeSingle();
 
     if (error) {
-      return '#6b7280';
+      console.error('Error fetching role color:', error);
+      return getRoleColorFallback(roleId);
     }
 
     if (!data) {
-      return '#6b7280';
+      return getRoleColorFallback(roleId);
     }
 
-    return data.color || '#6b7280';
+    return data.color || getRoleColorFallback(roleId);
   } catch (error) {
-    return '#6b7280';
+    console.error('Exception fetching role color:', error);
+    return getRoleColorFallback(roleId);
+  }
+};
+
+// Fallback role colors
+const getRoleColorFallback = (roleId: number): string => {
+  switch (roleId) {
+    case 1:
+      return '#dc2626'; // Red for admin
+    case 2:
+      return '#6b7280'; // Gray for viewer
+    case 3:
+      return '#059669'; // Green for employee
+    default:
+      return '#6b7280';
   }
 };
 
@@ -62,28 +94,43 @@ export const getAllRoles = async (): Promise<Array<{ id: number; name: string; c
       .order('role_id', { ascending: true });
 
     if (error) {
-      return [];
+      console.error('Error fetching all roles:', error);
+      return getDefaultRoles();
     }
 
     if (!data || data.length === 0) {
-      return [];
+      return getDefaultRoles();
     }
 
     const roles = data
       .filter(role => role.role_id !== null)
       .map(role => ({
         id: role.role_id!,
-        name: role.name || `Role ${role.role_id}`,
-        color: role.color || '#6b7280'
+        name: role.name || getRoleNameFallback(role.role_id!),
+        color: role.color || getRoleColorFallback(role.role_id!)
       }));
 
     return roles;
   } catch (error) {
-    return [];
+    console.error('Exception fetching all roles:', error);
+    return getDefaultRoles();
   }
 };
 
-// Simplified permission checking functions
+// Default roles fallback
+const getDefaultRoles = (): Array<{ id: number; name: string; color: string }> => {
+  return [
+    { id: 1, name: 'Administrator', color: '#dc2626' },
+    { id: 2, name: 'Viewer', color: '#6b7280' },
+    { id: 3, name: 'Employee', color: '#059669' }
+  ];
+};
+
+// Role type checking functions
+export const isViewOnlyRole = (roleId: number): boolean => {
+  return roleId === 2;
+};
+
 export const isDriverRole = async (roleId: number): Promise<boolean> => {
   try {
     const { data, error } = await supabase
@@ -101,27 +148,13 @@ export const isDriverRole = async (roleId: number): Promise<boolean> => {
       perm.includes('trips') || perm.includes('vans')
     );
   } catch (error) {
+    console.error('Exception checking driver role:', error);
     return false;
   }
 };
 
 export const isAdminRole = async (roleId: number): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('permissions')
-      .eq('role_id', roleId)
-      .maybeSingle();
-
-    if (error || !data) {
-      return false;
-    }
-
-    const permissionCount = data.permissions ? data.permissions.length : 0;
-    return permissionCount >= 10;
-  } catch (error) {
-    return false;
-  }
+  return roleId === 1;
 };
 
 export const isSupervisorRole = async (roleId: number): Promise<boolean> => {
@@ -137,29 +170,15 @@ export const isSupervisorRole = async (roleId: number): Promise<boolean> => {
     }
 
     const permissionCount = data.permissions ? data.permissions.length : 0;
-    return permissionCount >= 5 && permissionCount < 10;
+    return permissionCount >= 5 && permissionCount < 10 && roleId !== 1;
   } catch (error) {
+    console.error('Exception checking supervisor role:', error);
     return false;
   }
 };
 
 export const isEmployeeRole = async (roleId: number): Promise<boolean> => {
-  try {
-    const { data, error } = await supabase
-      .from('user_groups')
-      .select('permissions')
-      .eq('role_id', roleId)
-      .maybeSingle();
-
-    if (error || !data) {
-      return true; // Default to employee
-    }
-
-    const permissionCount = data.permissions ? data.permissions.length : 0;
-    return permissionCount < 5;
-  } catch (error) {
-    return true;
-  }
+  return roleId === 3;
 };
 
 // Legacy compatibility functions

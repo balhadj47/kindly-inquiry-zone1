@@ -106,19 +106,23 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
     try {
       console.log('Submitting user form with data:', data);
       
-      // Extract the profile image value if it's wrapped in an object
-      let profileImageValue = data.profileImage;
-      if (typeof profileImageValue === 'object' && profileImageValue !== null && 'value' in profileImageValue) {
-        profileImageValue = (profileImageValue as any).value;
-      }
+      // Safely handle profile image - ensure it's a string or undefined
+      const profileImageValue = data.profileImage;
+      let finalProfileImageValue: string | undefined = undefined;
       
-      // Ensure it's a string or undefined
-      const finalProfileImageValue = typeof profileImageValue === 'string' ? profileImageValue : undefined;
+      if (profileImageValue) {
+        if (typeof profileImageValue === 'string') {
+          finalProfileImageValue = profileImageValue;
+        } else if (typeof profileImageValue === 'object' && profileImageValue !== null && 'value' in profileImageValue) {
+          const extractedValue = (profileImageValue as any).value;
+          finalProfileImageValue = typeof extractedValue === 'string' ? extractedValue : undefined;
+        }
+      }
       
       // Map form data to proper field names and include the default role_id
       const submitData = {
         ...data,
-        profileImage: finalProfileImageValue, // Use the extracted value
+        profileImage: finalProfileImageValue,
         role_id: config.defaultRoleId, // Use the default role from config
         identification_national: data.identificationNational,
         carte_national: data.carteNational,
@@ -131,6 +135,8 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         blood_type: data.bloodType,
         company_assignment_date: data.companyAssignmentDate,
       };
+      
+      console.log('Final submit data:', submitData);
       
       await onSubmit(submitData);
       console.log('User form submitted successfully');

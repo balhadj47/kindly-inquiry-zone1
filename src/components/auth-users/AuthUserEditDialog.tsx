@@ -122,38 +122,40 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleCancel()}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Modifier l'utilisateur d'authentification</DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">Modifier l'utilisateur d'authentification</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Nom</Label>
+            <Label htmlFor="name" className="text-sm font-medium">Nom</Label>
             <Input
               id="name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="Nom d'utilisateur"
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Rôle</Label>
+            <Label htmlFor="role" className="text-sm font-medium">Rôle</Label>
             <Select value={roleId.toString()} onValueChange={(value) => setRoleId(parseInt(value))}>
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Sélectionner un rôle" />
               </SelectTrigger>
               <SelectContent>
@@ -175,11 +177,11 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
             )}
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">
               Annuler
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               Sauvegarder
             </Button>
           </DialogFooter>

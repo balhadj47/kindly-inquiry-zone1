@@ -133,14 +133,14 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={() => handleCancel()}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>Créer un nouvel utilisateur d'authentification</DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[500px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">Créer un nouvel utilisateur d'authentification</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email" className="text-sm font-medium">Email</Label>
             <Input
               id="email"
               type="email"
@@ -148,11 +148,12 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
               onChange={(e) => setEmail(e.target.value)}
               placeholder="email@exemple.com"
               required
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Mot de passe</Label>
+            <Label htmlFor="password" className="text-sm font-medium">Mot de passe</Label>
             <Input
               id="password"
               type="password"
@@ -160,11 +161,12 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Mot de passe"
               required
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="name">Nom</Label>
+            <Label htmlFor="name" className="text-sm font-medium">Nom</Label>
             <Input
               id="name"
               type="text"
@@ -172,17 +174,18 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
               onChange={(e) => setName(e.target.value)}
               placeholder="Nom d'utilisateur"
               required
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="role">Rôle</Label>
+            <Label htmlFor="role" className="text-sm font-medium">Rôle</Label>
             <Select 
               value={roleId.toString()} 
               onValueChange={(value) => setRoleId(parseInt(value))}
               disabled={loadingGroups}
             >
-              <SelectTrigger>
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder={loadingGroups ? "Chargement..." : "Sélectionner un rôle"} />
               </SelectTrigger>
               <SelectContent>
@@ -200,11 +203,11 @@ const AuthUserCreateDialog: React.FC<AuthUserCreateDialogProps> = ({
             </Select>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={isLoading} className="w-full sm:w-auto">
               Annuler
             </Button>
-            <Button type="submit" disabled={isLoading || loadingGroups}>
+            <Button type="submit" disabled={isLoading || loadingGroups} className="w-full sm:w-auto">
               {isLoading ? 'Création...' : 'Créer'}
             </Button>
           </DialogFooter>

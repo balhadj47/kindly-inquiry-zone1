@@ -74,9 +74,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
   if (!user || !user.email) {
     return (
       <Dialog open={isOpen} onOpenChange={handleClose}>
-        <DialogContent className="sm:max-w-[400px]">
-          <DialogHeader>
-            <DialogTitle>Impossible de Changer le Mot de Passe</DialogTitle>
+        <DialogContent className="w-[95vw] max-w-[500px] p-4 sm:p-6">
+          <DialogHeader className="space-y-3">
+            <DialogTitle className="text-lg sm:text-xl">Impossible de Changer le Mot de Passe</DialogTitle>
           </DialogHeader>
           <Alert variant="destructive">
             <AlertDescription>
@@ -84,7 +84,7 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
             </AlertDescription>
           </Alert>
           <div className="flex justify-end pt-4">
-            <Button onClick={handleClose}>Fermer</Button>
+            <Button onClick={handleClose} className="w-full sm:w-auto">Fermer</Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -93,9 +93,9 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-[400px]">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[500px] p-4 sm:p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">
             Réinitialiser le Mot de Passe
           </DialogTitle>
           <p className="text-sm text-muted-foreground">
@@ -124,11 +124,11 @@ const PasswordChangeModal: React.FC<PasswordChangeModalProps> = ({ isOpen, onClo
               </Alert>
             )}
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting}>
+            <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
+              <Button type="button" variant="outline" onClick={handleClose} disabled={isSubmitting} className="w-full sm:w-auto">
                 Annuler
               </Button>
-              <Button onClick={handleSendResetEmail} disabled={isSubmitting || success}>
+              <Button onClick={handleSendResetEmail} disabled={isSubmitting || success} className="w-full sm:w-auto">
                 {isSubmitting ? 'Envoi...' : 'Envoyer Email de Réinitialisation'}
               </Button>
             </div>

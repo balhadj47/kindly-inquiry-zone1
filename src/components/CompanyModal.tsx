@@ -94,71 +94,76 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[600px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">
             {company ? t.editCompany : t.addNewCompany}
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="company-name">{t.companyName} *</Label>
+            <Label htmlFor="company-name" className="text-sm font-medium">{t.companyName} *</Label>
             <Input
               id="company-name"
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder={t.enterCompanyName}
               required
+              className="w-full"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="company-address">{t.address}</Label>
+            <Label htmlFor="company-address" className="text-sm font-medium">{t.address}</Label>
             <Input
               id="company-address"
               value={formData.address}
               onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
               placeholder={t.enterAddress}
+              className="w-full"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="company-phone">{t.phone}</Label>
+              <Label htmlFor="company-phone" className="text-sm font-medium">{t.phone}</Label>
               <Input
                 id="company-phone"
                 value={formData.phone}
                 onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                 placeholder={t.enterPhone}
                 type="tel"
+                className="w-full"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="company-email">{t.email}</Label>
+              <Label htmlFor="company-email" className="text-sm font-medium">{t.email}</Label>
               <Input
                 id="company-email"
                 value={formData.email}
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 placeholder={t.enterEmail}
                 type="email"
+                className="w-full"
               />
             </div>
           </div>
 
           <div className="space-y-4">
-            <Label>{t.branches}</Label>
+            <Label className="text-sm font-medium">{t.branches}</Label>
             
             {/* Add Branch Input */}
-            <div className="flex space-x-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 value={newBranch}
                 onChange={(e) => setNewBranch(e.target.value)}
                 placeholder={t.enterBranchName}
                 onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddBranch())}
+                className="flex-1"
               />
-              <Button type="button" onClick={handleAddBranch} variant="outline">
+              <Button type="button" onClick={handleAddBranch} variant="outline" className="w-full sm:w-auto">
                 {t.addBranch}
               </Button>
             </div>
@@ -185,11 +190,11 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
             )}
           </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading}>
+          <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
+            <Button type="button" variant="outline" onClick={onClose} disabled={isLoading} className="w-full sm:w-auto">
               {t.cancel}
             </Button>
-            <Button type="submit" disabled={isLoading}>
+            <Button type="submit" disabled={isLoading} className="w-full sm:w-auto">
               {isLoading ? 'Saving...' : (company ? t.updateCompany : t.createCompany)}
             </Button>
           </div>

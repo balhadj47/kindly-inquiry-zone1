@@ -63,26 +63,29 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <EmployeeImageUpload
-          profileImage={form.watch('profileImage') || ''}
-          userName={form.watch('name')}
-          onImageChange={(url) => form.setValue('profileImage', url)}
-          isSubmitting={isSubmitting}
-        />
+        <div className="flex justify-center">
+          <EmployeeImageUpload
+            profileImage={form.watch('profileImage') || ''}
+            userName={form.watch('name')}
+            onImageChange={(url) => form.setValue('profileImage', url)}
+            isSubmitting={isSubmitting}
+          />
+        </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="name"
             rules={{ required: 'Le nom est requis' }}
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Nom complet *</FormLabel>
+              <FormItem className="sm:col-span-2">
+                <FormLabel className="text-sm font-medium">Nom complet *</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     placeholder="ex: Jean Dupont"
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -95,12 +98,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Téléphone</FormLabel>
+                <FormLabel className="text-sm font-medium">Téléphone</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     placeholder="ex: +33 1 23 45 67 89"
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -113,12 +117,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="badgeNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Numéro de Badge</FormLabel>
+                <FormLabel className="text-sm font-medium">Numéro de Badge</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     placeholder="ex: EMP001"
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -131,14 +136,14 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="status"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Statut</FormLabel>
+                <FormLabel className="text-sm font-medium">Statut</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}
                   disabled={isSubmitting}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner un statut" />
                     </SelectTrigger>
                   </FormControl>
@@ -161,12 +166,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="dateOfBirth"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Date de Naissance</FormLabel>
+                <FormLabel className="text-sm font-medium">Date de Naissance</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     type="date"
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -179,12 +185,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="driverLicense"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Permis de Conduire</FormLabel>
+                <FormLabel className="text-sm font-medium">Permis de Conduire</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
                     placeholder="ex: 123456789"
                     disabled={isSubmitting}
+                    className="w-full"
                   />
                 </FormControl>
                 <FormMessage />
@@ -198,12 +205,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           name="placeOfBirth"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Lieu de Naissance</FormLabel>
+              <FormLabel className="text-sm font-medium">Lieu de Naissance</FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   placeholder="ex: Paris, France"
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormControl>
               <FormMessage />
@@ -216,12 +224,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Adresse</FormLabel>
+              <FormLabel className="text-sm font-medium">Adresse</FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   placeholder="ex: 123 Rue de la Paix, 75001 Paris"
                   disabled={isSubmitting}
+                  className="w-full"
                 />
               </FormControl>
               <FormMessage />
@@ -229,18 +238,20 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           )}
         />
 
-        <DialogFooter>
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             Annuler
           </Button>
           <Button 
             type="submit" 
             disabled={isSubmitting}
+            className="w-full sm:w-auto"
           >
             {isSubmitting ? 'Enregistrement...' : employee ? 'Modifier' : 'Créer'}
           </Button>

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -65,7 +66,8 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         email: data.email?.trim() || undefined,
         phone: data.phone?.trim() || undefined,
         status: data.status,
-        profileImage: data.profileImage || undefined,
+        // Explicitly handle profileImage - if it's empty string, pass empty string (not undefined)
+        profileImage: data.profileImage === '' ? '' : (data.profileImage || undefined),
         badgeNumber: data.badgeNumber?.trim() || undefined,
         dateOfBirth: data.dateOfBirth?.trim() || undefined,
         placeOfBirth: data.placeOfBirth?.trim() || undefined,

@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { User } from '@/types/rbac';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useToast } from '@/hooks/use-toast';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import EmployeeModalForm from './EmployeeModalForm';
 
 interface EmployeeModalProps {
@@ -17,6 +18,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addUser, updateUser } = useRBAC();
   const { toast } = useToast();
+  const { refreshPage } = useCacheRefresh();
 
   const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
@@ -48,9 +50,12 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
         });
       }
       
-      // Refresh the employees list after successful operation
+      // Refresh both the employees list and cache
+      console.log('🔄 EmployeeModal - Refreshing data after successful operation');
+      await refreshPage(['users']);
+      
       if (onRefresh) {
-        console.log('🔄 EmployeeModal - Refreshing employee list');
+        console.log('🔄 EmployeeModal - Calling onRefresh callback');
         onRefresh();
       }
       

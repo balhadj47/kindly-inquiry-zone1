@@ -1,8 +1,7 @@
-
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useVanMutations } from '@/hooks/useVansOptimized';
-import { useUserMutations } from '@/hooks/useUsersOptimized';
+import { useUserMutations } from '@/hooks/users';
 
 interface UseDataPreloaderProps {
   preloadVans?: boolean;

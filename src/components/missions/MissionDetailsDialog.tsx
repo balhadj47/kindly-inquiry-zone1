@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -30,7 +31,7 @@ import { Trip } from '@/contexts/TripContext';
 import { formatDate } from '@/utils/dateUtils';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useRoleData } from '@/hooks/useRoleData';
-import { useUsers } from '@/hooks/useUsersOptimized';
+import { useUsers } from '@/hooks/users';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { useToast } from '@/hooks/use-toast';
 

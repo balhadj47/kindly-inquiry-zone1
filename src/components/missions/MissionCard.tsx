@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { Circle, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Trip } from '@/contexts/TripContext';
-import { useUsers } from '@/hooks/useUsersOptimized';
+import { useUsers } from '@/hooks/users';
 
 interface MissionCardProps {
   mission: Trip;

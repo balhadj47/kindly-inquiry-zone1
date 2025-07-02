@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Shield, Car, UserCheck, Target } from 'lucide-react';
-import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
+import { useUsersByRoleId } from '@/hooks/users';
 import { Badge } from '@/components/ui/badge';
 
 interface TeamSelectionStepProps {

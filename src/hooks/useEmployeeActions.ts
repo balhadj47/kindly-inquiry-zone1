@@ -1,8 +1,7 @@
-
 import { useState } from 'react';
 import { User } from '@/types/rbac';
 import { useToast } from '@/hooks/use-toast';
-import { useUserMutations } from '@/hooks/useUsersOptimized';
+import { useUserMutations } from '@/hooks/users';
 
 export const useEmployeeActions = (refetch: () => void) => {
   const [isModalOpen, setIsModalOpen] = useState(false);

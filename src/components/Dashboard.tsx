@@ -8,7 +8,6 @@ import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import StatsGrid from './dashboard/StatsGrid';
 import ChartsSection from './dashboard/ChartsSection';
 import QuickActions from './dashboard/QuickActions';
-import SystemStatus from './dashboard/SystemStatus';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -55,7 +54,6 @@ const Dashboard = () => {
       <StatsGrid stats={stats} />
       <QuickActions />
       <ChartsSection chartData={chartData} />
-      <SystemStatus totalUsers={0} activeVans={0} totalCompanies={0} />
     </div>
   );
 };

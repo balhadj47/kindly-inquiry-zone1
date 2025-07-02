@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -24,13 +23,11 @@ interface VanCardProps {
 }
 
 const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardProps) => {
-  const handleEdit = React.useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleEdit = React.useCallback(() => {
     onEdit(van);
   }, [onEdit, van]);
   
-  const handleDelete = React.useCallback((e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleDelete = React.useCallback(() => {
     onDelete(van);
   }, [onDelete, van]);
 

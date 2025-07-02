@@ -21,32 +21,41 @@ export const useAuthUsers = () => {
       console.log('🔍 useAuthUsers: Fetching auth users via Edge Function...');
       const startTime = performance.now();
       
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        throw new Error('No session found');
-      }
-
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'GET',
-      });
-
-      if (error) {
-        console.error('Function invoke error:', error);
-        if (error.message.includes('403') || error.message.includes('Insufficient permissions')) {
-          throw new Error('Insufficient permissions');
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!session) {
+          console.error('🔴 useAuthUsers: No session found');
+          throw new Error('No session found');
         }
-        throw error;
-      }
 
-      const endTime = performance.now();
-      console.log('🔍 useAuthUsers: Fetched in:', endTime - startTime, 'ms');
-      
-      return data.users || [];
+        console.log('🔍 useAuthUsers: Session found, invoking function...');
+        const { data, error } = await supabase.functions.invoke('auth-users', {
+          method: 'GET',
+        });
+
+        if (error) {
+          console.error('🔴 useAuthUsers: Function invoke error:', error);
+          if (error.message.includes('403') || error.message.includes('Insufficient permissions')) {
+            throw new Error('Insufficient permissions');
+          }
+          throw error;
+        }
+
+        const endTime = performance.now();
+        console.log('🔍 useAuthUsers: Fetched in:', endTime - startTime, 'ms');
+        console.log('🔍 useAuthUsers: Data received:', data);
+        
+        return data.users || [];
+      } catch (err) {
+        console.error('🔴 useAuthUsers: Exception in queryFn:', err);
+        throw err;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
     retry: (failureCount, error) => {
+      console.error(`🔴 useAuthUsers: Retry ${failureCount} for error:`, error);
       // Don't retry on permission errors
       if (error.message.includes('Insufficient permissions')) {
         return false;
@@ -61,6 +70,7 @@ export const useAuthUserMutations = () => {
   const { toast } = useToast();
 
   const invalidateAuthUsers = () => {
+    console.log('🔄 Invalidating auth users cache...');
     queryClient.invalidateQueries({ queryKey: ['auth-users'] });
   };
 
@@ -68,17 +78,23 @@ export const useAuthUserMutations = () => {
     mutationFn: async (userId: string) => {
       console.log('🗑️ Deleting auth user:', userId);
       
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'DELETE',
-        body: { userId },
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('auth-users', {
+          method: 'DELETE',
+          body: { userId },
+        });
 
-      if (error) {
-        console.error('Delete error:', error);
-        throw new Error(error.message || 'Erreur lors de la suppression');
+        if (error) {
+          console.error('🔴 Delete error:', error);
+          throw new Error(error.message || 'Erreur lors de la suppression');
+        }
+
+        console.log('✅ Delete successful:', data);
+        return data;
+      } catch (err) {
+        console.error('🔴 Exception in deleteAuthUser:', err);
+        throw err;
       }
-
-      return data;
     },
     onSuccess: () => {
       invalidateAuthUsers();
@@ -88,7 +104,7 @@ export const useAuthUserMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Error deleting auth user:', error);
+      console.error('🔴 Error deleting auth user:', error);
       toast({
         title: 'Erreur',
         description: `Erreur lors de la suppression: ${error.message}`,
@@ -101,27 +117,39 @@ export const useAuthUserMutations = () => {
     mutationFn: async ({ userId, updateData }: { userId: string; updateData: { email?: string; role_id?: number; name?: string } }) => {
       console.log('📝 Updating auth user:', userId, updateData);
       
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'PUT',
-        body: { userId, updateData },
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('auth-users', {
+          method: 'PUT',
+          body: { userId, updateData },
+        });
 
-      if (error) {
-        console.error('Update error:', error);
-        throw new Error(error.message || 'Erreur lors de la modification');
+        if (error) {
+          console.error('🔴 Update error:', error);
+          throw new Error(error.message || 'Erreur lors de la modification');
+        }
+
+        console.log('✅ Update successful:', data);
+        return data;
+      } catch (err) {
+        console.error('🔴 Exception in updateAuthUser:', err);
+        throw err;
       }
-
-      return data;
     },
     onSuccess: () => {
       invalidateAuthUsers();
+      // Also invalidate permissions cache to refresh user permissions
+      console.log('🔄 Invalidating permissions cache after user update...');
+      queryClient.invalidateQueries({ queryKey: ['secure-current-user'] });
+      queryClient.invalidateQueries({ queryKey: ['secure-admin-status'] });
+      queryClient.invalidateQueries({ queryKey: ['secure-permissions'] });
+      
       toast({
         title: 'Succès',
         description: 'Utilisateur d\'authentification modifié avec succès',
       });
     },
     onError: (error) => {
-      console.error('Error updating auth user:', error);
+      console.error('🔴 Error updating auth user:', error);
       toast({
         title: 'Erreur',
         description: `Erreur lors de la modification: ${error.message}`,
@@ -134,17 +162,23 @@ export const useAuthUserMutations = () => {
     mutationFn: async (userData: { email: string; password: string; name: string; role_id: number }) => {
       console.log('🆕 Creating new auth user:', userData.email);
       
-      const { data, error } = await supabase.functions.invoke('auth-users', {
-        method: 'POST',
-        body: userData,
-      });
+      try {
+        const { data, error } = await supabase.functions.invoke('auth-users', {
+          method: 'POST',
+          body: userData,
+        });
 
-      if (error) {
-        console.error('Create error:', error);
-        throw new Error(error.message || 'Erreur lors de la création');
+        if (error) {
+          console.error('🔴 Create error:', error);
+          throw new Error(error.message || 'Erreur lors de la création');
+        }
+
+        console.log('✅ Create successful:', data);
+        return data;
+      } catch (err) {
+        console.error('🔴 Exception in createAuthUser:', err);
+        throw err;
       }
-
-      return data;
     },
     onSuccess: () => {
       invalidateAuthUsers();
@@ -154,7 +188,7 @@ export const useAuthUserMutations = () => {
       });
     },
     onError: (error) => {
-      console.error('Error creating auth user:', error);
+      console.error('🔴 Error creating auth user:', error);
       toast({
         title: 'Erreur',
         description: `Erreur lors de la création: ${error.message}`,

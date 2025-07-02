@@ -51,13 +51,62 @@ const Index = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const permissions = useSecurePermissions();
 
+  // Add error boundary logging
+  React.useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('🔴 Global JavaScript error:', event.error);
+      console.error('🔴 Error details:', {
+        message: event.message,
+        filename: event.filename,
+        lineno: event.lineno,
+        colno: event.colno,
+        stack: event.error?.stack
+      });
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('🔴 Unhandled promise rejection:', event.reason);
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
+
+  // Log loading states
+  React.useEffect(() => {
+    console.log('📍 Index component state:', {
+      authLoading,
+      authUser: !!authUser,
+      authUserId: authUser?.id,
+      isMobile,
+      permissionsLoaded: !!permissions
+    });
+  }, [authLoading, authUser, isMobile, permissions]);
+
   if (authLoading) {
+    console.log('📍 Index: Still loading auth...');
     return <PageLoadingSkeleton />;
   }
 
   if (!authUser) {
+    console.log('📍 Index: No auth user, showing access denied');
     return <AccessDenied />;
   }
+
+  console.log('📍 Index: Rendering main app with permissions:', {
+    canAccessDashboard: permissions.canAccessDashboard,
+    canReadCompanies: permissions.canReadCompanies,
+    canReadVans: permissions.canReadVans,
+    canReadUsers: permissions.canReadUsers,
+    canReadAuthUsers: permissions.canReadAuthUsers,
+    canCreateTrips: permissions.canCreateTrips,
+    canReadTrips: permissions.canReadTrips
+  });
 
   return (
     <>

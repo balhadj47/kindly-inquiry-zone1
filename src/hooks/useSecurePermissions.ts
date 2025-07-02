@@ -11,68 +11,112 @@ export const useSecurePermissions = () => {
   const { user: authUser } = useAuth();
 
   // Real-time user data check via database
-  const { data: currentUser = null } = useQuery({
+  const { data: currentUser = null, error: currentUserError } = useQuery({
     queryKey: ['secure-current-user', authUser?.id],
     queryFn: async () => {
       if (!authUser) return null;
       
-      // Fetch user data directly from users table
-      const { data, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('auth_user_id', authUser.id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching current user:', error);
+      try {
+        // Fetch user data directly from users table
+        const { data, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('auth_user_id', authUser.id)
+          .single();
+        
+        if (error) {
+          console.error('🔴 Error fetching current user:', error);
+          return null;
+        }
+        console.log('🔒 Current user data:', data);
+        console.log('🔒 Current user role_id specifically:', data?.role_id);
+        console.log('🔒 Current user role_id type:', typeof data?.role_id);
+        return data;
+      } catch (err) {
+        console.error('🔴 Exception in currentUser query:', err);
         return null;
       }
-      console.log('🔒 Current user data:', data);
-      console.log('🔒 Current user role_id specifically:', data?.role_id);
-      return data;
     },
     enabled: !!authUser,
     staleTime: 30000,
     gcTime: 60000,
+    retry: (failureCount, error) => {
+      console.error(`🔴 CurrentUser query retry ${failureCount}:`, error);
+      return failureCount < 2;
+    }
   });
 
+  // Log currentUser query errors
+  if (currentUserError) {
+    console.error('🔴 CurrentUser query error:', currentUserError);
+  }
+
   // Real-time admin status check via database
-  const { data: isAdmin = false } = useQuery({
+  const { data: isAdmin = false, error: adminError } = useQuery({
     queryKey: ['secure-admin-status', authUser?.id],
     queryFn: async () => {
       if (!authUser) return false;
       
-      const { data, error } = await supabase.rpc('current_user_is_admin');
-      if (error) {
-        console.error('Error checking admin status:', error);
+      try {
+        const { data, error } = await supabase.rpc('current_user_is_admin');
+        if (error) {
+          console.error('🔴 Error checking admin status:', error);
+          return false;
+        }
+        console.log('🔒 Admin status:', data);
+        return data === true;
+      } catch (err) {
+        console.error('🔴 Exception in admin status check:', err);
         return false;
       }
-      console.log('🔒 Admin status:', data);
-      return data === true;
     },
     enabled: !!authUser,
     staleTime: 30000,
     gcTime: 60000,
+    retry: (failureCount, error) => {
+      console.error(`🔴 Admin status query retry ${failureCount}:`, error);
+      return failureCount < 2;
+    }
   });
 
+  // Log admin query errors
+  if (adminError) {
+    console.error('🔴 Admin status query error:', adminError);
+  }
+
   // Real-time permissions check via database
-  const { data: userPermissions = [] } = useQuery({
+  const { data: userPermissions = [], error: permissionsError } = useQuery({
     queryKey: ['secure-permissions', authUser?.id, currentUser?.role_id],
     queryFn: async () => {
       if (!authUser) return [];
       
-      const { data, error } = await supabase.rpc('get_current_user_permissions');
-      if (error) {
-        console.error('Error fetching permissions:', error);
+      try {
+        const { data, error } = await supabase.rpc('get_current_user_permissions');
+        if (error) {
+          console.error('🔴 Error fetching permissions:', error);
+          return [];
+        }
+        console.log('🔒 User permissions:', data);
+        console.log('🔒 User permissions type:', typeof data, Array.isArray(data));
+        return data || [];
+      } catch (err) {
+        console.error('🔴 Exception in permissions query:', err);
         return [];
       }
-      console.log('🔒 User permissions:', data);
-      return data || [];
     },
     enabled: !!authUser,
     staleTime: 30000,
     gcTime: 60000,
+    retry: (failureCount, error) => {
+      console.error(`🔴 Permissions query retry ${failureCount}:`, error);
+      return failureCount < 2;
+    }
   });
+
+  // Log permissions query errors
+  if (permissionsError) {
+    console.error('🔴 Permissions query error:', permissionsError);
+  }
 
   // Secure permission checker - always hits database
   const checkPermission = async (permission: string): Promise<boolean> => {
@@ -84,13 +128,14 @@ export const useSecurePermissions = () => {
       });
 
       if (error) {
-        console.error('Error checking permission:', permission, error);
+        console.error('🔴 Error checking permission:', permission, error);
         return false;
       }
 
+      console.log(`🔒 Permission check result for ${permission}:`, data);
       return data === true;
     } catch (error) {
-      console.error('Exception checking permission:', permission, error);
+      console.error('🔴 Exception checking permission:', permission, error);
       return false;
     }
   };
@@ -98,11 +143,13 @@ export const useSecurePermissions = () => {
   // Synchronous permission checker (uses database query data only)
   const hasPermission = (permission: string): boolean => {
     if (!authUser) {
+      console.log(`🔒 No auth user, denying permission: ${permission}`);
       return false;
     }
     
     // For admins, grant all permissions
     if (isAdmin) {
+      console.log(`🔒 Admin user, granting permission: ${permission}`);
       return true;
     }
     
@@ -112,7 +159,8 @@ export const useSecurePermissions = () => {
       userPermissions,
       roleId: currentUser?.role_id,
       isViewOnly: currentUser?.role_id === 2,
-      isAdmin
+      isAdmin,
+      authUserId: authUser?.id
     });
     return hasDirectPermission;
   };
@@ -147,6 +195,21 @@ export const useSecurePermissions = () => {
     canReadAuthUsers: hasPermission('auth-users:read'),
     canAccessDashboard: hasPermission('dashboard:read'),
   };
+
+  // Log final permissions state
+  console.log('🔒 Final permissions state:', {
+    isAuthenticated: permissions.isAuthenticated,
+    isAdmin: permissions.isAdmin,
+    isViewOnly: permissions.isViewOnly,
+    currentUser: permissions.currentUser,
+    canReadCompanies: permissions.canReadCompanies,
+    canCreateCompanies: permissions.canCreateCompanies,
+    errors: {
+      currentUserError: currentUserError?.message,
+      adminError: adminError?.message,
+      permissionsError: permissionsError?.message
+    }
+  });
 
   return permissions;
 };

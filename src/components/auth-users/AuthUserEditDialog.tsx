@@ -44,13 +44,31 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
 
   const availableRoles = React.useMemo(() => {
     if (!roles || !Array.isArray(roles)) {
+      console.log('🔍 AuthUserEditDialog: No roles available or not an array:', roles);
       return [];
     }
     
-    return roles.filter(role => {
+    console.log('🔍 AuthUserEditDialog: All roles from RBAC:', roles);
+    
+    // Show ALL roles - don't filter out any roles for auth user editing
+    const processedRoles = roles.map(role => {
       const roleIdNum = (role as any).role_id;
-      return roleIdNum && roleIdNum !== 3; // Exclude Employee role
-    });
+      const roleName = role.name || `Role ${roleIdNum}`;
+      
+      console.log('🔍 AuthUserEditDialog: Processing role:', {
+        role_id: roleIdNum,
+        name: roleName,
+        fullRole: role
+      });
+      
+      return {
+        role_id: roleIdNum,
+        name: roleName
+      };
+    }).filter(role => role.role_id != null); // Only filter out roles without role_id
+    
+    console.log('🔍 AuthUserEditDialog: Final available roles:', processedRoles);
+    return processedRoles;
   }, [roles]);
 
   useEffect(() => {
@@ -58,6 +76,13 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
       setEmail(user.email || '');
       setName(user.user_metadata?.name || '');
       setRoleId(user.user_metadata?.role_id || 2);
+      
+      console.log('🔍 AuthUserEditDialog: Setting user data:', {
+        email: user.email,
+        name: user.user_metadata?.name,
+        role_id: user.user_metadata?.role_id,
+        user_metadata: user.user_metadata
+      });
     }
   }, [user]);
 
@@ -80,6 +105,7 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
       updateData.role_id = roleId;
     }
 
+    console.log('🔍 AuthUserEditDialog: Submitting update data:', updateData);
     onConfirm(updateData);
   };
 
@@ -133,15 +159,20 @@ const AuthUserEditDialog: React.FC<AuthUserEditDialogProps> = ({
               <SelectContent>
                 {availableRoles.length > 0 ? (
                   availableRoles.map((role) => (
-                    <SelectItem key={(role as any).role_id} value={(role as any).role_id.toString()}>
-                      {role.name || 'Rôle sans nom'}
+                    <SelectItem key={role.role_id} value={role.role_id.toString()}>
+                      {role.name}
                     </SelectItem>
                   ))
                 ) : (
-                  <SelectItem value="2" disabled>Aucun rôle disponible</SelectItem>
+                  <SelectItem value="2" disabled>Chargement des rôles...</SelectItem>
                 )}
               </SelectContent>
             </Select>
+            {availableRoles.length === 0 && (
+              <p className="text-sm text-gray-500">
+                Aucun rôle disponible. Vérifiez la configuration des rôles.
+              </p>
+            )}
           </div>
 
           <DialogFooter>

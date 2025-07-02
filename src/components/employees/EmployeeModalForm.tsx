@@ -8,6 +8,8 @@ import { User, UserStatus } from '@/types/rbac';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import EmployeeImageUpload from './EmployeeImageUpload';
 
 interface EmployeeModalFormProps {
@@ -27,6 +29,7 @@ interface FormData {
   address: string;
   driverLicense?: string;
   profileImage?: string;
+  email?: string; // Made optional for employees
 }
 
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
@@ -35,6 +38,8 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   isSubmitting,
   onCancel,
 }) => {
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
   const form = useForm<FormData>({
     defaultValues: {
       name: employee?.name || '',
@@ -46,23 +51,57 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       address: employee?.address || '',
       driverLicense: employee?.driverLicense || '',
       profileImage: employee?.profileImage || '',
+      email: employee?.email || '', // Optional field
     },
   });
 
   const handleSubmit = async (data: FormData) => {
     try {
+      setSubmitError(null); // Clear previous errors
       console.log('Submitting employee form with data:', data);
-      await onSubmit(data);
+      
+      // Only include email if it's not empty
+      const submitData = {
+        ...data,
+        email: data.email?.trim() || undefined, // Remove email if empty
+      };
+      
+      await onSubmit(submitData);
       console.log('Employee form submitted successfully');
       form.reset();
     } catch (error) {
       console.error('Error submitting employee form:', error);
+      
+      // Handle specific database errors
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          if (error.message.includes('email')) {
+            setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente ou laisser le champ vide.');
+          } else {
+            setSubmitError('Cette valeur est déjà utilisée. Veuillez en choisir une autre.');
+          }
+        } else if (error.message.includes('permission')) {
+          setSubmitError('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
+        } else {
+          setSubmitError(`Erreur: ${error.message}`);
+        }
+      } else {
+        setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
+      }
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Error Alert */}
+        {submitError && (
+          <Alert variant="destructive">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>{submitError}</AlertDescription>
+          </Alert>
+        )}
+
         <div className="flex justify-center">
           <EmployeeImageUpload
             profileImage={form.watch('profileImage') || ''}
@@ -84,6 +123,32 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
                   <Input
                     {...field}
                     placeholder="ex: Jean Dupont"
+                    disabled={isSubmitting}
+                    className="w-full"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="email"
+            rules={{
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Format d\'email invalide'
+              }
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Email (optionnel)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="ex: jean.dupont@exemple.com"
                     disabled={isSubmitting}
                     className="w-full"
                   />
@@ -242,7 +307,10 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              setSubmitError(null); // Clear error when canceling
+              onCancel();
+            }}
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >

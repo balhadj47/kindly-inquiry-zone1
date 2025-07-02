@@ -1,140 +1,220 @@
 
-import React from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useState, useMemo } from 'react';
+import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
+import { useVanDelete } from '@/hooks/useVanDelete';
+import VansHeader from './VansHeader';
+import VansActions from './VansActions';
+import VansSearch from './VansSearch';
+import VanFilters from './VanFilters';
+import VanListGrid from './VanListGrid';
+import VanListPagination from './VanListPagination';
+import VanListSummary from './VanListSummary';
+import VanModal from '../VanModal';
+import VanDeleteDialog from './VanDeleteDialog';
+import VanDetailsDialog from './VanDetailsDialog';
+import VansEmptyState from './VansEmptyState';
 import { useVansIndexState } from '@/hooks/useVansIndexState';
+import { useVansPagination } from '@/hooks/useVansPagination';
 import { useVansFiltering } from '@/hooks/useVansFiltering';
-import VansIndexContent from './VansIndexContent';
-
-const VansLoadingSkeleton = () => (
-  <div className="h-screen flex flex-col overflow-hidden">
-    <div className="flex-shrink-0 p-4 sm:p-6 border-b">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <div>
-          <Skeleton className="h-8 w-64 mb-2" />
-          <Skeleton className="h-6 w-32" />
-        </div>
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-10 w-10" />
-          <Skeleton className="h-10 w-10" />
-        </div>
-      </div>
-    </div>
-    
-    <div className="flex-shrink-0 p-4 sm:p-6 border-b">
-      <Card>
-        <CardContent className="p-4 sm:pt-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <Skeleton className="h-10 flex-1" />
-            <div className="flex flex-col sm:flex-row gap-2 lg:flex-shrink-0">
-              <Skeleton className="h-10 w-full sm:w-[180px]" />
-              <Skeleton className="h-10 w-full sm:w-[200px]" />
-              <Skeleton className="h-10 w-12" />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-
-    <div className="flex-1 overflow-y-auto p-4 sm:p-6">
-      <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
-        {Array.from({ length: 6 }).map((_, index) => (
-          <Skeleton key={index} className="h-64 w-full" />
-        ))}
-      </div>
-    </div>
-  </div>
-);
+import { Van } from '@/types/van';
 
 interface VansIndexProps {
-  onRefresh?: () => void;
-  isRefreshing?: boolean;
+  onRefresh: () => void;
+  isRefreshing: boolean;
 }
 
-const VansIndex: React.FC<VansIndexProps> = ({ onRefresh, isRefreshing = false }) => {
+const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
+  const { data: vans = [], isLoading, error } = useVans();
+  const { refreshVans } = useVanMutations();
+  
+  const {
+    isModalOpen,
+    setIsModalOpen,
+    selectedVan,
+    setSelectedVan,
+    isDetailsDialogOpen,
+    setIsDetailsDialogOpen,
+  } = useVansIndexState();
+
   const {
     searchTerm,
     setSearchTerm,
     statusFilter,
     setStatusFilter,
-    sortField,
-    setSortField,
-    sortDirection,
-    setSortDirection,
-    vansData,
-    isLoading,
-    isError,
-    refreshVans,
-    isModalOpen,
-    setIsModalOpen,
-    isDeleteDialogOpen,
-    setIsDeleteDialogOpen,
-    selectedVan,
-    isDeleting,
-    handleAddVan,
-    handleEditVan,
-    handleDeleteVan,
-    handleConfirmDelete,
-    handleModalSuccess,
-    handleQuickAction,
-  } = useVansIndexState();
+    clearFilters,
+  } = useVansFiltering();
 
-  const filteredAndSortedVans = useVansFiltering({
-    vansData,
-    searchTerm,
-    statusFilter,
-    sortField,
-    sortDirection,
-  });
+  const { deleteVan, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
 
-  if (isLoading) {
-    return <VansLoadingSkeleton />;
-  }
+  // Filter vans based on search and status
+  const filteredVans = useMemo(() => {
+    return vans.filter(van => {
+      const matchesSearch = !searchTerm || 
+        van.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        van.reference_code?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [vans, searchTerm, statusFilter]);
 
-  if (isError) {
+  const {
+    currentPage,
+    setCurrentPage,
+    paginatedVans,
+    totalPages,
+    startIndex,
+    endIndex
+  } = useVansPagination(filteredVans);
+
+  const handleCreateVan = () => {
+    console.log('🚐 VansIndex: Creating new van');
+    setSelectedVan(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditVan = (van: Van) => {
+    console.log('🚐 VansIndex: Editing van:', van);
+    console.log('🚐 VansIndex: Van properties:', {
+      id: van.id,
+      reference_code: van.reference_code,
+      model: van.model,
+      license_plate: van.license_plate,
+      status: van.status,
+      insurer: van.insurer,
+      insurance_date: van.insurance_date,
+      control_date: van.control_date,
+      notes: van.notes
+    });
+    setSelectedVan(van);
+    setIsModalOpen(true);
+  };
+
+  const handleDeleteVan = (van: Van) => {
+    console.log('🚐 VansIndex: Deleting van:', van);
+    deleteVan(van);
+  };
+
+  const handleViewVan = (van: Van) => {
+    console.log('🚐 VansIndex: Viewing van:', van);
+    setSelectedVan(van);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleModalClose = () => {
+    console.log('🚐 VansIndex: Modal closing, selected van was:', selectedVan);
+    setIsModalOpen(false);
+    setSelectedVan(null);
+  };
+
+  const handleSaveSuccess = () => {
+    console.log('🚐 VansIndex: Save successful, refreshing data');
+    refreshVans();
+  };
+
+  if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Erreur de chargement</h3>
-          <p className="text-gray-600 mb-4">Impossible de charger les camionnettes</p>
-          <button 
-            onClick={() => refreshVans()} 
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-          >
-            Réessayer
-          </button>
-        </div>
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
+        <p className="text-gray-600">Impossible de charger les véhicules. Veuillez réessayer.</p>
       </div>
     );
   }
 
+  if (vans.length === 0 && !isLoading) {
+    return <VansEmptyState onCreateVan={handleCreateVan} />;
+  }
+
   return (
-    <VansIndexContent
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      statusFilter={statusFilter}
-      setStatusFilter={setStatusFilter}
-      sortField={sortField}
-      setSortField={setSortField}
-      sortDirection={sortDirection}
-      setSortDirection={setSortDirection}
-      vansData={vansData}
-      filteredAndSortedVans={filteredAndSortedVans}
-      isModalOpen={isModalOpen}
-      setIsModalOpen={setIsModalOpen}
-      isDeleteDialogOpen={isDeleteDialogOpen}
-      setIsDeleteDialogOpen={setIsDeleteDialogOpen}
-      selectedVan={selectedVan}
-      isDeleting={isDeleting}
-      handleAddVan={handleAddVan}
-      handleEditVan={handleEditVan}
-      handleDeleteVan={handleDeleteVan}
-      handleConfirmDelete={handleConfirmDelete}
-      handleModalSuccess={handleModalSuccess}
-      handleQuickAction={handleQuickAction}
-      onRefresh={onRefresh}
-      isRefreshing={isRefreshing}
-    />
+    <div className="h-full flex flex-col overflow-hidden">
+      {/* Header - Fixed */}
+      <div className="flex-shrink-0 p-4 sm:p-6 border-b">
+        <div className="flex justify-between items-center">
+          <VansHeader vansCount={vans.length} />
+          <VansActions 
+            onCreateVan={handleCreateVan}
+            onRefresh={onRefresh}
+            isRefreshing={isRefreshing}
+          />
+        </div>
+      </div>
+
+      {/* Search and Filters - Fixed */}
+      <div className="flex-shrink-0 p-4 sm:p-6 border-b">
+        <div className="space-y-4">
+          <VansSearch 
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+          />
+          <VanFilters
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            onClearFilters={clearFilters}
+            vansCount={filteredVans.length}
+          />
+        </div>
+      </div>
+
+      {/* Content Area - Scrollable */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-4 sm:p-6">
+          <VanListSummary 
+            total={filteredVans.length}
+            startIndex={startIndex}
+            endIndex={endIndex}
+          />
+          
+          <div className="mt-4">
+            <VanListGrid 
+              vans={paginatedVans}
+              isLoading={isLoading}
+              onEditVan={handleEditVan}
+              onDeleteVan={handleDeleteVan}
+              onViewVan={handleViewVan}
+            />
+          </div>
+          
+          {totalPages > 1 && (
+            <div className="mt-6 flex justify-center">
+              <VanListPagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Modals */}
+      <VanModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        van={selectedVan}
+        onSaveSuccess={handleSaveSuccess}
+      />
+
+      <VanDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        van={vanToDelete}
+        onConfirm={() => {
+          // Delete logic is handled in useVanDelete
+        }}
+      />
+
+      <VanDetailsDialog
+        van={selectedVan}
+        isOpen={isDetailsDialogOpen}
+        onClose={() => {
+          setIsDetailsDialogOpen(false);
+          setSelectedVan(null);
+        }}
+        onEdit={handleEditVan}
+      />
+    </div>
   );
 };
 

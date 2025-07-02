@@ -40,10 +40,9 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
           borderColor: '#d1d5db',
           color: '#4b5563'
         }}
-        className="h-8 px-3 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-400"
+        className="h-8 w-8 p-0 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-400"
       >
-        <Eye className="h-4 w-4 mr-1" />
-        <span className="hidden sm:inline">Voir</span>
+        <Eye className="h-4 w-4" />
       </Button>
       
       {canUpdateUsers && (
@@ -57,10 +56,9 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
               borderColor: '#93c5fd',
               color: '#2563eb'
             }}
-            className="h-8 px-3 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-400"
+            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-400"
           >
-            <Edit className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Modifier</span>
+            <Edit className="h-4 w-4" />
           </Button>
           
           <Button
@@ -72,10 +70,9 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
               borderColor: '#86efac',
               color: '#16a34a'
             }}
-            className="h-8 px-3 hover:bg-green-50 hover:text-green-800 hover:border-green-400"
+            className="h-8 w-8 p-0 hover:bg-green-50 hover:text-green-800 hover:border-green-400"
           >
-            <Key className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Mot de passe</span>
+            <Key className="h-4 w-4" />
           </Button>
         </>
       )}
@@ -90,10 +87,9 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
             borderColor: '#fca5a5',
             color: '#dc2626'
           }}
-          className="h-8 px-3 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
+          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
         >
-          <Trash2 className="h-4 w-4 mr-1" />
-          <span className="hidden sm:inline">Supprimer</span>
+          <Trash2 className="h-4 w-4" />
         </Button>
       )}
     </div>

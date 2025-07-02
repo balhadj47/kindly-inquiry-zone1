@@ -3,49 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansActions } from '@/hooks/useVansActions';
 import { useVansFiltersAndSort } from '@/hooks/useVansFiltersAndSort';
-import VansHeader from './vans/VansHeader';
-import VansActions from './vans/VansActions';
-import VansFiltersSection from './vans/VansFiltersSection';
-import VanList from './VanList';
+import VansEnhancedHeader from './vans/VansEnhancedHeader';
+import VansEnhancedFilters from './vans/VansEnhancedFilters';
+import VanEnhancedCard from './vans/VanEnhancedCard';
+import VansEnhancedEmptyState from './vans/VansEnhancedEmptyState';
 import VanModal from './VanModal';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { RefreshCw } from 'lucide-react';
+import { VansLoadingSkeleton } from '@/components/ui/enhanced-loading-skeleton';
 import { Van } from '@/types/van';
-
-const VansLoadingSkeleton = () => (
-  <div className="space-y-6">
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-      <div>
-        <Skeleton className="h-8 w-64 mb-2" />
-        <Skeleton className="h-6 w-32" />
-      </div>
-      <Skeleton className="h-12 w-12 mt-4 lg:mt-0" />
-    </div>
-    
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <div key={index} className="bg-white rounded-lg border p-6 animate-pulse">
-          <div className="flex items-start justify-between mb-4">
-            <div>
-              <Skeleton className="h-6 w-32 mb-1" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-            <Skeleton className="h-6 w-16" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-4 w-3/4" />
-          </div>
-          <div className="flex space-x-2 mt-4">
-            <Skeleton className="h-8 flex-1" />
-            <Skeleton className="h-8 flex-1" />
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 const VansOptimized = () => {
   const { data: vansData = [], isLoading, error, refetch } = useVans();
@@ -94,15 +58,6 @@ const VansOptimized = () => {
     }
   };
 
-  const toggleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
   const handleQuickAction = (van: Van) => {
     console.log('Quick action for van:', van);
   };
@@ -114,6 +69,11 @@ const VansOptimized = () => {
   const handleModalSuccess = () => {
     refetch();
     handleModalClose();
+  };
+
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
   };
 
   // Show loading only when actually loading
@@ -140,48 +100,46 @@ const VansOptimized = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
-        <h1 className="text-3xl font-bold text-gray-900">Gestion des Camionnettes</h1>
-        <div className="flex items-center space-x-2 mt-4 lg:mt-0">
-          <Button 
-            onClick={handleRefresh} 
-            disabled={isRefreshing}
-            variant="outline"
-            size="icon"
-            className="bg-black text-white hover:bg-gray-800 border-black"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-          </Button>
-          <VansActions 
-            onCreateVan={handleAddVan}
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
-          />
-        </div>
-      </div>
-      
-      <VansFiltersSection
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sortField={sortField}
-        setSortField={setSortField}
-        sortDirection={sortDirection}
-        setSortDirection={setSortDirection}
-      />
+    <div className="min-h-screen bg-gray-50/30">
+      <div className="space-y-6 p-6">
+        <VansEnhancedHeader
+          vansCount={vansData.length}
+          onAddVan={handleAddVan}
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
+        
+        <VansEnhancedFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+        />
 
-      <VanList
-        vans={filteredAndSortedVans}
-        totalVans={vansData.length}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        onAddVan={handleAddVan}
-        onEditVan={handleEditVan}
-        onQuickAction={handleQuickAction}
-        onDeleteVan={handleDeleteVan}
-      />
+        {filteredAndSortedVans.length === 0 ? (
+          <VansEnhancedEmptyState 
+            searchTerm={searchTerm}
+            onAddVan={handleAddVan}
+            onClearSearch={searchTerm || statusFilter !== 'all' ? handleClearSearch : undefined}
+          />
+        ) : (
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))' }}>
+            {filteredAndSortedVans.map((van) => (
+              <VanEnhancedCard
+                key={van.id}
+                van={van}
+                onEdit={handleEditVan}
+                onDelete={handleDeleteVan}
+                onQuickAction={handleQuickAction}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       <VanModal
         isOpen={isModalOpen}

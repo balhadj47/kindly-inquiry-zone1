@@ -4,13 +4,14 @@ import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVanDelete } from '@/hooks/useVanDelete';
 import { useVansActions } from '@/hooks/useVansActions';
 import { useVansFiltersAndSort } from '@/hooks/useVansFiltersAndSort';
-import VansHeader from './VansHeader';
-import VansActions from './VansActions';
-import VansFiltersSection from './VansFiltersSection';
-import VansContentSection from './VansContentSection';
+import VansEnhancedHeader from './VansEnhancedHeader';
+import VansEnhancedFilters from './VansEnhancedFilters';
+import VanEnhancedCard from './VanEnhancedCard';
+import VansEnhancedEmptyState from './VansEnhancedEmptyState';
 import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import VanDetailsDialog from './VanDetailsDialog';
+import { VansLoadingSkeleton } from '@/components/ui/enhanced-loading-skeleton';
 import { Van } from '@/types/van';
 
 interface VansIndexProps {
@@ -25,8 +26,8 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
   // Filter and sort state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
+  const [sortField, setSortField] = useState('license_plate');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
   // Custom hooks
   const {
@@ -44,22 +45,11 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
     vans,
     searchTerm,
     statusFilter,
-    sortField: 'license_plate',
-    sortDirection: 'asc'
+    sortField,
+    sortDirection
   });
 
   const { deleteVan, confirmDelete, isDeleting, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredAndSortedVans.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const paginatedVans = filteredAndSortedVans.slice(startIndex, endIndex);
-
-  // Reset page when filters change
-  React.useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, statusFilter]);
 
   const handleDeleteVan = (van: Van) => {
     deleteVan(van);
@@ -69,54 +59,80 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
     refreshVans();
   };
 
+  const handleClearSearch = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  };
+
+  if (isLoading) {
+    return <VansLoadingSkeleton />;
+  }
+
   if (error) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
-        <p className="text-gray-600">Impossible de charger les véhicules. Veuillez réessayer.</p>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <h3 className="text-lg font-semibold text-red-600 mb-2">Erreur de chargement</h3>
+          <p className="text-gray-600 mb-4">Impossible de charger les véhicules. Veuillez réessayer.</p>
+          <button 
+            onClick={onRefresh} 
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Header - Fixed */}
-      <div className="flex-shrink-0 p-4 sm:p-6 border-b">
-        <div className="flex justify-between items-center">
-          <VansHeader vansCount={vans.length} />
-          <VansActions 
-            onCreateVan={handleAddVan}
-            onRefresh={onRefresh}
-            isRefreshing={isRefreshing}
-          />
-        </div>
+    <div className="h-full flex flex-col overflow-hidden bg-gray-50/30">
+      {/* Enhanced Header */}
+      <div className="flex-shrink-0 p-6 bg-white border-b border-gray-200">
+        <VansEnhancedHeader
+          vansCount={vans.length}
+          onAddVan={handleAddVan}
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
+        />
       </div>
 
-      {/* Search and Filters - Fixed */}
-      <VansFiltersSection
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        sortField="license_plate"
-        setSortField={() => {}}
-        sortDirection="asc"
-        setSortDirection={() => {}}
-      />
+      {/* Enhanced Filters */}
+      <div className="flex-shrink-0 p-6 bg-white border-b border-gray-200">
+        <VansEnhancedFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortField={sortField}
+          setSortField={setSortField}
+          sortDirection={sortDirection}
+          setSortDirection={setSortDirection}
+        />
+      </div>
 
-      {/* Content Area - Scrollable */}
-      <VansContentSection
-        paginatedVans={paginatedVans}
-        filteredVansCount={filteredAndSortedVans.length}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        searchTerm={searchTerm}
-        onPageChange={setCurrentPage}
-        onEditVan={handleEditVan}
-        onDeleteVan={handleDeleteVan}
-        onQuickAction={handleViewVan}
-        onAddVan={handleAddVan}
-      />
+      {/* Content Area */}
+      <div className="flex-1 overflow-y-auto p-6">
+        {filteredAndSortedVans.length === 0 ? (
+          <VansEnhancedEmptyState 
+            searchTerm={searchTerm}
+            onAddVan={handleAddVan}
+            onClearSearch={searchTerm || statusFilter !== 'all' ? handleClearSearch : undefined}
+          />
+        ) : (
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))' }}>
+            {filteredAndSortedVans.map((van) => (
+              <VanEnhancedCard
+                key={van.id}
+                van={van}
+                onEdit={handleEditVan}
+                onDelete={handleDeleteVan}
+                onQuickAction={handleViewVan}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Modals */}
       <VanModal

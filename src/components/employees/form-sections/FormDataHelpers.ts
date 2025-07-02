@@ -35,6 +35,27 @@ export const extractStringValue = (value: any): string | undefined => {
   return undefined;
 };
 
+// Helper function to convert date strings to proper format or undefined
+export const formatDateForDatabase = (dateString: string | undefined | null): string | undefined => {
+  if (!dateString || dateString.trim() === '') return undefined;
+  
+  try {
+    // If it's already in YYYY-MM-DD format, return as is
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      return dateString;
+    }
+    
+    // Try to parse and format the date
+    const date = new Date(dateString);
+    if (isNaN(date.getTime())) return undefined;
+    
+    return date.toISOString().split('T')[0]; // Convert to YYYY-MM-DD format
+  } catch (error) {
+    console.warn('Date formatting error:', error, dateString);
+    return undefined;
+  }
+};
+
 export const getDefaultFormValues = (employee?: User | null): FormData => {
   return {
     name: employee?.name || '',
@@ -62,7 +83,8 @@ export const getDefaultFormValues = (employee?: User | null): FormData => {
 };
 
 export const prepareSubmitData = (data: FormData) => {
-  return {
+  // Clean and prepare the data, ensuring null values are properly handled
+  const cleanData = {
     name: data.name?.trim() || '',
     email: data.email?.trim() || undefined,
     phone: data.phone?.trim() || undefined,
@@ -70,21 +92,30 @@ export const prepareSubmitData = (data: FormData) => {
     // Handle profileImage explicitly - preserve empty string for removal
     profileImage: typeof data.profileImage === 'string' ? data.profileImage : undefined,
     badgeNumber: data.badgeNumber?.trim() || undefined,
-    dateOfBirth: data.dateOfBirth?.trim() || undefined,
+    dateOfBirth: formatDateForDatabase(data.dateOfBirth),
     placeOfBirth: data.placeOfBirth?.trim() || undefined,
     address: data.address?.trim() || undefined,
     driverLicense: data.driverLicense?.trim() || undefined,
     role_id: 3, // Employee role
-    // Map form data to proper field names for database
+    // Map form data to proper field names for database with proper date formatting
     identification_national: data.identificationNational?.trim() || undefined,
     carte_national: data.carteNational?.trim() || undefined,
-    carte_national_start_date: data.carteNationalStartDate?.trim() || undefined,
-    carte_national_expiry_date: data.carteNationalExpiryDate?.trim() || undefined,
-    driver_license_start_date: data.driverLicenseStartDate?.trim() || undefined,
-    driver_license_expiry_date: data.driverLicenseExpiryDate?.trim() || undefined,
-    driver_license_category: data.driverLicenseCategory || [],
-    driver_license_category_dates: data.driverLicenseCategoryDates || {},
+    carte_national_start_date: formatDateForDatabase(data.carteNationalStartDate),
+    carte_national_expiry_date: formatDateForDatabase(data.carteNationalExpiryDate),
+    driver_license_start_date: formatDateForDatabase(data.driverLicenseStartDate),
+    driver_license_expiry_date: formatDateForDatabase(data.driverLicenseExpiryDate),
+    driver_license_category: data.driverLicenseCategory && data.driverLicenseCategory.length > 0 ? data.driverLicenseCategory : undefined,
+    driver_license_category_dates: data.driverLicenseCategoryDates && Object.keys(data.driverLicenseCategoryDates).length > 0 ? data.driverLicenseCategoryDates : undefined,
     blood_type: data.bloodType?.trim() || undefined,
-    company_assignment_date: data.companyAssignmentDate?.trim() || undefined,
+    company_assignment_date: formatDateForDatabase(data.companyAssignmentDate),
   };
+
+  // Remove any fields that are undefined to avoid sending null values
+  const finalData = Object.fromEntries(
+    Object.entries(cleanData).filter(([_, value]) => value !== undefined)
+  );
+
+  console.log('🔧 FormDataHelpers - Cleaned data for submission:', finalData);
+  
+  return finalData;
 };

@@ -40,6 +40,17 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       
       console.log('🚀 EmployeeModalForm - Final submit data:', submitData);
       console.log('🖼️ EmployeeModalForm - ProfileImage value:', JSON.stringify(submitData.profileImage));
+      console.log('📅 EmployeeModalForm - Date fields:', {
+        dateOfBirth: submitData.dateOfBirth,
+        carteNationalStartDate: submitData.carte_national_start_date,
+        carteNationalExpiryDate: submitData.carte_national_expiry_date,
+        driverLicenseStartDate: submitData.driver_license_start_date,
+        driverLicenseExpiryDate: submitData.driver_license_expiry_date,
+        companyAssignmentDate: submitData.company_assignment_date,
+      });
+      
+      // Log the exact data being sent to the API
+      console.log('📡 EmployeeModalForm - Data being sent to API:', JSON.stringify(submitData, null, 2));
       
       await onSubmit(submitData);
       console.log('✅ EmployeeModalForm - Form submitted successfully');
@@ -47,7 +58,11 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     } catch (error) {
       console.error('❌ EmployeeModalForm - Error submitting form:', error);
       
+      // Log more details about the error
       if (error instanceof Error) {
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        
         if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
           if (error.message.includes('email')) {
             setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente ou laisser le champ vide.');
@@ -56,10 +71,15 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           }
         } else if (error.message.includes('permission')) {
           setSubmitError('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
+        } else if (error.message.includes('violates row-level security')) {
+          setSubmitError('Erreur de sécurité lors de l\'enregistrement. Vérifiez vos permissions.');
+        } else if (error.message.includes('invalid input syntax')) {
+          setSubmitError('Format de données invalide. Vérifiez les dates et autres champs.');
         } else {
           setSubmitError(`Erreur: ${error.message}`);
         }
       } else {
+        console.error('❌ Unknown error type:', typeof error, error);
         setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
       }
     }

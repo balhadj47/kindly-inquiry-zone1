@@ -29,25 +29,24 @@ const CompaniesHeader: React.FC<CompaniesHeaderProps> = ({
       </div>
       
       <div className="flex items-center gap-2">
-        {onRefresh && (
-          <Button
-            variant="outline"
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        )}
-        
         {canCreateCompanies && (
           <Button 
             onClick={onAdd}
-            className="flex items-center gap-2"
+            className="bg-blue-600 hover:bg-blue-700 text-white"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Ajouter une Entreprise
+          </Button>
+        )}
+        
+        {onRefresh && (
+          <Button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
           </Button>
         )}
       </div>

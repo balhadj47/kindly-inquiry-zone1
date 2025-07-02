@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,51 +30,51 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
   const isControlExpired = formData.controlDate && formData.controlDate < today;
 
   return (
-    <div className="space-y-4">
-      {/* NEW: Reference Code is now the first input */}
+    <div className="space-y-4 sm:space-y-6">
+      {/* Reference Code is now the first input */}
       <div className="space-y-2">
-        <Label htmlFor="reference-code" className="text-sm sm:text-base">Code de référence</Label>
+        <Label htmlFor="reference-code" className="text-sm sm:text-base font-medium">Code de référence</Label>
         <Input
           id="reference-code"
           value={formData.referenceCode}
           onChange={(e) => onInputChange('referenceCode', e.target.value)}
           placeholder="e.g., M-025"
-          className="text-base touch-manipulation"
+          className="w-full text-base touch-manipulation"
           required
         />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="plate-number" className="text-sm sm:text-base">{t.plateNumber}</Label>
+          <Label htmlFor="plate-number" className="text-sm sm:text-base font-medium">{t.plateNumber}</Label>
           <Input
             id="plate-number"
             value={formData.plateNumber}
             onChange={(e) => onInputChange('plateNumber', e.target.value)}
             placeholder="e.g., 002502-322-16"
-            className="text-base touch-manipulation"
+            className="w-full text-base touch-manipulation"
             required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="model" className="text-sm sm:text-base">{t.vanModel}</Label>
+          <Label htmlFor="model" className="text-sm sm:text-base font-medium">{t.vanModel}</Label>
           <Input
             id="model"
             value={formData.model}
             onChange={(e) => onInputChange('model', e.target.value)}
             placeholder="e.g., Ford Transit"
-            className="text-base touch-manipulation"
+            className="w-full text-base touch-manipulation"
             required
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="status" className="text-sm sm:text-base">Statut</Label>
+          <Label htmlFor="status" className="text-sm sm:text-base font-medium">Statut</Label>
           <Select value={formData.status} onValueChange={(value) => onInputChange('status', value)}>
-            <SelectTrigger>
+            <SelectTrigger className="w-full text-base touch-manipulation">
               <SelectValue placeholder="Sélectionner un statut" />
             </SelectTrigger>
             <SelectContent>
@@ -86,25 +87,25 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="insurer" className="text-sm sm:text-base">Assureur</Label>
+          <Label htmlFor="insurer" className="text-sm sm:text-base font-medium">Assureur</Label>
           <Input
             id="insurer"
             value={formData.insurer}
             onChange={(e) => onInputChange('insurer', e.target.value)}
             placeholder="e.g., AXA, Allianz"
-            className="text-base touch-manipulation"
+            className="w-full text-base touch-manipulation"
           />
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label className="text-sm sm:text-base font-semibold">📅 Date d'Assurance</Label>
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal text-base touch-manipulation"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {formData.insuranceDate ? (
@@ -126,7 +127,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
           {isInsuranceExpired && (
             <Alert variant="destructive" className="mt-2">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="font-medium">
+              <AlertDescription className="font-medium text-sm">
                 ⚠️ L'assurance a expiré le {format(formData.insuranceDate!, "dd/MM/yyyy")}
               </AlertDescription>
             </Alert>
@@ -139,7 +140,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             <PopoverTrigger asChild>
               <Button
                 variant="outline"
-                className="w-full justify-start text-left font-normal"
+                className="w-full justify-start text-left font-normal text-base touch-manipulation"
               >
                 <CalendarIcon className="mr-2 h-4 w-4" />
                 {formData.controlDate ? (
@@ -161,7 +162,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
           {isControlExpired && (
             <Alert variant="destructive" className="mt-2">
               <AlertTriangle className="h-4 w-4" />
-              <AlertDescription className="font-medium">
+              <AlertDescription className="font-medium text-sm">
                 ⚠️ Le contrôle technique a expiré le {format(formData.controlDate!, "dd/MM/yyyy")}
               </AlertDescription>
             </Alert>
@@ -170,13 +171,13 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="notes" className="text-sm sm:text-base">Notes</Label>
+        <Label htmlFor="notes" className="text-sm sm:text-base font-medium">Notes</Label>
         <Textarea
           id="notes"
           value={formData.notes}
           onChange={(e) => onInputChange('notes', e.target.value)}
           placeholder="Ajouter des notes ou commentaires..."
-          className="text-base touch-manipulation min-h-[100px]"
+          className="w-full text-base touch-manipulation min-h-[100px] resize-y"
         />
       </div>
     </div>

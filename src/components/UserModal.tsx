@@ -50,12 +50,12 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent className="w-[95vw] max-w-[800px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="space-y-3">
+          <DialogTitle className="text-lg sm:text-xl">
             {user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
           </DialogTitle>
-          <DialogDescription>
+          <DialogDescription className="text-sm sm:text-base">
             {user 
               ? 'Modifiez les informations de l\'utilisateur ci-dessous.' 
               : 'Remplissez les informations pour créer un nouvel utilisateur.'

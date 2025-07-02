@@ -13,12 +13,12 @@ const VanFormActions = ({ isSubmitting, isEditing, onCancel }: VanFormActionsPro
   const { t } = useLanguage();
 
   return (
-    <div className="flex flex-col sm:flex-row justify-end gap-3 sm:space-x-2 pt-4">
+    <div className="flex flex-col-reverse lg:flex-row justify-end gap-2 lg:gap-0 lg:space-x-2 pt-4">
       <Button 
         type="button" 
         variant="outline" 
         onClick={onCancel}
-        className="order-2 sm:order-1 touch-manipulation"
+        className="w-full lg:w-auto touch-manipulation"
         size="lg"
         disabled={isSubmitting}
       >
@@ -26,7 +26,7 @@ const VanFormActions = ({ isSubmitting, isEditing, onCancel }: VanFormActionsPro
       </Button>
       <Button 
         type="submit"
-        className="order-1 sm:order-2 touch-manipulation"
+        className="w-full lg:w-auto touch-manipulation"
         size="lg"
         disabled={isSubmitting}
       >

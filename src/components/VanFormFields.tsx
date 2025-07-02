@@ -122,14 +122,14 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             Responsable actuel
           </Label>
           <Select 
-            value={formData.currentResponsibleId?.toString() || ''} 
-            onValueChange={(value) => onInputChange('currentResponsibleId', value ? parseInt(value) : null)}
+            value={formData.currentResponsibleId?.toString() || 'none'} 
+            onValueChange={(value) => onInputChange('currentResponsibleId', value === 'none' ? null : parseInt(value))}
           >
             <SelectTrigger className="w-full text-base touch-manipulation">
               <SelectValue placeholder={usersLoading ? "Chargement..." : "Sélectionner un responsable"} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Aucun responsable</SelectItem>
+              <SelectItem value="none">Aucun responsable</SelectItem>
               {users.map((user) => (
                 <SelectItem key={user.id} value={user.id.toString()}>
                   {user.name} {user.email && `(${user.email})`}

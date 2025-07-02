@@ -26,6 +26,7 @@ export interface DatabaseUser {
   driver_license_start_date?: string;
   driver_license_expiry_date?: string;
   driver_license_category?: string[];
+  driver_license_category_dates?: Record<string, { start?: string; expiry?: string }>;
   blood_type?: string;
   company_assignment_date?: string;
 }
@@ -65,6 +66,7 @@ export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
       driver_license_start_date: dbUser.driver_license_start_date || null,
       driver_license_expiry_date: dbUser.driver_license_expiry_date || null,
       driver_license_category: dbUser.driver_license_category || null,
+      driver_license_category_dates: dbUser.driver_license_category_dates || null,
       blood_type: dbUser.blood_type || null,
       company_assignment_date: dbUser.company_assignment_date || null,
     };

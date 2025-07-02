@@ -5,14 +5,20 @@ import VanCard from './VanCard';
 
 interface VanListProps {
   vans: Van[];
+  totalVans?: number;
+  searchTerm?: string;
+  statusFilter?: string;
+  onAddVan?: () => void;
   onEditVan: (van: Van) => void;
   onDeleteVan: (van: Van) => void;
+  onQuickAction?: (van: Van) => void;
 }
 
 const VanList: React.FC<VanListProps> = ({
   vans,
   onEditVan,
   onDeleteVan,
+  onQuickAction,
 }) => {
   if (vans.length === 0) {
     return (
@@ -30,6 +36,7 @@ const VanList: React.FC<VanListProps> = ({
           van={van}
           onEdit={() => onEditVan(van)}
           onDelete={() => onDeleteVan(van)}
+          onQuickAction={onQuickAction ? () => onQuickAction(van) : undefined}
         />
       ))}
     </div>

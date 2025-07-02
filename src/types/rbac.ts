@@ -31,6 +31,7 @@ export interface User {
   driver_license_start_date?: string;
   driver_license_expiry_date?: string;
   driver_license_category?: string[];
+  driver_license_category_dates?: Record<string, { start?: string; expiry?: string }>;
   blood_type?: string;
   company_assignment_date?: string;
 }

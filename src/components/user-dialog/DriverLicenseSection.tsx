@@ -82,28 +82,72 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
         render={({ field }) => (
           <FormItem>
             <FormLabel>Catégories de permis</FormLabel>
-            <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-2">
+            <div className="space-y-4 mt-4">
               {licenseCategories.map((category) => (
-                <div key={category} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`category-${category}`}
-                    checked={field.value?.includes(category) || false}
-                    onCheckedChange={(checked) => {
-                      const currentValue = field.value || [];
-                      if (checked) {
-                        field.onChange([...currentValue, category]);
-                      } else {
-                        field.onChange(currentValue.filter((c: string) => c !== category));
-                      }
-                    }}
-                    disabled={isSubmitting}
-                  />
-                  <label
-                    htmlFor={`category-${category}`}
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {category}
-                  </label>
+                <div key={category} className="border rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Checkbox
+                      id={`category-${category}`}
+                      checked={field.value?.includes(category) || false}
+                      onCheckedChange={(checked) => {
+                        const currentValue = field.value || [];
+                        if (checked) {
+                          field.onChange([...currentValue, category]);
+                        } else {
+                          field.onChange(currentValue.filter((c: string) => c !== category));
+                        }
+                      }}
+                      disabled={isSubmitting}
+                    />
+                    <label
+                      htmlFor={`category-${category}`}
+                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                    >
+                      Catégorie {category}
+                    </label>
+                  </div>
+                  
+                  {field.value?.includes(category) && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-6">
+                      <FormField
+                        control={control}
+                        name={`driverLicenseCategoryDates.${category}.start`}
+                        render={({ field: startField }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Date d'obtention</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...startField}
+                                type="date"
+                                disabled={isSubmitting}
+                                className="h-8 text-xs"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      
+                      <FormField
+                        control={control}
+                        name={`driverLicenseCategoryDates.${category}.expiry`}
+                        render={({ field: expiryField }) => (
+                          <FormItem>
+                            <FormLabel className="text-xs">Date d'expiration</FormLabel>
+                            <FormControl>
+                              <Input
+                                {...expiryField}
+                                type="date"
+                                disabled={isSubmitting}
+                                className="h-8 text-xs"
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -48,6 +48,7 @@ interface FormData {
   driverLicenseStartDate?: string;
   driverLicenseExpiryDate?: string;
   driverLicenseCategory?: string[];
+  driverLicenseCategoryDates?: Record<string, { start?: string; expiry?: string }>;
   bloodType?: string;
   companyAssignmentDate?: string;
 }
@@ -81,6 +82,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       driverLicenseStartDate: (user as any)?.driver_license_start_date || '',
       driverLicenseExpiryDate: (user as any)?.driver_license_expiry_date || '',
       driverLicenseCategory: (user as any)?.driver_license_category || [],
+      driverLicenseCategoryDates: (user as any)?.driver_license_category_dates || {},
       bloodType: (user as any)?.blood_type || '',
       companyAssignmentDate: (user as any)?.company_assignment_date || '',
     },
@@ -103,6 +105,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         driver_license_start_date: data.driverLicenseStartDate,
         driver_license_expiry_date: data.driverLicenseExpiryDate,
         driver_license_category: data.driverLicenseCategory,
+        driver_license_category_dates: data.driverLicenseCategoryDates,
         blood_type: data.bloodType,
         company_assignment_date: data.companyAssignmentDate,
       };

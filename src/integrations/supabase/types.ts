@@ -339,6 +339,7 @@ export type Database = {
           date_of_birth: string | null
           driver_license: string | null
           driver_license_category: string[] | null
+          driver_license_category_dates: Json | null
           driver_license_expiry_date: string | null
           driver_license_start_date: string | null
           email: string | null
@@ -366,6 +367,7 @@ export type Database = {
           date_of_birth?: string | null
           driver_license?: string | null
           driver_license_category?: string[] | null
+          driver_license_category_dates?: Json | null
           driver_license_expiry_date?: string | null
           driver_license_start_date?: string | null
           email?: string | null
@@ -393,6 +395,7 @@ export type Database = {
           date_of_birth?: string | null
           driver_license?: string | null
           driver_license_category?: string[] | null
+          driver_license_category_dates?: Json | null
           driver_license_expiry_date?: string | null
           driver_license_start_date?: string | null
           email?: string | null
@@ -581,6 +584,7 @@ export type Database = {
           date_of_birth: string | null
           driver_license: string | null
           driver_license_category: string[] | null
+          driver_license_category_dates: Json | null
           driver_license_expiry_date: string | null
           driver_license_start_date: string | null
           email: string | null

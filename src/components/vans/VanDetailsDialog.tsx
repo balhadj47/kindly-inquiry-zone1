@@ -7,11 +7,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Edit, 
   Car,
   MapPin,
   Shield,
@@ -47,13 +45,6 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProp
   
   const isInsuranceExpired = insuranceDate && insuranceDate < today;
   const isControlExpired = controlDate && controlDate < today;
-
-  const handleEdit = () => {
-    if (onEdit) {
-      onEdit(van);
-      onClose();
-    }
-  };
 
   const responsibleUser = users.find(user => user.id === van.current_responsible_id);
 
@@ -225,16 +216,6 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProp
                 </CardContent>
               </Card>
             )}
-
-            {/* Actions */}
-            <div className="flex justify-end space-x-3 pt-4 border-t">
-              {onEdit && (
-                <Button onClick={handleEdit} className="flex items-center space-x-2">
-                  <Edit className="h-4 w-4" />
-                  <span>Modifier</span>
-                </Button>
-              )}
-            </div>
           </TabsContent>
 
           <TabsContent value="maintenance">

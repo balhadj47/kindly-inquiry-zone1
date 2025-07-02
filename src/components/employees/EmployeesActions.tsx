@@ -18,15 +18,6 @@ const EmployeesActions: React.FC<EmployeesActionsProps> = ({
 }) => {
   return (
     <div className="flex items-center gap-2">
-      <Button
-        onClick={onRefresh}
-        disabled={isRefreshing}
-        className="bg-blue-600 hover:bg-blue-700 text-white"
-      >
-        <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-        Actualiser
-      </Button>
-      
       {canCreateEmployees && (
         <Button
           onClick={onCreateEmployee}
@@ -36,6 +27,15 @@ const EmployeesActions: React.FC<EmployeesActionsProps> = ({
           Nouvel Employé
         </Button>
       )}
+      
+      <Button
+        onClick={onRefresh}
+        disabled={isRefreshing}
+        className="bg-blue-600 hover:bg-blue-700 text-white"
+      >
+        <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+        Actualiser
+      </Button>
     </div>
   );
 };

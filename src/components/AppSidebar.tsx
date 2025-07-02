@@ -18,20 +18,22 @@ const AppSidebar = () => {
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 bg-white shadow-sm flex flex-col h-screen"
+      className="border-r border-gray-200 bg-white shadow-sm"
       collapsible="icon"
     >
-      <SidebarHeader className="flex-shrink-0 p-4 border-b border-gray-100">
-        <SidebarBranding />
-      </SidebarHeader>
-      
-      <SidebarContent className="flex-1 py-2 bg-white overflow-y-auto">
-        <SidebarMenuContent />
-      </SidebarContent>
-      
-      <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0">
-        <SidebarUserProfile />
-      </SidebarFooter>
+      <div className="flex flex-col h-full">
+        <SidebarHeader className="flex-shrink-0 p-4 border-b border-gray-100">
+          <SidebarBranding />
+        </SidebarHeader>
+        
+        <SidebarContent className="flex-1 py-2 bg-white overflow-y-auto min-h-0">
+          <SidebarMenuContent />
+        </SidebarContent>
+        
+        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0 mt-auto">
+          <SidebarUserProfile />
+        </SidebarFooter>
+      </div>
     </Sidebar>
   );
 };

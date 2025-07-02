@@ -47,7 +47,7 @@ const SidebarUserProfile = () => {
   };
 
   return (
-    <div className="flex items-center justify-between p-3 border-t border-gray-100 bg-gray-50/50 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center sticky bottom-0">
+    <div className="flex items-center justify-between p-3 bg-gray-50/50 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div 

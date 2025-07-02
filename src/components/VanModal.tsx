@@ -26,31 +26,35 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[900px] p-0">
-        <div className="p-6">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
-              {van ? t.editVan : t.addNewVan}
-            </DialogTitle>
-            <DialogDescription className="text-base text-muted-foreground">
-              {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
-            </DialogDescription>
-          </DialogHeader>
-        </div>
-        
-        <form onSubmit={onSubmit} className="px-6 pb-6">
-          <VanFormFields
-            formData={formData}
-            onInputChange={handleInputChange}
-            onDateChange={handleDateChange}
-          />
+      <DialogContent className="w-[95vw] max-w-[900px] max-h-[95vh] p-0">
+        <div className="flex flex-col h-full max-h-[95vh]">
+          <div className="p-4 sm:p-6 flex-shrink-0">
+            <DialogHeader>
+              <DialogTitle className="text-lg sm:text-xl font-semibold">
+                {van ? t.editVan : t.addNewVan}
+              </DialogTitle>
+              <DialogDescription className="text-sm sm:text-base text-muted-foreground">
+                {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6">
+            <form onSubmit={onSubmit} className="space-y-4 pb-4 sm:pb-6">
+              <VanFormFields
+                formData={formData}
+                onInputChange={handleInputChange}
+                onDateChange={handleDateChange}
+              />
 
-          <VanFormActions
-            isSubmitting={isSubmitting}
-            isEditing={!!van}
-            onCancel={onClose}
-          />
-        </form>
+              <VanFormActions
+                isSubmitting={isSubmitting}
+                isEditing={!!van}
+                onCancel={onClose}
+              />
+            </form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );

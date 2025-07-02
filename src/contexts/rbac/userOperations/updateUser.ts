@@ -23,14 +23,14 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       
       console.log('User has permission to update users, proceeding...');
       
-      // Helper function to convert empty strings to null for date fields
-      const convertEmptyDateToNull = (dateValue: any) => {
-        if (dateValue === undefined) return undefined;
-        if (typeof dateValue === 'string' && dateValue.trim() === '') return null;
-        return dateValue;
+      // Helper function to convert empty strings to null for date fields and special fields
+      const convertEmptyToNull = (value: any) => {
+        if (value === undefined) return undefined;
+        if (typeof value === 'string' && value.trim() === '') return null;
+        return value;
       };
       
-      // Prepare update data with proper field mapping and null handling for dates
+      // Prepare update data with proper field mapping and null handling
       const updateData: any = {};
       
       if (updates.name !== undefined) updateData.name = updates.name;
@@ -48,24 +48,27 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       
       // Handle all date fields consistently - convert empty strings to null
       if (updates.dateOfBirth !== undefined) {
-        updateData.date_of_birth = convertEmptyDateToNull(updates.dateOfBirth);
+        updateData.date_of_birth = convertEmptyToNull(updates.dateOfBirth);
       }
       
       if (updates.placeOfBirth !== undefined) updateData.place_of_birth = updates.placeOfBirth;
       if (updates.address !== undefined) updateData.address = updates.address;
       if (updates.driverLicense !== undefined) updateData.driver_license = updates.driverLicense;
 
-      // Handle new date fields with proper null conversion
+      // Handle new fields with proper null conversion
       if (updates.identification_national !== undefined) updateData.identification_national = updates.identification_national;
       if (updates.carte_national !== undefined) updateData.carte_national = updates.carte_national;
-      if (updates.carte_national_start_date !== undefined) updateData.carte_national_start_date = convertEmptyDateToNull(updates.carte_national_start_date);
-      if (updates.carte_national_expiry_date !== undefined) updateData.carte_national_expiry_date = convertEmptyDateToNull(updates.carte_national_expiry_date);
-      if (updates.driver_license_start_date !== undefined) updateData.driver_license_start_date = convertEmptyDateToNull(updates.driver_license_start_date);
-      if (updates.driver_license_expiry_date !== undefined) updateData.driver_license_expiry_date = convertEmptyDateToNull(updates.driver_license_expiry_date);
+      if (updates.carte_national_start_date !== undefined) updateData.carte_national_start_date = convertEmptyToNull(updates.carte_national_start_date);
+      if (updates.carte_national_expiry_date !== undefined) updateData.carte_national_expiry_date = convertEmptyToNull(updates.carte_national_expiry_date);
+      if (updates.driver_license_start_date !== undefined) updateData.driver_license_start_date = convertEmptyToNull(updates.driver_license_start_date);
+      if (updates.driver_license_expiry_date !== undefined) updateData.driver_license_expiry_date = convertEmptyToNull(updates.driver_license_expiry_date);
       if (updates.driver_license_category !== undefined) updateData.driver_license_category = updates.driver_license_category;
       if (updates.driver_license_category_dates !== undefined) updateData.driver_license_category_dates = updates.driver_license_category_dates;
-      if (updates.blood_type !== undefined) updateData.blood_type = updates.blood_type;
-      if (updates.company_assignment_date !== undefined) updateData.company_assignment_date = convertEmptyDateToNull(updates.company_assignment_date);
+      
+      // Fix blood_type field - convert empty strings to null
+      if (updates.blood_type !== undefined) updateData.blood_type = convertEmptyToNull(updates.blood_type);
+      
+      if (updates.company_assignment_date !== undefined) updateData.company_assignment_date = convertEmptyToNull(updates.company_assignment_date);
 
       console.log('Final update data being sent to database:', updateData);
 
@@ -92,7 +95,11 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
         } else if (error.code === '23503') { // Foreign key violation
           throw new Error('Référence invalide dans les données');
         } else if (error.code === '23514') { // Check constraint violation
-          throw new Error('Les données ne respectent pas les contraintes de validation');
+          if (error.message.includes('check_blood_type')) {
+            throw new Error('Type sanguin invalide. Veuillez sélectionner un type sanguin valide ou laisser vide');
+          } else {
+            throw new Error('Les données ne respectent pas les contraintes de validation');
+          }
         } else if (error.code === '22007') { // Invalid date format
           throw new Error('Format de date invalide. Veuillez vérifier les dates saisies');
         } else {

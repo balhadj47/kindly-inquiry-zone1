@@ -15,6 +15,7 @@ import IdentityDocumentsSection from './IdentityDocumentsSection';
 import DriverLicenseSection from './DriverLicenseSection';
 import MedicalInfoSection from './MedicalInfoSection';
 import { User as UserIcon, IdCard, Car, Heart, Briefcase } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UserDialogFormProps {
   user?: User | null;
@@ -179,37 +180,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        {/* Compact save button section */}
-        <div className="flex flex-col-reverse sm:flex-row gap-2 pb-3 border-b border-border/50">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto text-sm"
-          >
-            Annuler
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={!canSubmit()}
-            className={`w-full sm:w-auto text-sm transition-all duration-200 ${
-              !canSubmit() 
-                ? 'opacity-50 cursor-not-allowed' 
-                : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
-            }`}
-          >
-            {isSubmitting ? (
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Enregistrement...
-              </div>
-            ) : (
-              user ? 'Modifier' : 'Créer'
-            )}
-          </Button>
-        </div>
-
         {/* Compact profile section */}
         <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
           <ProfileImageSection
@@ -220,133 +190,196 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           />
         </div>
 
-        {/* Mobile-optimized tabs */}
-        <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50 overflow-x-auto" style={{
-            gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
-              ? 'repeat(5, minmax(100px, 1fr))' 
-              : 'repeat(4, minmax(100px, 1fr))'
-          }}>
-            <TabsTrigger 
-              value="basic" 
-              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
-            >
-              <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="font-medium truncate">Base</span>
-              <Badge 
-                variant={getFieldCompletionStatus('basic').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[9px] px-1 py-0 h-auto"
-              >
-                {getFieldCompletionStatus('basic').percentage}%
-              </Badge>
-            </TabsTrigger>
+        {/* Mobile-optimized tabs with icons only */}
+        <TooltipProvider>
+          <Tabs defaultValue="basic" className="w-full">
+            <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50" style={{
+              gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
+                ? 'repeat(5, 1fr)' 
+                : 'repeat(4, 1fr)'
+            }}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger 
+                    value="basic" 
+                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                  >
+                    <UserIcon className="h-5 w-5" />
+                    <Badge 
+                      variant={getFieldCompletionStatus('basic').percentage === 100 ? 'default' : 'secondary'} 
+                      className="text-[10px] px-1.5 py-0.5 h-auto"
+                    >
+                      {getFieldCompletionStatus('basic').percentage}%
+                    </Badge>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Informations de base</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger 
+                    value="identity"
+                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                  >
+                    <IdCard className="h-5 w-5" />
+                    <Badge 
+                      variant={getFieldCompletionStatus('identity').percentage === 100 ? 'default' : 'secondary'} 
+                      className="text-[10px] px-1.5 py-0.5 h-auto"
+                    >
+                      {getFieldCompletionStatus('identity').percentage}%
+                    </Badge>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Documents d'identité</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger 
+                    value="license"
+                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                  >
+                    <Car className="h-5 w-5" />
+                    <Badge 
+                      variant={getFieldCompletionStatus('license').percentage === 100 ? 'default' : 'secondary'} 
+                      className="text-[10px] px-1.5 py-0.5 h-auto"
+                    >
+                      {getFieldCompletionStatus('license').percentage}%
+                    </Badge>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Permis de conduire</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <TabsTrigger 
+                    value="medical"
+                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                  >
+                    <Heart className="h-5 w-5" />
+                    <Badge 
+                      variant={getFieldCompletionStatus('medical').percentage === 100 ? 'default' : 'secondary'} 
+                      className="text-[10px] px-1.5 py-0.5 h-auto"
+                    >
+                      {getFieldCompletionStatus('medical').percentage}%
+                    </Badge>
+                  </TabsTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Informations médicales</p>
+                </TooltipContent>
+              </Tooltip>
+              
+              {(shouldShowEmployeeSection || shouldShowDriverSection) && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <TabsTrigger 
+                      value="details"
+                      className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                    >
+                      <Briefcase className="h-5 w-5" />
+                      <Badge 
+                        variant={getFieldCompletionStatus('details').percentage === 100 ? 'default' : 'secondary'} 
+                        className="text-[10px] px-1.5 py-0.5 h-auto"
+                      >
+                        {getFieldCompletionStatus('details').percentage}%
+                      </Badge>
+                    </TabsTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Détails professionnels</p>
+                  </TooltipContent>
+                </Tooltip>
+              )}
+            </TabsList>
             
-            <TabsTrigger 
-              value="identity"
-              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
-            >
-              <IdCard className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="font-medium truncate">Identité</span>
-              <Badge 
-                variant={getFieldCompletionStatus('identity').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[9px] px-1 py-0 h-auto"
-              >
-                {getFieldCompletionStatus('identity').percentage}%
-              </Badge>
-            </TabsTrigger>
+            <TabsContent value="basic" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+              <BasicInfoSection 
+                control={form.control} 
+                isSubmitting={isSubmitting} 
+                isEmailRequired={config.requireEmail}
+              />
+            </TabsContent>
             
-            <TabsTrigger 
-              value="license"
-              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
-            >
-              <Car className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="font-medium truncate">Permis</span>
-              <Badge 
-                variant={getFieldCompletionStatus('license').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[9px] px-1 py-0 h-auto"
-              >
-                {getFieldCompletionStatus('license').percentage}%
-              </Badge>
-            </TabsTrigger>
+            <TabsContent value="identity" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+              <IdentityDocumentsSection 
+                control={form.control} 
+                isSubmitting={isSubmitting} 
+              />
+            </TabsContent>
             
-            <TabsTrigger 
-              value="medical"
-              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
-            >
-              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
-              <span className="font-medium truncate">Médical</span>
-              <Badge 
-                variant={getFieldCompletionStatus('medical').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[9px] px-1 py-0 h-auto"
-              >
-                {getFieldCompletionStatus('medical').percentage}%
-              </Badge>
-            </TabsTrigger>
+            <TabsContent value="license" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+              <DriverLicenseSection 
+                control={form.control} 
+                isSubmitting={isSubmitting} 
+              />
+            </TabsContent>
+            
+            <TabsContent value="medical" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+              <MedicalInfoSection 
+                control={form.control} 
+                isSubmitting={isSubmitting} 
+              />
+            </TabsContent>
             
             {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-              <TabsTrigger 
-                value="details"
-                className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
-              >
-                <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
-                <span className="font-medium truncate">Détails</span>
-                <Badge 
-                  variant={getFieldCompletionStatus('details').percentage === 100 ? 'default' : 'secondary'} 
-                  className="text-[9px] px-1 py-0 h-auto"
-                >
-                  {getFieldCompletionStatus('details').percentage}%
-                </Badge>
-              </TabsTrigger>
+              <TabsContent value="details" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+                {shouldShowEmployeeSection && (
+                  <EmployeeDetailsSection 
+                    control={form.control} 
+                    isSubmitting={isSubmitting} 
+                  />
+                )}
+                
+                {shouldShowDriverSection && (
+                  <DriverDetailsSection 
+                    control={form.control} 
+                    isSubmitting={isSubmitting} 
+                  />
+                )}
+              </TabsContent>
             )}
-          </TabsList>
-          
-          <TabsContent value="basic" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-            <BasicInfoSection 
-              control={form.control} 
-              isSubmitting={isSubmitting} 
-              isEmailRequired={config.requireEmail}
-            />
-          </TabsContent>
-          
-          <TabsContent value="identity" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-            <IdentityDocumentsSection 
-              control={form.control} 
-              isSubmitting={isSubmitting} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="license" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-            <DriverLicenseSection 
-              control={form.control} 
-              isSubmitting={isSubmitting} 
-            />
-          </TabsContent>
-          
-          <TabsContent value="medical" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-            <MedicalInfoSection 
-              control={form.control} 
-              isSubmitting={isSubmitting} 
-            />
-          </TabsContent>
-          
-          {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-            <TabsContent value="details" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-              {shouldShowEmployeeSection && (
-                <EmployeeDetailsSection 
-                  control={form.control} 
-                  isSubmitting={isSubmitting} 
-                />
-              )}
-              
-              {shouldShowDriverSection && (
-                <DriverDetailsSection 
-                  control={form.control} 
-                  isSubmitting={isSubmitting} 
-                />
-              )}
-            </TabsContent>
-          )}
-        </Tabs>
+          </Tabs>
+        </TooltipProvider>
+
+        {/* Save/Cancel buttons moved to bottom */}
+        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto"
+          >
+            Annuler
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={!canSubmit()}
+            className={`w-full sm:w-auto transition-all duration-200 ${
+              !canSubmit() 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] bg-primary hover:bg-primary/90'
+            }`}
+          >
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Enregistrement...
+              </div>
+            ) : (
+              user ? 'Modifier' : 'Créer'
+            )}
+          </Button>
+        </DialogFooter>
       </form>
     </Form>
   );

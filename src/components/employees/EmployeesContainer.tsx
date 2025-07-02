@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { useUsersByRoleId } from '@/hooks/useUsersOptimized';
+import { useUsersByRoleId } from '@/hooks/users';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 import EmployeesHeader from './EmployeesHeader';

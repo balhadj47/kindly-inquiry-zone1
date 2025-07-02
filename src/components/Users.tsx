@@ -6,12 +6,13 @@ import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import UsersHeader from './users/UsersHeader';
 import UsersNavigation from './users/UsersNavigation';
 import UsersTab from './users/UsersTab';
-import UsersModals from './users/UsersModals';
 import { LoadingState, ErrorState } from './users/UsersStates';
 import { useUserActionHandlers } from './users/UserActionHandlers';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { PlusButton } from '@/components/ui/plus-button';
+import UserDialog from './user-dialog/UserDialog';
+import PasswordChangeModal from './PasswordChangeModal';
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -123,12 +124,17 @@ const Users = () => {
         />
       </UsersNavigation>
 
-      <UsersModals
-        isUserModalOpen={isUserModalOpen}
-        setIsUserModalOpen={setIsUserModalOpen}
-        isPasswordModalOpen={isPasswordModalOpen}
-        setIsPasswordModalOpen={setIsPasswordModalOpen}
-        selectedUser={selectedUser}
+      <UserDialog
+        isOpen={isUserModalOpen}
+        onClose={() => setIsUserModalOpen(false)}
+        user={selectedUser}
+        userType="admin"
+      />
+
+      <PasswordChangeModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        user={selectedUser}
       />
     </div>
   );

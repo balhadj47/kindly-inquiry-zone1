@@ -116,6 +116,29 @@ const VansContainer = () => {
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+      {/* Dialogs positioned at the top */}
+      <VanModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        van={selectedVan}
+        onSaveSuccess={handleSaveSuccess}
+      />
+
+      <VanDeleteDialog
+        isOpen={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+        van={vanToDelete}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+      />
+
+      <VanDetailsDialog
+        van={selectedVan}
+        isOpen={isDetailsDialogOpen}
+        onClose={handleDetailsDialogClose}
+        onEdit={handleEditVan}
+      />
+
       <div className="flex items-center justify-between">
         <VansHeader vansCount={vansData.length} />
         <VansActions 
@@ -148,28 +171,6 @@ const VansContainer = () => {
         onEditVan={handleEditVan}
         onDeleteVan={handleDeleteVan}
         onViewVan={handleViewVan}
-      />
-
-      <VanModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        van={selectedVan}
-        onSaveSuccess={handleSaveSuccess}
-      />
-
-      <VanDeleteDialog
-        isOpen={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-        van={vanToDelete}
-        onConfirm={confirmDelete}
-        isLoading={isDeleting}
-      />
-
-      <VanDetailsDialog
-        van={selectedVan}
-        isOpen={isDetailsDialogOpen}
-        onClose={handleDetailsDialogClose}
-        onEdit={handleEditVan}
       />
     </div>
   );

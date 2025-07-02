@@ -94,26 +94,8 @@ const VanEnhancedCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: Va
 
   return (
     <EntityCard
-      title={
-        <div className="flex items-center gap-2">
-          <span className="font-semibold text-lg text-gray-900">
-            {van.model || 'Modèle non défini'}
-          </span>
-          {hasExpiredDocs && (
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          )}
-        </div>
-      }
-      subtitle={
-        <div className="flex items-center gap-2 mt-1">
-          <span className="text-gray-600 font-medium">{van.license_plate}</span>
-          {van.insurer && (
-            <Badge variant="outline" className="text-xs">
-              {van.insurer}
-            </Badge>
-          )}
-        </div>
-      }
+      title={van.model || 'Modèle non défini'}
+      subtitle={van.license_plate || 'Plaque non définie'}
       status={van.status ? {
         label: van.status,
         variant: 'outline',
@@ -124,6 +106,26 @@ const VanEnhancedCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: Va
       onClick={handleCardClick}
       className="transition-all duration-300 hover:shadow-xl hover:scale-[1.02] border-gray-200 hover:border-blue-300 bg-white"
     >
+      {/* Enhanced header with warning icon */}
+      <div className="flex items-center gap-2 mb-4">
+        <h3 className="font-semibold text-lg text-gray-900">
+          {van.model || 'Modèle non défini'}
+        </h3>
+        {hasExpiredDocs && (
+          <AlertTriangle className="h-4 w-4 text-red-500" />
+        )}
+      </div>
+
+      {/* Subtitle with insurer badge */}
+      <div className="flex items-center gap-2 mb-4">
+        <span className="text-gray-600 font-medium">{van.license_plate}</span>
+        {van.insurer && (
+          <Badge variant="outline" className="text-xs">
+            {van.insurer}
+          </Badge>
+        )}
+      </div>
+
       {/* Status Badge with enhanced styling */}
       <div className="mt-4 flex items-center justify-between">
         <StatusBadge status={van.status || 'Active'} />

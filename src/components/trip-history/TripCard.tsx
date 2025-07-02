@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -197,21 +198,19 @@ const TripCard: React.FC<TripCardProps> = ({
       {/* Action buttons */}
       <div className={`flex items-center gap-2 pt-2 border-t border-gray-100 ${isMobile ? 'justify-center' : 'justify-end'}`}>
         {trip.status === 'active' && (
-          <Button
-            size="sm"
-            className="h-8 w-8 p-0 bg-green-500 text-white hover:bg-green-600 border-0"
+          <button
+            className="h-8 w-8 p-0 bg-green-500 text-white hover:bg-green-600 rounded-md flex items-center justify-center transition-colors"
             onClick={(e) => {
               e.stopPropagation();
               onEndTrip(trip);
             }}
           >
             <CheckCircle className="h-4 w-4" />
-          </Button>
+          </button>
         )}
         
-        <Button
-          size="sm"
-          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600 border-0"
+        <button
+          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600 rounded-md flex items-center justify-center transition-colors disabled:opacity-50"
           disabled={deletingTripId === trip.id}
           onClick={(e) => {
             e.stopPropagation();
@@ -219,7 +218,7 @@ const TripCard: React.FC<TripCardProps> = ({
           }}
         >
           <Trash2 className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
     </div>
   );

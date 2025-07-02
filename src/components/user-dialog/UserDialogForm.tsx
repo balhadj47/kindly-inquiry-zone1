@@ -131,6 +131,26 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+        {/* Save button moved to top */}
+        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pb-4 border-b">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={isSubmitting}
+            className="w-full sm:w-auto"
+          >
+            Annuler
+          </Button>
+          <Button 
+            type="submit" 
+            disabled={!canSubmit()}
+            className={`w-full sm:w-auto ${!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {isSubmitting ? 'Enregistrement...' : user ? 'Modifier' : 'Créer'}
+          </Button>
+        </div>
+
         <ProfileImageSection
           profileImage={form.watch('profileImage') || ''}
           userName={form.watch('name')}
@@ -196,25 +216,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             </TabsContent>
           )}
         </Tabs>
-
-        <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-4">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSubmitting}
-            className="w-full sm:w-auto"
-          >
-            Annuler
-          </Button>
-          <Button 
-            type="submit" 
-            disabled={!canSubmit()}
-            className={`w-full sm:w-auto ${!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''}`}
-          >
-            {isSubmitting ? 'Enregistrement...' : user ? 'Modifier' : 'Créer'}
-          </Button>
-        </DialogFooter>
       </form>
     </Form>
   );

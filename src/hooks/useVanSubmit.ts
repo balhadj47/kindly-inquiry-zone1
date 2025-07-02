@@ -14,7 +14,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Prepare van data with all fields including reference_code
+      // Prepare van data with all fields including new ones
       const vanData = {
         reference_code: formData.referenceCode,
         license_plate: formData.plateNumber,
@@ -24,6 +24,9 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         insurance_date: formData.insuranceDate?.toISOString().split('T')[0] || null,
         control_date: formData.controlDate?.toISOString().split('T')[0] || null,
         notes: formData.notes,
+        current_location: formData.currentLocation,
+        current_responsible_id: formData.currentResponsibleId,
+        current_odometer_km: formData.currentOdometerKm,
       };
 
       if (van) {

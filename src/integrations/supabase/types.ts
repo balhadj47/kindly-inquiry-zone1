@@ -412,10 +412,69 @@ export type Database = {
         }
         Relationships: []
       }
+      van_logs: {
+        Row: {
+          category: string
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          date: string
+          details: string | null
+          id: string
+          next_due_date: string | null
+          next_due_km: number | null
+          odometer_km: number | null
+          performed_by: string | null
+          title: string
+          van_id: string
+        }
+        Insert: {
+          category: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          date: string
+          details?: string | null
+          id?: string
+          next_due_date?: string | null
+          next_due_km?: number | null
+          odometer_km?: number | null
+          performed_by?: string | null
+          title: string
+          van_id: string
+        }
+        Update: {
+          category?: string
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          details?: string | null
+          id?: string
+          next_due_date?: string | null
+          next_due_km?: number | null
+          odometer_km?: number | null
+          performed_by?: string | null
+          title?: string
+          van_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "van_logs_van_id_fkey"
+            columns: ["van_id"]
+            isOneToOne: false
+            referencedRelation: "vans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vans: {
         Row: {
           control_date: string | null
           created_at: string
+          current_location: string | null
+          current_odometer_km: number | null
+          current_responsible_id: number | null
           driver_id: string | null
           id: string
           insurance_date: string | null
@@ -429,6 +488,9 @@ export type Database = {
         Insert: {
           control_date?: string | null
           created_at?: string
+          current_location?: string | null
+          current_odometer_km?: number | null
+          current_responsible_id?: number | null
           driver_id?: string | null
           id?: string
           insurance_date?: string | null
@@ -442,6 +504,9 @@ export type Database = {
         Update: {
           control_date?: string | null
           created_at?: string
+          current_location?: string | null
+          current_odometer_km?: number | null
+          current_responsible_id?: number | null
           driver_id?: string | null
           id?: string
           insurance_date?: string | null
@@ -452,7 +517,15 @@ export type Database = {
           reference_code?: string
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vans_current_responsible_id_fkey"
+            columns: ["current_responsible_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

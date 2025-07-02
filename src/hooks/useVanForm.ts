@@ -10,6 +10,9 @@ export interface VanFormData {
   insuranceDate: Date | undefined;
   controlDate: Date | undefined;
   notes: string;
+  currentLocation: string;
+  currentResponsibleId: number | null;
+  currentOdometerKm: number;
 }
 
 export const useVanForm = (van: any) => {
@@ -22,6 +25,9 @@ export const useVanForm = (van: any) => {
     insuranceDate: undefined,
     controlDate: undefined,
     notes: '',
+    currentLocation: '',
+    currentResponsibleId: null,
+    currentOdometerKm: 0,
   });
 
   useEffect(() => {
@@ -37,6 +43,9 @@ export const useVanForm = (van: any) => {
         insuranceDate: van.insurance_date ? new Date(van.insurance_date) : undefined,
         controlDate: van.control_date ? new Date(van.control_date) : undefined,
         notes: van.notes || '',
+        currentLocation: van.current_location || '',
+        currentResponsibleId: van.current_responsible_id || null,
+        currentOdometerKm: van.current_odometer_km || 0,
       };
       
       console.log('🚐 useVanForm: Setting form data:', newFormData);
@@ -52,6 +61,9 @@ export const useVanForm = (van: any) => {
         insuranceDate: undefined,
         controlDate: undefined,
         notes: '',
+        currentLocation: '',
+        currentResponsibleId: null,
+        currentOdometerKm: 0,
       });
     }
   }, [van]);

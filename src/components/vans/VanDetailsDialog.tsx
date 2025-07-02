@@ -9,17 +9,22 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Edit, 
   Car,
   MapPin,
   Shield,
   Calendar,
-  FileText
+  FileText,
+  User,
+  Gauge
 } from 'lucide-react';
 import { Van } from '@/types/van';
 import { getStatusColor } from '@/utils/vanUtils';
 import { format } from 'date-fns';
+import { useUsers } from '@/hooks/useUsers';
+import VanMaintenanceLogs from './VanMaintenanceLogs';
 
 interface VanDetailsDialogProps {
   van: Van | null;
@@ -29,6 +34,8 @@ interface VanDetailsDialogProps {
 }
 
 const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProps) => {
+  const { users } = useUsers();
+  
   if (!van) return null;
 
   // Check if dates are expired
@@ -48,9 +55,11 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProp
     }
   };
 
+  const responsibleUser = users.find(user => user.id === van.current_responsible_id);
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -67,120 +76,171 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProp
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Informations de base</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="flex items-center space-x-3">
-                  <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Plaque d'immatriculation</label>
-                    <p className="text-lg font-semibold text-gray-800">{van.license_plate}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <Car className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Modèle</label>
-                    <p className="text-lg font-semibold text-gray-800">{van.model}</p>
-                  </div>
-                </div>
-                {van.reference_code && (
-                  <div className="flex items-center space-x-3">
-                    <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Code de référence</label>
-                      <p className="text-lg font-semibold text-gray-800">{van.reference_code}</p>
-                    </div>
-                  </div>
-                )}
-                <div className="flex items-center space-x-3">
-                  <div className="h-4 w-4 flex-shrink-0" />
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Statut</label>
-                    <p className="text-lg font-semibold text-gray-800">{van.status}</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Détails</TabsTrigger>
+            <TabsTrigger value="maintenance">Maintenance</TabsTrigger>
+          </TabsList>
 
-          {/* Insurance Information */}
-          {(van.insurer || van.insurance_date || van.control_date) && (
+          <TabsContent value="details" className="space-y-6">
+            {/* Basic Information */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Informations d'assurance</CardTitle>
+                <CardTitle className="text-lg">Informations de base</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {van.insurer && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex items-center space-x-3">
-                    <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    <MapPin className="h-4 w-4 text-blue-500 flex-shrink-0" />
                     <div>
-                      <label className="text-sm font-medium text-gray-500">Assureur</label>
-                      <p className="text-lg font-semibold text-gray-800">{van.insurer}</p>
+                      <label className="text-sm font-medium text-gray-500">Plaque d'immatriculation</label>
+                      <p className="text-lg font-semibold text-gray-800">{van.license_plate}</p>
                     </div>
                   </div>
-                )}
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {van.insurance_date && (
+                  <div className="flex items-center space-x-3">
+                    <Car className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Modèle</label>
+                      <p className="text-lg font-semibold text-gray-800">{van.model}</p>
+                    </div>
+                  </div>
+                  {van.reference_code && (
                     <div className="flex items-center space-x-3">
-                      <Calendar className={`h-4 w-4 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
+                      <FileText className="h-4 w-4 text-blue-500 flex-shrink-0" />
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Date d'assurance</label>
-                        <p className={`text-lg font-semibold ${isInsuranceExpired ? 'text-red-700' : 'text-gray-800'}`}>
-                          {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
-                          {isInsuranceExpired && <span className="text-red-600 ml-2 text-sm">(Expirée)</span>}
-                        </p>
+                        <label className="text-sm font-medium text-gray-500">Code de référence</label>
+                        <p className="text-lg font-semibold text-gray-800">{van.reference_code}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-3">
+                    <div className="h-4 w-4 flex-shrink-0" />
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Statut</label>
+                      <p className="text-lg font-semibold text-gray-800">{van.status}</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Current Status */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Statut actuel</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {van.current_location && (
+                    <div className="flex items-center space-x-3">
+                      <MapPin className="h-4 w-4 text-green-500 flex-shrink-0" />
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Localisation</label>
+                        <p className="text-lg font-semibold text-gray-800">{van.current_location}</p>
                       </div>
                     </div>
                   )}
                   
-                  {van.control_date && (
+                  {responsibleUser && (
                     <div className="flex items-center space-x-3">
-                      <Calendar className={`h-4 w-4 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
+                      <User className="h-4 w-4 text-purple-500 flex-shrink-0" />
                       <div>
-                        <label className="text-sm font-medium text-gray-500">Date de contrôle</label>
-                        <p className={`text-lg font-semibold ${isControlExpired ? 'text-red-700' : 'text-gray-800'}`}>
-                          {format(new Date(van.control_date), 'dd/MM/yyyy')}
-                          {isControlExpired && <span className="text-red-600 ml-2 text-sm">(Expirée)</span>}
-                        </p>
+                        <label className="text-sm font-medium text-gray-500">Responsable</label>
+                        <p className="text-lg font-semibold text-gray-800">{responsibleUser.name}</p>
                       </div>
                     </div>
                   )}
+                  
+                  <div className="flex items-center space-x-3">
+                    <Gauge className="h-4 w-4 text-orange-500 flex-shrink-0" />
+                    <div>
+                      <label className="text-sm font-medium text-gray-500">Kilométrage</label>
+                      <p className="text-lg font-semibold text-gray-800">
+                        {van.current_odometer_km?.toLocaleString() || 0} km
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-          )}
 
-          {/* Notes */}
-          {van.notes && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
-                  <p className="text-gray-700 leading-relaxed">{van.notes}</p>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t">
-            {onEdit && (
-              <Button onClick={handleEdit} className="flex items-center space-x-2">
-                <Edit className="h-4 w-4" />
-                <span>Modifier</span>
-              </Button>
+            {/* Insurance Information */}
+            {(van.insurer || van.insurance_date || van.control_date) && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Informations d'assurance</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {van.insurer && (
+                    <div className="flex items-center space-x-3">
+                      <Shield className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                      <div>
+                        <label className="text-sm font-medium text-gray-500">Assureur</label>
+                        <p className="text-lg font-semibold text-gray-800">{van.insurer}</p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {van.insurance_date && (
+                      <div className="flex items-center space-x-3">
+                        <Calendar className={`h-4 w-4 flex-shrink-0 ${isInsuranceExpired ? 'text-red-500' : 'text-green-500'}`} />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Date d'assurance</label>
+                          <p className={`text-lg font-semibold ${isInsuranceExpired ? 'text-red-700' : 'text-gray-800'}`}>
+                            {format(new Date(van.insurance_date), 'dd/MM/yyyy')}
+                            {isInsuranceExpired && <span className="text-red-600 ml-2 text-sm">(Expirée)</span>}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {van.control_date && (
+                      <div className="flex items-center space-x-3">
+                        <Calendar className={`h-4 w-4 flex-shrink-0 ${isControlExpired ? 'text-red-500' : 'text-green-500'}`} />
+                        <div>
+                          <label className="text-sm font-medium text-gray-500">Date de contrôle</label>
+                          <p className={`text-lg font-semibold ${isControlExpired ? 'text-red-700' : 'text-gray-800'}`}>
+                            {format(new Date(van.control_date), 'dd/MM/yyyy')}
+                            {isControlExpired && <span className="text-red-600 ml-2 text-sm">(Expirée)</span>}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </div>
-        </div>
+
+            {/* Notes */}
+            {van.notes && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-100">
+                    <p className="text-gray-700 leading-relaxed">{van.notes}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Actions */}
+            <div className="flex justify-end space-x-3 pt-4 border-t">
+              {onEdit && (
+                <Button onClick={handleEdit} className="flex items-center space-x-2">
+                  <Edit className="h-4 w-4" />
+                  <span>Modifier</span>
+                </Button>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="maintenance">
+            <VanMaintenanceLogs vanId={van.id} vanModel={van.model} />
+          </TabsContent>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );

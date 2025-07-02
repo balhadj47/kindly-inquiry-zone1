@@ -8,10 +8,11 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CalendarIcon, AlertTriangle } from 'lucide-react';
+import { CalendarIcon, AlertTriangle, MapPin, User, Gauge } from 'lucide-react';
 import { format } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { VanFormData } from '@/hooks/useVanForm';
+import { useUsers } from '@/hooks/useUsers';
 
 interface VanFormFieldsProps {
   formData: VanFormData;
@@ -21,6 +22,7 @@ interface VanFormFieldsProps {
 
 const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsProps) => {
   const { t } = useLanguage();
+  const { users, loading: usersLoading } = useUsers();
 
   // Check if dates are expired
   const today = new Date();
@@ -31,7 +33,7 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      {/* Reference Code is now the first input */}
+      {/* Reference Code */}
       <div className="space-y-2">
         <Label htmlFor="reference-code" className="text-sm sm:text-base font-medium">Code de référence</Label>
         <Input
@@ -96,6 +98,63 @@ const VanFormFields = ({ formData, onInputChange, onDateChange }: VanFormFieldsP
             className="w-full text-base touch-manipulation"
           />
         </div>
+      </div>
+
+      {/* New Location and Responsible Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="current-location" className="text-sm sm:text-base font-medium flex items-center gap-2">
+            <MapPin className="h-4 w-4 text-blue-500" />
+            Localisation actuelle
+          </Label>
+          <Input
+            id="current-location"
+            value={formData.currentLocation}
+            onChange={(e) => onInputChange('currentLocation', e.target.value)}
+            placeholder="e.g., Dépôt Central, Chantier A"
+            className="w-full text-base touch-manipulation"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="current-responsible" className="text-sm sm:text-base font-medium flex items-center gap-2">
+            <User className="h-4 w-4 text-green-500" />
+            Responsable actuel
+          </Label>
+          <Select 
+            value={formData.currentResponsibleId?.toString() || ''} 
+            onValueChange={(value) => onInputChange('currentResponsibleId', value ? parseInt(value) : null)}
+          >
+            <SelectTrigger className="w-full text-base touch-manipulation">
+              <SelectValue placeholder={usersLoading ? "Chargement..." : "Sélectionner un responsable"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Aucun responsable</SelectItem>
+              {users.map((user) => (
+                <SelectItem key={user.id} value={user.id.toString()}>
+                  {user.name} {user.email && `(${user.email})`}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Odometer */}
+      <div className="space-y-2">
+        <Label htmlFor="current-odometer" className="text-sm sm:text-base font-medium flex items-center gap-2">
+          <Gauge className="h-4 w-4 text-purple-500" />
+          Kilométrage actuel
+        </Label>
+        <Input
+          id="current-odometer"
+          type="number"
+          value={formData.currentOdometerKm}
+          onChange={(e) => onInputChange('currentOdometerKm', parseInt(e.target.value) || 0)}
+          placeholder="0"
+          className="w-full text-base touch-manipulation"
+          min="0"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

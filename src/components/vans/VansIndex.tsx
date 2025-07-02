@@ -13,9 +13,6 @@ import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import VanDetailsDialog from './VanDetailsDialog';
 import VansEmptyState from './VansEmptyState';
-import { useVansIndexState } from '@/hooks/useVansIndexState';
-import { useVansPagination } from '@/hooks/useVansPagination';
-import { useVansFiltering } from '@/hooks/useVansFiltering';
 import { Van } from '@/types/van';
 
 interface VansIndexProps {
@@ -27,22 +24,14 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
   const { data: vans = [], isLoading, error } = useVans();
   const { refreshVans } = useVanMutations();
   
-  const {
-    isModalOpen,
-    setIsModalOpen,
-    selectedVan,
-    setSelectedVan,
-    isDetailsDialogOpen,
-    setIsDetailsDialogOpen,
-  } = useVansIndexState();
-
-  const {
-    searchTerm,
-    setSearchTerm,
-    statusFilter,
-    setStatusFilter,
-    clearFilters,
-  } = useVansFiltering();
+  // State management
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedVan, setSelectedVan] = useState<Van | null>(null);
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 12;
 
   const { deleteVan, confirmDelete, isDeleting, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
 
@@ -60,14 +49,16 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
     });
   }, [vans, searchTerm, statusFilter]);
 
-  const {
-    currentPage,
-    setCurrentPage,
-    paginatedVans,
-    totalPages,
-    startIndex,
-    endIndex
-  } = useVansPagination(filteredVans);
+  // Pagination
+  const totalPages = Math.ceil(filteredVans.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedVans = filteredVans.slice(startIndex, endIndex);
+
+  // Reset page when filters change
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const handleCreateVan = () => {
     console.log('🚐 VansIndex: Creating new van');
@@ -77,17 +68,6 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
 
   const handleEditVan = (van: Van) => {
     console.log('🚐 VansIndex: Editing van:', van);
-    console.log('🚐 VansIndex: Van properties:', {
-      id: van.id,
-      reference_code: van.reference_code,
-      model: van.model,
-      license_plate: van.license_plate,
-      status: van.status,
-      insurer: van.insurer,
-      insurance_date: van.insurance_date,
-      control_date: van.control_date,
-      notes: van.notes
-    });
     setSelectedVan(van);
     setIsModalOpen(true);
   };
@@ -112,6 +92,11 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
   const handleSaveSuccess = () => {
     console.log('🚐 VansIndex: Save successful, refreshing data');
     refreshVans();
+  };
+
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
   };
 
   if (error) {

@@ -205,6 +205,14 @@ const AuthUsers = () => {
       <div className="flex items-center justify-between">
         <AuthUsersHeader authUsersCount={authUsers.length} />
         <div className="flex items-center space-x-2">
+          <Button 
+            onClick={handleRefresh} 
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
           {permissions.canCreate && (
             <Button 
               onClick={handleAddUser} 
@@ -214,14 +222,6 @@ const AuthUsers = () => {
               Ajouter
             </Button>
           )}
-          <Button 
-            onClick={handleRefresh} 
-            disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
         </div>
       </div>
 

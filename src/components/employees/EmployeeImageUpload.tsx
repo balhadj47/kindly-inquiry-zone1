@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, Loader2 } from 'lucide-react';
+import { Camera, Upload, Loader2, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -153,6 +153,15 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     }
   };
 
+  const handleRemoveImage = () => {
+    console.log('🗑️ Removing image');
+    onImageChange('');
+    toast({
+      title: 'Succès',
+      description: 'Image supprimée avec succès!',
+    });
+  };
+
   const triggerFileSelect = () => {
     console.log('🖱️ Triggering file input click');
     if (fileInputRef.current && !isDisabled) {
@@ -174,6 +183,19 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
             {userName ? getUserInitials(userName) : 'EMP'}
           </AvatarFallback>
         </Avatar>
+        
+        {profileImage && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon"
+            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
+            onClick={handleRemoveImage}
+            disabled={isDisabled}
+          >
+            <X className="h-3 w-3" />
+          </Button>
+        )}
         
         <Button
           type="button"
@@ -199,26 +221,42 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         className="hidden"
       />
 
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={triggerFileSelect}
-        disabled={isDisabled}
-        className="flex items-center space-x-2"
-      >
-        {uploading ? (
-          <>
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Téléchargement...</span>
-          </>
-        ) : (
-          <>
-            <Upload className="h-4 w-4" />
-            <span>{profileImage ? 'Changer la photo' : 'Télécharger une photo'}</span>
-          </>
+      <div className="flex items-center space-x-2">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={triggerFileSelect}
+          disabled={isDisabled}
+          className="flex items-center space-x-2"
+        >
+          {uploading ? (
+            <>
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span>Téléchargement...</span>
+            </>
+          ) : (
+            <>
+              <Upload className="h-4 w-4" />
+              <span>{profileImage ? 'Changer la photo' : 'Télécharger une photo'}</span>
+            </>
+          )}
+        </Button>
+        
+        {profileImage && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={handleRemoveImage}
+            disabled={isDisabled}
+            className="flex items-center space-x-2"
+          >
+            <X className="h-4 w-4" />
+            <span>Supprimer</span>
+          </Button>
         )}
-      </Button>
+      </div>
     </div>
   );
 };

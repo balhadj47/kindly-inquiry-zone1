@@ -27,6 +27,7 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({
       const reader = new FileReader();
       reader.onload = (e) => {
         const result = e.target?.result as string;
+        console.log('📤 Setting image from FileReader:', result ? 'Data URL loaded' : 'No data');
         onImageChange(result);
       };
       reader.readAsDataURL(file);
@@ -34,6 +35,7 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({
   };
 
   const handleRemoveImage = () => {
+    console.log('🗑️ Removing image - setting empty string');
     onImageChange('');
   };
 
@@ -73,6 +75,20 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({
           <Camera className="h-4 w-4" />
           <span>Changer la photo</span>
         </Button>
+        
+        {profileImage && (
+          <Button
+            type="button"
+            variant="destructive"
+            size="sm"
+            onClick={handleRemoveImage}
+            disabled={isSubmitting}
+            className="flex items-center space-x-2"
+          >
+            <X className="h-4 w-4" />
+            <span>Supprimer</span>
+          </Button>
+        )}
         
         <input
           id="profile-image-upload"

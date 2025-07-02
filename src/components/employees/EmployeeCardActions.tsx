@@ -35,7 +35,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
         variant="outline"
         size="sm"
         onClick={() => onView(employee)}
-        className="h-8 px-3 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+        className="h-8 px-3 !bg-white !border-gray-300 !text-gray-600 hover:!bg-gray-50 hover:!text-gray-800 hover:!border-gray-400"
       >
         <Eye className="h-4 w-4 mr-1" />
         <span className="hidden sm:inline">Voir</span>
@@ -47,7 +47,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onEdit(employee)}
-            className="h-8 px-3 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+            className="h-8 px-3 !bg-white !border-blue-300 !text-blue-600 hover:!bg-blue-50 hover:!text-blue-800 hover:!border-blue-400"
           >
             <Edit className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Modifier</span>
@@ -57,7 +57,7 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
             variant="outline"
             size="sm"
             onClick={() => onChangePassword(employee)}
-            className="h-8 px-3 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+            className="h-8 px-3 !bg-white !border-green-300 !text-green-600 hover:!bg-green-50 hover:!text-green-800 hover:!border-green-400"
           >
             <Key className="h-4 w-4 mr-1" />
             <span className="hidden sm:inline">Mot de passe</span>
@@ -70,9 +70,9 @@ const EmployeeCardActions: React.FC<EmployeeCardActionsProps> = ({
           variant="outline"
           size="sm"
           onClick={() => onDelete(employee)}
-          className="h-8 px-3 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+          className="h-8 px-3 !bg-white !border-red-300 !text-red-600 hover:!bg-red-50 hover:!text-red-700 hover:!border-red-400"
         >
-          <Trash2 className="h-4 w-4 mr-1 text-red-500" />
+          <Trash2 className="h-4 w-4 mr-1" />
           <span className="hidden sm:inline">Supprimer</span>
         </Button>
       )}

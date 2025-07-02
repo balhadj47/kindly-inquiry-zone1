@@ -154,8 +154,18 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
   };
 
   const handleRemoveImage = () => {
-    console.log('🗑️ Removing image');
+    console.log('🗑️ Removing image, current profileImage:', profileImage);
+    
+    // Clear the image by passing empty string
     onImageChange('');
+    
+    // Clear file input as well
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+    
+    console.log('✅ Image removal completed');
+    
     toast({
       title: 'Succès',
       description: 'Image supprimée avec succès!',
@@ -171,6 +181,9 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
 
   const isDisabled = isSubmitting || uploading;
 
+  // Debug log for current profileImage
+  console.log('🖼️ Current profileImage in EmployeeImageUpload:', profileImage);
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
@@ -178,6 +191,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
           <AvatarImage 
             src={profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`}
             alt={userName}
+            key={profileImage || 'fallback'} // Force re-render when image changes
           />
           <AvatarFallback className="bg-primary text-primary-foreground text-lg">
             {userName ? getUserInitials(userName) : 'EMP'}

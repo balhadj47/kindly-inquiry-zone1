@@ -100,6 +100,14 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     }
   };
 
+  const handleImageChange = (url: string) => {
+    console.log('EmployeeModalForm - Setting profile image URL:', url);
+    form.setValue('profileImage', url);
+    
+    // Force form to re-render by triggering a change
+    form.trigger('profileImage');
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
@@ -115,10 +123,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <EmployeeImageUpload
             profileImage={form.watch('profileImage') || ''}
             userName={form.watch('name')}
-            onImageChange={(url) => {
-              console.log('Setting profile image URL:', url);
-              form.setValue('profileImage', url);
-            }}
+            onImageChange={handleImageChange}
             isSubmitting={isSubmitting}
           />
         </div>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { memo } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart } from 'lucide-react';
@@ -15,7 +15,7 @@ interface EmployeeCardProps {
   canDelete: boolean;
 }
 
-const EmployeeCard: React.FC<EmployeeCardProps> = ({
+const EmployeeCard: React.FC<EmployeeCardProps> = memo(({
   employee,
   onEdit,
   onDelete,
@@ -61,6 +61,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
 
   const statusConfig = getStatusColor(employee.status);
 
+  // Only show essential metadata to reduce rendering complexity
   const metadata = [
     employee.badgeNumber && {
       label: 'Badge',
@@ -82,41 +83,6 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       value: employee.address,
       icon: <MapPin className="h-4 w-4" />
     },
-    employee.dateOfBirth && {
-      label: 'Date de naissance',
-      value: formatDate(employee.dateOfBirth),
-      icon: <Calendar className="h-4 w-4" />
-    },
-    employee.placeOfBirth && {
-      label: 'Lieu de naissance',
-      value: employee.placeOfBirth,
-      icon: <MapPin className="h-4 w-4" />
-    },
-    employee.identification_national && {
-      label: 'ID National',
-      value: employee.identification_national,
-      icon: <User className="h-4 w-4" />
-    },
-    employee.carte_national && {
-      label: 'Carte Nationale',
-      value: employee.carte_national,
-      icon: <CreditCard className="h-4 w-4" />
-    },
-    employee.driverLicense && {
-      label: 'Permis',
-      value: employee.driverLicense,
-      icon: <span>🚗</span>
-    },
-    employee.blood_type && {
-      label: 'Groupe sanguin',
-      value: employee.blood_type,
-      icon: <Heart className="h-4 w-4" />
-    },
-    employee.company_assignment_date && {
-      label: 'Affectation',
-      value: formatDate(employee.company_assignment_date),
-      icon: <Building className="h-4 w-4" />
-    }
   ].filter(Boolean);
 
   const actions = (
@@ -172,6 +138,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       </div>
     </EntityCard>
   );
-};
+});
+
+EmployeeCard.displayName = 'EmployeeCard';
 
 export default EmployeeCard;

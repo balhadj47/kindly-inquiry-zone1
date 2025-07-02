@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { useUsersByRoleId } from '@/hooks/users';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 import EmployeesHeader from './EmployeesHeader';
 import EmployeesActions from './EmployeesActions';
-import EmployeesList from './EmployeesList';
+import EmployeesListOptimized from './EmployeesListOptimized';
 import EmployeesFilters from './EmployeesFilters';
 import UserDialog from '../user-dialog/UserDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import { Card, CardContent } from '@/components/ui/card';
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { User } from '@/types/rbac';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
@@ -18,23 +19,13 @@ const EmployeesContainer = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const { refreshPage } = useCacheRefresh();
   
-  console.log('🏢 EmployeesContainer: Starting to fetch employees data');
+  const { data: employeesData = [], refetch, error, isLoading } = useUsersByRoleId(3);
   
-  const { data: employeesData = [], refetch, error } = useUsersByRoleId(3);
-  
-  console.log('🏢 EmployeesContainer: Raw employees data:', {
-    data: employeesData,
-    dataType: typeof employeesData,
-    isArray: Array.isArray(employeesData),
-    length: employeesData?.length || 0,
-    error: error
-  });
+  const permissions = useEmployeePermissions();
 
-  // Transform the data to match User interface - Include ALL fields
-  const employees: User[] = employeesData.map(emp => {
-    console.log('🔄 EmployeesContainer: Transforming employee:', emp);
-    
-    const transformedEmployee = {
+  // Memoize the transformation to avoid recalculating on every render
+  const employees: User[] = useMemo(() => {
+    return employeesData.map(emp => ({
       ...emp,
       id: emp.id?.toString() || '',
       createdAt: emp.created_at || new Date().toISOString(),
@@ -46,7 +37,6 @@ const EmployeesContainer = () => {
       totalTrips: emp.total_trips,
       lastTrip: emp.last_trip,
       profileImage: emp.profile_image,
-      // Add ALL the new fields
       identification_national: emp.identification_national,
       carte_national: emp.carte_national,
       carte_national_start_date: emp.carte_national_start_date,
@@ -57,19 +47,11 @@ const EmployeesContainer = () => {
       driver_license_category_dates: emp.driver_license_category_dates,
       blood_type: emp.blood_type,
       company_assignment_date: emp.company_assignment_date,
-    };
-    
-    console.log('✅ EmployeesContainer: Transformed employee with all fields:', transformedEmployee);
-    return transformedEmployee;
-  });
-  
-  const permissions = useEmployeePermissions();
-  
-  console.log('🔒 EmployeesContainer: Permissions:', permissions);
+    }));
+  }, [employeesData]);
 
   // Enhanced refresh function that forces cache invalidation
   const handleRefresh = async () => {
-    console.log('🔄 EmployeesContainer: Manual refresh triggered');
     await refreshPage(['users', 'role_id', '3']);
     await refetch();
   };
@@ -86,16 +68,18 @@ const EmployeesContainer = () => {
     handleCancelDelete,
   } = useEmployeeActions(handleRefresh);
 
-  console.log('🏢 EmployeesContainer: Final state:', {
-    employeesCount: employees.length,
-    searchTerm,
-    statusFilter,
-    isModalOpen,
-    selectedEmployee: selectedEmployee?.id || 'none'
-  });
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Chargement des employés...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
-    console.error('❌ EmployeesContainer: Error fetching employees:', error);
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
@@ -111,7 +95,6 @@ const EmployeesContainer = () => {
   }
 
   if (!permissions.hasUsersReadPermission) {
-    console.warn('⚠️ EmployeesContainer: User lacks read permissions');
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Accès non autorisé</h2>
@@ -120,30 +103,25 @@ const EmployeesContainer = () => {
     );
   }
 
-  // Filter employees
-  const filteredEmployees = employees.filter(employee => {
-    const matchesSearch = !searchTerm || 
-      employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.badgeNumber?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
-  });
+  // Memoize filtered employees to avoid recalculating on every render
+  const filteredEmployees = useMemo(() => {
+    return employees.filter(employee => {
+      const matchesSearch = !searchTerm || 
+        employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        employee.badgeNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [employees, searchTerm, statusFilter]);
 
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
   };
-
-  console.log('🔍 EmployeesContainer: Filtered employees:', {
-    total: employees.length,
-    filtered: filteredEmployees.length,
-    searchTerm,
-    statusFilter
-  });
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
@@ -169,7 +147,7 @@ const EmployeesContainer = () => {
         </CardContent>
       </Card>
 
-      <EmployeesList
+      <EmployeesListOptimized
         employees={filteredEmployees}
         searchTerm={searchTerm}
         statusFilter={statusFilter}

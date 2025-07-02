@@ -1,3 +1,4 @@
+
 import * as React from "react"
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { X } from "lucide-react"
@@ -20,7 +21,7 @@ const DialogOverlay = React.forwardRef<
     ref={ref}
     className={cn(
       "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      "grid place-items-center p-4",
+      "flex items-center justify-center p-4",
       className
     )}
     {...props}
@@ -37,7 +38,7 @@ const DialogContent = React.forwardRef<
       <DialogPrimitive.Content
         ref={ref}
         className={cn(
-          "relative z-50 w-full max-w-lg border bg-background p-6 shadow-lg duration-200 sm:rounded-lg",
+          "z-50 w-full max-w-lg border bg-background p-6 shadow-lg duration-200 sm:rounded-lg",
           "max-h-[90vh] overflow-hidden",
           "data-[state=open]:animate-in data-[state=closed]:animate-out",
           "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",

@@ -1,31 +1,30 @@
 
 import React from 'react';
 import { Plus, RefreshCw } from 'lucide-react';
-import { usePermissionCheck } from '@/hooks/usePermissionCheck';
 import { Button } from '@/components/ui/button';
 
-interface CompaniesActionsProps {
-  onCreateCompany: () => void;
+interface AuthUsersActionsProps {
+  onCreateUser: () => void;
   onRefresh: () => void;
   isRefreshing?: boolean;
+  canCreateUsers: boolean;
 }
 
-const CompaniesActions: React.FC<CompaniesActionsProps> = ({
-  onCreateCompany,
+const AuthUsersActions: React.FC<AuthUsersActionsProps> = ({
+  onCreateUser,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  canCreateUsers
 }) => {
-  const { canCreateCompanies } = usePermissionCheck();
-
   return (
     <div className="flex items-center gap-3">
-      {canCreateCompanies && (
+      {canCreateUsers && (
         <Button
-          onClick={onCreateCompany}
+          onClick={onCreateUser}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Nouvelle Entreprise
+          Nouveau Compte
         </Button>
       )}
       
@@ -42,4 +41,4 @@ const CompaniesActions: React.FC<CompaniesActionsProps> = ({
   );
 };
 
-export default CompaniesActions;
+export default AuthUsersActions;

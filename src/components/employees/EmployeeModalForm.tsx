@@ -32,6 +32,16 @@ interface FormData {
   email?: string;
 }
 
+// Helper function to safely extract string values
+const extractStringValue = (value: any): string | undefined => {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null && 'value' in value) {
+    return typeof value.value === 'string' ? value.value : undefined;
+  }
+  return undefined;
+};
+
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   employee,
   onSubmit,
@@ -45,13 +55,13 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       name: employee?.name || '',
       phone: employee?.phone || '',
       status: employee?.status || 'Active',
-      badgeNumber: employee?.badgeNumber || '',
-      dateOfBirth: employee?.dateOfBirth || '',
-      placeOfBirth: employee?.placeOfBirth || '',
-      address: employee?.address || '',
-      driverLicense: employee?.driverLicense || '',
-      profileImage: employee?.profileImage || '',
-      email: employee?.email || '',
+      badgeNumber: extractStringValue(employee?.badgeNumber) || '',
+      dateOfBirth: extractStringValue(employee?.dateOfBirth) || '',
+      placeOfBirth: extractStringValue(employee?.placeOfBirth) || '',
+      address: extractStringValue(employee?.address) || '',
+      driverLicense: extractStringValue(employee?.driverLicense) || '',
+      profileImage: extractStringValue(employee?.profileImage) || '',
+      email: extractStringValue(employee?.email) || '',
     },
   });
 
@@ -60,17 +70,35 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       setSubmitError(null);
       console.log('Submitting employee form with data:', data);
       
-      // Convert empty strings to undefined/null for optional fields
+      // Safely handle profile image - ensure it's a string or undefined
+      const profileImageValue = data.profileImage;
+      let finalProfileImageValue: string | undefined = undefined;
+      
+      if (profileImageValue) {
+        if (typeof profileImageValue === 'string') {
+          finalProfileImageValue = profileImageValue;
+        } else if (typeof profileImageValue === 'object' && profileImageValue !== null && 'value' in profileImageValue) {
+          const extractedValue = (profileImageValue as any).value;
+          finalProfileImageValue = typeof extractedValue === 'string' ? extractedValue : undefined;
+        }
+      }
+      
+      // Convert empty strings to undefined/null for optional fields and ensure proper types
       const submitData = {
-        ...data,
+        name: data.name?.trim() || '',
         email: data.email?.trim() || undefined,
         phone: data.phone?.trim() || undefined,
+        status: data.status,
+        profileImage: finalProfileImageValue,
         badgeNumber: data.badgeNumber?.trim() || undefined,
         dateOfBirth: data.dateOfBirth?.trim() || undefined,
         placeOfBirth: data.placeOfBirth?.trim() || undefined,
         address: data.address?.trim() || undefined,
         driverLicense: data.driverLicense?.trim() || undefined,
+        role_id: 3, // Employee role
       };
+      
+      console.log('Final employee submit data:', submitData);
       
       await onSubmit(submitData);
       console.log('Employee form submitted successfully');

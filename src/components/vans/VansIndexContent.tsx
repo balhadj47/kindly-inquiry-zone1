@@ -103,27 +103,25 @@ const VansIndexContent: React.FC<VansIndexContentProps> = ({
         </Card>
       </div>
 
-      {/* Content Area with reserved space for pagination */}
-      <div className="flex-1 flex flex-col min-h-0">
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 pb-2">
-          {filteredAndSortedVans.length === 0 ? (
-            <VansEmptyState 
-              searchTerm={searchTerm} 
-              onAddVan={handleAddVan} 
-            />
-          ) : (
-            <VanList
-              vans={filteredAndSortedVans}
-              totalVans={vansData?.length || 0}
-              searchTerm={searchTerm}
-              statusFilter={statusFilter}
-              onAddVan={handleAddVan}
-              onEditVan={handleEditVan}
-              onQuickAction={handleQuickAction}
-              onDeleteVan={handleDeleteVan}
-            />
-          )}
-        </div>
+      {/* Content Area - Van cards only */}
+      <div className="flex-1 min-h-0 p-4 sm:p-6">
+        {filteredAndSortedVans.length === 0 ? (
+          <VansEmptyState 
+            searchTerm={searchTerm} 
+            onAddVan={handleAddVan} 
+          />
+        ) : (
+          <VanList
+            vans={filteredAndSortedVans}
+            totalVans={vansData?.length || 0}
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            onAddVan={handleAddVan}
+            onEditVan={handleEditVan}
+            onQuickAction={handleQuickAction}
+            onDeleteVan={handleDeleteVan}
+          />
+        )}
       </div>
 
       <VanModal

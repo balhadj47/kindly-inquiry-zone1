@@ -73,6 +73,7 @@ const VanList = React.memo(({
         totalPages={totalPages}
       />
       
+      {/* Scrollable van cards area */}
       <div className="flex-1 min-h-0 overflow-y-auto mb-4">
         <VanListGrid
           vans={paginatedVans}
@@ -82,8 +83,8 @@ const VanList = React.memo(({
         />
       </div>
 
-      {/* Fixed pagination at bottom */}
-      <div className="flex-shrink-0 bg-white pt-2 pb-2">
+      {/* Fixed pagination at bottom of parent container */}
+      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-10 bg-white shadow-lg rounded-lg px-4 py-2">
         <VanListPagination
           currentPage={currentPage}
           totalPages={totalPages}

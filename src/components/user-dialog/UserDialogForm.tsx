@@ -55,6 +55,16 @@ interface FormData {
   companyAssignmentDate?: string;
 }
 
+// Helper function to safely extract string values
+const extractStringValue = (value: any): string | undefined => {
+  if (value === null || value === undefined) return undefined;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'object' && value !== null && 'value' in value) {
+    return typeof value.value === 'string' ? value.value : undefined;
+  }
+  return undefined;
+};
+
 const UserDialogForm: React.FC<UserDialogFormProps> = ({
   user,
   onSubmit,
@@ -67,26 +77,26 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   const form = useForm<FormData>({
     defaultValues: {
       name: user?.name || '',
-      email: user?.email || '',
+      email: extractStringValue(user?.email) || '',
       phone: user?.phone || '',
       status: user?.status || 'Active',
-      profileImage: user?.profileImage || '',
-      badgeNumber: user?.badgeNumber || '',
-      dateOfBirth: user?.dateOfBirth || '',
-      placeOfBirth: user?.placeOfBirth || '',
-      address: user?.address || '',
-      driverLicense: user?.driverLicense || '',
+      profileImage: extractStringValue(user?.profileImage) || '',
+      badgeNumber: extractStringValue(user?.badgeNumber) || '',
+      dateOfBirth: extractStringValue(user?.dateOfBirth) || '',
+      placeOfBirth: extractStringValue(user?.placeOfBirth) || '',
+      address: extractStringValue(user?.address) || '',
+      driverLicense: extractStringValue(user?.driverLicense) || '',
       // New fields with proper mapping
-      identificationNational: (user as any)?.identification_national || '',
-      carteNational: (user as any)?.carte_national || '',
-      carteNationalStartDate: (user as any)?.carte_national_start_date || '',
-      carteNationalExpiryDate: (user as any)?.carte_national_expiry_date || '',
-      driverLicenseStartDate: (user as any)?.driver_license_start_date || '',
-      driverLicenseExpiryDate: (user as any)?.driver_license_expiry_date || '',
+      identificationNational: extractStringValue((user as any)?.identification_national) || '',
+      carteNational: extractStringValue((user as any)?.carte_national) || '',
+      carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date) || '',
+      carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date) || '',
+      driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date) || '',
+      driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date) || '',
       driverLicenseCategory: (user as any)?.driver_license_category || [],
       driverLicenseCategoryDates: (user as any)?.driver_license_category_dates || {},
-      bloodType: (user as any)?.blood_type || '',
-      companyAssignmentDate: (user as any)?.company_assignment_date || '',
+      bloodType: extractStringValue((user as any)?.blood_type) || '',
+      companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date) || '',
     },
   });
 
@@ -102,10 +112,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         profileImageValue = (profileImageValue as any).value;
       }
       
+      // Ensure it's a string or undefined
+      const finalProfileImageValue = typeof profileImageValue === 'string' ? profileImageValue : undefined;
+      
       // Map form data to proper field names and include the default role_id
       const submitData = {
         ...data,
-        profileImage: profileImageValue, // Use the extracted value
+        profileImage: finalProfileImageValue, // Use the extracted value
         role_id: config.defaultRoleId, // Use the default role from config
         identification_national: data.identificationNational,
         carte_national: data.carteNational,

@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart } from 'lucide-react';
 import { User as UserType } from '@/types/rbac';
 import { EntityCard } from '@/components/ui/entity-card';
-import { ActionButton } from '@/components/ui/action-button';
+import { Button } from '@/components/ui/button';
 
 interface EmployeeCardProps {
   employee: UserType;
@@ -122,22 +122,24 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   const actions = (
     <div className="flex items-center gap-2">
       {canEdit && (
-        <ActionButton
+        <Button
           onClick={() => onEdit(employee)}
-          icon={Edit}
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-        />
+          className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
       )}
       {canDelete && (
-        <ActionButton
+        <Button
           onClick={() => onDelete(employee)}
-          icon={Trash2}
-          variant="outline"
+          variant="ghost"
           size="sm"
-          className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-        />
+          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
       )}
     </div>
   );

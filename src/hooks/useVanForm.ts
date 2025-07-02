@@ -25,8 +25,10 @@ export const useVanForm = (van: any) => {
   });
 
   useEffect(() => {
+    console.log('🚐 useVanForm: Van data received:', van);
+    
     if (van) {
-      setFormData({
+      const newFormData = {
         referenceCode: van.reference_code || '',
         plateNumber: van.license_plate || van.plateNumber || '',
         model: van.model || '',
@@ -35,8 +37,12 @@ export const useVanForm = (van: any) => {
         insuranceDate: van.insurance_date ? new Date(van.insurance_date) : undefined,
         controlDate: van.control_date ? new Date(van.control_date) : undefined,
         notes: van.notes || '',
-      });
+      };
+      
+      console.log('🚐 useVanForm: Setting form data:', newFormData);
+      setFormData(newFormData);
     } else {
+      console.log('🚐 useVanForm: No van data, resetting form');
       setFormData({
         referenceCode: '',
         plateNumber: '',
@@ -51,12 +57,16 @@ export const useVanForm = (van: any) => {
   }, [van]);
 
   const handleInputChange = (field: keyof VanFormData, value: any) => {
+    console.log('🚐 useVanForm: Input change:', field, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   const handleDateChange = (field: keyof VanFormData, date: Date | undefined) => {
+    console.log('🚐 useVanForm: Date change:', field, date);
     setFormData(prev => ({ ...prev, [field]: date }));
   };
+
+  console.log('🚐 useVanForm: Current form data:', formData);
 
   return {
     formData,

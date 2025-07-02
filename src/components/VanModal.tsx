@@ -16,11 +16,16 @@ interface VanModalProps {
 
 const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
   const { t } = useLanguage();
+  
+  // Add debugging
+  console.log('🚐 VanModal: Received props:', { isOpen, van, hasVan: !!van });
+  
   const { formData, handleInputChange, handleDateChange } = useVanForm(van);
   const { isSubmitting, handleSubmit } = useVanSubmit(van, onClose, onSaveSuccess);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚐 VanModal: Submitting form with data:', formData);
     await handleSubmit(formData);
   };
 

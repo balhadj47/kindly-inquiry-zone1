@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -177,22 +178,22 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Enhanced save button section with better styling */}
-        <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2 pb-6 border-b border-border/50">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {/* Compact save button section */}
+        <div className="flex flex-col-reverse sm:flex-row gap-2 pb-3 border-b border-border/50">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="w-full sm:w-auto hover:bg-muted/80 transition-colors"
+            className="w-full sm:w-auto text-sm"
           >
             Annuler
           </Button>
           <Button 
             type="submit" 
             disabled={!canSubmit()}
-            className={`w-full sm:w-auto transition-all duration-200 ${
+            className={`w-full sm:w-auto text-sm transition-all duration-200 ${
               !canSubmit() 
                 ? 'opacity-50 cursor-not-allowed' 
                 : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
@@ -200,7 +201,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           >
             {isSubmitting ? (
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Enregistrement...
               </div>
             ) : (
@@ -209,8 +210,8 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           </Button>
         </div>
 
-        {/* Enhanced profile section with better spacing */}
-        <div className="bg-muted/30 rounded-lg p-6 border border-border/50">
+        {/* Compact profile section */}
+        <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
           <ProfileImageSection
             profileImage={form.watch('profileImage') || ''}
             userName={form.watch('name')}
@@ -219,20 +220,22 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           />
         </div>
 
-        {/* Enhanced tabs with icons and completion indicators */}
+        {/* Mobile-optimized tabs */}
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50" style={{
-            gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)'
+          <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50 overflow-x-auto" style={{
+            gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
+              ? 'repeat(5, minmax(100px, 1fr))' 
+              : 'repeat(4, minmax(100px, 1fr))'
           }}>
             <TabsTrigger 
               value="basic" 
-              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
             >
-              <UserIcon className="h-4 w-4" />
-              <span className="text-xs font-medium">Base</span>
+              <UserIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="font-medium truncate">Base</span>
               <Badge 
                 variant={getFieldCompletionStatus('basic').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[10px] px-1.5 py-0.5 h-auto"
+                className="text-[9px] px-1 py-0 h-auto"
               >
                 {getFieldCompletionStatus('basic').percentage}%
               </Badge>
@@ -240,13 +243,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             
             <TabsTrigger 
               value="identity"
-              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
             >
-              <IdCard className="h-4 w-4" />
-              <span className="text-xs font-medium">Identité</span>
+              <IdCard className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="font-medium truncate">Identité</span>
               <Badge 
                 variant={getFieldCompletionStatus('identity').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[10px] px-1.5 py-0.5 h-auto"
+                className="text-[9px] px-1 py-0 h-auto"
               >
                 {getFieldCompletionStatus('identity').percentage}%
               </Badge>
@@ -254,13 +257,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             
             <TabsTrigger 
               value="license"
-              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
             >
-              <Car className="h-4 w-4" />
-              <span className="text-xs font-medium">Permis</span>
+              <Car className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="font-medium truncate">Permis</span>
               <Badge 
                 variant={getFieldCompletionStatus('license').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[10px] px-1.5 py-0.5 h-auto"
+                className="text-[9px] px-1 py-0 h-auto"
               >
                 {getFieldCompletionStatus('license').percentage}%
               </Badge>
@@ -268,13 +271,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             
             <TabsTrigger 
               value="medical"
-              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
             >
-              <Heart className="h-4 w-4" />
-              <span className="text-xs font-medium">Médical</span>
+              <Heart className="h-3 w-3 sm:h-4 sm:w-4" />
+              <span className="font-medium truncate">Médical</span>
               <Badge 
                 variant={getFieldCompletionStatus('medical').percentage === 100 ? 'default' : 'secondary'} 
-                className="text-[10px] px-1.5 py-0.5 h-auto"
+                className="text-[9px] px-1 py-0 h-auto"
               >
                 {getFieldCompletionStatus('medical').percentage}%
               </Badge>
@@ -283,13 +286,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             {(shouldShowEmployeeSection || shouldShowDriverSection) && (
               <TabsTrigger 
                 value="details"
-                className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                className="flex flex-col items-center gap-1 py-2 px-1 text-xs data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200 min-w-0"
               >
-                <Briefcase className="h-4 w-4" />
-                <span className="text-xs font-medium">Détails</span>
+                <Briefcase className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="font-medium truncate">Détails</span>
                 <Badge 
                   variant={getFieldCompletionStatus('details').percentage === 100 ? 'default' : 'secondary'} 
-                  className="text-[10px] px-1.5 py-0.5 h-auto"
+                  className="text-[9px] px-1 py-0 h-auto"
                 >
                   {getFieldCompletionStatus('details').percentage}%
                 </Badge>
@@ -297,7 +300,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             )}
           </TabsList>
           
-          <TabsContent value="basic" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
+          <TabsContent value="basic" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
             <BasicInfoSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
@@ -305,21 +308,21 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             />
           </TabsContent>
           
-          <TabsContent value="identity" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
+          <TabsContent value="identity" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
             <IdentityDocumentsSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
             />
           </TabsContent>
           
-          <TabsContent value="license" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
+          <TabsContent value="license" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
             <DriverLicenseSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
             />
           </TabsContent>
           
-          <TabsContent value="medical" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
+          <TabsContent value="medical" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
             <MedicalInfoSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
@@ -327,7 +330,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           </TabsContent>
           
           {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-            <TabsContent value="details" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
+            <TabsContent value="details" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
               {shouldShowEmployeeSection && (
                 <EmployeeDetailsSection 
                   control={form.control} 

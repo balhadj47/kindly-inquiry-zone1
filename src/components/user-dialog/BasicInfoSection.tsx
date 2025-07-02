@@ -17,30 +17,30 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   isEmailRequired = false,
 }) => {
   return (
-    <div className="space-y-6">
-      <div className="border-b border-border/50 pb-4">
-        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+    <div className="space-y-4">
+      <div className="border-b border-border/50 pb-3">
+        <h3 className="text-base sm:text-lg font-semibold text-foreground flex items-center gap-2">
           Informations de base
         </h3>
-        <p className="text-sm text-muted-foreground mt-1">
+        <p className="text-xs sm:text-sm text-muted-foreground mt-1">
           Renseignez les informations principales de l'utilisateur
         </p>
       </div>
       
       {/* Personal Information Group */}
-      <div className="bg-muted/20 rounded-lg p-4 border border-border/30">
-        <h4 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+      <div className="bg-muted/20 rounded-lg p-3 border border-border/30">
+        <h4 className="text-xs sm:text-sm font-medium text-foreground mb-3 flex items-center gap-2">
           📋 Informations personnelles
         </h4>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3">
           <FormField
             control={control}
             name="name"
             rules={{ required: 'Le nom est requis' }}
             render={({ field }) => (
-              <FormItem className="md:col-span-2">
-                <FormLabel className="text-sm font-medium flex items-center gap-1">
+              <FormItem>
+                <FormLabel className="text-xs sm:text-sm font-medium flex items-center gap-1">
                   Nom complet 
                   <span className="text-destructive">*</span>
                 </FormLabel>
@@ -49,7 +49,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                     {...field}
                     placeholder="ex: Jean Dupont"
                     disabled={isSubmitting}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                    className="text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                   />
                 </FormControl>
                 <FormMessage />
@@ -57,67 +57,69 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
             )}
           />
 
-          <FormField
-            control={control}
-            name="email"
-            rules={isEmailRequired ? { 
-              required: 'L\'email est requis',
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: 'Format d\'email invalide'
-              }
-            } : {
-              pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                message: 'Format d\'email invalide'
-              }
-            }}
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium flex items-center gap-1">
-                  📧 Email 
-                  {isEmailRequired && <span className="text-destructive">*</span>}
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    type="email"
-                    placeholder="ex: jean.dupont@exemple.com"
-                    disabled={isSubmitting}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField
+              control={control}
+              name="email"
+              rules={isEmailRequired ? { 
+                required: 'L\'email est requis',
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Format d\'email invalide'
+                }
+              } : {
+                pattern: {
+                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  message: 'Format d\'email invalide'
+                }
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    📧 Email 
+                    {isEmailRequired && <span className="text-destructive">*</span>}
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="ex: jean.dupont@exemple.com"
+                      disabled={isSubmitting}
+                      className="text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={control}
-            name="phone"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="text-sm font-medium flex items-center gap-1">
-                  📞 Téléphone
-                </FormLabel>
-                <FormControl>
-                  <Input
-                    {...field}
-                    placeholder="ex: +33 1 23 45 67 89"
-                    disabled={isSubmitting}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={control}
+              name="phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-xs sm:text-sm font-medium flex items-center gap-1">
+                    📞 Téléphone
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="ex: +33 1 23 45 67 89"
+                      disabled={isSubmitting}
+                      className="text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
       </div>
 
       {/* Status Group */}
-      <div className="bg-muted/20 rounded-lg p-4 border border-border/30">
-        <h4 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+      <div className="bg-muted/20 rounded-lg p-3 border border-border/30">
+        <h4 className="text-xs sm:text-sm font-medium text-foreground mb-3 flex items-center gap-2">
           ⚡ Statut
         </h4>
         
@@ -126,12 +128,12 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium">Statut de l'utilisateur</FormLabel>
+              <FormLabel className="text-xs sm:text-sm font-medium">Statut de l'utilisateur</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
                   <SelectTrigger 
                     disabled={isSubmitting}
-                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                    className="text-sm transition-all duration-200 focus:ring-2 focus:ring-primary/20"
                   >
                     <SelectValue placeholder="Sélectionner un statut" />
                   </SelectTrigger>

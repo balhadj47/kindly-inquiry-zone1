@@ -17,97 +17,162 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
   isEmailRequired = false,
 }) => {
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Informations de base</h3>
+    <div className="space-y-6">
+      <div className="border-b border-border/50 pb-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          Informations de base
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Renseignez les informations principales de l'utilisateur
+        </p>
+      </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={control}
-          name="name"
-          rules={{ required: 'Le nom est requis' }}
-          render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Nom complet *</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="ex: Jean Dupont"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+      {/* Personal Information Group */}
+      <div className="bg-muted/20 rounded-lg p-4 border border-border/30">
+        <h4 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          📋 Informations personnelles
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="name"
+            rules={{ required: 'Le nom est requis' }}
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel className="text-sm font-medium flex items-center gap-1">
+                  Nom complet 
+                  <span className="text-destructive">*</span>
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: Jean Dupont"
+                    disabled={isSubmitting}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={control}
-          name="email"
-          rules={isEmailRequired ? { 
-            required: 'L\'email est requis',
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Format d\'email invalide'
-            }
-          } : {
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Format d\'email invalide'
-            }
-          }}
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Email {isEmailRequired && '*'}</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="email"
-                  placeholder="ex: jean.dupont@exemple.com"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={control}
+            name="email"
+            rules={isEmailRequired ? { 
+              required: 'L\'email est requis',
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Format d\'email invalide'
+              }
+            } : {
+              pattern: {
+                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                message: 'Format d\'email invalide'
+              }
+            }}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium flex items-center gap-1">
+                  📧 Email 
+                  {isEmailRequired && <span className="text-destructive">*</span>}
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="email"
+                    placeholder="ex: jean.dupont@exemple.com"
+                    disabled={isSubmitting}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Téléphone</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="ex: +33 1 23 45 67 89"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={control}
+            name="phone"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium flex items-center gap-1">
+                  📞 Téléphone
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="ex: +33 1 23 45 67 89"
+                    disabled={isSubmitting}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </div>
 
+      {/* Status Group */}
+      <div className="bg-muted/20 rounded-lg p-4 border border-border/30">
+        <h4 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          ⚡ Statut
+        </h4>
+        
         <FormField
           control={control}
           name="status"
           render={({ field }) => (
-            <FormItem className="md:col-span-2">
-              <FormLabel>Statut</FormLabel>
+            <FormItem>
+              <FormLabel className="text-sm font-medium">Statut de l'utilisateur</FormLabel>
               <Select onValueChange={field.onChange} value={field.value}>
                 <FormControl>
-                  <SelectTrigger disabled={isSubmitting}>
+                  <SelectTrigger 
+                    disabled={isSubmitting}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  >
                     <SelectValue placeholder="Sélectionner un statut" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="Active">Actif</SelectItem>
-                  <SelectItem value="Inactive">Inactif</SelectItem>
-                  <SelectItem value="Suspended">Suspendu</SelectItem>
-                  <SelectItem value="Récupération">Récupération</SelectItem>
-                  <SelectItem value="Congé">Congé</SelectItem>
-                  <SelectItem value="Congé maladie">Congé maladie</SelectItem>
+                  <SelectItem value="Active">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      Actif
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Inactive">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      Inactif
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Suspended">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      Suspendu
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Récupération">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      Récupération
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Congé">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      Congé
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Congé maladie">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      Congé maladie
+                    </div>
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

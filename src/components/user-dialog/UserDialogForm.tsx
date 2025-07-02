@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -6,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import BasicInfoSection from './BasicInfoSection';
 import EmployeeDetailsSection from './EmployeeDetailsSection';
 import DriverDetailsSection from './DriverDetailsSection';
@@ -13,6 +13,7 @@ import ProfileImageSection from './ProfileImageSection';
 import IdentityDocumentsSection from './IdentityDocumentsSection';
 import DriverLicenseSection from './DriverLicenseSection';
 import MedicalInfoSection from './MedicalInfoSection';
+import { User as UserIcon, IdCard, Car, Heart, Briefcase } from 'lucide-react';
 
 interface UserDialogFormProps {
   user?: User | null;
@@ -90,6 +91,52 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
 
   const watchedEmail = form.watch('email') || '';
 
+  // Helper function to count filled fields in each section
+  const getFieldCompletionStatus = (section: string) => {
+    const formValues = form.getValues();
+    let filledCount = 0;
+    let totalCount = 0;
+
+    switch (section) {
+      case 'basic':
+        const basicFields = ['name', 'email', 'phone', 'status'];
+        totalCount = config.requireEmail ? 4 : 3;
+        filledCount = basicFields.filter(field => 
+          field === 'email' ? (config.requireEmail ? formValues[field]?.trim() : true) : formValues[field]?.toString().trim()
+        ).length;
+        break;
+      case 'identity':
+        const identityFields = ['identificationNational', 'carteNational', 'carteNationalStartDate', 'carteNationalExpiryDate'];
+        totalCount = identityFields.length;
+        filledCount = identityFields.filter(field => formValues[field]?.toString().trim()).length;
+        break;
+      case 'license':
+        const licenseFields = ['driverLicense', 'driverLicenseStartDate', 'driverLicenseExpiryDate'];
+        totalCount = licenseFields.length;
+        filledCount = licenseFields.filter(field => 
+          field === 'driverLicenseCategory' ? formValues[field]?.length > 0 : formValues[field]?.toString().trim()
+        ).length;
+        if (formValues.driverLicenseCategory?.length > 0) filledCount++;
+        totalCount++;
+        break;
+      case 'medical':
+        const medicalFields = ['bloodType', 'companyAssignmentDate'];
+        totalCount = medicalFields.length;
+        filledCount = medicalFields.filter(field => formValues[field]?.toString().trim()).length;
+        break;
+      case 'details':
+        const detailFields = ['badgeNumber', 'dateOfBirth', 'placeOfBirth', 'address'];
+        totalCount = detailFields.length;
+        filledCount = detailFields.filter(field => formValues[field]?.toString().trim()).length;
+        break;
+      default:
+        return { filledCount: 0, totalCount: 0, percentage: 0 };
+    }
+
+    const percentage = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
+    return { filledCount, totalCount, percentage };
+  };
+
   const handleSubmit = async (data: FormData) => {
     try {
       console.log('Submitting user form with data:', data);
@@ -131,45 +178,126 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        {/* Save button moved to top */}
-        <div className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pb-4 border-b">
+        {/* Enhanced save button section with better styling */}
+        <div className="flex flex-col-reverse sm:flex-row gap-3 sm:gap-2 pb-6 border-b border-border/50">
           <Button
             type="button"
             variant="outline"
             onClick={onCancel}
             disabled={isSubmitting}
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto hover:bg-muted/80 transition-colors"
           >
             Annuler
           </Button>
           <Button 
             type="submit" 
             disabled={!canSubmit()}
-            className={`w-full sm:w-auto ${!canSubmit() ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`w-full sm:w-auto transition-all duration-200 ${
+              !canSubmit() 
+                ? 'opacity-50 cursor-not-allowed' 
+                : 'hover:shadow-md hover:scale-[1.02] active:scale-[0.98]'
+            }`}
           >
-            {isSubmitting ? 'Enregistrement...' : user ? 'Modifier' : 'Créer'}
+            {isSubmitting ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Enregistrement...
+              </div>
+            ) : (
+              user ? 'Modifier' : 'Créer'
+            )}
           </Button>
         </div>
 
-        <ProfileImageSection
-          profileImage={form.watch('profileImage') || ''}
-          userName={form.watch('name')}
-          onImageChange={(url) => form.setValue('profileImage', url)}
-          isSubmitting={isSubmitting}
-        />
+        {/* Enhanced profile section with better spacing */}
+        <div className="bg-muted/30 rounded-lg p-6 border border-border/50">
+          <ProfileImageSection
+            profileImage={form.watch('profileImage') || ''}
+            userName={form.watch('name')}
+            onImageChange={(url) => form.setValue('profileImage', url)}
+            isSubmitting={isSubmitting}
+          />
+        </div>
 
+        {/* Enhanced tabs with icons and completion indicators */}
         <Tabs defaultValue="basic" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
-            <TabsTrigger value="basic">Base</TabsTrigger>
-            <TabsTrigger value="identity">Identité</TabsTrigger>
-            <TabsTrigger value="license">Permis</TabsTrigger>
-            <TabsTrigger value="medical">Médical</TabsTrigger>
+          <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50" style={{
+            gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) ? 'repeat(5, 1fr)' : 'repeat(4, 1fr)'
+          }}>
+            <TabsTrigger 
+              value="basic" 
+              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              <UserIcon className="h-4 w-4" />
+              <span className="text-xs font-medium">Base</span>
+              <Badge 
+                variant={getFieldCompletionStatus('basic').percentage === 100 ? 'default' : 'secondary'} 
+                className="text-[10px] px-1.5 py-0.5 h-auto"
+              >
+                {getFieldCompletionStatus('basic').percentage}%
+              </Badge>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="identity"
+              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              <IdCard className="h-4 w-4" />
+              <span className="text-xs font-medium">Identité</span>
+              <Badge 
+                variant={getFieldCompletionStatus('identity').percentage === 100 ? 'default' : 'secondary'} 
+                className="text-[10px] px-1.5 py-0.5 h-auto"
+              >
+                {getFieldCompletionStatus('identity').percentage}%
+              </Badge>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="license"
+              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              <Car className="h-4 w-4" />
+              <span className="text-xs font-medium">Permis</span>
+              <Badge 
+                variant={getFieldCompletionStatus('license').percentage === 100 ? 'default' : 'secondary'} 
+                className="text-[10px] px-1.5 py-0.5 h-auto"
+              >
+                {getFieldCompletionStatus('license').percentage}%
+              </Badge>
+            </TabsTrigger>
+            
+            <TabsTrigger 
+              value="medical"
+              className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+            >
+              <Heart className="h-4 w-4" />
+              <span className="text-xs font-medium">Médical</span>
+              <Badge 
+                variant={getFieldCompletionStatus('medical').percentage === 100 ? 'default' : 'secondary'} 
+                className="text-[10px] px-1.5 py-0.5 h-auto"
+              >
+                {getFieldCompletionStatus('medical').percentage}%
+              </Badge>
+            </TabsTrigger>
+            
             {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-              <TabsTrigger value="details">Détails</TabsTrigger>
+              <TabsTrigger 
+                value="details"
+                className="flex flex-col items-center gap-1 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+              >
+                <Briefcase className="h-4 w-4" />
+                <span className="text-xs font-medium">Détails</span>
+                <Badge 
+                  variant={getFieldCompletionStatus('details').percentage === 100 ? 'default' : 'secondary'} 
+                  className="text-[10px] px-1.5 py-0.5 h-auto"
+                >
+                  {getFieldCompletionStatus('details').percentage}%
+                </Badge>
+              </TabsTrigger>
             )}
           </TabsList>
           
-          <TabsContent value="basic" className="space-y-4 mt-6">
+          <TabsContent value="basic" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
             <BasicInfoSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
@@ -177,21 +305,21 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
             />
           </TabsContent>
           
-          <TabsContent value="identity" className="space-y-4 mt-6">
+          <TabsContent value="identity" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
             <IdentityDocumentsSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
             />
           </TabsContent>
           
-          <TabsContent value="license" className="space-y-4 mt-6">
+          <TabsContent value="license" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
             <DriverLicenseSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
             />
           </TabsContent>
           
-          <TabsContent value="medical" className="space-y-4 mt-6">
+          <TabsContent value="medical" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
             <MedicalInfoSection 
               control={form.control} 
               isSubmitting={isSubmitting} 
@@ -199,7 +327,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           </TabsContent>
           
           {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-            <TabsContent value="details" className="space-y-4 mt-6">
+            <TabsContent value="details" className="mt-6 bg-card/50 rounded-lg p-6 border border-border/50 space-y-6">
               {shouldShowEmployeeSection && (
                 <EmployeeDetailsSection 
                   control={form.control} 

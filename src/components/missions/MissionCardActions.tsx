@@ -33,10 +33,10 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
   return (
     <div className="flex items-center gap-1">
       <Button
-        variant="ghost"
+        variant="outline"
         size="sm"
         onClick={() => onView(mission)}
-        className="h-8 w-8 p-0"
+        className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
       >
         <Eye className="h-4 w-4" />
       </Button>
@@ -44,20 +44,20 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       {canUpdateTrips && (
         <>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => onEdit(mission)}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
           >
             <Edit className="h-4 w-4" />
           </Button>
           
           {mission.status === 'active' && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => onTerminate(mission)}
-              className="h-8 w-8 p-0 text-orange-600 hover:text-orange-700"
+              className="h-8 w-8 p-0 bg-white border-gray-300 text-orange-600 hover:bg-orange-50 hover:text-orange-700"
             >
               <StopCircle className="h-4 w-4" />
             </Button>
@@ -67,10 +67,10 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       
       {canDeleteTrips && (
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => onDelete(mission)}
-          className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+          className="h-8 w-8 p-0 bg-white border-gray-300 text-red-500 hover:bg-red-50 hover:text-red-600"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

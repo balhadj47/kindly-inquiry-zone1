@@ -124,10 +124,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
     <div className="flex items-center gap-2">
       {canDelete && mission.status === 'active' && (
         <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            onTerminateClick(mission);
-          }}
+          onClick={() => onTerminateClick(mission)}
           icon={Circle}
           variant="outline"
           size="sm"
@@ -141,10 +138,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
       
       {canDelete && (
         <ActionButton
-          onClick={(e) => {
-            e.stopPropagation();
-            onDeleteClick(mission);
-          }}
+          onClick={() => onDeleteClick(mission)}
           icon={Circle}
           variant="outline"
           size="sm"

@@ -56,7 +56,7 @@ const VanMaintenanceLogs: React.FC<VanMaintenanceLogsProps> = ({ vanId, vanModel
         return;
       }
 
-      setLogs(data || []);
+      setLogs((data || []) as VanLog[]);
     } catch (error) {
       console.error('Exception fetching van logs:', error);
     } finally {

@@ -127,7 +127,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Edit}
           variant="outline"
           size="sm"
-          className="bg-white hover:bg-green-50 border-green-200 text-green-600 hover:text-green-700 hover:border-green-300 shadow-sm hover:shadow-md transition-all duration-200"
+          className="border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-400"
         >
           Modifier
         </ActionButton>
@@ -138,7 +138,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Trash2}
           variant="outline"
           size="sm"
-          className="bg-white hover:bg-red-50 border-red-200 text-red-600 hover:text-red-700 hover:border-red-300 shadow-sm hover:shadow-md transition-all duration-200"
+          className="border-gray-300 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-400"
         >
           Supprimer
         </ActionButton>
@@ -156,15 +156,15 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
       }}
       metadata={metadata}
       actions={actions}
-      className="group hover:shadow-lg transition-all duration-200 bg-gradient-to-br from-white to-gray-50 border-gray-200 hover:border-blue-300"
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
     >
       <div className="flex items-center space-x-3 mb-4">
-        <Avatar className="h-12 w-12 ring-2 ring-blue-100 group-hover:ring-blue-200 transition-all duration-200">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
           <AvatarImage 
             src={employee.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${employee.name}`}
             alt={employee.name}
           />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-semibold">
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
             {getUserInitials(employee.name)}
           </AvatarFallback>
         </Avatar>

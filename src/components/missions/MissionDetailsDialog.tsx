@@ -3,37 +3,19 @@ import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
-  DialogTitle,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { 
-  User, 
-  Truck, 
-  Building, 
-  MapPin, 
-  Calendar,
-  FileText,
-  Users,
-  Circle,
-  CheckCircle,
-  X,
-  Crown,
-  Car,
-  Shield,
-  UserCheck
-} from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
-import { formatDate } from '@/utils/dateUtils';
 import { useVans } from '@/hooks/useVansOptimized';
-import { useRoleData } from '@/hooks/useRoleData';
 import { useUsers } from '@/hooks/users';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { useToast } from '@/hooks/use-toast';
+import MissionHeader from './components/MissionHeader';
+import MissionOverview from './components/MissionOverview';
+import MissionTimeline from './components/MissionTimeline';
+import MissionDestination from './components/MissionDestination';
+import MissionNotes from './components/MissionNotes';
+import MissionTeam from './components/MissionTeam';
 
 interface MissionDetailsDialogProps {
   mission: Trip | null;
@@ -41,34 +23,6 @@ interface MissionDetailsDialogProps {
   onClose: () => void;
   getVanDisplayName: (vanId: string) => string;
 }
-
-const TeamMemberRole: React.FC<{ roleId: number }> = ({ roleId }) => {
-  const { roleName, roleColor } = useRoleData(roleId);
-  
-  return (
-    <Badge variant="outline" className="text-xs px-2 py-1 bg-gray-50 text-gray-700 border-gray-200">
-      {roleName}
-    </Badge>
-  );
-};
-
-// Helper function to get role icon
-const getRoleIcon = (roleName: string) => {
-  const roleStr = roleName.toLowerCase();
-  if (roleStr.includes('chef') || roleStr.includes('leader')) {
-    return <Crown className="h-4 w-4 text-yellow-600" />;
-  }
-  if (roleStr.includes('chauffeur') || roleStr.includes('driver')) {
-    return <Car className="h-4 w-4 text-blue-600" />;
-  }
-  if (roleStr.includes('aps') || roleStr.includes('security')) {
-    return <Shield className="h-4 w-4 text-green-600" />;
-  }
-  if (roleStr.includes('armé') || roleStr.includes('armed')) {
-    return <Shield className="h-4 w-4 text-red-600" />;
-  }
-  return <UserCheck className="h-4 w-4 text-gray-600" />;
-};
 
 const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   mission,
@@ -106,7 +60,6 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
       return mission?.driver || 'Aucun chauffeur assigné';
     }
 
-    // Find user with "Chauffeur" role
     const driverUserRole = mission.userRoles.find(userRole => 
       userRole.roles.some(role => {
         if (typeof role === 'string') {
@@ -210,41 +163,12 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Détails de la Mission</DialogTitle>
-            <DialogDescription>
-              Aucune mission sélectionnée.
-            </DialogDescription>
+            <MissionHeader mission={{} as Trip} />
           </DialogHeader>
         </DialogContent>
       </Dialog>
     );
   }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'text-emerald-600';
-      case 'completed':
-        return 'text-blue-600';
-      case 'terminated':
-        return 'text-red-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Active';
-      case 'completed':
-        return 'Terminée';
-      case 'terminated':
-        return 'Annulée';
-      default:
-        return 'Statut Inconnu';
-    }
-  };
 
   const vanInfo = getVanInfo(mission.van);
   const driverName = getDriverName();
@@ -253,231 +177,23 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader className="pb-6">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <DialogTitle className="text-2xl font-semibold text-gray-900">
-                {mission.company}
-              </DialogTitle>
-              <DialogDescription className="text-base text-gray-600">
-                {mission.branch}
-              </DialogDescription>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <Circle className={`h-2.5 w-2.5 fill-current ${
-                  mission.status === 'active' ? 'text-emerald-500' : 
-                  mission.status === 'completed' ? 'text-blue-500' : 
-                  mission.status === 'terminated' ? 'text-red-500' : 'text-gray-500'
-                }`} />
-                <span className={`text-sm font-medium ${getStatusColor(mission.status || 'active')}`}>
-                  {getStatusText(mission.status || 'active')}
-                </span>
-              </div>
-            </div>
-          </div>
+          <MissionHeader mission={mission} />
         </DialogHeader>
 
-        {/* Complete Mission Form - Removed from dialog */}
-
         <div className="space-y-6">
-          {/* Mission Overview */}
-          <div className="bg-white rounded-xl border border-gray-100 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations Générales</h3>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
-                  <User className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Chauffeur</p>
-                  <p className="text-base font-medium text-gray-900">{driverName}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
-                  <Truck className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Véhicule</p>
-                  <p className="text-base font-medium text-gray-900">{vanInfo.model}</p>
-                  <p className="text-sm text-gray-600">{vanInfo.licensePlate}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-                  <Building className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Entreprise</p>
-                  <p className="text-base font-medium text-gray-900">{mission.company}</p>
-                  <p className="text-sm text-gray-600">{mission.branch}</p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-4">
-                <div className="w-10 h-10 bg-orange-50 rounded-xl flex items-center justify-center">
-                  <Calendar className="h-5 w-5 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500">Date de Création</p>
-                  <p className="text-base font-medium text-gray-900">
-                    {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Timeline & Distance */}
-          {((mission.planned_start_date || mission.startDate) || (mission.start_km || mission.startKm)) && (
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Planification & Kilométrage</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Planned Dates */}
-                {(mission.planned_start_date || mission.startDate) && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Calendar className="h-5 w-5 text-green-600" />
-                      <h4 className="font-medium text-gray-700">Dates Planifiées</h4>
-                    </div>
-                    <div className="space-y-2 pl-8">
-                      <div>
-                        <p className="text-sm text-gray-500">Début planifié</p>
-                        <p className="text-base text-gray-900">
-                          {formatDate(mission.planned_start_date || mission.startDate!)}
-                        </p>
-                      </div>
-                      {(mission.planned_end_date || mission.endDate) && (
-                        <div>
-                          <p className="text-sm text-gray-500">Fin planifiée</p>
-                          <p className="text-base text-gray-900">
-                            {formatDate(mission.planned_end_date || mission.endDate!)}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Kilometers */}
-                {(mission.start_km || mission.startKm) && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <MapPin className="h-5 w-5 text-orange-600" />
-                      <h4 className="font-medium text-gray-700">Kilométrage</h4>
-                    </div>
-                    <div className="space-y-2 pl-8">
-                      <div>
-                        <p className="text-sm text-gray-500">Km initial</p>
-                        <p className="text-base text-gray-900">{mission.start_km || mission.startKm} km</p>
-                      </div>
-                      {(mission.end_km || mission.endKm) && (
-                        <div>
-                          <p className="text-sm text-gray-500">Km final</p>
-                          <p className="text-base text-gray-900 font-semibold text-blue-600">
-                            {mission.end_km || mission.endKm} km
-                          </p>
-                        </div>
-                      )}
-                      {(mission.start_km || mission.startKm) && (mission.end_km || mission.endKm) && (
-                        <div>
-                          <p className="text-sm text-gray-500">Distance parcourue</p>
-                          <p className="text-base font-medium text-green-600">
-                            {((mission.end_km || mission.endKm!) - (mission.start_km || mission.startKm!))} km
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Destination */}
-          {mission.destination && (
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <MapPin className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Destination</h3>
-              </div>
-              <p className="text-gray-700 leading-relaxed">{mission.destination}</p>
-            </div>
-          )}
-
-          {/* Notes */}
-          {mission.notes && (
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <FileText className="h-5 w-5 text-amber-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Notes</h3>
-              </div>
-              <p className="text-gray-700 leading-relaxed">{mission.notes}</p>
-            </div>
-          )}
-
-          {/* Team - Simplified List */}
-          {mission.userRoles && mission.userRoles.length > 0 && (
-            <div className="bg-white rounded-xl border border-gray-100 p-6">
-              <div className="flex items-center gap-3 mb-6">
-                <Users className="h-5 w-5 text-blue-600" />
-                <h3 className="text-lg font-semibold text-gray-900">Équipe Assignée</h3>
-              </div>
-              <div className="space-y-3">
-                {mission.userRoles.map((userRole, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-100">
-                    <div className="flex items-center gap-3">
-                      <div className="flex gap-1">
-                        {userRole.roles.map((role, roleIndex) => {
-                          let roleName = '';
-                          if (typeof role === 'string') {
-                            roleName = role;
-                          } else if (typeof role === 'object' && role !== null) {
-                            const roleObj = role as any;
-                            roleName = roleObj.name || 'Rôle Inconnu';
-                          }
-                          return (
-                            <div key={roleIndex} className="flex items-center gap-1">
-                              {getRoleIcon(roleName)}
-                            </div>
-                          );
-                        })}
-                      </div>
-                      
-                      <span className="font-medium text-gray-900">
-                        {getUserName(userRole.userId)}
-                      </span>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-1">
-                      {userRole.roles.map((role, roleIndex) => {
-                        if (typeof role === 'string') {
-                          return (
-                            <Badge key={roleIndex} variant="outline" className="text-xs">
-                              {role}
-                            </Badge>
-                          );
-                        } else if (typeof role === 'object' && role !== null) {
-                          const roleObj = role as any;
-                          if (roleObj.role_id) {
-                            return <TeamMemberRole key={roleIndex} roleId={roleObj.role_id} />;
-                          }
-                          return (
-                            <Badge key={roleIndex} variant="outline" className="text-xs">
-                              {roleObj.name || 'Rôle Inconnu'}
-                            </Badge>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
+          <MissionOverview 
+            mission={mission}
+            driverName={driverName}
+            vanInfo={vanInfo}
+          />
+          
+          <MissionTimeline mission={mission} />
+          
+          <MissionDestination mission={mission} />
+          
+          <MissionNotes mission={mission} />
+          
+          <MissionTeam mission={mission} />
         </div>
       </DialogContent>
     </Dialog>

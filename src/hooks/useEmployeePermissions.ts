@@ -9,5 +9,7 @@ export const useEmployeePermissions = () => {
     canEditUsers: permissions.canUpdateUsers,
     canDeleteUsers: permissions.canDeleteUsers,
     hasUsersReadPermission: permissions.canReadUsers,
+    // Add missing properties for backward compatibility
+    canUpdateUsers: permissions.canUpdateUsers,
   };
 };

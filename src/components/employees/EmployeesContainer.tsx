@@ -90,7 +90,7 @@ const EmployeesContainer = () => {
         statusFilter={statusFilter}
         onEditEmployee={handleEditEmployee}
         onDeleteEmployee={handleDeleteEmployee}
-        canEdit={permissions.canUpdateUsers}
+        canEdit={permissions.canEditUsers}
         canDelete={permissions.canDeleteUsers}
       />
 

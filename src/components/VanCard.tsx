@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -143,7 +144,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
             variant="outline"
             size="sm"
             onClick={handleEdit}
-            className="flex-1 h-9 font-medium hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-colors"
+            className="h-9 px-3 text-blue-600 hover:text-blue-700 hover:bg-blue-50 hover:border-blue-200 transition-colors"
           >
             <Edit className="h-4 w-4" />
           </Button>

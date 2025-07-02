@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import BasicInfoSection from './BasicInfoSection';
 import EmployeeDetailsSection from './EmployeeDetailsSection';
 import DriverDetailsSection from './DriverDetailsSection';
@@ -93,52 +92,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
 
   const watchedEmail = form.watch('email') || '';
 
-  // Helper function to count filled fields in each section
-  const getFieldCompletionStatus = (section: string) => {
-    const formValues = form.getValues();
-    let filledCount = 0;
-    let totalCount = 0;
-
-    switch (section) {
-      case 'basic':
-        const basicFields = ['name', 'email', 'phone', 'status'];
-        totalCount = config.requireEmail ? 4 : 3;
-        filledCount = basicFields.filter(field => 
-          field === 'email' ? (config.requireEmail ? formValues[field]?.trim() : true) : formValues[field]?.toString().trim()
-        ).length;
-        break;
-      case 'identity':
-        const identityFields = ['identificationNational', 'carteNational', 'carteNationalStartDate', 'carteNationalExpiryDate'];
-        totalCount = identityFields.length;
-        filledCount = identityFields.filter(field => formValues[field]?.toString().trim()).length;
-        break;
-      case 'license':
-        const licenseFields = ['driverLicense', 'driverLicenseStartDate', 'driverLicenseExpiryDate'];
-        totalCount = licenseFields.length;
-        filledCount = licenseFields.filter(field => 
-          field === 'driverLicenseCategory' ? formValues[field]?.length > 0 : formValues[field]?.toString().trim()
-        ).length;
-        if (formValues.driverLicenseCategory?.length > 0) filledCount++;
-        totalCount++;
-        break;
-      case 'medical':
-        const medicalFields = ['bloodType', 'companyAssignmentDate'];
-        totalCount = medicalFields.length;
-        filledCount = medicalFields.filter(field => formValues[field]?.toString().trim()).length;
-        break;
-      case 'details':
-        const detailFields = ['badgeNumber', 'dateOfBirth', 'placeOfBirth', 'address'];
-        totalCount = detailFields.length;
-        filledCount = detailFields.filter(field => formValues[field]?.toString().trim()).length;
-        break;
-      default:
-        return { filledCount: 0, totalCount: 0, percentage: 0 };
-    }
-
-    const percentage = totalCount > 0 ? Math.round((filledCount / totalCount) * 100) : 0;
-    return { filledCount, totalCount, percentage };
-  };
-
   const handleSubmit = async (data: FormData) => {
     try {
       console.log('Submitting user form with data:', data);
@@ -190,10 +143,10 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           />
         </div>
 
-        {/* Mobile-optimized tabs with icons only */}
+        {/* Compact tabs with smaller colored icons */}
         <TooltipProvider>
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full h-auto p-1 bg-muted/50 border border-border/50" style={{
+            <TabsList className="grid w-full h-12 p-1 bg-muted/50 border border-border/50" style={{
               gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
                 ? 'repeat(5, 1fr)' 
                 : 'repeat(4, 1fr)'
@@ -202,15 +155,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                 <TooltipTrigger asChild>
                   <TabsTrigger 
                     value="basic" 
-                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <UserIcon className="h-5 w-5" />
-                    <Badge 
-                      variant={getFieldCompletionStatus('basic').percentage === 100 ? 'default' : 'secondary'} 
-                      className="text-[10px] px-1.5 py-0.5 h-auto"
-                    >
-                      {getFieldCompletionStatus('basic').percentage}%
-                    </Badge>
+                    <UserIcon className="h-4 w-4 text-blue-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -222,15 +169,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                 <TooltipTrigger asChild>
                   <TabsTrigger 
                     value="identity"
-                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <IdCard className="h-5 w-5" />
-                    <Badge 
-                      variant={getFieldCompletionStatus('identity').percentage === 100 ? 'default' : 'secondary'} 
-                      className="text-[10px] px-1.5 py-0.5 h-auto"
-                    >
-                      {getFieldCompletionStatus('identity').percentage}%
-                    </Badge>
+                    <IdCard className="h-4 w-4 text-purple-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -242,15 +183,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                 <TooltipTrigger asChild>
                   <TabsTrigger 
                     value="license"
-                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <Car className="h-5 w-5" />
-                    <Badge 
-                      variant={getFieldCompletionStatus('license').percentage === 100 ? 'default' : 'secondary'} 
-                      className="text-[10px] px-1.5 py-0.5 h-auto"
-                    >
-                      {getFieldCompletionStatus('license').percentage}%
-                    </Badge>
+                    <Car className="h-4 w-4 text-green-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -262,15 +197,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                 <TooltipTrigger asChild>
                   <TabsTrigger 
                     value="medical"
-                    className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <Heart className="h-5 w-5" />
-                    <Badge 
-                      variant={getFieldCompletionStatus('medical').percentage === 100 ? 'default' : 'secondary'} 
-                      className="text-[10px] px-1.5 py-0.5 h-auto"
-                    >
-                      {getFieldCompletionStatus('medical').percentage}%
-                    </Badge>
+                    <Heart className="h-4 w-4 text-red-500" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -283,15 +212,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                   <TooltipTrigger asChild>
                     <TabsTrigger 
                       value="details"
-                      className="flex flex-col items-center gap-2 py-3 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
+                      className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                     >
-                      <Briefcase className="h-5 w-5" />
-                      <Badge 
-                        variant={getFieldCompletionStatus('details').percentage === 100 ? 'default' : 'secondary'} 
-                        className="text-[10px] px-1.5 py-0.5 h-auto"
-                      >
-                        {getFieldCompletionStatus('details').percentage}%
-                      </Badge>
+                      <Briefcase className="h-4 w-4 text-orange-600" />
                     </TabsTrigger>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -350,7 +273,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           </Tabs>
         </TooltipProvider>
 
-        {/* Save/Cancel buttons moved to bottom */}
+        {/* Save/Cancel buttons at bottom */}
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
           <Button
             type="button"

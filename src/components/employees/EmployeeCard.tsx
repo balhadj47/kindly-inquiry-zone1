@@ -1,11 +1,11 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart } from 'lucide-react';
 import { User as UserType } from '@/types/rbac';
+import { EntityCard } from '@/components/ui/entity-card';
+import { ActionButton } from '@/components/ui/action-button';
 
 interface EmployeeCardProps {
   employee: UserType;
@@ -34,19 +34,19 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
-        return 'bg-green-100 text-green-800';
+        return { variant: 'default' as const, color: 'green' };
       case 'Inactive':
-        return 'bg-gray-100 text-gray-800';
+        return { variant: 'secondary' as const, color: 'gray' };
       case 'Suspended':
-        return 'bg-red-100 text-red-800';
+        return { variant: 'destructive' as const, color: 'red' };
       case 'Récupération':
-        return 'bg-blue-100 text-blue-800';
+        return { variant: 'outline' as const, color: 'blue' };
       case 'Congé':
-        return 'bg-yellow-100 text-yellow-800';
+        return { variant: 'outline' as const, color: 'yellow' };
       case 'Congé maladie':
-        return 'bg-orange-100 text-orange-800';
+        return { variant: 'outline' as const, color: 'orange' };
       default:
-        return 'bg-gray-100 text-gray-800';
+        return { variant: 'secondary' as const, color: 'gray' };
     }
   };
 
@@ -59,141 +59,119 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
     }
   };
 
-  const showActions = canEdit || canDelete;
+  const statusConfig = getStatusColor(employee.status);
+
+  const metadata = [
+    employee.badgeNumber && {
+      label: 'Badge',
+      value: employee.badgeNumber,
+      icon: <CreditCard className="h-4 w-4" />
+    },
+    employee.phone && {
+      label: 'Téléphone',
+      value: employee.phone,
+      icon: <Phone className="h-4 w-4" />
+    },
+    employee.email && {
+      label: 'Email',
+      value: employee.email,
+      icon: <span>📧</span>
+    },
+    employee.address && {
+      label: 'Adresse',
+      value: employee.address,
+      icon: <MapPin className="h-4 w-4" />
+    },
+    employee.dateOfBirth && {
+      label: 'Date de naissance',
+      value: formatDate(employee.dateOfBirth),
+      icon: <Calendar className="h-4 w-4" />
+    },
+    employee.placeOfBirth && {
+      label: 'Lieu de naissance',
+      value: employee.placeOfBirth,
+      icon: <MapPin className="h-4 w-4" />
+    },
+    employee.identification_national && {
+      label: 'ID National',
+      value: employee.identification_national,
+      icon: <User className="h-4 w-4" />
+    },
+    employee.carte_national && {
+      label: 'Carte Nationale',
+      value: employee.carte_national,
+      icon: <CreditCard className="h-4 w-4" />
+    },
+    employee.driverLicense && {
+      label: 'Permis',
+      value: employee.driverLicense,
+      icon: <span>🚗</span>
+    },
+    employee.blood_type && {
+      label: 'Groupe sanguin',
+      value: employee.blood_type,
+      icon: <Heart className="h-4 w-4" />
+    },
+    employee.company_assignment_date && {
+      label: 'Affectation',
+      value: formatDate(employee.company_assignment_date),
+      icon: <Building className="h-4 w-4" />
+    }
+  ].filter(Boolean);
+
+  const actions = (
+    <div className="flex items-center gap-2">
+      {canEdit && (
+        <ActionButton
+          onClick={() => onEdit(employee)}
+          icon={Edit}
+          variant="outline"
+          size="sm"
+        >
+          Modifier
+        </ActionButton>
+      )}
+      {canDelete && (
+        <ActionButton
+          onClick={() => onDelete(employee)}
+          icon={Trash2}
+          variant="outline"
+          size="sm"
+          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+        >
+          Supprimer
+        </ActionButton>
+      )}
+    </div>
+  );
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12">
-              <AvatarImage 
-                src={employee.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${employee.name}`}
-                alt={employee.name}
-              />
-              <AvatarFallback className="bg-blue-600 text-white">
-                {getUserInitials(employee.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <h3 className="font-semibold text-lg">{employee.name}</h3>
-              <Badge className={`text-xs ${getStatusColor(employee.status)}`}>
-                {employee.status}
-              </Badge>
-            </div>
-          </div>
-          
-          {showActions && (
-            <div className="flex space-x-2">
-              {canEdit && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onEdit(employee)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              )}
-              {canDelete && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => onDelete(employee)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          )}
+    <EntityCard
+      title={employee.name}
+      status={{
+        label: employee.status,
+        variant: statusConfig.variant,
+        color: statusConfig.color
+      }}
+      metadata={metadata}
+      actions={actions}
+      className="hover:shadow-lg transition-all duration-200"
+    >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12">
+          <AvatarImage 
+            src={employee.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${employee.name}`}
+            alt={employee.name}
+          />
+          <AvatarFallback className="bg-blue-600 text-white">
+            {getUserInitials(employee.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Créé le: {new Date(employee.createdAt).toLocaleDateString('fr-FR')}
         </div>
-
-        <div className="space-y-2 text-sm text-gray-600">
-          {employee.badgeNumber && (
-            <div className="flex items-center space-x-2">
-              <CreditCard className="h-4 w-4" />
-              <span>Badge: {employee.badgeNumber}</span>
-            </div>
-          )}
-          
-          {employee.phone && (
-            <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4" />
-              <span>{employee.phone}</span>
-            </div>
-          )}
-          
-          {employee.email && (
-            <div className="flex items-center space-x-2">
-              <span>📧</span>
-              <span>{employee.email}</span>
-            </div>
-          )}
-          
-          {employee.address && (
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4" />
-              <span>{employee.address}</span>
-            </div>
-          )}
-          
-          {employee.dateOfBirth && (
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4" />
-              <span>Né(e) le: {formatDate(employee.dateOfBirth)}</span>
-            </div>
-          )}
-
-          {employee.placeOfBirth && (
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4" />
-              <span>Lieu de naissance: {employee.placeOfBirth}</span>
-            </div>
-          )}
-
-          {employee.identification_national && (
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4" />
-              <span>ID National: {employee.identification_national}</span>
-            </div>
-          )}
-
-          {employee.carte_national && (
-            <div className="flex items-center space-x-2">
-              <CreditCard className="h-4 w-4" />
-              <span>Carte Nationale: {employee.carte_national}</span>
-            </div>
-          )}
-
-          {employee.driverLicense && (
-            <div className="flex items-center space-x-2">
-              <span>🚗</span>
-              <span>Permis: {employee.driverLicense}</span>
-            </div>
-          )}
-
-          {employee.blood_type && (
-            <div className="flex items-center space-x-2">
-              <Heart className="h-4 w-4" />
-              <span>Groupe sanguin: {employee.blood_type}</span>
-            </div>
-          )}
-
-          {employee.company_assignment_date && (
-            <div className="flex items-center space-x-2">
-              <Building className="h-4 w-4" />
-              <span>Affectation: {formatDate(employee.company_assignment_date)}</span>
-            </div>
-          )}
-        </div>
-
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <div className="text-xs text-gray-500">
-            Créé le: {new Date(employee.createdAt).toLocaleDateString('fr-FR')}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      </div>
+    </EntityCard>
   );
 };
 

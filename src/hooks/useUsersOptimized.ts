@@ -283,8 +283,8 @@ export const useUserMutations = () => {
       }
       
       // Only update profile_image if it's provided
-      if (userData.profileImage !== undefined) {
-        updateData.profile_image = userData.profileImage;
+      if (userData.profile_image !== undefined) {
+        updateData.profile_image = userData.profile_image;
       }
       
       const { data, error } = await supabase

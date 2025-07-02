@@ -14,7 +14,10 @@ export const useSecurePermissions = () => {
   const { data: currentUser = null, error: currentUserError } = useQuery({
     queryKey: ['secure-current-user', authUser?.id],
     queryFn: async () => {
-      if (!authUser) return null;
+      if (!authUser?.id) {
+        console.log('🔒 No auth user ID, skipping current user query');
+        return null;
+      }
       
       try {
         // Fetch user data directly from users table
@@ -37,7 +40,7 @@ export const useSecurePermissions = () => {
         return null;
       }
     },
-    enabled: !!authUser,
+    enabled: !!authUser?.id,
     staleTime: 30000,
     gcTime: 60000,
     retry: (failureCount, error) => {
@@ -55,7 +58,10 @@ export const useSecurePermissions = () => {
   const { data: isAdmin = false, error: adminError } = useQuery({
     queryKey: ['secure-admin-status', authUser?.id],
     queryFn: async () => {
-      if (!authUser) return false;
+      if (!authUser?.id) {
+        console.log('🔒 No auth user ID, skipping admin status query');
+        return false;
+      }
       
       try {
         const { data, error } = await supabase.rpc('current_user_is_admin');
@@ -70,7 +76,7 @@ export const useSecurePermissions = () => {
         return false;
       }
     },
-    enabled: !!authUser,
+    enabled: !!authUser?.id,
     staleTime: 30000,
     gcTime: 60000,
     retry: (failureCount, error) => {
@@ -88,7 +94,10 @@ export const useSecurePermissions = () => {
   const { data: userPermissions = [], error: permissionsError } = useQuery({
     queryKey: ['secure-permissions', authUser?.id, currentUser?.role_id],
     queryFn: async () => {
-      if (!authUser) return [];
+      if (!authUser?.id) {
+        console.log('🔒 No auth user ID, skipping permissions query');
+        return [];
+      }
       
       try {
         const { data, error } = await supabase.rpc('get_current_user_permissions');
@@ -98,13 +107,13 @@ export const useSecurePermissions = () => {
         }
         console.log('🔒 User permissions:', data);
         console.log('🔒 User permissions type:', typeof data, Array.isArray(data));
-        return data || [];
+        return Array.isArray(data) ? data : [];
       } catch (err) {
         console.error('🔴 Exception in permissions query:', err);
         return [];
       }
     },
-    enabled: !!authUser,
+    enabled: !!authUser?.id,
     staleTime: 30000,
     gcTime: 60000,
     retry: (failureCount, error) => {
@@ -120,7 +129,10 @@ export const useSecurePermissions = () => {
 
   // Secure permission checker - always hits database
   const checkPermission = async (permission: string): Promise<boolean> => {
-    if (!authUser) return false;
+    if (!authUser?.id) {
+      console.log('🔒 No auth user ID for permission check:', permission);
+      return false;
+    }
 
     try {
       const { data, error } = await supabase.rpc('current_user_has_permission', {
@@ -142,8 +154,8 @@ export const useSecurePermissions = () => {
 
   // Synchronous permission checker (uses database query data only)
   const hasPermission = (permission: string): boolean => {
-    if (!authUser) {
-      console.log(`🔒 No auth user, denying permission: ${permission}`);
+    if (!authUser?.id) {
+      console.log(`🔒 No auth user ID, denying permission: ${permission}`);
       return false;
     }
     
@@ -169,7 +181,7 @@ export const useSecurePermissions = () => {
   const isViewOnly = currentUser?.role_id === 2;
 
   const permissions = {
-    isAuthenticated: !!authUser,
+    isAuthenticated: !!authUser?.id,
     isAdmin,
     isViewOnly,
     checkPermission,
@@ -204,6 +216,7 @@ export const useSecurePermissions = () => {
     currentUser: permissions.currentUser,
     canReadCompanies: permissions.canReadCompanies,
     canCreateCompanies: permissions.canCreateCompanies,
+    canReadAuthUsers: permissions.canReadAuthUsers,
     errors: {
       currentUserError: currentUserError?.message,
       adminError: adminError?.message,

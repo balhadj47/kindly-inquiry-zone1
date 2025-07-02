@@ -10,6 +10,8 @@ import { SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SafeComponent } from '@/components/SafeComponent';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -66,6 +68,7 @@ const Index = () => {
 
     const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
       console.error('🔴 Unhandled promise rejection:', event.reason);
+      console.error('🔴 Promise rejection stack:', event.reason?.stack);
     };
 
     window.addEventListener('error', handleError);
@@ -77,25 +80,36 @@ const Index = () => {
     };
   }, []);
 
-  // Log loading states
+  // Enhanced logging for debugging
   React.useEffect(() => {
     console.log('📍 Index component state:', {
       authLoading,
       authUser: !!authUser,
       authUserId: authUser?.id,
+      authUserEmail: authUser?.email,
       isMobile,
-      permissionsLoaded: !!permissions
+      permissionsLoaded: !!permissions,
+      timestamp: new Date().toISOString()
     });
   }, [authLoading, authUser, isMobile, permissions]);
 
+  // Add null checks for safety
   if (authLoading) {
     console.log('📍 Index: Still loading auth...');
-    return <PageLoadingSkeleton />;
+    return (
+      <ErrorBoundary>
+        <PageLoadingSkeleton />
+      </ErrorBoundary>
+    );
   }
 
   if (!authUser) {
     console.log('📍 Index: No auth user, showing access denied');
-    return <AccessDenied />;
+    return (
+      <ErrorBoundary>
+        <AccessDenied />
+      </ErrorBoundary>
+    );
   }
 
   console.log('📍 Index: Rendering main app with permissions:', {
@@ -105,66 +119,106 @@ const Index = () => {
     canReadUsers: permissions.canReadUsers,
     canReadAuthUsers: permissions.canReadAuthUsers,
     canCreateTrips: permissions.canCreateTrips,
-    canReadTrips: permissions.canReadTrips
+    canReadTrips: permissions.canReadTrips,
+    isAdmin: permissions.isAdmin,
+    isViewOnly: permissions.isViewOnly,
+    currentUser: permissions.currentUser
   });
 
   return (
-    <>
+    <ErrorBoundary>
       <Sonner />
       
       <TooltipProvider>
-        {!isMobile && <AppSidebar />}
+        <SafeComponent componentName="AppSidebar">
+          {!isMobile && <AppSidebar />}
+        </SafeComponent>
         
         <SidebarInset>
-          <TopBar />
+          <SafeComponent componentName="TopBar">
+            <TopBar />
+          </SafeComponent>
+          
           <main className={`flex-1 bg-gray-50 overflow-y-auto ${
             isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
           }`}>
             <Suspense fallback={<PageLoadingSkeleton />}>
               <Routes>
                 <Route path="" element={
-                  permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />
+                  <SafeComponent componentName="Dashboard">
+                    {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="dashboard" element={
-                  permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />
+                  <SafeComponent componentName="Dashboard">
+                    {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="companies/*" element={
-                  permissions.canReadCompanies ? <Companies /> : <AccessDenied />
+                  <SafeComponent componentName="Companies">
+                    {permissions.canReadCompanies ? <Companies /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="vans/*" element={
-                  permissions.canReadVans ? <Vans /> : <AccessDenied />
+                  <SafeComponent componentName="Vans">
+                    {permissions.canReadVans ? <Vans /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="users" element={
-                  permissions.canReadUsers ? <Users /> : <AccessDenied />
+                  <SafeComponent componentName="Users">
+                    {permissions.canReadUsers ? <Users /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="auth-users" element={
-                  permissions.canReadAuthUsers ? <AuthUsersPage /> : <AccessDenied />
+                  <SafeComponent componentName="AuthUsers">
+                    {permissions.canReadAuthUsers ? <AuthUsersPage /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="employees" element={
-                  permissions.canReadUsers ? <Employees /> : <AccessDenied />
+                  <SafeComponent componentName="Employees">
+                    {permissions.canReadUsers ? <Employees /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="log-trip" element={
-                  permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />
+                  <SafeComponent componentName="TripLogger">
+                    {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="trip-logger" element={
-                  permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />
+                  <SafeComponent componentName="TripLogger">
+                    {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="missions" element={
-                  permissions.canReadTrips ? <MissionsPage /> : <AccessDenied />
+                  <SafeComponent componentName="Missions">
+                    {permissions.canReadTrips ? <MissionsPage /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
                 <Route path="trip-history" element={
-                  permissions.canReadTrips ? <TripHistoryPage /> : <AccessDenied />
+                  <SafeComponent componentName="TripHistory">
+                    {permissions.canReadTrips ? <TripHistoryPage /> : <AccessDenied />}
+                  </SafeComponent>
                 } />
-                <Route path="settings" element={<SystemSettingsPage />} />
-                <Route path="user-settings" element={<UserSettings />} />
+                <Route path="settings" element={
+                  <SafeComponent componentName="SystemSettings">
+                    <SystemSettingsPage />
+                  </SafeComponent>
+                } />
+                <Route path="user-settings" element={
+                  <SafeComponent componentName="UserSettings">
+                    <UserSettings />
+                  </SafeComponent>
+                } />
               </Routes>
             </Suspense>
           </main>
         </SidebarInset>
         
-        {isMobile && <MobileBottomNav />}
+        <SafeComponent componentName="MobileBottomNav">
+          {isMobile && <MobileBottomNav />}
+        </SafeComponent>
       </TooltipProvider>
-    </>
+    </ErrorBoundary>
   );
 };
 

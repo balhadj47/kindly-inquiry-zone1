@@ -12,10 +12,12 @@ import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState } from 'react';
 import { User } from '@/types/rbac';
+import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 const EmployeesContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const { refreshPage } = useCacheRefresh();
   
   console.log('🏢 EmployeesContainer: Starting to fetch employees data');
   
@@ -55,6 +57,13 @@ const EmployeesContainer = () => {
   
   console.log('🔒 EmployeesContainer: Permissions:', permissions);
 
+  // Enhanced refresh function that forces cache invalidation
+  const handleRefresh = async () => {
+    console.log('🔄 EmployeesContainer: Manual refresh triggered');
+    await refreshPage(['users', 'role_id', '3']);
+    await refetch();
+  };
+
   const {
     isModalOpen,
     setIsModalOpen,
@@ -65,7 +74,7 @@ const EmployeesContainer = () => {
     handleDeleteEmployee,
     handleConfirmDelete,
     handleCancelDelete,
-  } = useEmployeeActions(refetch);
+  } = useEmployeeActions(handleRefresh);
 
   console.log('🏢 EmployeesContainer: Final state:', {
     employeesCount: employees.length,
@@ -82,7 +91,7 @@ const EmployeesContainer = () => {
         <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
         <p className="text-gray-600">Impossible de charger les employés. Veuillez réessayer.</p>
         <button 
-          onClick={() => refetch()} 
+          onClick={handleRefresh} 
           className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
         >
           Réessayer
@@ -132,7 +141,7 @@ const EmployeesContainer = () => {
         <EmployeesHeader employeesCount={employees.length} />
         <EmployeesActions 
           onCreateEmployee={handleAddEmployee}
-          onRefresh={refetch}
+          onRefresh={handleRefresh}
           canCreateEmployees={permissions.canCreateUsers}
         />
       </div>
@@ -165,7 +174,7 @@ const EmployeesContainer = () => {
         onClose={() => setIsModalOpen(false)}
         user={selectedEmployee}
         userType="employee"
-        onRefresh={refetch}
+        onRefresh={handleRefresh}
       />
 
       <EmployeeDeleteDialog

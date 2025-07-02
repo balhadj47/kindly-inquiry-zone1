@@ -50,12 +50,13 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
         });
       }
       
-      // Refresh both the employees list and cache
-      console.log('🔄 EmployeeModal - Refreshing data after successful operation');
-      await refreshPage(['users']);
+      // Force refresh the specific employee query cache
+      console.log('🔄 EmployeeModal - Force refreshing employee cache');
+      await refreshPage(['users', 'role_id', '3']);
       
+      // Also call the parent refresh callback
       if (onRefresh) {
-        console.log('🔄 EmployeeModal - Calling onRefresh callback');
+        console.log('🔄 EmployeeModal - Calling parent onRefresh');
         onRefresh();
       }
       

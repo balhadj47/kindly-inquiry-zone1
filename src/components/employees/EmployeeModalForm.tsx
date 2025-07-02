@@ -10,7 +10,6 @@ import { AlertTriangle } from 'lucide-react';
 import EmployeeImageUpload from './EmployeeImageUpload';
 import FormTabs from './form-sections/FormTabs';
 import { FormData, getDefaultFormValues, prepareSubmitData } from './form-sections/FormDataHelpers';
-import { useCacheRefresh } from '@/hooks/useCacheRefresh';
 
 interface EmployeeModalFormProps {
   employee?: User | null;
@@ -26,7 +25,6 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   onCancel,
 }) => {
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const { refreshPage } = useCacheRefresh();
 
   const form = useForm<FormData>({
     defaultValues: getDefaultFormValues(employee),
@@ -56,10 +54,6 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       
       await onSubmit(submitData);
       console.log('✅ EmployeeModalForm - Form submitted successfully');
-      
-      // Refresh the cache to show updated data
-      console.log('🔄 EmployeeModalForm - Refreshing cache after successful save');
-      await refreshPage(['users']);
       
       form.reset();
     } catch (error) {

@@ -127,10 +127,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Edit}
           variant="outline"
           size="sm"
-          className="bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-        >
-          Modifier
-        </ActionButton>
+          className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+        />
       )}
       {canDelete && (
         <ActionButton
@@ -138,10 +136,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Trash2}
           variant="outline"
           size="sm"
-          className="bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
-        >
-          Supprimer
-        </ActionButton>
+          className="h-8 w-8 p-0 bg-white border-gray-300 text-gray-600 hover:bg-gray-50 hover:text-gray-800"
+        />
       )}
     </div>
   );

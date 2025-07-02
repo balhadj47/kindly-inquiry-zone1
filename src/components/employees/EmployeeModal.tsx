@@ -21,23 +21,26 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
   const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
     try {
-      console.log('EmployeeModal - Submitting employee data:', userData);
+      console.log('🔍 EmployeeModal - Received data from form:', userData);
+      console.log('🖼️ EmployeeModal - ProfileImage value:', JSON.stringify(userData.profileImage));
       
-      // Ensure role_id is 3 for employees - remove group_id references
+      // Ensure role_id is 3 for employees
       const employeeData = { 
         ...userData, 
         role_id: 3
       };
       
-      console.log('EmployeeModal - Final employee data:', employeeData);
+      console.log('🚀 EmployeeModal - Final employee data to save:', employeeData);
       
       if (employee) {
+        console.log('📝 EmployeeModal - Updating employee:', employee.id);
         await updateUser(employee.id, employeeData);
         toast({
           title: 'Succès',
           description: 'Employé modifié avec succès',
         });
       } else {
+        console.log('➕ EmployeeModal - Creating new employee');
         await addUser(employeeData);
         toast({
           title: 'Succès',
@@ -47,12 +50,13 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
       
       // Refresh the employees list after successful operation
       if (onRefresh) {
+        console.log('🔄 EmployeeModal - Refreshing employee list');
         onRefresh();
       }
       
       onClose();
     } catch (error) {
-      console.error('Error submitting employee:', error);
+      console.error('❌ EmployeeModal - Error submitting employee:', error);
       toast({
         title: 'Erreur',
         description: error instanceof Error ? error.message : 'Une erreur est survenue',

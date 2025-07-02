@@ -58,7 +58,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   const handleSubmit = async (data: FormData) => {
     try {
       setSubmitError(null);
-      console.log('Submitting employee form with data:', data);
+      console.log('🔍 EmployeeModalForm - Raw form data:', data);
       
       // Clean and prepare the data for submission
       const submitData = {
@@ -66,8 +66,8 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         email: data.email?.trim() || undefined,
         phone: data.phone?.trim() || undefined,
         status: data.status,
-        // Explicitly handle profileImage - if it's empty string, pass empty string (not undefined)
-        profileImage: data.profileImage === '' ? '' : (data.profileImage || undefined),
+        // Handle profileImage explicitly - preserve empty string for removal
+        profileImage: typeof data.profileImage === 'string' ? data.profileImage : undefined,
         badgeNumber: data.badgeNumber?.trim() || undefined,
         dateOfBirth: data.dateOfBirth?.trim() || undefined,
         placeOfBirth: data.placeOfBirth?.trim() || undefined,
@@ -76,13 +76,14 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
         role_id: 3, // Employee role
       };
       
-      console.log('Final employee submit data:', submitData);
+      console.log('🚀 EmployeeModalForm - Final submit data:', submitData);
+      console.log('🖼️ EmployeeModalForm - ProfileImage value:', JSON.stringify(submitData.profileImage));
       
       await onSubmit(submitData);
-      console.log('Employee form submitted successfully');
+      console.log('✅ EmployeeModalForm - Form submitted successfully');
       form.reset();
     } catch (error) {
-      console.error('Error submitting employee form:', error);
+      console.error('❌ EmployeeModalForm - Error submitting form:', error);
       
       if (error instanceof Error) {
         if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
@@ -103,7 +104,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   };
 
   const handleImageChange = (url: string) => {
-    console.log('EmployeeModalForm - Setting profile image URL:', url);
+    console.log('🖼️ EmployeeModalForm - Image changed to:', JSON.stringify(url));
     form.setValue('profileImage', url);
     
     // Force form to re-render by triggering a change

@@ -4,7 +4,14 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, X } from 'lucide-react';
-import { User } from '@/types/rbac';
+
+interface User {
+  id: string;
+  name: string;
+  email?: string;
+  badge_number?: string;
+  status: string;
+}
 
 interface EmployeesFiltersProps {
   searchTerm: string;
@@ -21,13 +28,13 @@ const EmployeesFilters: React.FC<EmployeesFiltersProps> = ({
   statusFilter,
   setStatusFilter,
   clearFilters,
-  employees,
+  employees = [],
 }) => {
   const filteredEmployees = employees.filter(employee => {
     const matchesSearch = !searchTerm || 
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.badgeNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      employee.badge_number?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
     

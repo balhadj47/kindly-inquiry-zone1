@@ -48,19 +48,25 @@ const EmployeesContainer = () => {
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.badgeNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+      employee.badge_number?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
     
     return matchesSearch && matchesStatus;
   });
 
+  const clearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+  };
+
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <EmployeesHeader />
+        <EmployeesHeader employeesCount={employees.length} />
         <EmployeesActions 
-          onAddEmployee={handleAddEmployee}
+          onCreateEmployee={handleAddEmployee}
+          onRefresh={refetch}
           canCreateEmployees={permissions.canCreateUsers}
         />
       </div>
@@ -72,15 +78,20 @@ const EmployeesContainer = () => {
             setSearchTerm={setSearchTerm}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
+            clearFilters={clearFilters}
+            employees={employees}
           />
         </CardContent>
       </Card>
 
       <EmployeesList
         employees={filteredEmployees}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
         onEditEmployee={handleEditEmployee}
         onDeleteEmployee={handleDeleteEmployee}
-        permissions={permissions}
+        canEdit={permissions.canUpdateUsers}
+        canDelete={permissions.canDeleteUsers}
       />
 
       <UserDialog
@@ -93,7 +104,7 @@ const EmployeesContainer = () => {
 
       <EmployeeDeleteDialog
         isOpen={isDeleteDialogOpen}
-        onClose={handleCancelDelete}
+        onCancel={handleCancelDelete}
         employee={selectedEmployee}
         onConfirm={handleConfirmDelete}
       />

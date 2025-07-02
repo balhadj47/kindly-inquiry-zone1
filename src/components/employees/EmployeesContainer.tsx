@@ -23,6 +23,7 @@ const EmployeesContainer = () => {
     ...emp,
     id: emp.id?.toString() || '',
     createdAt: emp.created_at || new Date().toISOString(),
+    status: emp.status as User['status'],
     badgeNumber: emp.badge_number,
     dateOfBirth: emp.date_of_birth,
     placeOfBirth: emp.place_of_birth,

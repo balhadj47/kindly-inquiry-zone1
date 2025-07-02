@@ -2,17 +2,15 @@
 import React, { useState, useMemo } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVanDelete } from '@/hooks/useVanDelete';
+import { useVansActions } from '@/hooks/useVansActions';
+import { useVansFiltersAndSort } from '@/hooks/useVansFiltersAndSort';
 import VansHeader from './VansHeader';
 import VansActions from './VansActions';
-import VansSearch from './VansSearch';
-import VanFilters from './VanFilters';
-import VanListGrid from './VanListGrid';
-import VanListPagination from './VanListPagination';
-import VanListSummary from './VanListSummary';
+import VansFiltersSection from './VansFiltersSection';
+import VansContentSection from './VansContentSection';
 import VanModal from '../VanModal';
 import VanDeleteDialog from './VanDeleteDialog';
 import VanDetailsDialog from './VanDetailsDialog';
-import VansEmptyState from './VansEmptyState';
 import { Van } from '@/types/van';
 
 interface VansIndexProps {
@@ -24,79 +22,51 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
   const { data: vans = [], isLoading, error } = useVans();
   const { refreshVans } = useVanMutations();
   
-  // State management
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVan, setSelectedVan] = useState<Van | null>(null);
-  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false);
+  // Filter and sort state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
 
+  // Custom hooks
+  const {
+    isModalOpen,
+    selectedVan,
+    isDetailsDialogOpen,
+    handleAddVan,
+    handleEditVan,
+    handleViewVan,
+    handleModalClose,
+    handleDetailsDialogClose,
+  } = useVansActions();
+
+  const { filteredAndSortedVans } = useVansFiltersAndSort({
+    vans,
+    searchTerm,
+    statusFilter,
+    sortField: 'license_plate',
+    sortDirection: 'asc'
+  });
+
   const { deleteVan, confirmDelete, isDeleting, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
 
-  // Filter vans based on search and status
-  const filteredVans = useMemo(() => {
-    return vans.filter(van => {
-      const matchesSearch = !searchTerm || 
-        van.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        van.reference_code?.toLowerCase().includes(searchTerm.toLowerCase());
-      
-      const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
-    });
-  }, [vans, searchTerm, statusFilter]);
-
   // Pagination
-  const totalPages = Math.ceil(filteredVans.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredAndSortedVans.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const paginatedVans = filteredVans.slice(startIndex, endIndex);
+  const paginatedVans = filteredAndSortedVans.slice(startIndex, endIndex);
 
   // Reset page when filters change
   React.useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  const handleCreateVan = () => {
-    console.log('🚐 VansIndex: Creating new van');
-    setSelectedVan(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditVan = (van: Van) => {
-    console.log('🚐 VansIndex: Editing van:', van);
-    setSelectedVan(van);
-    setIsModalOpen(true);
-  };
-
   const handleDeleteVan = (van: Van) => {
-    console.log('🚐 VansIndex: Deleting van:', van);
     deleteVan(van);
   };
 
-  const handleViewVan = (van: Van) => {
-    console.log('🚐 VansIndex: Viewing van:', van);
-    setSelectedVan(van);
-    setIsDetailsDialogOpen(true);
-  };
-
-  const handleModalClose = () => {
-    console.log('🚐 VansIndex: Modal closing, selected van was:', selectedVan);
-    setIsModalOpen(false);
-    setSelectedVan(null);
-  };
-
   const handleSaveSuccess = () => {
-    console.log('🚐 VansIndex: Save successful, refreshing data');
     refreshVans();
-  };
-
-  const clearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
   };
 
   if (error) {
@@ -108,18 +78,14 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
     );
   }
 
-  if (vans.length === 0 && !isLoading) {
-    return <VansEmptyState searchTerm={searchTerm} onAddVan={handleCreateVan} />;
-  }
-
   return (
     <div className="h-full flex flex-col overflow-hidden">
       {/* Header - Fixed */}
       <div className="flex-shrink-0 p-4 sm:p-6 border-b">
         <div className="flex justify-between items-center">
-          <VansHeader onAddVan={handleCreateVan} vansCount={vans.length} />
+          <VansHeader vansCount={vans.length} />
           <VansActions 
-            onCreateVan={handleCreateVan}
+            onCreateVan={handleAddVan}
             onRefresh={onRefresh}
             isRefreshing={isRefreshing}
           />
@@ -127,53 +93,30 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
       </div>
 
       {/* Search and Filters - Fixed */}
-      <div className="flex-shrink-0 p-4 sm:p-6 border-b">
-        <div className="space-y-4">
-          <VansSearch 
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
-          <VanFilters
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            sortField="license_plate"
-            setSortField={() => {}}
-            sortDirection="asc"
-            setSortDirection={() => {}}
-          />
-        </div>
-      </div>
+      <VansFiltersSection
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        statusFilter={statusFilter}
+        setStatusFilter={setStatusFilter}
+        sortField="license_plate"
+        setSortField={() => {}}
+        sortDirection="asc"
+        setSortDirection={() => {}}
+      />
 
       {/* Content Area - Scrollable */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="p-4 sm:p-6">
-          <VanListSummary 
-            displayedCount={paginatedVans.length}
-            filteredCount={filteredVans.length}
-            currentPage={currentPage}
-            totalPages={totalPages}
-          />
-          
-          <div className="mt-4">
-            <VanListGrid 
-              vans={paginatedVans}
-              onEditVan={handleEditVan}
-              onDeleteVan={handleDeleteVan}
-              onQuickAction={handleViewVan}
-            />
-          </div>
-          
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-center">
-              <VanListPagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
-        </div>
-      </div>
+      <VansContentSection
+        paginatedVans={paginatedVans}
+        filteredVansCount={filteredAndSortedVans.length}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        searchTerm={searchTerm}
+        onPageChange={setCurrentPage}
+        onEditVan={handleEditVan}
+        onDeleteVan={handleDeleteVan}
+        onQuickAction={handleViewVan}
+        onAddVan={handleAddVan}
+      />
 
       {/* Modals */}
       <VanModal
@@ -194,10 +137,7 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
       <VanDetailsDialog
         van={selectedVan}
         isOpen={isDetailsDialogOpen}
-        onClose={() => {
-          setIsDetailsDialogOpen(false);
-          setSelectedVan(null);
-        }}
+        onClose={handleDetailsDialogClose}
         onEdit={handleEditVan}
       />
     </div>

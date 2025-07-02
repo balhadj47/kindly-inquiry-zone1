@@ -1,13 +1,16 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
-import VanStats from './VanStats';
-import VanFilters from './VanFilters';
+import { useVansActions } from '@/hooks/useVansActions';
+import { useVansFiltersAndSort } from '@/hooks/useVansFiltersAndSort';
+import VansHeader from './vans/VansHeader';
+import VansActions from './vans/VansActions';
+import VansFiltersSection from './vans/VansFiltersSection';
 import VanList from './VanList';
 import VanModal from './VanModal';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { Van } from '@/types/van';
 
 const VansLoadingSkeleton = () => (
@@ -47,13 +50,30 @@ const VansLoadingSkeleton = () => (
 const VansOptimized = () => {
   const { data: vansData = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
+  
+  // Filter and sort state
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [sortField, setSortField] = useState('license_plate');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedVan, setSelectedVan] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Custom hooks
+  const {
+    isModalOpen,
+    selectedVan,
+    handleAddVan,
+    handleEditVan,
+    handleModalClose,
+  } = useVansActions();
+
+  const { filteredAndSortedVans } = useVansFiltersAndSort({
+    vans: vansData,
+    searchTerm,
+    statusFilter,
+    sortField,
+    sortDirection
+  });
 
   // Force fresh data on component mount
   useEffect(() => {
@@ -72,6 +92,28 @@ const VansOptimized = () => {
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
+  };
+
+  const toggleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const handleQuickAction = (van: Van) => {
+    console.log('Quick action for van:', van);
+  };
+
+  const handleDeleteVan = async (van: Van) => {
+    await deleteVan.mutateAsync(van.id);
+  };
+
+  const handleModalSuccess = () => {
+    refetch();
+    handleModalClose();
   };
 
   // Show loading only when actually loading
@@ -97,82 +139,6 @@ const VansOptimized = () => {
     );
   }
 
-  const toggleSort = (field: string) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('asc');
-    }
-  };
-
-  const filteredAndSortedVans = useMemo(() => {
-    let filtered = vansData.filter(van => {
-      if (!van || typeof van !== 'object') return false;
-      const licensePlateStr = typeof van.license_plate === 'string' ? van.license_plate : '';
-      const modelStr = typeof van.model === 'string' ? van.model : '';
-      return (
-        licensePlateStr.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        modelStr.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(van => {
-        const vanStatus = typeof van.status === 'string' ? van.status : 'Active';
-        return vanStatus === statusFilter;
-      });
-    }
-
-    return filtered.sort((a, b) => {
-      const direction = sortDirection === 'asc' ? 1 : -1;
-      let aVal: string = '', bVal: string = '';
-      switch (sortField) {
-        case 'model':
-          aVal = typeof a.model === 'string' ? a.model : '';
-          bVal = typeof b.model === 'string' ? b.model : '';
-          return direction * aVal.localeCompare(bVal);
-        case 'status':
-          aVal = typeof a.status === 'string' ? a.status : 'Active';
-          bVal = typeof b.status === 'string' ? b.status : 'Active';
-          return direction * aVal.localeCompare(bVal);
-        case 'license_plate':
-        default:
-          aVal = typeof a.license_plate === 'string' ? a.license_plate : '';
-          bVal = typeof b.license_plate === 'string' ? b.license_plate : '';
-          return direction * aVal.localeCompare(bVal);
-      }
-    });
-  }, [vansData, searchTerm, statusFilter, sortField, sortDirection]);
-
-  const handleAddVan = () => {
-    setSelectedVan(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditVan = (van: any) => {
-    setSelectedVan(van);
-    setIsModalOpen(true);
-  };
-
-  const handleQuickAction = (van: any) => {
-    console.log('Quick action for van:', van);
-  };
-
-  const handleDeleteVan = async (van: any) => {
-    await deleteVan.mutateAsync(van.id);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-    setSelectedVan(null);
-  };
-
-  const handleModalSuccess = () => {
-    refetch();
-    handleModalClose();
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -187,13 +153,15 @@ const VansOptimized = () => {
           >
             <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
-          <Button onClick={handleAddVan} size="icon">
-            <Plus className="h-4 w-4" />
-          </Button>
+          <VansActions 
+            onCreateVan={handleAddVan}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
         </div>
       </div>
       
-      <VanFilters
+      <VansFiltersSection
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
@@ -201,7 +169,7 @@ const VansOptimized = () => {
         sortField={sortField}
         setSortField={setSortField}
         sortDirection={sortDirection}
-        toggleSort={toggleSort}
+        setSortDirection={setSortDirection}
       />
 
       <VanList

@@ -82,7 +82,7 @@ export const useUsers = (page = 1, limit = 20) => {
   });
 };
 
-// Hook for users by role_id
+// Hook for users by role_id - EXCLUDE users with auth accounts for employees
 export const useUsersByRoleId = (roleId: number | null) => {
   return useQuery({
     queryKey: ['users', 'role_id', roleId],
@@ -92,12 +92,20 @@ export const useUsersByRoleId = (roleId: number | null) => {
       console.log('👥 useUsersOptimized: Fetching users by role_id:', roleId);
       const startTime = performance.now();
       
-      const { data, error } = await supabase
+      let query = supabase
         .from('users')
         .select('*')
         .eq('role_id', roleId)
         .eq('status', 'Active')
         .order('name');
+
+      // For employees (role_id: 3), exclude users who have auth accounts
+      if (roleId === 3) {
+        query = query.is('auth_user_id', null);
+        console.log('👥 useUsersOptimized: Filtering out auth users for employees');
+      }
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('👥 useUsersOptimized: Error:', error);

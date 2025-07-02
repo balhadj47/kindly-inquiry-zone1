@@ -69,15 +69,16 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 }
               } : {
                 pattern: {
-                  value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                  value: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                   message: 'Format d\'email invalide'
                 }
               }}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel className="text-xs sm:text-sm font-medium flex items-center gap-1">
-                    📧 Email 
+                    📧 Email
                     {isEmailRequired && <span className="text-destructive">*</span>}
+                    {!isEmailRequired && <span className="text-muted-foreground text-xs">(optionnel)</span>}
                   </FormLabel>
                   <FormControl>
                     <Input
@@ -100,6 +101,7 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({
                 <FormItem>
                   <FormLabel className="text-xs sm:text-sm font-medium flex items-center gap-1">
                     📞 Téléphone
+                    <span className="text-muted-foreground text-xs">(optionnel)</span>
                   </FormLabel>
                   <FormControl>
                     <Input

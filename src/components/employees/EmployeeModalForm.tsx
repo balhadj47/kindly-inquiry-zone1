@@ -29,7 +29,7 @@ interface FormData {
   address: string;
   driverLicense?: string;
   profileImage?: string;
-  email?: string; // Made optional for employees
+  email?: string;
 }
 
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
@@ -51,19 +51,25 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
       address: employee?.address || '',
       driverLicense: employee?.driverLicense || '',
       profileImage: employee?.profileImage || '',
-      email: employee?.email || '', // Optional field
+      email: employee?.email || '',
     },
   });
 
   const handleSubmit = async (data: FormData) => {
     try {
-      setSubmitError(null); // Clear previous errors
+      setSubmitError(null);
       console.log('Submitting employee form with data:', data);
       
-      // Only include email if it's not empty
+      // Convert empty strings to undefined/null for optional fields
       const submitData = {
         ...data,
-        email: data.email?.trim() || undefined, // Remove email if empty
+        email: data.email?.trim() || undefined,
+        phone: data.phone?.trim() || undefined,
+        badgeNumber: data.badgeNumber?.trim() || undefined,
+        dateOfBirth: data.dateOfBirth?.trim() || undefined,
+        placeOfBirth: data.placeOfBirth?.trim() || undefined,
+        address: data.address?.trim() || undefined,
+        driverLicense: data.driverLicense?.trim() || undefined,
       };
       
       await onSubmit(submitData);
@@ -72,7 +78,6 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     } catch (error) {
       console.error('Error submitting employee form:', error);
       
-      // Handle specific database errors
       if (error instanceof Error) {
         if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
           if (error.message.includes('email')) {
@@ -137,7 +142,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="email"
             rules={{
               pattern: {
-                value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                value: /^$|^[^\s@]+@[^\s@]+\.[^\s@]+$/,
                 message: 'Format d\'email invalide'
               }
             }}
@@ -163,7 +168,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Téléphone</FormLabel>
+                <FormLabel className="text-sm font-medium">Téléphone (optionnel)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -182,7 +187,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="badgeNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Numéro de Badge</FormLabel>
+                <FormLabel className="text-sm font-medium">Numéro de Badge (optionnel)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -231,7 +236,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="dateOfBirth"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Date de Naissance</FormLabel>
+                <FormLabel className="text-sm font-medium">Date de Naissance (optionnel)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -250,7 +255,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             name="driverLicense"
             render={({ field }) => (
               <FormItem>
-                <FormLabel className="text-sm font-medium">Permis de Conduire</FormLabel>
+                <FormLabel className="text-sm font-medium">Permis de Conduire (optionnel)</FormLabel>
                 <FormControl>
                   <Input
                     {...field}
@@ -270,7 +275,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           name="placeOfBirth"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium">Lieu de Naissance</FormLabel>
+              <FormLabel className="text-sm font-medium">Lieu de Naissance (optionnel)</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -289,7 +294,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           name="address"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm font-medium">Adresse</FormLabel>
+              <FormLabel className="text-sm font-medium">Adresse (optionnel)</FormLabel>
               <FormControl>
                 <Input
                   {...field}
@@ -308,7 +313,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
             type="button"
             variant="outline"
             onClick={() => {
-              setSubmitError(null); // Clear error when canceling
+              setSubmitError(null);
               onCancel();
             }}
             disabled={isSubmitting}

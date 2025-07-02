@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { User, UserStatus } from '@/types/rbac';
 import { UserOperationData } from './types';
@@ -23,51 +22,44 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
       
       console.log('User has permission to update users, proceeding...');
       
-      // Helper function to convert empty strings to null for date fields and special fields
+      // Helper function to convert empty strings/undefined to null for all optional fields
       const convertEmptyToNull = (value: any) => {
         if (value === undefined) return undefined;
+        if (value === null) return null;
         if (typeof value === 'string' && value.trim() === '') return null;
         return value;
       };
       
-      // Prepare update data with proper field mapping and null handling
+      // Prepare update data with proper field mapping and null handling for ALL fields except name
       const updateData: any = {};
       
+      // Name is required - keep as is if provided
       if (updates.name !== undefined) updateData.name = updates.name;
-      // Only include email if it's provided and not empty
-      if (updates.email !== undefined) {
-        updateData.email = updates.email?.trim() || null;
-      }
-      if (updates.phone !== undefined) updateData.phone = updates.phone;
+      
+      // All other fields are optional - convert empty to null
+      if (updates.email !== undefined) updateData.email = convertEmptyToNull(updates.email);
+      if (updates.phone !== undefined) updateData.phone = convertEmptyToNull(updates.phone);
       if (updates.role_id !== undefined) updateData.role_id = updates.role_id;
       if (updates.status !== undefined) updateData.status = updates.status;
-      if (updates.profileImage !== undefined) updateData.profile_image = updates.profileImage;
+      if (updates.profileImage !== undefined) updateData.profile_image = convertEmptyToNull(updates.profileImage);
       if (updates.totalTrips !== undefined) updateData.total_trips = updates.totalTrips;
-      if (updates.lastTrip !== undefined) updateData.last_trip = updates.lastTrip;
-      if (updates.badgeNumber !== undefined) updateData.badge_number = updates.badgeNumber;
-      
-      // Handle all date fields consistently - convert empty strings to null
-      if (updates.dateOfBirth !== undefined) {
-        updateData.date_of_birth = convertEmptyToNull(updates.dateOfBirth);
-      }
-      
-      if (updates.placeOfBirth !== undefined) updateData.place_of_birth = updates.placeOfBirth;
-      if (updates.address !== undefined) updateData.address = updates.address;
-      if (updates.driverLicense !== undefined) updateData.driver_license = updates.driverLicense;
+      if (updates.lastTrip !== undefined) updateData.last_trip = convertEmptyToNull(updates.lastTrip);
+      if (updates.badgeNumber !== undefined) updateData.badge_number = convertEmptyToNull(updates.badgeNumber);
+      if (updates.dateOfBirth !== undefined) updateData.date_of_birth = convertEmptyToNull(updates.dateOfBirth);
+      if (updates.placeOfBirth !== undefined) updateData.place_of_birth = convertEmptyToNull(updates.placeOfBirth);
+      if (updates.address !== undefined) updateData.address = convertEmptyToNull(updates.address);
+      if (updates.driverLicense !== undefined) updateData.driver_license = convertEmptyToNull(updates.driverLicense);
 
-      // Handle new fields with proper null conversion
-      if (updates.identification_national !== undefined) updateData.identification_national = updates.identification_national;
-      if (updates.carte_national !== undefined) updateData.carte_national = updates.carte_national;
+      // Handle all new fields - convert empty to null
+      if (updates.identification_national !== undefined) updateData.identification_national = convertEmptyToNull(updates.identification_national);
+      if (updates.carte_national !== undefined) updateData.carte_national = convertEmptyToNull(updates.carte_national);
       if (updates.carte_national_start_date !== undefined) updateData.carte_national_start_date = convertEmptyToNull(updates.carte_national_start_date);
       if (updates.carte_national_expiry_date !== undefined) updateData.carte_national_expiry_date = convertEmptyToNull(updates.carte_national_expiry_date);
       if (updates.driver_license_start_date !== undefined) updateData.driver_license_start_date = convertEmptyToNull(updates.driver_license_start_date);
       if (updates.driver_license_expiry_date !== undefined) updateData.driver_license_expiry_date = convertEmptyToNull(updates.driver_license_expiry_date);
-      if (updates.driver_license_category !== undefined) updateData.driver_license_category = updates.driver_license_category;
+      if (updates.driver_license_category !== undefined) updateData.driver_license_category = updates.driver_license_category?.length === 0 ? null : updates.driver_license_category;
       if (updates.driver_license_category_dates !== undefined) updateData.driver_license_category_dates = updates.driver_license_category_dates;
-      
-      // Fix blood_type field - convert empty strings to null
       if (updates.blood_type !== undefined) updateData.blood_type = convertEmptyToNull(updates.blood_type);
-      
       if (updates.company_assignment_date !== undefined) updateData.company_assignment_date = convertEmptyToNull(updates.company_assignment_date);
 
       console.log('Final update data being sent to database:', updateData);
@@ -100,7 +92,7 @@ export const createUpdateUserOperation = (setUsers: React.Dispatch<React.SetStat
           } else {
             throw new Error('Les données ne respectent pas les contraintes de validation');
           }
-        } else if (error.code === '22007') { // Invalid date format
+        } else if (error.code === '22007' || error.message.includes('invalid input syntax for type date')) {
           throw new Error('Format de date invalide. Veuillez vérifier les dates saisies');
         } else {
           throw new Error(`Erreur de base de données: ${error.message}`);

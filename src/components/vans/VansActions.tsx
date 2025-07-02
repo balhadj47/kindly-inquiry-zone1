@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { usePermissionCheck } from '@/hooks/usePermissionCheck';
+import { ActionButton } from '@/components/ui/action-button';
 
 interface VansActionsProps {
   onCreateVan: () => void;
@@ -18,25 +18,28 @@ const VansActions: React.FC<VansActionsProps> = ({
   const { canCreateVans } = usePermissionCheck();
 
   return (
-    <div className="flex items-center gap-2">
-      {canCreateVans && (
-        <Button
-          onClick={onCreateVan}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouveau Véhicule
-        </Button>
-      )}
-      
-      <Button
+    <div className="flex items-center gap-3">
+      <ActionButton
         onClick={onRefresh}
+        icon={RefreshCw}
+        variant="outline"
+        size="default"
         disabled={isRefreshing}
-        className="bg-blue-600 hover:bg-blue-700 text-white"
+        loading={isRefreshing}
       >
-        <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
         Actualiser
-      </Button>
+      </ActionButton>
+      
+      {canCreateVans && (
+        <ActionButton
+          onClick={onCreateVan}
+          icon={Plus}
+          variant="primary"
+          size="default"
+        >
+          Nouveau Véhicule
+        </ActionButton>
+      )}
     </div>
   );
 };

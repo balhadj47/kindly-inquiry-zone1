@@ -1,7 +1,7 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
+import { ActionButton } from '@/components/ui/action-button';
 
 interface EmployeesActionsProps {
   onCreateEmployee: () => void;
@@ -17,25 +17,28 @@ const EmployeesActions: React.FC<EmployeesActionsProps> = ({
   canCreateEmployees
 }) => {
   return (
-    <div className="flex items-center gap-2">
-      {canCreateEmployees && (
-        <Button
-          onClick={onCreateEmployee}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nouvel Employé
-        </Button>
-      )}
-      
-      <Button
+    <div className="flex items-center gap-3">
+      <ActionButton
         onClick={onRefresh}
+        icon={RefreshCw}
+        variant="outline"
+        size="default"
         disabled={isRefreshing}
-        className="bg-blue-600 hover:bg-blue-700 text-white"
+        loading={isRefreshing}
       >
-        <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
         Actualiser
-      </Button>
+      </ActionButton>
+      
+      {canCreateEmployees && (
+        <ActionButton
+          onClick={onCreateEmployee}
+          icon={Plus}
+          variant="primary"
+          size="default"
+        >
+          Nouvel Employé
+        </ActionButton>
+      )}
     </div>
   );
 };

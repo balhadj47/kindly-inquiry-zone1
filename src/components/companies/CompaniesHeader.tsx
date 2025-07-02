@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { useRBAC } from '@/contexts/RBACContext';
+import { ActionButton } from '@/components/ui/action-button';
 
 interface CompaniesHeaderProps {
   onAdd: () => void;
@@ -28,26 +28,29 @@ const CompaniesHeader: React.FC<CompaniesHeaderProps> = ({
         </p>
       </div>
       
-      <div className="flex items-center gap-2">
-        {canCreateCompanies && (
-          <Button 
-            onClick={onAdd}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+      <div className="flex items-center gap-3">
+        {onRefresh && (
+          <ActionButton
+            onClick={onRefresh}
+            icon={RefreshCw}
+            variant="outline"
+            size="default"
+            disabled={isRefreshing}
+            loading={isRefreshing}
           >
-            <Plus className="w-4 h-4 mr-2" />
-            Nouvelle Entreprise
-          </Button>
+            Actualiser
+          </ActionButton>
         )}
         
-        {onRefresh && (
-          <Button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+        {canCreateCompanies && (
+          <ActionButton
+            onClick={onAdd}
+            icon={Plus}
+            variant="primary"
+            size="default"
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
+            Nouvelle Entreprise
+          </ActionButton>
         )}
       </div>
     </div>

@@ -1,8 +1,8 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { Plus, RefreshCw } from 'lucide-react';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
+import { ActionButton } from '@/components/ui/action-button';
 
 interface MissionsActionsProps {
   onCreateMission: () => void;
@@ -18,26 +18,27 @@ const MissionsActions: React.FC<MissionsActionsProps> = ({
   const { canCreateTrips } = useSecurePermissions();
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
+    <div className="flex items-center gap-3">
+      <ActionButton
         onClick={onRefresh}
+        icon={RefreshCw}
+        variant="outline"
+        size="default"
         disabled={isRefreshing}
-        className="h-9"
+        loading={isRefreshing}
       >
-        <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-      </Button>
+        Actualiser
+      </ActionButton>
       
       {canCreateTrips && (
-        <Button
+        <ActionButton
           onClick={onCreateMission}
-          size="sm"
-          className="h-9"
+          icon={Plus}
+          variant="primary"
+          size="default"
         >
-          <Plus className="h-4 w-4 mr-1" />
           Nouvelle Mission
-        </Button>
+        </ActionButton>
       )}
     </div>
   );

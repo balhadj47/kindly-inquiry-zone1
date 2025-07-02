@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
 import { Plus, ExternalLink, AlertTriangle, RefreshCw } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { roleIdHasPermission } from '@/utils/rolePermissions';
 import { useAuthUsers, useAuthUserMutations } from '@/hooks/useAuthUsers';
+import { ActionButton } from '@/components/ui/action-button';
 import AuthUsersHeader from './auth-users/AuthUsersHeader';
 import AuthUsersFilters from './auth-users/AuthUsersFilters';
 import AuthUsersList from './auth-users/AuthUsersList';
@@ -201,27 +201,31 @@ const AuthUsers = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+    <div className="space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
         <AuthUsersHeader authUsersCount={authUsers.length} />
-        <div className="flex items-center space-x-2">
-          {permissions.canCreate && (
-            <Button 
-              onClick={handleAddUser} 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Ajouter
-            </Button>
-          )}
-          <Button 
-            onClick={handleRefresh} 
+        <div className="flex items-center gap-3">
+          <ActionButton
+            onClick={handleRefresh}
+            icon={RefreshCw}
+            variant="outline"
+            size="default"
             disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            loading={isRefreshing}
           >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             Actualiser
-          </Button>
+          </ActionButton>
+          
+          {permissions.canCreate && (
+            <ActionButton
+              onClick={handleAddUser}
+              icon={Plus}
+              variant="primary"
+              size="default"
+            >
+              Ajouter
+            </ActionButton>
+          )}
         </div>
       </div>
 

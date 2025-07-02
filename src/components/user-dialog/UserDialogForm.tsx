@@ -96,9 +96,16 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
     try {
       console.log('Submitting user form with data:', data);
       
+      // Extract the profile image value if it's wrapped in an object
+      let profileImageValue = data.profileImage;
+      if (typeof profileImageValue === 'object' && profileImageValue !== null && 'value' in profileImageValue) {
+        profileImageValue = (profileImageValue as any).value;
+      }
+      
       // Map form data to proper field names and include the default role_id
       const submitData = {
         ...data,
+        profileImage: profileImageValue, // Use the extracted value
         role_id: config.defaultRoleId, // Use the default role from config
         identification_national: data.identificationNational,
         carte_national: data.carteNational,
@@ -146,7 +153,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         {/* Compact tabs with smaller colored icons */}
         <TooltipProvider>
           <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full h-12 p-1 bg-muted/50 border border-border/50" style={{
+            <TabsList className="grid w-full h-10 p-1 bg-muted/50 border border-border/50" style={{
               gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
                 ? 'repeat(5, 1fr)' 
                 : 'repeat(4, 1fr)'
@@ -157,7 +164,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                     value="basic" 
                     className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <UserIcon className="h-4 w-4 text-blue-600" />
+                    <UserIcon className="h-3.5 w-3.5 text-blue-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -171,7 +178,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                     value="identity"
                     className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <IdCard className="h-4 w-4 text-purple-600" />
+                    <IdCard className="h-3.5 w-3.5 text-purple-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -185,7 +192,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                     value="license"
                     className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <Car className="h-4 w-4 text-green-600" />
+                    <Car className="h-3.5 w-3.5 text-green-600" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -199,7 +206,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                     value="medical"
                     className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                   >
-                    <Heart className="h-4 w-4 text-red-500" />
+                    <Heart className="h-3.5 w-3.5 text-red-500" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -214,7 +221,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
                       value="details"
                       className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
                     >
-                      <Briefcase className="h-4 w-4 text-orange-600" />
+                      <Briefcase className="h-3.5 w-3.5 text-orange-600" />
                     </TabsTrigger>
                   </TooltipTrigger>
                   <TooltipContent>

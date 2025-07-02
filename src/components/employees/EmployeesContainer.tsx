@@ -11,36 +11,25 @@ import UserDialog from '../user-dialog/UserDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState } from 'react';
-
-// Define the interface for employee data to match what we're using
-interface Employee {
-  id: string;
-  name: string;
-  email?: string;
-  phone?: string;
-  badge_number?: string;
-  status: string;
-  role_id?: number;
-  created_at?: string;
-  auth_user_id?: string;
-  profile_image?: string;
-  date_of_birth?: string;
-  place_of_birth?: string;
-  address?: string;
-  driver_license?: string;
-  total_trips?: number;
-  last_trip?: string;
-}
+import { User } from '@/types/rbac';
 
 const EmployeesContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
   const { data: employeesData = [], refetch } = useUsersByRoleId(3);
-  // Transform the data to match our interface
-  const employees: Employee[] = employeesData.map(emp => ({
+  // Transform the data to match User interface
+  const employees: User[] = employeesData.map(emp => ({
     ...emp,
     id: emp.id?.toString() || '',
+    createdAt: emp.created_at || new Date().toISOString(),
+    badgeNumber: emp.badge_number,
+    dateOfBirth: emp.date_of_birth,
+    placeOfBirth: emp.place_of_birth,
+    driverLicense: emp.driver_license,
+    totalTrips: emp.total_trips,
+    lastTrip: emp.last_trip,
+    profileImage: emp.profile_image,
   }));
   
   const permissions = useEmployeePermissions();
@@ -74,7 +63,7 @@ const EmployeesContainer = () => {
       employee.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       employee.phone?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      employee.badge_number?.toLowerCase().includes(searchTerm.toLowerCase());
+      employee.badgeNumber?.toLowerCase().includes(searchTerm.toLowerCase());
     
     const matchesStatus = statusFilter === 'all' || employee.status === statusFilter;
     

@@ -204,7 +204,8 @@ export const useSecurePermissions = () => {
     canCreateTrips: hasPermission('trips:create'),
     canUpdateTrips: hasPermission('trips:update'),
     canDeleteTrips: hasPermission('trips:delete'),
-    canReadAuthUsers: hasPermission('auth-users:read'),
+    // FIX: Use the actual permission check instead of just hasPermission
+    canReadAuthUsers: isAdmin || hasPermission('auth-users:read'),
     canAccessDashboard: hasPermission('dashboard:read'),
   };
 

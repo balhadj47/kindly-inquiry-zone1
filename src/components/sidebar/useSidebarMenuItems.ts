@@ -10,6 +10,7 @@ export const useSidebarMenuItems = (): MenuItem[] => {
 
   // If not authenticated, return empty menu
   if (!permissions.isAuthenticated) {
+    console.log('🔍 useSidebarMenuItems: Not authenticated, returning empty menu');
     return [];
   }
 
@@ -18,14 +19,21 @@ export const useSidebarMenuItems = (): MenuItem[] => {
   
   const filteredMenuItems = allMenuItems.filter((item) => {
     if (!item.permission) {
+      console.log(`🔍 useSidebarMenuItems: Including ${item.title} - no permission required`);
       return true;
     }
 
     // Use the hasPermission function which checks database permissions
     const hasAccess = permissions.hasPermission(item.permission);
     
+    console.log(`🔍 useSidebarMenuItems: ${item.title} (${item.permission}) = ${hasAccess}`, {
+      isAdmin: permissions.isAdmin,
+      currentUserRole: permissions.currentUser?.role_id
+    });
+    
     return hasAccess;
   });
 
+  console.log('🔍 useSidebarMenuItems: Final filtered menu items:', filteredMenuItems.map(item => item.title));
   return filteredMenuItems;
 };

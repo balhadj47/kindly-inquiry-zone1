@@ -10,7 +10,9 @@ const AuthUsersPage = () => {
   
   console.log('🔍 AuthUsersPage rendering:', {
     isAuthenticated: permissions.isAuthenticated,
-    canReadAuthUsers: permissions.canReadAuthUsers
+    canReadAuthUsers: permissions.canReadAuthUsers,
+    isAdmin: permissions.isAdmin,
+    currentUserRole: permissions.currentUser?.role_id
   });
 
   if (!permissions.isAuthenticated) {
@@ -30,7 +32,10 @@ const AuthUsersPage = () => {
           Cette fonctionnalité nécessite des permissions d'administrateur.
         </p>
         <p className="text-sm text-gray-500 mt-2">
-          Rôle actuel: {roleName || 'Inconnu'}
+          Rôle actuel: {roleName || 'Inconnu'} (ID: {permissions.currentUser?.role_id})
+        </p>
+        <p className="text-sm text-gray-500 mt-1">
+          Admin: {permissions.isAdmin ? 'Oui' : 'Non'}
         </p>
       </div>
     );

@@ -7,14 +7,12 @@ interface VanListProps {
   vans: Van[];
   onEditVan: (van: Van) => void;
   onDeleteVan: (van: Van) => void;
-  onViewDetails: (van: Van) => void;
 }
 
 const VanList: React.FC<VanListProps> = ({
   vans,
   onEditVan,
   onDeleteVan,
-  onViewDetails,
 }) => {
   if (vans.length === 0) {
     return (
@@ -32,7 +30,6 @@ const VanList: React.FC<VanListProps> = ({
           van={van}
           onEdit={() => onEditVan(van)}
           onDelete={() => onDeleteVan(van)}
-          onViewDetails={() => onViewDetails(van)}
         />
       ))}
     </div>

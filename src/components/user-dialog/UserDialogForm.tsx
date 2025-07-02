@@ -7,7 +7,6 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { User, UserStatus } from '@/types/rbac';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BasicInfoSection from './BasicInfoSection';
-import RoleSection from './RoleSection';
 import EmployeeDetailsSection from './EmployeeDetailsSection';
 import DriverDetailsSection from './DriverDetailsSection';
 import ProfileImageSection from './ProfileImageSection';
@@ -34,7 +33,6 @@ interface FormData {
   name: string;
   email: string;
   phone: string;
-  role_id: number;
   status: UserStatus;
   profileImage?: string;
   badgeNumber?: string;
@@ -68,7 +66,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       name: user?.name || '',
       email: user?.email || '',
       phone: user?.phone || '',
-      role_id: user?.role_id || config.defaultRoleId,
       status: user?.status || 'Active',
       profileImage: user?.profileImage || '',
       badgeNumber: user?.badgeNumber || '',
@@ -89,16 +86,16 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
     },
   });
 
-  const watchedRoleId = form.watch('role_id');
   const watchedEmail = form.watch('email') || '';
 
   const handleSubmit = async (data: FormData) => {
     try {
       console.log('Submitting user form with data:', data);
       
-      // Map form data to proper field names
+      // Map form data to proper field names and include the default role_id
       const submitData = {
         ...data,
+        role_id: config.defaultRoleId, // Use the default role from config
         identification_national: data.identificationNational,
         carte_national: data.carteNational,
         carte_national_start_date: data.carteNationalStartDate,
@@ -124,10 +121,9 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
     return true;
   };
 
-  // Determine if we should show advanced sections based on config or role
-  const shouldShowEmployeeSection = config.showEmployeeFields || watchedRoleId === 3;
-  const shouldShowDriverSection = config.showDriverFields || watchedRoleId === 4;
-  const shouldShowTabs = shouldShowEmployeeSection || shouldShowDriverSection;
+  // Determine if we should show advanced sections based on config
+  const shouldShowEmployeeSection = config.showEmployeeFields;
+  const shouldShowDriverSection = config.showDriverFields;
 
   return (
     <Form {...form}>
@@ -151,21 +147,11 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           </TabsList>
           
           <TabsContent value="basic" className="space-y-4 mt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <BasicInfoSection 
-                control={form.control} 
-                isSubmitting={isSubmitting} 
-                isEmailRequired={config.requireEmail}
-              />
-              <RoleSection 
-                control={form.control} 
-                isSubmitting={isSubmitting} 
-                watchedRoleId={watchedRoleId}
-                watchedEmail={watchedEmail}
-                onEmailValidationChange={setIsEmailValid}
-                userId={user?.id}
-              />
-            </div>
+            <BasicInfoSection 
+              control={form.control} 
+              isSubmitting={isSubmitting} 
+              isEmailRequired={config.requireEmail}
+            />
           </TabsContent>
           
           <TabsContent value="identity" className="space-y-4 mt-6">

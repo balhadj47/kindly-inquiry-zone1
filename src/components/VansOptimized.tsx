@@ -119,7 +119,7 @@ const VansOptimized = () => {
 
     if (statusFilter !== 'all') {
       filtered = filtered.filter(van => {
-        const vanStatus = typeof van.status === 'string' ? van.status : 'Actif';
+        const vanStatus = typeof van.status === 'string' ? van.status : 'Active';
         return vanStatus === statusFilter;
       });
     }
@@ -133,8 +133,8 @@ const VansOptimized = () => {
           bVal = typeof b.model === 'string' ? b.model : '';
           return direction * aVal.localeCompare(bVal);
         case 'status':
-          aVal = typeof a.status === 'string' ? a.status : 'Actif';
-          bVal = typeof b.status === 'string' ? b.status : 'Actif';
+          aVal = typeof a.status === 'string' ? a.status : 'Active';
+          bVal = typeof b.status === 'string' ? b.status : 'Active';
           return direction * aVal.localeCompare(bVal);
         case 'license_plate':
         default:

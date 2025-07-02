@@ -26,17 +26,19 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[800px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-lg sm:text-xl">
-            {van ? t.editVan : t.addNewVan}
-          </DialogTitle>
-          <DialogDescription className="text-sm sm:text-base">
-            {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-[900px] p-0">
+        <div className="p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              {van ? t.editVan : t.addNewVan}
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
+              {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
         
-        <form onSubmit={onSubmit} className="space-y-4 sm:space-y-6">
+        <form onSubmit={onSubmit} className="px-6 pb-6">
           <VanFormFields
             formData={formData}
             onInputChange={handleInputChange}

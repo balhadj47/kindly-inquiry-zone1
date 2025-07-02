@@ -35,7 +35,7 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
           description: 'Utilisateur créé avec succès',
         });
       }
-      onClose(); // This should close the modal after successful operation
+      onClose();
     } catch (error) {
       console.error('Error submitting user:', error);
       toast({
@@ -50,25 +50,29 @@ const UserModal: React.FC<UserModalProps> = ({ isOpen, onClose, user }) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[800px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-lg sm:text-xl">
-            {user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
-          </DialogTitle>
-          <DialogDescription className="text-sm sm:text-base">
-            {user 
-              ? 'Modifiez les informations de l\'utilisateur ci-dessous.' 
-              : 'Remplissez les informations pour créer un nouvel utilisateur.'
-            }
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-[900px] p-0">
+        <div className="p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">
+              {user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur'}
+            </DialogTitle>
+            <DialogDescription className="text-base text-muted-foreground">
+              {user 
+                ? 'Modifiez les informations de l\'utilisateur ci-dessous.' 
+                : 'Remplissez les informations pour créer un nouvel utilisateur.'
+              }
+            </DialogDescription>
+          </DialogHeader>
+        </div>
         
-        <UserModalForm
-          user={user}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          onCancel={onClose}
-        />
+        <div className="px-6 pb-6">
+          <UserModalForm
+            user={user}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            onCancel={onClose}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

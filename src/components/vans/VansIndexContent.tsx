@@ -71,49 +71,58 @@ const VansIndexContent: React.FC<VansIndexContentProps> = ({
   isRefreshing,
 }) => {
   return (
-    <div className="space-y-4 sm:space-y-6">
-      <VansHeader 
-        onAddVan={handleAddVan} 
-        onRefresh={onRefresh}
-        isRefreshing={isRefreshing}
-      />
-      
-      <Card>
-        <CardContent className="p-4 sm:pt-6">
-          <div className="flex flex-col lg:flex-row gap-4">
-            <VansSearch 
-              searchTerm={searchTerm} 
-              onSearchChange={setSearchTerm} 
-            />
-            <VanFilters
-              statusFilter={statusFilter}
-              setStatusFilter={setStatusFilter}
-              sortField={sortField}
-              setSortField={setSortField}
-              sortDirection={sortDirection}
-              setSortDirection={setSortDirection}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {filteredAndSortedVans.length === 0 ? (
-        <VansEmptyState 
-          searchTerm={searchTerm} 
+    <div className="h-screen flex flex-col overflow-hidden">
+      {/* Fixed Header */}
+      <div className="flex-shrink-0 p-4 sm:p-6 border-b bg-white">
+        <VansHeader 
           onAddVan={handleAddVan} 
+          onRefresh={onRefresh}
+          isRefreshing={isRefreshing}
         />
-      ) : (
-        <VanList
-          vans={filteredAndSortedVans}
-          totalVans={vansData?.length || 0}
-          searchTerm={searchTerm}
-          statusFilter={statusFilter}
-          onAddVan={handleAddVan}
-          onEditVan={handleEditVan}
-          onQuickAction={handleQuickAction}
-          onDeleteVan={handleDeleteVan}
-        />
-      )}
+      </div>
+      
+      {/* Fixed Search/Filter Section */}
+      <div className="flex-shrink-0 p-4 sm:px-6 bg-white border-b">
+        <Card>
+          <CardContent className="p-4 sm:pt-6">
+            <div className="flex flex-col lg:flex-row gap-4">
+              <VansSearch 
+                searchTerm={searchTerm} 
+                onSearchChange={setSearchTerm} 
+              />
+              <VanFilters
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                sortField={sortField}
+                setSortField={setSortField}
+                sortDirection={sortDirection}
+                setSortDirection={setSortDirection}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-y-auto p-4 sm:p-6">
+        {filteredAndSortedVans.length === 0 ? (
+          <VansEmptyState 
+            searchTerm={searchTerm} 
+            onAddVan={handleAddVan} 
+          />
+        ) : (
+          <VanList
+            vans={filteredAndSortedVans}
+            totalVans={vansData?.length || 0}
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            onAddVan={handleAddVan}
+            onEditVan={handleEditVan}
+            onQuickAction={handleQuickAction}
+            onDeleteVan={handleDeleteVan}
+          />
+        )}
+      </div>
 
       <VanModal
         isOpen={isModalOpen}

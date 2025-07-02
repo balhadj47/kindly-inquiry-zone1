@@ -17,24 +17,44 @@ const EmployeesContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   
-  const { data: employeesData = [], refetch } = useUsersByRoleId(3);
+  console.log('🏢 EmployeesContainer: Starting to fetch employees data');
+  
+  const { data: employeesData = [], refetch, error } = useUsersByRoleId(3);
+  
+  console.log('🏢 EmployeesContainer: Raw employees data:', {
+    data: employeesData,
+    dataType: typeof employeesData,
+    isArray: Array.isArray(employeesData),
+    length: employeesData?.length || 0,
+    error: error
+  });
+
   // Transform the data to match User interface
-  const employees: User[] = employeesData.map(emp => ({
-    ...emp,
-    id: emp.id?.toString() || '',
-    createdAt: emp.created_at || new Date().toISOString(),
-    status: emp.status as User['status'],
-    badgeNumber: emp.badge_number,
-    dateOfBirth: emp.date_of_birth,
-    placeOfBirth: emp.place_of_birth,
-    driverLicense: emp.driver_license,
-    totalTrips: emp.total_trips,
-    lastTrip: emp.last_trip,
-    profileImage: emp.profile_image,
-  }));
+  const employees: User[] = employeesData.map(emp => {
+    console.log('🔄 EmployeesContainer: Transforming employee:', emp);
+    
+    const transformedEmployee = {
+      ...emp,
+      id: emp.id?.toString() || '',
+      createdAt: emp.created_at || new Date().toISOString(),
+      status: emp.status as User['status'],
+      badgeNumber: emp.badge_number,
+      dateOfBirth: emp.date_of_birth,
+      placeOfBirth: emp.place_of_birth,
+      driverLicense: emp.driver_license,
+      totalTrips: emp.total_trips,
+      lastTrip: emp.last_trip,
+      profileImage: emp.profile_image,
+    };
+    
+    console.log('✅ EmployeesContainer: Transformed employee:', transformedEmployee);
+    return transformedEmployee;
+  });
   
   const permissions = useEmployeePermissions();
   
+  console.log('🔒 EmployeesContainer: Permissions:', permissions);
+
   const {
     isModalOpen,
     setIsModalOpen,
@@ -47,9 +67,32 @@ const EmployeesContainer = () => {
     handleCancelDelete,
   } = useEmployeeActions(refetch);
 
-  console.log('🏢 EmployeesContainer: Rendering with employees:', employees.length);
+  console.log('🏢 EmployeesContainer: Final state:', {
+    employeesCount: employees.length,
+    searchTerm,
+    statusFilter,
+    isModalOpen,
+    selectedEmployee: selectedEmployee?.id || 'none'
+  });
+
+  if (error) {
+    console.error('❌ EmployeesContainer: Error fetching employees:', error);
+    return (
+      <div className="text-center py-8">
+        <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
+        <p className="text-gray-600">Impossible de charger les employés. Veuillez réessayer.</p>
+        <button 
+          onClick={() => refetch()} 
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Réessayer
+        </button>
+      </div>
+    );
+  }
 
   if (!permissions.hasUsersReadPermission) {
+    console.warn('⚠️ EmployeesContainer: User lacks read permissions');
     return (
       <div className="text-center py-8">
         <h2 className="text-xl font-semibold mb-2">Accès non autorisé</h2>
@@ -75,6 +118,13 @@ const EmployeesContainer = () => {
     setSearchTerm('');
     setStatusFilter('all');
   };
+
+  console.log('🔍 EmployeesContainer: Filtered employees:', {
+    total: employees.length,
+    filtered: filteredEmployees.length,
+    searchTerm,
+    statusFilter
+  });
 
   return (
     <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">

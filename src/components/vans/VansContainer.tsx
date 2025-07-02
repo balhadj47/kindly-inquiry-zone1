@@ -102,16 +102,18 @@ const VansContainer = () => {
     );
   }
 
-  // Filter vans
-  const displayedVans = filteredAndSortedVans.filter(van => {
-    const matchesSearch = !searchTerm || 
-      van.license_plate?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      van.model?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      van.reference_code?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === 'all' || van.status === statusFilter;
-    
-    return matchesSearch && matchesStatus;
+  // Use only the filtered and sorted vans from the hook - no duplicate filtering
+  const displayedVans = filteredAndSortedVans;
+
+  console.log('🔍 VansContainer: Search debugging:', {
+    searchTerm,
+    totalVans: vansData.length,
+    filteredVans: displayedVans.length,
+    sampleVan: vansData[0] ? {
+      license_plate: vansData[0].license_plate,
+      model: vansData[0].model,
+      reference_code: vansData[0].reference_code
+    } : null
   });
 
   return (

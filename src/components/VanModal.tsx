@@ -31,7 +31,7 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[900px] max-h-[95vh] p-0">
+      <DialogContent className="w-[95vw] max-w-[900px] max-h-[95vh] p-0 fixed top-[2.5vh] left-1/2 transform -translate-x-1/2 z-50">
         <div className="flex flex-col h-full max-h-[95vh]">
           <div className="p-4 sm:p-6 flex-shrink-0">
             <DialogHeader>

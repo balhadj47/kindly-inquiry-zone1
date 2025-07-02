@@ -50,7 +50,7 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onEdit }: VanDetailsDialogProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto fixed top-[5vh] left-1/2 transform -translate-x-1/2 z-50">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <div className="flex items-center space-x-3">

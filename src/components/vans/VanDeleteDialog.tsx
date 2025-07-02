@@ -22,7 +22,7 @@ interface VanDeleteDialogProps {
 const VanDeleteDialog = ({ isOpen, onClose, van, onConfirm, isLoading }: VanDeleteDialogProps) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent>
+      <AlertDialogContent className="fixed top-[20vh] left-1/2 transform -translate-x-1/2 z-50">
         <AlertDialogHeader>
           <AlertDialogTitle>Supprimer la camionnette</AlertDialogTitle>
           <AlertDialogDescription>

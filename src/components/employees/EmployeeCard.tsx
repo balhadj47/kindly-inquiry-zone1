@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -127,7 +126,6 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Edit}
           variant="outline"
           size="sm"
-          className="border-gray-300 text-gray-600 hover:text-gray-800 hover:bg-gray-50 hover:border-gray-400"
         >
           Modifier
         </ActionButton>
@@ -138,7 +136,6 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           icon={Trash2}
           variant="outline"
           size="sm"
-          className="border-gray-300 text-red-600 hover:text-red-700 hover:bg-red-50 hover:border-red-400"
         >
           Supprimer
         </ActionButton>

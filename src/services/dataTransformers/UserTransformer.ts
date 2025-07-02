@@ -58,7 +58,7 @@ export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
       placeOfBirth: dbUser.place_of_birth || null,
       address: dbUser.address || null,
       driverLicense: dbUser.driver_license || null,
-      // New fields
+      // All new fields properly transformed
       identification_national: dbUser.identification_national || null,
       carte_national: dbUser.carte_national || null,
       carte_national_start_date: dbUser.carte_national_start_date || null,

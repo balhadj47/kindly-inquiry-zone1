@@ -31,7 +31,7 @@ const EmployeesContainer = () => {
     error: error
   });
 
-  // Transform the data to match User interface
+  // Transform the data to match User interface - Include ALL fields
   const employees: User[] = employeesData.map(emp => {
     console.log('🔄 EmployeesContainer: Transforming employee:', emp);
     
@@ -47,9 +47,20 @@ const EmployeesContainer = () => {
       totalTrips: emp.total_trips,
       lastTrip: emp.last_trip,
       profileImage: emp.profile_image,
+      // Add ALL the new fields
+      identification_national: emp.identification_national,
+      carte_national: emp.carte_national,
+      carte_national_start_date: emp.carte_national_start_date,
+      carte_national_expiry_date: emp.carte_national_expiry_date,
+      driver_license_start_date: emp.driver_license_start_date,
+      driver_license_expiry_date: emp.driver_license_expiry_date,
+      driver_license_category: emp.driver_license_category,
+      driver_license_category_dates: emp.driver_license_category_dates,
+      blood_type: emp.blood_type,
+      company_assignment_date: emp.company_assignment_date,
     };
     
-    console.log('✅ EmployeesContainer: Transformed employee:', transformedEmployee);
+    console.log('✅ EmployeesContainer: Transformed employee with all fields:', transformedEmployee);
     return transformedEmployee;
   });
   

@@ -4,13 +4,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar } from 'lucide-react';
-import { User } from '@/types/rbac';
+import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart } from 'lucide-react';
+import { User as UserType } from '@/types/rbac';
 
 interface EmployeeCardProps {
-  employee: User;
-  onEdit: (employee: User) => void;
-  onDelete: (employee: User) => void;
+  employee: UserType;
+  onEdit: (employee: UserType) => void;
+  onDelete: (employee: UserType) => void;
   canEdit: boolean;
   canDelete: boolean;
 }
@@ -47,6 +47,15 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
         return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return null;
+    try {
+      return new Date(dateString).toLocaleDateString('fr-FR');
+    } catch {
+      return dateString;
     }
   };
 
@@ -114,6 +123,13 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
             </div>
           )}
           
+          {employee.email && (
+            <div className="flex items-center space-x-2">
+              <span>📧</span>
+              <span>{employee.email}</span>
+            </div>
+          )}
+          
           {employee.address && (
             <div className="flex items-center space-x-2">
               <MapPin className="h-4 w-4" />
@@ -124,7 +140,49 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({
           {employee.dateOfBirth && (
             <div className="flex items-center space-x-2">
               <Calendar className="h-4 w-4" />
-              <span>Né(e) le: {new Date(employee.dateOfBirth).toLocaleDateString('fr-FR')}</span>
+              <span>Né(e) le: {formatDate(employee.dateOfBirth)}</span>
+            </div>
+          )}
+
+          {employee.placeOfBirth && (
+            <div className="flex items-center space-x-2">
+              <MapPin className="h-4 w-4" />
+              <span>Lieu de naissance: {employee.placeOfBirth}</span>
+            </div>
+          )}
+
+          {employee.identification_national && (
+            <div className="flex items-center space-x-2">
+              <User className="h-4 w-4" />
+              <span>ID National: {employee.identification_national}</span>
+            </div>
+          )}
+
+          {employee.carte_national && (
+            <div className="flex items-center space-x-2">
+              <CreditCard className="h-4 w-4" />
+              <span>Carte Nationale: {employee.carte_national}</span>
+            </div>
+          )}
+
+          {employee.driverLicense && (
+            <div className="flex items-center space-x-2">
+              <span>🚗</span>
+              <span>Permis: {employee.driverLicense}</span>
+            </div>
+          )}
+
+          {employee.blood_type && (
+            <div className="flex items-center space-x-2">
+              <Heart className="h-4 w-4" />
+              <span>Groupe sanguin: {employee.blood_type}</span>
+            </div>
+          )}
+
+          {employee.company_assignment_date && (
+            <div className="flex items-center space-x-2">
+              <Building className="h-4 w-4" />
+              <span>Affectation: {formatDate(employee.company_assignment_date)}</span>
             </div>
           )}
         </div>

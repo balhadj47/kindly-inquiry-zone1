@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +19,17 @@ export interface User {
   place_of_birth?: string;
   address?: string;
   driver_license?: string;
+  // All new fields
+  identification_national?: string;
+  carte_national?: string;
+  carte_national_start_date?: string;
+  carte_national_expiry_date?: string;
+  driver_license_start_date?: string;
+  driver_license_expiry_date?: string;
+  driver_license_category?: string[];
+  driver_license_category_dates?: any;
+  blood_type?: string;
+  company_assignment_date?: string;
 }
 
 // Base hook for all users with pagination
@@ -72,6 +82,17 @@ export const useUsers = (page = 1, limit = 20) => {
             place_of_birth: dbUser.place_of_birth || undefined,
             address: dbUser.address || undefined,
             driver_license: dbUser.driver_license || undefined,
+            // Map ALL new fields
+            identification_national: dbUser.identification_national || undefined,
+            carte_national: dbUser.carte_national || undefined,
+            carte_national_start_date: dbUser.carte_national_start_date || undefined,
+            carte_national_expiry_date: dbUser.carte_national_expiry_date || undefined,
+            driver_license_start_date: dbUser.driver_license_start_date || undefined,
+            driver_license_expiry_date: dbUser.driver_license_expiry_date || undefined,
+            driver_license_category: dbUser.driver_license_category || undefined,
+            driver_license_category_dates: dbUser.driver_license_category_dates || undefined,
+            blood_type: dbUser.blood_type || undefined,
+            company_assignment_date: dbUser.company_assignment_date || undefined,
           };
         }),
         total: count || 0
@@ -117,7 +138,9 @@ export const useUsersByRoleId = (roleId: number | null) => {
       
       return (data || []).map(user => {
         const dbUser = user as any; // Safe casting to access new fields
-        return {
+        console.log('🔄 useUsersOptimized: Raw user from DB:', dbUser);
+        
+        const transformedUser = {
           id: dbUser.id.toString(),
           name: dbUser.name || '',
           email: dbUser.email || undefined,
@@ -134,7 +157,21 @@ export const useUsersByRoleId = (roleId: number | null) => {
           place_of_birth: dbUser.place_of_birth || undefined,
           address: dbUser.address || undefined,
           driver_license: dbUser.driver_license || undefined,
+          // Include ALL new fields with proper mapping
+          identification_national: dbUser.identification_national || undefined,
+          carte_national: dbUser.carte_national || undefined,
+          carte_national_start_date: dbUser.carte_national_start_date || undefined,
+          carte_national_expiry_date: dbUser.carte_national_expiry_date || undefined,
+          driver_license_start_date: dbUser.driver_license_start_date || undefined,
+          driver_license_expiry_date: dbUser.driver_license_expiry_date || undefined,
+          driver_license_category: dbUser.driver_license_category || undefined,
+          driver_license_category_dates: dbUser.driver_license_category_dates || undefined,
+          blood_type: dbUser.blood_type || undefined,
+          company_assignment_date: dbUser.company_assignment_date || undefined,
         };
+        
+        console.log('✅ useUsersOptimized: Transformed user with all fields:', transformedUser);
+        return transformedUser;
       });
     },
     enabled: !!roleId,
@@ -186,6 +223,17 @@ export const useUser = (userId: string | null) => {
         place_of_birth: dbUser.place_of_birth || undefined,
         address: dbUser.address || undefined,
         driver_license: dbUser.driver_license || undefined,
+        // Include ALL new fields
+        identification_national: dbUser.identification_national || undefined,
+        carte_national: dbUser.carte_national || undefined,
+        carte_national_start_date: dbUser.carte_national_start_date || undefined,
+        carte_national_expiry_date: dbUser.carte_national_expiry_date || undefined,
+        driver_license_start_date: dbUser.driver_license_start_date || undefined,
+        driver_license_expiry_date: dbUser.driver_license_expiry_date || undefined,
+        driver_license_category: dbUser.driver_license_category || undefined,
+        driver_license_category_dates: dbUser.driver_license_category_dates || undefined,
+        blood_type: dbUser.blood_type || undefined,
+        company_assignment_date: dbUser.company_assignment_date || undefined,
       };
     },
     enabled: !!userId,
@@ -216,11 +264,27 @@ export const useUserMutations = () => {
         place_of_birth: userData.place_of_birth && userData.place_of_birth.trim() !== '' ? userData.place_of_birth : null,
         address: userData.address && userData.address.trim() !== '' ? userData.address : null,
         driver_license: userData.driver_license && userData.driver_license.trim() !== '' ? userData.driver_license : null,
+        // Include ALL new fields in updates
+        identification_national: userData.identification_national && userData.identification_national.trim() !== '' ? userData.identification_national : null,
+        carte_national: userData.carte_national && userData.carte_national.trim() !== '' ? userData.carte_national : null,
+        carte_national_start_date: userData.carte_national_start_date && userData.carte_national_start_date.trim() !== '' ? userData.carte_national_start_date : null,
+        carte_national_expiry_date: userData.carte_national_expiry_date && userData.carte_national_expiry_date.trim() !== '' ? userData.carte_national_expiry_date : null,
+        driver_license_start_date: userData.driver_license_start_date && userData.driver_license_start_date.trim() !== '' ? userData.driver_license_start_date : null,
+        driver_license_expiry_date: userData.driver_license_expiry_date && userData.driver_license_expiry_date.trim() !== '' ? userData.driver_license_expiry_date : null,
+        driver_license_category: userData.driver_license_category || null,
+        driver_license_category_dates: userData.driver_license_category_dates || null,
+        blood_type: userData.blood_type && userData.blood_type.trim() !== '' ? userData.blood_type : null,
+        company_assignment_date: userData.company_assignment_date && userData.company_assignment_date.trim() !== '' ? userData.company_assignment_date : null,
       };
 
       // Only update email if it's provided
       if (userData.email !== undefined) {
         updateData.email = userData.email && userData.email.trim() !== '' ? userData.email : null;
+      }
+      
+      // Only update profile_image if it's provided
+      if (userData.profileImage !== undefined) {
+        updateData.profile_image = userData.profileImage;
       }
       
       const { data, error } = await supabase

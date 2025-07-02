@@ -44,7 +44,7 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
     clearFilters,
   } = useVansFiltering();
 
-  const { deleteVan, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
+  const { deleteVan, confirmDelete, isDeleting, isDeleteDialogOpen, setIsDeleteDialogOpen, vanToDelete } = useVanDelete(refreshVans);
 
   // Filter vans based on search and status
   const filteredVans = useMemo(() => {
@@ -124,7 +124,7 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
   }
 
   if (vans.length === 0 && !isLoading) {
-    return <VansEmptyState onCreateVan={handleCreateVan} />;
+    return <VansEmptyState searchTerm={searchTerm} onAddVan={handleCreateVan} />;
   }
 
   return (
@@ -132,7 +132,7 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
       {/* Header - Fixed */}
       <div className="flex-shrink-0 p-4 sm:p-6 border-b">
         <div className="flex justify-between items-center">
-          <VansHeader vansCount={vans.length} />
+          <VansHeader onAddVan={handleCreateVan} vansCount={vans.length} />
           <VansActions 
             onCreateVan={handleCreateVan}
             onRefresh={onRefresh}
@@ -150,9 +150,11 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
           />
           <VanFilters
             statusFilter={statusFilter}
-            onStatusFilterChange={setStatusFilter}
-            onClearFilters={clearFilters}
-            vansCount={filteredVans.length}
+            setStatusFilter={setStatusFilter}
+            sortField="license_plate"
+            setSortField={() => {}}
+            sortDirection="asc"
+            setSortDirection={() => {}}
           />
         </div>
       </div>
@@ -161,18 +163,18 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 sm:p-6">
           <VanListSummary 
-            total={filteredVans.length}
-            startIndex={startIndex}
-            endIndex={endIndex}
+            displayedCount={paginatedVans.length}
+            filteredCount={filteredVans.length}
+            currentPage={currentPage}
+            totalPages={totalPages}
           />
           
           <div className="mt-4">
             <VanListGrid 
               vans={paginatedVans}
-              isLoading={isLoading}
               onEditVan={handleEditVan}
               onDeleteVan={handleDeleteVan}
-              onViewVan={handleViewVan}
+              onQuickAction={handleViewVan}
             />
           </div>
           
@@ -200,9 +202,8 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
         van={vanToDelete}
-        onConfirm={() => {
-          // Delete logic is handled in useVanDelete
-        }}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
       />
 
       <VanDetailsDialog

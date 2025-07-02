@@ -1,16 +1,16 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, Truck } from 'lucide-react';
+import { Truck } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface VansHeaderProps {
-  onAddVan: () => void;
+  onAddVan?: () => void;
   onRefresh?: () => void;
   isRefreshing?: boolean;
+  vansCount?: number;
 }
 
-const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, isRefreshing = false }) => {
+const VansHeader: React.FC<VansHeaderProps> = ({ vansCount = 0 }) => {
   const { t } = useLanguage();
 
   return (
@@ -22,32 +22,12 @@ const VansHeader: React.FC<VansHeaderProps> = ({ onAddVan, onRefresh, isRefreshi
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              {t.vansManagement}
+              Gestion des Véhicules
             </h1>
             <p className="text-gray-600 mt-1">
-              {t.manageYourFleet}
+              {vansCount} véhicule{vansCount !== 1 ? 's' : ''}
             </p>
           </div>
-        </div>
-        
-        <div className="flex items-center gap-2 mt-4 lg:mt-0">
-          <Button 
-            onClick={onAddVan} 
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter
-          </Button>
-          {onRefresh && (
-            <Button 
-              onClick={onRefresh} 
-              disabled={isRefreshing}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-          )}
         </div>
       </div>
     </div>

@@ -330,11 +330,20 @@ export type Database = {
           address: string | null
           auth_user_id: string | null
           badge_number: string | null
+          blood_type: string | null
+          carte_national: string | null
+          carte_national_expiry_date: string | null
+          carte_national_start_date: string | null
+          company_assignment_date: string | null
           created_at: string
           date_of_birth: string | null
           driver_license: string | null
+          driver_license_category: string[] | null
+          driver_license_expiry_date: string | null
+          driver_license_start_date: string | null
           email: string | null
           id: number
+          identification_national: string | null
           last_trip: string | null
           name: string
           phone: string | null
@@ -348,11 +357,20 @@ export type Database = {
           address?: string | null
           auth_user_id?: string | null
           badge_number?: string | null
+          blood_type?: string | null
+          carte_national?: string | null
+          carte_national_expiry_date?: string | null
+          carte_national_start_date?: string | null
+          company_assignment_date?: string | null
           created_at?: string
           date_of_birth?: string | null
           driver_license?: string | null
+          driver_license_category?: string[] | null
+          driver_license_expiry_date?: string | null
+          driver_license_start_date?: string | null
           email?: string | null
           id?: number
+          identification_national?: string | null
           last_trip?: string | null
           name: string
           phone?: string | null
@@ -366,11 +384,20 @@ export type Database = {
           address?: string | null
           auth_user_id?: string | null
           badge_number?: string | null
+          blood_type?: string | null
+          carte_national?: string | null
+          carte_national_expiry_date?: string | null
+          carte_national_start_date?: string | null
+          company_assignment_date?: string | null
           created_at?: string
           date_of_birth?: string | null
           driver_license?: string | null
+          driver_license_category?: string[] | null
+          driver_license_expiry_date?: string | null
+          driver_license_start_date?: string | null
           email?: string | null
           id?: number
+          identification_national?: string | null
           last_trip?: string | null
           name?: string
           phone?: string | null
@@ -545,11 +572,20 @@ export type Database = {
           address: string | null
           auth_user_id: string | null
           badge_number: string | null
+          blood_type: string | null
+          carte_national: string | null
+          carte_national_expiry_date: string | null
+          carte_national_start_date: string | null
+          company_assignment_date: string | null
           created_at: string
           date_of_birth: string | null
           driver_license: string | null
+          driver_license_category: string[] | null
+          driver_license_expiry_date: string | null
+          driver_license_start_date: string | null
           email: string | null
           id: number
+          identification_national: string | null
           last_trip: string | null
           name: string
           phone: string | null

@@ -23,6 +23,16 @@ export interface User {
   placeOfBirth?: string;
   address?: string;
   driverLicense?: string;
+  // New fields
+  identification_national?: string;
+  carte_national?: string;
+  carte_national_start_date?: string;
+  carte_national_expiry_date?: string;
+  driver_license_start_date?: string;
+  driver_license_expiry_date?: string;
+  driver_license_category?: string[];
+  blood_type?: string;
+  company_assignment_date?: string;
 }
 
 // Re-export system group types for backward compatibility

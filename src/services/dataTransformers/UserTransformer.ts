@@ -18,6 +18,16 @@ export interface DatabaseUser {
   place_of_birth?: string;
   address?: string;
   driver_license?: string;
+  // New fields
+  identification_national?: string;
+  carte_national?: string;
+  carte_national_start_date?: string;
+  carte_national_expiry_date?: string;
+  driver_license_start_date?: string;
+  driver_license_expiry_date?: string;
+  driver_license_category?: string[];
+  blood_type?: string;
+  company_assignment_date?: string;
 }
 
 export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
@@ -47,6 +57,16 @@ export class UserTransformer extends BaseTransformer<DatabaseUser, User> {
       placeOfBirth: dbUser.place_of_birth || null,
       address: dbUser.address || null,
       driverLicense: dbUser.driver_license || null,
+      // New fields
+      identification_national: dbUser.identification_national || null,
+      carte_national: dbUser.carte_national || null,
+      carte_national_start_date: dbUser.carte_national_start_date || null,
+      carte_national_expiry_date: dbUser.carte_national_expiry_date || null,
+      driver_license_start_date: dbUser.driver_license_start_date || null,
+      driver_license_expiry_date: dbUser.driver_license_expiry_date || null,
+      driver_license_category: dbUser.driver_license_category || null,
+      blood_type: dbUser.blood_type || null,
+      company_assignment_date: dbUser.company_assignment_date || null,
     };
   }
 

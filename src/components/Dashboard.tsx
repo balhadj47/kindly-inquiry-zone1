@@ -1,8 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import StatsGrid from './dashboard/StatsGrid';
@@ -43,12 +41,6 @@ const Dashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
           <p className="text-gray-600">Vue d'ensemble de votre système de gestion</p>
         </div>
-        {permissions.canCreateTrips && (
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            <Plus className="w-4 h-4 mr-2" />
-            Nouveau trajet
-          </Button>
-        )}
       </div>
       
       <StatsGrid stats={stats} />

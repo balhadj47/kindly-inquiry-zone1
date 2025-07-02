@@ -65,7 +65,7 @@ const VanList = React.memo(({
   }
 
   return (
-    <div className="space-y-6">
+    <div className="h-full flex flex-col">
       <VanListSummary
         displayedCount={paginatedVans.length}
         filteredCount={vans.length}
@@ -73,18 +73,23 @@ const VanList = React.memo(({
         totalPages={totalPages}
       />
       
-      <VanListGrid
-        vans={paginatedVans}
-        onEditVan={onEditVan}
-        onQuickAction={handleVanClick}
-        onDeleteVan={onDeleteVan}
-      />
+      <div className="flex-1 min-h-0 overflow-y-auto mb-4">
+        <VanListGrid
+          vans={paginatedVans}
+          onEditVan={onEditVan}
+          onQuickAction={handleVanClick}
+          onDeleteVan={onDeleteVan}
+        />
+      </div>
 
-      <VanListPagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {/* Fixed pagination at bottom */}
+      <div className="flex-shrink-0 bg-white pt-2 pb-2">
+        <VanListPagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      </div>
 
       <VanDetailsDialog
         van={selectedVan}

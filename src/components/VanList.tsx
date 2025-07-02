@@ -34,9 +34,9 @@ const VanList: React.FC<VanListProps> = ({
         <VanCard
           key={van.id}
           van={van}
-          onEdit={() => onEditVan(van)}
-          onDelete={() => onDeleteVan(van)}
-          onQuickAction={onQuickAction ? () => onQuickAction(van) : undefined}
+          onEdit={onEditVan}
+          onDelete={onDeleteVan}
+          onQuickAction={onQuickAction || (() => {})}
         />
       ))}
     </div>

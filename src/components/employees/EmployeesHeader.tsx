@@ -13,7 +13,7 @@ const EmployeesHeader: React.FC<EmployeesHeaderProps> = ({
   return (
     <PageHeader
       title="Gestion des Employés"
-      subtitle={`${employeesCount} employé${employeesCount !== 1 ? 's' : ''} sur le terrain`}
+      subtitle={`${employeesCount} employé${employeesCount !== 1 ? 's' : ''}`}
       icon={Users}
       iconColor="text-green-600"
       iconBgColor="bg-green-100"

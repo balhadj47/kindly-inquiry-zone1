@@ -29,13 +29,13 @@ const VanFilters = ({
 }: VanFiltersProps) => {
   const statusOptions = [
     { value: 'all', label: 'Tous les Statuts' },
-    { value: 'Actif', label: 'Actif' },
+    { value: 'Active', label: 'Actif' },
     { value: 'En Transit', label: 'En Transit' },
     { value: 'Maintenance', label: 'Maintenance' },
   ];
 
   return (
-    <Card>
+    <Card className="border-gray-200">
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="relative flex-1">
@@ -44,13 +44,13 @@ const VanFilters = ({
               placeholder="Rechercher par plaque, modèle, chauffeur..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 bg-white border-gray-200 focus:border-blue-500 focus:ring-blue-500"
             />
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2">
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Filtrer par statut" />
               </SelectTrigger>
@@ -64,7 +64,7 @@ const VanFilters = ({
             </Select>
 
             <Select value={sortField} onValueChange={setSortField}>
-              <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectTrigger className="w-full sm:w-[180px] bg-white border-gray-200">
                 {sortDirection === 'asc' ? 
                   <SortAsc className="h-4 w-4 mr-2" /> : 
                   <SortDesc className="h-4 w-4 mr-2" />
@@ -83,7 +83,7 @@ const VanFilters = ({
             <Button
               variant="outline"
               onClick={() => toggleSort(sortField)}
-              className="px-3"
+              className="px-3 border-gray-200 hover:bg-gray-50"
             >
               {sortDirection === 'asc' ? 
                 <SortAsc className="h-4 w-4" /> : 

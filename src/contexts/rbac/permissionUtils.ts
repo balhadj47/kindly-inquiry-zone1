@@ -43,6 +43,7 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return basicPermissions.includes(permission);
     }
 
+    // FIX: Use role_id instead of trying to parse string id as integer
     const userRole = globalRoles.find(role => (role as any).role_id === globalCurrentUser.role_id);
     if (!userRole) {
       return basicPermissions.includes(permission);
@@ -70,7 +71,8 @@ export const getUserRole = (userId: string): SystemGroup | null => {
       return null;
     }
     
-    const role = globalRoles.find(r => parseInt(r.id) === globalCurrentUser.role_id);
+    // FIX: Use role_id consistently
+    const role = globalRoles.find(r => (r as any).role_id === globalCurrentUser.role_id);
     return role || null;
   } catch (error) {
     return null;

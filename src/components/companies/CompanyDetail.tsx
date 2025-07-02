@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCompanies } from '@/hooks/useCompanies';
@@ -154,28 +155,6 @@ const CompanyDetail = () => {
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-
-      {/* Permission Debug Panel */}
-      <Card className="bg-yellow-50 border-yellow-200">
-        <CardHeader>
-          <CardTitle className="text-yellow-800">Permission Debug Info</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-yellow-700 space-y-1">
-            <p><strong>Current User Role ID:</strong> {
-              permissions.currentUser?.role_id !== undefined 
-                ? permissions.currentUser.role_id 
-                : 'No role assigned'
-            }</p>
-            <p><strong>Is Admin:</strong> {permissions.isAdmin ? 'Yes' : 'No'}</p>
-            <p><strong>Is View Only:</strong> {permissions.isViewOnly ? 'Yes' : 'No'}</p>
-            <p><strong>Can Create Companies:</strong> {permissions.canCreateCompanies ? 'Yes' : 'No'}</p>
-            <p><strong>Can Update Companies:</strong> {permissions.canUpdateCompanies ? 'Yes' : 'No'}</p>
-            <p><strong>Can Delete Companies:</strong> {permissions.canDeleteCompanies ? 'Yes' : 'No'}</p>
-            <p><strong>Current User Data:</strong> {JSON.stringify(permissions.currentUser, null, 2)}</p>
-          </div>
-        </CardContent>
-      </Card>
 
       <Card>
         <CardHeader>

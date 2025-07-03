@@ -31,12 +31,17 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
   const { canUpdateTrips, canDeleteTrips } = usePermissionCheck();
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
       <Button
-        onClick={() => onView(mission)}
-        variant="ghost"
+        variant="outline"
         size="sm"
-        className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
+        onClick={() => onView(mission)}
+        style={{
+          backgroundColor: 'white',
+          borderColor: '#d1d5db',
+          color: '#4b5563'
+        }}
+        className="h-8 w-8 p-0 hover:bg-gray-50 hover:text-gray-800 hover:border-gray-400"
       >
         <Eye className="h-4 w-4" />
       </Button>
@@ -44,20 +49,30 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       {canUpdateTrips && (
         <>
           <Button
-            onClick={() => onEdit(mission)}
-            variant="ghost"
+            variant="outline"
             size="sm"
-            className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
+            onClick={() => onEdit(mission)}
+            style={{
+              backgroundColor: 'white',
+              borderColor: '#93c5fd',
+              color: '#2563eb'
+            }}
+            className="h-8 w-8 p-0 hover:bg-blue-50 hover:text-blue-800 hover:border-blue-400"
           >
             <Edit className="h-4 w-4" />
           </Button>
           
           {mission.status === 'active' && (
             <Button
-              onClick={() => onTerminate(mission)}
-              variant="ghost"
+              variant="outline"
               size="sm"
-              className="h-8 w-8 p-0 bg-orange-500 text-white hover:bg-orange-600"
+              onClick={() => onTerminate(mission)}
+              style={{
+                backgroundColor: 'white',
+                borderColor: '#fdba74',
+                color: '#ea580c'
+              }}
+              className="h-8 w-8 p-0 hover:bg-orange-50 hover:text-orange-800 hover:border-orange-400"
             >
               <StopCircle className="h-4 w-4" />
             </Button>
@@ -67,10 +82,15 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       
       {canDeleteTrips && (
         <Button
-          onClick={() => onDelete(mission)}
-          variant="ghost"
+          variant="outline"
           size="sm"
-          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
+          onClick={() => onDelete(mission)}
+          style={{
+            backgroundColor: 'white',
+            borderColor: '#fca5a5',
+            color: '#dc2626'
+          }}
+          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-700 hover:border-red-400"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

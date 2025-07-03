@@ -4,7 +4,8 @@ import { Circle, Clock, MapPin, Users, Car } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
 import { EntityCard } from '@/components/ui/entity-card';
-import { ActionButton } from '@/components/ui/action-button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import MissionCardActions from './MissionCardActions';
 
 interface MissionCardProps {
   mission: Trip;
@@ -93,12 +94,22 @@ const MissionCard: React.FC<MissionCardProps> = ({
     }
   };
 
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const statusConfig = getStatusConfig(mission.status || 'active');
+  const driverName = getDriverName();
 
   const metadata = [
     {
       label: 'Chauffeur',
-      value: getDriverName(),
+      value: driverName,
       icon: <Users className="h-4 w-4" />
     },
     {
@@ -121,46 +132,44 @@ const MissionCard: React.FC<MissionCardProps> = ({
   ].filter(Boolean);
 
   const actions = (canEdit || canDelete) && (
-    <div className="flex items-center gap-2">
-      {canDelete && mission.status === 'active' && (
-        <ActionButton
-          onClick={() => onTerminateClick(mission)}
-          icon={Circle}
-          variant="outline"
-          size="sm"
-          disabled={actionLoading === 'loading' || isTerminating}
-          loading={isTerminating}
-          className="text-orange-600 border-orange-200 hover:bg-orange-50 hover:border-orange-300"
-        >
-          Terminer
-        </ActionButton>
-      )}
-      
-      {canDelete && (
-        <ActionButton
-          onClick={() => onDeleteClick(mission)}
-          icon={Circle}
-          variant="outline"
-          size="sm"
-          disabled={actionLoading === 'loading'}
-          className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
-        >
-          Supprimer
-        </ActionButton>
-      )}
-    </div>
+    <MissionCardActions
+      mission={mission}
+      onEdit={() => onMissionClick(mission)}
+      onDelete={() => onDeleteClick(mission)}
+      onView={() => onMissionClick(mission)}
+      onTerminate={() => onTerminateClick(mission)}
+    />
   );
 
   return (
     <EntityCard
       title={mission.company}
       subtitle={mission.branch}
-      status={statusConfig}
+      status={{
+        label: statusConfig.label,
+        variant: statusConfig.variant,
+        color: statusConfig.color
+      }}
       metadata={metadata}
       actions={actions}
       onClick={() => onMissionClick(mission)}
-      className="transition-all duration-200 hover:shadow-lg"
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
     >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${driverName}`}
+            alt={driverName}
+          />
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
+            {getUserInitials(driverName)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Mission: {mission.status === 'active' ? 'En cours' : 'Terminée'}
+        </div>
+      </div>
+
       {mission.notes && (
         <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-sm text-amber-800">

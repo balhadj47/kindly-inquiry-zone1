@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Edit, 
   Trash2,
@@ -8,13 +9,14 @@ import {
   Calendar,
   FileText,
   Car,
-  MapPin
+  MapPin,
+  AlertTriangle
 } from 'lucide-react';
 import { getStatusColor } from '@/utils/vanUtils';
 import { format } from 'date-fns';
 import { Van } from '@/types/van';
 import { EntityCard } from '@/components/ui/entity-card';
-import { ActionButton } from '@/components/ui/action-button';
+import { Button } from '@/components/ui/button';
 
 interface VanCardProps {
   van: Van;
@@ -45,6 +47,7 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
   
   const isInsuranceExpired = insuranceDate && insuranceDate < today;
   const isControlExpired = controlDate && controlDate < today;
+  const hasExpiredDocs = isInsuranceExpired || isControlExpired;
 
   const getStatusConfig = (status: string | undefined) => {
     switch (status) {
@@ -59,6 +62,16 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       default:
         return { variant: 'secondary' as const, color: 'gray' };
     }
+  };
+
+  const getVanInitials = (model: string, licensePlate: string) => {
+    if (model) {
+      return model.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    if (licensePlate) {
+      return licensePlate.slice(0, 2).toUpperCase();
+    }
+    return 'VN';
   };
 
   const statusConfig = getStatusConfig(van.status);
@@ -93,23 +106,22 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
 
   const actions = (
     <div className="flex items-center gap-2">
-      <ActionButton
+      <Button
         onClick={handleEdit}
-        icon={Edit}
-        variant="outline"
+        variant="ghost"
         size="sm"
+        className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
       >
-        Modifier
-      </ActionButton>
-      <ActionButton
+        <Edit className="h-4 w-4" />
+      </Button>
+      <Button
         onClick={handleDelete}
-        icon={Trash2}
-        variant="outline"
+        variant="ghost"
         size="sm"
-        className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+        className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
       >
-        Supprimer
-      </ActionButton>
+        <Trash2 className="h-4 w-4" />
+      </Button>
     </div>
   );
 
@@ -125,10 +137,34 @@ const VanCard = React.memo(({ van, onEdit, onQuickAction, onDelete }: VanCardPro
       metadata={metadata}
       actions={actions}
       onClick={handleCardClick}
-      className="transition-all duration-200 hover:shadow-lg"
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
     >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${van.model || van.license_plate}`}
+            alt={van.model || van.license_plate}
+          />
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
+            {getVanInitials(van.model || '', van.license_plate || '')}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Créé le: {new Date(van.created_at).toLocaleDateString('fr-FR')}
+        </div>
+      </div>
+
+      {hasExpiredDocs && (
+        <div className="mb-4">
+          <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Documents expirés
+          </Badge>
+        </div>
+      )}
+
       {van.notes && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
           <div className="flex items-start space-x-2">
             <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
             <div className="flex-1 min-w-0">

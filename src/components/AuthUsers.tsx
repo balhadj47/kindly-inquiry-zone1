@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, ExternalLink, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -164,7 +163,11 @@ const AuthUsers = () => {
     return (
       <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
         <div className="flex items-center justify-between">
-          <AuthUsersHeader authUsersCount={0} />
+          <AuthUsersHeader 
+            authUsersCount={0} 
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
         </div>
 
         <Alert className="border-amber-200 bg-amber-50">
@@ -204,19 +207,12 @@ const AuthUsers = () => {
   return (
     <div className="space-y-6 max-w-full overflow-hidden">
       <div className="flex items-center justify-between">
-        <AuthUsersHeader authUsersCount={authUsers.length} />
+        <AuthUsersHeader 
+          authUsersCount={authUsers.length} 
+          onRefresh={handleRefresh}
+          isRefreshing={isRefreshing}
+        />
         <div className="flex items-center gap-3">
-          <ActionButton
-            onClick={handleRefresh}
-            icon={RefreshCw}
-            variant="outline"
-            size="default"
-            disabled={isRefreshing}
-            loading={isRefreshing}
-          >
-            Actualiser
-          </ActionButton>
-          
           {permissions.canCreate && (
             <ActionButton
               onClick={handleAddUser}

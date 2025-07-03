@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -31,6 +30,7 @@ interface CompanyCardProps {
   onEdit?: (company: Company) => void;
   onDelete?: (company: Company) => void;
   onClick?: (company: Company) => void;
+  onAddBranch?: (company: Company) => void;
   canEdit?: boolean;
   canDelete?: boolean;
 }
@@ -40,6 +40,7 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onEdit,
   onDelete,
   onClick,
+  onAddBranch,
   canEdit = false,
   canDelete = false
 }) => {
@@ -146,6 +147,15 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
         <div className="text-xs text-gray-500">
           Entreprise: {company.branches?.length || 0} succursale{(company.branches?.length || 0) !== 1 ? 's' : ''}
         </div>
+      </div>
+
+      <div className="mb-4">
+        <Badge 
+          variant="outline" 
+          className="text-xs font-medium text-blue-600 border-blue-200"
+        >
+          {company.branches?.length ? `${company.branches.length} succursale${company.branches.length !== 1 ? 's' : ''}` : 'Aucune succursale'}
+        </Badge>
       </div>
 
       {company.branches && company.branches.length > 0 && (

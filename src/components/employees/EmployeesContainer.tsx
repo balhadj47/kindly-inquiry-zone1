@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useUsersByRoleId } from '@/hooks/users';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
@@ -30,6 +29,7 @@ const EmployeesContainer = () => {
       id: emp.id?.toString() || '',
       createdAt: emp.created_at || new Date().toISOString(),
       status: emp.status as User['status'],
+      role_id: emp.role_id || 3, // Include the missing role_id field
       badgeNumber: emp.badge_number,
       dateOfBirth: emp.date_of_birth,
       placeOfBirth: emp.place_of_birth,

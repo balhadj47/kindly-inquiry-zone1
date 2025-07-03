@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Users } from 'lucide-react';
 import { UserWithRoles } from '@/hooks/useTripForm';
@@ -46,7 +45,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       email: emp.email,
       status: emp.status,
       badge_number: emp.badge_number,
-      role_id: emp.role_id
+      role_id: emp.role_id || 3 // Ensure role_id is included
     }));
   }, [employees, loading, error]);
 

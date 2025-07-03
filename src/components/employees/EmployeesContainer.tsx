@@ -48,9 +48,31 @@ const EmployeesContainer = () => {
       driver_license_start_date: emp.driver_license_start_date,
       driver_license_expiry_date: emp.driver_license_expiry_date,
       driver_license_category: emp.driver_license_category,
-      driver_license_category_dates: emp.driver_license_category_dates && typeof emp.driver_license_category_dates === 'object' 
-        ? emp.driver_license_category_dates as Record<string, { start?: string; expiry?: string }> 
-        : {},
+      driver_license_category_dates: (() => {
+        try {
+          if (!emp.driver_license_category_dates) return {};
+          
+          // If it's already an object, return it
+          if (typeof emp.driver_license_category_dates === 'object' && 
+              emp.driver_license_category_dates !== null &&
+              !Array.isArray(emp.driver_license_category_dates)) {
+            return emp.driver_license_category_dates as Record<string, { start?: string; expiry?: string }>;
+          }
+          
+          // If it's a string, try to parse it
+          if (typeof emp.driver_license_category_dates === 'string') {
+            const parsed = JSON.parse(emp.driver_license_category_dates);
+            if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+              return parsed as Record<string, { start?: string; expiry?: string }>;
+            }
+          }
+          
+          return {};
+        } catch (error) {
+          console.warn('Failed to parse driver_license_category_dates:', error);
+          return {};
+        }
+      })(),
       blood_type: emp.blood_type,
       company_assignment_date: emp.company_assignment_date,
     }));

@@ -43,6 +43,11 @@ interface TripFormContextType {
   handleNext: () => void;
   handleSubmit: () => Promise<void>;
   isSubmitting: boolean;
+
+  // Progress tracking
+  formSteps: Array<{id: string, label: string, description?: string}>;
+  currentStepId: string;
+  completedStepIds: string[];
 }
 
 const TripFormContext = React.createContext<TripFormContextType | undefined>(undefined);
@@ -87,6 +92,17 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
   } = useTripWizard();
 
   const [completedSteps, setCompletedSteps] = useState<Set<TripWizardStep>>(new Set());
+
+  // Form progress steps for enhanced UX
+  const formSteps = useMemo(() => [
+    { id: 'van', label: 'Véhicule', description: 'Sélection du véhicule et kilométrage' },
+    { id: 'company', label: 'Entreprise', description: 'Choix de l\'entreprise et filiale' },
+    { id: 'team', label: 'Équipe', description: 'Sélection des membres et rôles' },
+    { id: 'details', label: 'Détails', description: 'Informations complémentaires' }
+  ], []);
+
+  const currentStepId = currentStep;
+  const completedStepIds = Array.from(completedSteps);
 
   // Memoize the startKm change handler to prevent unnecessary re-renders
   const handleStartKmChange = useCallback((value: string) => {
@@ -187,6 +203,9 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     handleNext,
     handleSubmit,
     isSubmitting,
+    formSteps,
+    currentStepId,
+    completedStepIds,
   }), [
     formData,
     handleInputChange,
@@ -211,6 +230,9 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     handleNext,
     handleSubmit,
     isSubmitting,
+    formSteps,
+    currentStepId,
+    completedStepIds,
   ]);
 
   console.log('🔄 TripFormProvider: Component render completed');

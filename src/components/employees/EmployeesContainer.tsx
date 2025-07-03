@@ -9,6 +9,7 @@ import EmployeesListOptimized from './EmployeesListOptimized';
 import EmployeesFilters from './EmployeesFilters';
 import UserDialog from '../user-dialog/UserDialog';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
+import EmployeesEnhancedSkeleton from './EmployeesEnhancedSkeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { useState, useMemo } from 'react';
 import { User } from '@/types/rbac';
@@ -117,43 +118,55 @@ const EmployeesContainer = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Chargement des employés...</p>
-        </div>
-      </div>
-    );
+    return <EmployeesEnhancedSkeleton />;
   }
 
   if (error) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-2 text-red-600">Erreur de chargement</h2>
-        <p className="text-gray-600">Impossible de charger les employés. Veuillez réessayer.</p>
-        <button 
-          onClick={handleRefresh} 
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Réessayer
-        </button>
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="bg-destructive/10 rounded-full p-6 w-fit mx-auto">
+            <div className="w-12 h-12 bg-destructive/20 rounded-full flex items-center justify-center">
+              <span className="text-destructive text-2xl">⚠️</span>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold text-destructive">Erreur de chargement</h2>
+            <p className="text-muted-foreground">Impossible de charger les employés. Veuillez réessayer.</p>
+          </div>
+          <button 
+            onClick={handleRefresh} 
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors shadow-sm hover:shadow-md"
+          >
+            Réessayer
+          </button>
+        </div>
       </div>
     );
   }
 
   if (!permissions.hasUsersReadPermission) {
     return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-2">Accès non autorisé</h2>
-        <p className="text-gray-600">Vous n'avez pas les permissions nécessaires pour accéder à la gestion des employés.</p>
+      <div className="text-center py-16">
+        <div className="max-w-md mx-auto space-y-6">
+          <div className="bg-warning/10 rounded-full p-6 w-fit mx-auto">
+            <div className="w-12 h-12 bg-warning/20 rounded-full flex items-center justify-center">
+              <span className="text-warning text-2xl">🔒</span>
+            </div>
+          </div>
+          <div className="space-y-3">
+            <h2 className="text-xl font-semibold">Accès non autorisé</h2>
+            <p className="text-muted-foreground">Vous n'avez pas les permissions nécessaires pour accéder à la gestion des employés.</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 max-w-full overflow-hidden p-1">
+      {/* Header section with enhanced spacing */}
+      <div className="flex items-center justify-between mb-2">
         <EmployeesHeader employeesCount={employees.length} />
         <EmployeesActions 
           onCreateEmployee={handleAddEmployee}
@@ -162,8 +175,9 @@ const EmployeesContainer = () => {
         />
       </div>
 
-      <Card>
-        <CardContent className="p-4 sm:p-6">
+      {/* Filters section with enhanced visual hierarchy */}
+      <Card className="shadow-sm border-border/20">
+        <CardContent className="p-8">
           <EmployeesFilters
             searchTerm={searchTerm}
             setSearchTerm={setSearchTerm}
@@ -175,15 +189,18 @@ const EmployeesContainer = () => {
         </CardContent>
       </Card>
 
-      <EmployeesListOptimized
-        employees={filteredEmployees}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        onEditEmployee={handleEditEmployee}
-        onDeleteEmployee={handleDeleteEmployee}
-        canEdit={permissions.canEditUsers}
-        canDelete={permissions.canDeleteUsers}
-      />
+      {/* Main content with better spacing */}
+      <div className="mt-8">
+        <EmployeesListOptimized
+          employees={filteredEmployees}
+          searchTerm={searchTerm}
+          statusFilter={statusFilter}
+          onEditEmployee={handleEditEmployee}
+          onDeleteEmployee={handleDeleteEmployee}
+          canEdit={permissions.canEditUsers}
+          canDelete={permissions.canDeleteUsers}
+        />
+      </div>
 
       <UserDialog
         isOpen={isModalOpen}

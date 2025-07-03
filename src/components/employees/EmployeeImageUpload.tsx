@@ -178,21 +178,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
             {userName ? getUserInitials(userName) : 'EMP'}
           </AvatarFallback>
         </Avatar>
-        
-        <Button
-          type="button"
-          size="sm"
-          variant="outline"
-          className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-          onClick={triggerFileSelect}
-          disabled={isDisabled}
-        >
-          {uploading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <Camera className="h-4 w-4" />
-          )}
-        </Button>
       </div>
 
       <input

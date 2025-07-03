@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCompanies, Company } from '@/hooks/useCompanies';
 import { useCompaniesActions } from '@/hooks/useCompaniesActions';
@@ -154,7 +155,7 @@ const CompaniesIndex = () => {
         isOpen={isDeleteDialogOpen}
         company={selectedCompany}
         onConfirm={handleConfirmDelete}
-        onCancel={() => setIsDeleteDialogOpen(false)}
+        onClose={() => setIsDeleteDialogOpen(false)}
       />
     </div>
   );

@@ -18,7 +18,7 @@ interface CompanyDeleteDialogProps {
   onClose: () => void;
   company: Company | null;
   onConfirm: () => void;
-  isLoading: boolean;
+  isLoading?: boolean;
 }
 
 const CompanyDeleteDialog = ({ 
@@ -26,7 +26,7 @@ const CompanyDeleteDialog = ({
   onClose, 
   company, 
   onConfirm, 
-  isLoading 
+  isLoading = false 
 }: CompanyDeleteDialogProps) => {
   const { t } = useLanguage();
 

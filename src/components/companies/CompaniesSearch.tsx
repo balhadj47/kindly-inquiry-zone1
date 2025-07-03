@@ -7,10 +7,21 @@ import { useLanguage } from '@/contexts/LanguageContext';
 
 interface CompaniesSearchProps {
   searchTerm: string;
-  onSearchChange: (value: string) => void;
+  setSearchTerm: (value: string) => void;
+  companiesCount: number;
+  totalCount: number;
+  hasActiveFilters: boolean;
+  onClearFilters: () => void;
 }
 
-const CompaniesSearch = ({ searchTerm, onSearchChange }: CompaniesSearchProps) => {
+const CompaniesSearch = ({ 
+  searchTerm, 
+  setSearchTerm,
+  companiesCount,
+  totalCount,
+  hasActiveFilters,
+  onClearFilters
+}: CompaniesSearchProps) => {
   const { t } = useLanguage();
 
   return (
@@ -21,10 +32,22 @@ const CompaniesSearch = ({ searchTerm, onSearchChange }: CompaniesSearchProps) =
           <Input
             placeholder={t.searchCompanies}
             value={searchTerm}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10 text-base touch-manipulation"
           />
         </div>
+        
+        {hasActiveFilters && (
+          <div className="mt-3 flex items-center justify-between text-sm text-gray-600">
+            <span>{companiesCount} sur {totalCount} entreprises</span>
+            <button
+              onClick={onClearFilters}
+              className="text-blue-600 hover:text-blue-800 underline"
+            >
+              Effacer les filtres
+            </button>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

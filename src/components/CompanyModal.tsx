@@ -14,13 +14,13 @@ import { toast } from 'sonner';
 interface CompanyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (companyData: any) => Promise<void>;
   company: Company | null;
-  onSuccess?: () => void;
 }
 
-const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps) => {
+const CompanyModal = ({ isOpen, onClose, onSubmit, company }: CompanyModalProps) => {
   const { t } = useLanguage();
-  const { createCompany, updateCompany, isLoading } = useCompaniesActions();
+  const { isLoading } = useCompaniesActions();
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -76,16 +76,7 @@ const CompanyModal = ({ isOpen, onClose, company, onSuccess }: CompanyModalProps
     }
 
     try {
-      if (company) {
-        await updateCompany(company.id, formData);
-        toast.success('Company updated successfully');
-      } else {
-        await createCompany(formData);
-        toast.success('Company created successfully');
-      }
-      
-      onSuccess?.();
-      onClose();
+      await onSubmit(formData);
     } catch (error) {
       console.error('Error saving company:', error);
       toast.error('Error saving company');

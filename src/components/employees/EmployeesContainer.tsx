@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useUsersByRoleId } from '@/hooks/users';
 import { useEmployeeActions } from '@/hooks/useEmployeeActions';
@@ -25,14 +26,17 @@ const EmployeesContainer = () => {
   // Memoize the transformation to avoid recalculating on every render
   const employees: User[] = useMemo(() => {
     return employeesData.map(emp => ({
-      ...emp,
       id: emp.id?.toString() || '',
-      createdAt: emp.created_at || new Date().toISOString(),
+      name: emp.name || '',
+      email: emp.email || '',
+      phone: emp.phone || '',
+      role_id: emp.role_id || 3,
       status: emp.status as User['status'],
-      role_id: emp.role_id || 3, // Include the missing role_id field
+      createdAt: emp.created_at || new Date().toISOString(),
       badgeNumber: emp.badge_number,
       dateOfBirth: emp.date_of_birth,
       placeOfBirth: emp.place_of_birth,
+      address: emp.address,
       driverLicense: emp.driver_license,
       totalTrips: emp.total_trips,
       lastTrip: emp.last_trip,

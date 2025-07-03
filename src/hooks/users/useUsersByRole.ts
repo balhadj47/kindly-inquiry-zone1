@@ -17,6 +17,7 @@ export const useUsersByRoleId = (roleId: number) => {
           phone,
           status,
           created_at,
+          role_id,
           badge_number,
           profile_image,
           total_trips,

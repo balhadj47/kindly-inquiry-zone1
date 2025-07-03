@@ -48,7 +48,9 @@ const EmployeesContainer = () => {
       driver_license_start_date: emp.driver_license_start_date,
       driver_license_expiry_date: emp.driver_license_expiry_date,
       driver_license_category: emp.driver_license_category,
-      driver_license_category_dates: emp.driver_license_category_dates,
+      driver_license_category_dates: emp.driver_license_category_dates && typeof emp.driver_license_category_dates === 'object' 
+        ? emp.driver_license_category_dates as Record<string, { start?: string; expiry?: string }> 
+        : {},
       blood_type: emp.blood_type,
       company_assignment_date: emp.company_assignment_date,
     }));

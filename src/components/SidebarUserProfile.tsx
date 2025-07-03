@@ -46,6 +46,9 @@ const SidebarUserProfile = () => {
     }
   };
 
+  // Always provide a default image using Dicebear API
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`;
+
   return (
     <div className="flex items-center justify-between p-3 bg-gray-50/50 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center">
       <DropdownMenu>
@@ -54,7 +57,7 @@ const SidebarUserProfile = () => {
             className="flex items-center gap-2 cursor-pointer hover:bg-white/80 rounded-lg p-2 -m-2 transition-all duration-200 ease-in-out flex-1 group group-data-[collapsible=icon]:flex-none group-data-[collapsible=icon]:m-0 group-data-[collapsible=icon]:p-1"
           >
             <Avatar className="h-8 w-8 flex-shrink-0 ring-2 ring-white shadow-sm transition-all duration-200 group-hover:ring-blue-100 group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7">
-              <AvatarImage src="" />
+              <AvatarImage src={defaultImage} />
               <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xs group-data-[collapsible=icon]:text-xs">
                 {userInitials}
               </AvatarFallback>

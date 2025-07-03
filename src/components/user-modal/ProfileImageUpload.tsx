@@ -116,13 +116,17 @@ const ProfileImageUpload: React.FC<ProfileImageUploadProps> = ({
 
   const isDisabled = isSubmitting || uploading;
 
+  // Always provide a default image using Dicebear API
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${userName || 'User'}`;
+  const imageUrl = profileImage || defaultImage;
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative">
         <Avatar className="h-24 w-24">
           <AvatarImage 
-            src={profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`}
-            alt={userName}
+            src={imageUrl}
+            alt={userName || 'User'}
           />
           <AvatarFallback className="bg-primary text-primary-foreground text-lg">
             {userName ? getUserInitials(userName) : 'U'}

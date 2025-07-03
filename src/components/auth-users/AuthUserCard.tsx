@@ -127,9 +127,13 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
     </div>
   );
 
+  // Always provide a default image using Dicebear API
+  const userName = user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`;
+
   return (
     <EntityCard
-      title={user.user_metadata?.name || user.email?.split('@')[0] || 'Utilisateur'}
+      title={userName}
       status={{
         label: user.email_confirmed_at ? 'Confirmé' : 'Non confirmé',
         variant: statusConfig.variant,
@@ -142,11 +146,11 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
       <div className="flex items-center space-x-3 mb-4">
         <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
           <AvatarImage 
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.user_metadata?.name || user.email}`}
-            alt={user.user_metadata?.name || user.email}
+            src={defaultImage}
+            alt={userName}
           />
           <AvatarFallback className="bg-gray-600 text-white font-medium">
-            {getUserInitials(user.user_metadata?.name || user.email?.split('@')[0] || 'U')}
+            {getUserInitials(userName)}
           </AvatarFallback>
         </Avatar>
         <div className="text-xs text-gray-500">

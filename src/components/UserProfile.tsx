@@ -82,13 +82,16 @@ const UserProfile = () => {
     .join('')
     .toUpperCase() || 'U';
 
+  // Always provide a default image using Dicebear API
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`;
+
   return (
     <div className="space-y-4">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <div className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-2 relative group">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={`https://api.dicebear.com/7.x/initials/svg?seed=${userName}`} />
+              <AvatarImage src={defaultImage} />
               <AvatarFallback className="bg-blue-600 text-white text-xs font-bold">
                 {userInitials}
               </AvatarFallback>

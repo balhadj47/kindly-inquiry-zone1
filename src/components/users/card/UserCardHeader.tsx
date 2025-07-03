@@ -14,13 +14,17 @@ interface UserCardHeaderProps {
 const UserCardHeader: React.FC<UserCardHeaderProps> = ({ user }) => {
   const { roleName, roleColor } = useRoleData(user.role_id);
 
+  // Always provide a default image using Dicebear API
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${user.name || 'User'}`;
+  const imageUrl = user.profileImage || defaultImage;
+
   return (
     <CardHeader className="pb-4 space-y-0">
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-4">
           <Avatar className="h-14 w-14 ring-2 ring-muted">
             <AvatarImage 
-              src={user.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${user.name}`}
+              src={imageUrl}
               alt={user.name}
             />
             <AvatarFallback className="bg-primary text-primary-foreground text-lg font-semibold">

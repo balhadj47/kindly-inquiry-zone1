@@ -20,16 +20,20 @@ const EmployeeAvatarDisplay: React.FC<EmployeeAvatarDisplayProps> = ({
       .slice(0, 2);
   };
 
+  // Always provide a default image using Dicebear API
+  const defaultImage = `https://api.dicebear.com/7.x/initials/svg?seed=${userName || 'User'}`;
+  const imageUrl = profileImage || defaultImage;
+
   return (
     <div className="relative">
       <Avatar className="h-24 w-24">
         <AvatarImage 
-          src={profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${userName}`}
-          alt={userName}
-          key={profileImage || 'fallback'} // Force re-render when image changes
+          src={imageUrl}
+          alt={userName || 'User'}
+          key={profileImage || 'default'} // Force re-render when image changes
         />
         <AvatarFallback className="bg-primary text-primary-foreground text-lg">
-          {userName ? getUserInitials(userName) : 'EMP'}
+          {userName ? getUserInitials(userName) : 'U'}
         </AvatarFallback>
       </Avatar>
     </div>

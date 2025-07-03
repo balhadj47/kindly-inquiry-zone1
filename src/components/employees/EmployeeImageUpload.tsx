@@ -2,7 +2,7 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, Loader2, X } from 'lucide-react';
+import { Camera, Upload, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -153,25 +153,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     }
   };
 
-  const handleRemoveImage = () => {
-    console.log('🗑️ Removing image, current profileImage:', profileImage);
-    
-    // Clear the image by passing empty string
-    onImageChange('');
-    
-    // Clear file input as well
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    
-    console.log('✅ Image removal completed');
-    
-    toast({
-      title: 'Succès',
-      description: 'Image supprimée avec succès!',
-    });
-  };
-
   const triggerFileSelect = () => {
     console.log('🖱️ Triggering file input click');
     if (fileInputRef.current && !isDisabled) {
@@ -198,19 +179,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
           </AvatarFallback>
         </Avatar>
         
-        {profileImage && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-            onClick={handleRemoveImage}
-            disabled={isDisabled}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        )}
-        
         <Button
           type="button"
           size="sm"
@@ -235,7 +203,7 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         className="hidden"
       />
 
-      <div className="flex items-center space-x-2">
+      <div className="flex items-center">
         <Button
           type="button"
           variant="outline"
@@ -256,20 +224,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
             </>
           )}
         </Button>
-        
-        {profileImage && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={handleRemoveImage}
-            disabled={isDisabled}
-            className="flex items-center space-x-2"
-          >
-            <X className="h-4 w-4" />
-            <span>Supprimer</span>
-          </Button>
-        )}
       </div>
     </div>
   );

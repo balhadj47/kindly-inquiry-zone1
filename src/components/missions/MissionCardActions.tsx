@@ -41,7 +41,7 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
         </Button>
       )}
       
-      {canDeleteTrips && (
+      {canDeleteTrips && mission.status !== 'completed' && (
         <Button
           variant="ghost"
           size="sm"

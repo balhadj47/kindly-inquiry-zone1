@@ -48,7 +48,7 @@ const EmployeesEnhancedSkeleton = () => {
       {/* Employee cards with enhanced spacing and visual hierarchy */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {Array.from({ length: 6 }).map((_, i) => (
-          <Card key={i} className="shadow-sm border-border/20 hover:shadow-md transition-shadow duration-200" variant="card">
+          <Card key={i} className="shadow-sm border-border/20 hover:shadow-md transition-shadow duration-200">
             <CardHeader className="pb-4 space-y-4">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-4">

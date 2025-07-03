@@ -107,13 +107,14 @@ const CompaniesContainer = () => {
     }
   };
 
-  const handleModalSuccess = () => {
+  const handleModalSubmit = async (companyData: any) => {
     try {
-      console.log('✅ Companies: Modal success, refreshing data');
-      refetch();
+      console.log('✅ Companies: Modal submit, refreshing data');
+      await refetch();
       invalidateCompanies();
+      setIsModalOpen(false);
     } catch (error) {
-      console.error('❌ Companies: Error refreshing after modal success:', error);
+      console.error('❌ Companies: Error refreshing after modal submit:', error);
     }
   };
 
@@ -168,7 +169,11 @@ const CompaniesContainer = () => {
       
       <CompaniesSearch 
         searchTerm={searchTerm || ''} 
-        onSearchChange={setSearchTerm} 
+        setSearchTerm={setSearchTerm}
+        companiesCount={filteredCompanies.length}
+        totalCount={companies.length}
+        hasActiveFilters={hasActiveFilters}
+        onClearFilters={clearFilters}
       />
 
       {filteredCompanies.length === 0 ? (
@@ -194,7 +199,7 @@ const CompaniesContainer = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         company={selectedCompany}
-        onSuccess={handleModalSuccess}
+        onSubmit={handleModalSubmit}
       />
 
       <CompanyDeleteDialog

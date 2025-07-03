@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Edit, Trash2, User, Calendar, Clock, Mail, Phone } from 'lucide-react';
 import { useRoleData } from '@/hooks/useRoleData';
+import { EntityCard } from '@/components/ui/entity-card';
+import { Button } from '@/components/ui/button';
 
 interface AuthUser {
   id: string;
@@ -37,13 +38,18 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
   const userRoleId = user?.user_metadata?.role_id || 2;
   const { roleName, roleColor } = useRoleData(userRoleId);
 
+  const getUserInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
   const formatDate = (dateString: string | null) => {
     if (!dateString) return 'Non disponible';
-    return new Date(dateString).toLocaleDateString('fr-FR', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
+    return new Date(dateString).toLocaleDateString('fr-FR');
   };
 
   const formatDateTime = (dateString: string | null) => {
@@ -57,79 +63,107 @@ const AuthUserCard: React.FC<AuthUserCardProps> = ({
     });
   };
 
+  const getStatusConfig = () => {
+    if (user.email_confirmed_at) {
+      return { variant: 'default' as const, color: 'green' };
+    }
+    return { variant: 'destructive' as const, color: 'red' };
+  };
+
+  const statusConfig = getStatusConfig();
+
+  const metadata = [
+    {
+      label: 'Email',
+      value: user.email,
+      icon: <Mail className="h-4 w-4" />
+    },
+    user.phone && {
+      label: 'Téléphone',
+      value: user.phone,
+      icon: <Phone className="h-4 w-4" />
+    },
+    {
+      label: 'Rôle',
+      value: roleName || 'Rôle inconnu',
+      icon: <User className="h-4 w-4" />
+    },
+    {
+      label: 'Créé le',
+      value: formatDate(user.created_at),
+      icon: <Calendar className="h-4 w-4" />
+    },
+    {
+      label: 'Dernière connexion',
+      value: formatDateTime(user.last_sign_in_at),
+      icon: <Clock className="h-4 w-4" />
+    }
+  ].filter(Boolean);
+
+  const actions = (
+    <div className="flex items-center gap-2">
+      {canEdit && (
+        <Button
+          onClick={() => onEdit(user)}
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
+          disabled={actionLoading === 'loading'}
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      )}
+      {canDelete && (
+        <Button
+          onClick={() => onDelete(user)}
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
+          disabled={actionLoading === 'loading'}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
-              <User className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">
-                {user.user_metadata?.name || user.email?.split('@')[0] || 'Utilisateur'}
-              </CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
-                <Badge 
-                  className="text-white"
-                  style={{ backgroundColor: roleColor || '#6b7280' }}
-                >
-                  {roleName || 'Rôle inconnu'}
-                </Badge>
-                <Badge className={user.email_confirmed_at ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                  {user.email_confirmed_at ? 'Confirmé' : 'Non confirmé'}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          {(canEdit || canDelete) && actionLoading !== 'loading' && (
-            <div className="flex space-x-1">
-              {canEdit && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onEdit(user)}
-                >
-                  <Edit className="w-4 h-4" />
-                </Button>
-              )}
-              {canDelete && (
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => onDelete(user)}
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </Button>
-              )}
-            </div>
-          )}
+    <EntityCard
+      title={user.user_metadata?.name || user.email?.split('@')[0] || 'Utilisateur'}
+      status={{
+        label: user.email_confirmed_at ? 'Confirmé' : 'Non confirmé',
+        variant: statusConfig.variant,
+        color: statusConfig.color
+      }}
+      metadata={metadata}
+      actions={actions}
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+    >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${user.user_metadata?.name || user.email}`}
+            alt={user.user_metadata?.name || user.email}
+          />
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
+            {getUserInitials(user.user_metadata?.name || user.email?.split('@')[0] || 'U')}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Compte auth: {user.email_confirmed_at ? 'Vérifié' : 'En attente'}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Mail className="w-4 h-4" />
-          <span>{user.email}</span>
-        </div>
-        
-        {user.phone && (
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            <Phone className="w-4 h-4" />
-            <span>{user.phone}</span>
-          </div>
-        )}
+      </div>
 
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Calendar className="w-4 h-4" />
-          <span>Créé le {formatDate(user.created_at)}</span>
-        </div>
-
-        <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <Clock className="w-4 h-4" />
-          <span>Dernière connexion: {formatDateTime(user.last_sign_in_at)}</span>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="mb-4">
+        <Badge 
+          variant="outline" 
+          className="text-xs font-medium"
+          style={{ color: roleColor, borderColor: roleColor }}
+        >
+          {roleName || 'Rôle inconnu'}
+        </Badge>
+      </div>
+    </EntityCard>
   );
 };
 

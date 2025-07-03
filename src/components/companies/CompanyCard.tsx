@@ -1,140 +1,168 @@
 
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash2, Building2, MapPin, Phone, Mail } from 'lucide-react';
-import { Company } from '@/hooks/useCompanies';
-import { useRBAC } from '@/contexts/RBACContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Edit, Trash2, Building, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { EntityCard } from '@/components/ui/entity-card';
+import { Button } from '@/components/ui/button';
+
+interface Branch {
+  id: string;
+  name: string;
+  company_id: string;
+  created_at: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+}
+
+interface Company {
+  id: string;
+  name: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  created_at: string;
+  branches: Branch[];
+}
 
 interface CompanyCardProps {
   company: Company;
-  onEdit: (company: Company) => void;
-  onDelete: (company: Company) => void;
-  onAddBranch: (company: Company) => void;
+  onEdit?: (company: Company) => void;
+  onDelete?: (company: Company) => void;
+  onClick?: (company: Company) => void;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 const CompanyCard: React.FC<CompanyCardProps> = ({
   company,
   onEdit,
   onDelete,
-  onAddBranch,
+  onClick,
+  canEdit = false,
+  canDelete = false
 }) => {
-  const { hasPermission } = useRBAC();
-  
-  // Check permissions for each action
-  const canEditCompanies = hasPermission('companies:update');
-  const canDeleteCompanies = hasPermission('companies:delete');
-  const canCreateBranches = hasPermission('companies:create'); // Assuming branch creation uses companies:create
+  const getCompanyInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-  const showActions = canEditCompanies || canDeleteCompanies || canCreateBranches;
+  const getStatusConfig = (branchCount: number) => {
+    if (branchCount > 0) {
+      return { variant: 'default' as const, color: 'green' };
+    }
+    return { variant: 'secondary' as const, color: 'gray' };
+  };
+
+  const statusConfig = getStatusConfig(company.branches?.length || 0);
+
+  const metadata = [
+    company.address && {
+      label: 'Adresse',
+      value: company.address,
+      icon: <MapPin className="h-4 w-4" />
+    },
+    company.phone && {
+      label: 'Téléphone',
+      value: company.phone,
+      icon: <Phone className="h-4 w-4" />
+    },
+    company.email && {
+      label: 'Email',
+      value: company.email,
+      icon: <Mail className="h-4 w-4" />
+    },
+    {
+      label: 'Succursales',
+      value: `${company.branches?.length || 0} succursale${(company.branches?.length || 0) !== 1 ? 's' : ''}`,
+      icon: <Building className="h-4 w-4" />
+    },
+    {
+      label: 'Créé le',
+      value: new Date(company.created_at).toLocaleDateString('fr-FR'),
+      icon: <Calendar className="h-4 w-4" />
+    }
+  ].filter(Boolean);
+
+  const actions = (
+    <div className="flex items-center gap-2">
+      {canEdit && onEdit && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(company);
+          }}
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+      )}
+      {canDelete && onDelete && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(company);
+          }}
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      )}
+    </div>
+  );
 
   return (
-    <Card className="hover:shadow-lg transition-shadow duration-200">
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Building2 className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-semibold text-lg text-gray-900">{company.name}</h3>
-              <Badge variant="secondary" className="mt-1">
-                {company.branches?.length || 0} succursale{(company.branches?.length || 0) !== 1 ? 's' : ''}
-              </Badge>
+    <EntityCard
+      title={company.name}
+      status={{
+        label: company.branches?.length ? `${company.branches.length} succursale${company.branches.length !== 1 ? 's' : ''}` : 'Aucune succursale',
+        variant: statusConfig.variant,
+        color: statusConfig.color
+      }}
+      metadata={metadata}
+      actions={actions}
+      onClick={onClick ? () => onClick(company) : undefined}
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+    >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${company.name}`}
+            alt={company.name}
+          />
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
+            {getCompanyInitials(company.name)}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Entreprise: {company.branches?.length || 0} succursale{(company.branches?.length || 0) !== 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {company.branches && company.branches.length > 0 && (
+        <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <Building className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-blue-600 font-medium mb-1">Succursales</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {company.branches.slice(0, 3).map(branch => branch.name).join(', ')}
+                {company.branches.length > 3 && ` et ${company.branches.length - 3} autre${company.branches.length - 3 !== 1 ? 's' : ''}...`}
+              </p>
             </div>
           </div>
-          
-          {showActions && (
-            <div className="flex space-x-1">
-              {canEditCompanies && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onEdit(company)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-              )}
-              
-              {canDeleteCompanies && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDelete(company)}
-                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          )}
         </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        <div className="space-y-2 text-sm text-gray-600">
-          {company.address && (
-            <div className="flex items-center space-x-2">
-              <MapPin className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{company.address}</span>
-            </div>
-          )}
-          
-          {company.phone && (
-            <div className="flex items-center space-x-2">
-              <Phone className="h-4 w-4 flex-shrink-0" />
-              <span>{company.phone}</span>
-            </div>
-          )}
-          
-          {company.email && (
-            <div className="flex items-center space-x-2">
-              <Mail className="h-4 w-4 flex-shrink-0" />
-              <span className="truncate">{company.email}</span>
-            </div>
-          )}
-        </div>
-
-        {company.branches && company.branches.length > 0 && (
-          <div>
-            <h4 className="font-medium text-sm text-gray-900 mb-2">Succursales récentes:</h4>
-            <div className="space-y-1">
-              {company.branches.slice(0, 2).map((branch) => (
-                <div key={branch.id} className="text-xs text-gray-500 flex items-center space-x-1">
-                  <Building2 className="h-3 w-3" />
-                  <span className="truncate">{branch.name}</span>
-                </div>
-              ))}
-              {company.branches.length > 2 && (
-                <div className="text-xs text-gray-400">
-                  +{company.branches.length - 2} autre{company.branches.length - 2 !== 1 ? 's' : ''}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {canCreateBranches && (
-          <div className="pt-2 border-t border-gray-100">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onAddBranch(company)}
-              className="w-full text-blue-600 border-blue-200 hover:bg-blue-50"
-            >
-              <Building2 className="h-4 w-4 mr-2" />
-              Ajouter une succursale
-            </Button>
-          </div>
-        )}
-
-        <div className="pt-2 border-t border-gray-100 text-xs text-gray-400">
-          Créé le: {new Date(company.created_at).toLocaleDateString('fr-FR')}
-        </div>
-      </CardContent>
-    </Card>
+      )}
+    </EntityCard>
   );
 };
 

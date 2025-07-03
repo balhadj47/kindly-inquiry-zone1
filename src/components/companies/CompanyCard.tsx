@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Trash2, Building, MapPin, Phone, Mail, Calendar } from 'lucide-react';
+import { Edit, Trash2, Building, MapPin, Phone, Mail, Calendar, Plus } from 'lucide-react';
 import { EntityCard } from '@/components/ui/entity-card';
 import { Button } from '@/components/ui/button';
 
@@ -41,8 +42,8 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
   onDelete,
   onClick,
   onAddBranch,
-  canEdit = false,
-  canDelete = false
+  canEdit = true,
+  canDelete = true
 }) => {
   const getCompanyInitials = (name: string) => {
     return name
@@ -92,6 +93,19 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
   const actions = (
     <div className="flex items-center gap-2">
+      {onAddBranch && (
+        <Button
+          onClick={(e) => {
+            e.stopPropagation();
+            onAddBranch(company);
+          }}
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-green-500 text-white hover:bg-green-600"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
+      )}
       {canEdit && onEdit && (
         <Button
           onClick={(e) => {

@@ -31,12 +31,12 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
   const { canUpdateTrips, canDeleteTrips } = usePermissionCheck();
 
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-2">
       <Button
-        variant="outline"
-        size="sm"
         onClick={() => onView(mission)}
-        className="h-8 w-8 p-0 !bg-white !border-gray-300 !text-gray-600 hover:!bg-gray-50 hover:!text-gray-800 hover:!border-gray-400"
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
       >
         <Eye className="h-4 w-4" />
       </Button>
@@ -44,20 +44,20 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       {canUpdateTrips && (
         <>
           <Button
-            variant="outline"
-            size="sm"
             onClick={() => onEdit(mission)}
-            className="h-8 w-8 p-0 !bg-white !border-gray-300 !text-gray-600 hover:!bg-gray-50 hover:!text-gray-800 hover:!border-gray-400"
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 bg-blue-500 text-white hover:bg-blue-600"
           >
             <Edit className="h-4 w-4" />
           </Button>
           
           {mission.status === 'active' && (
             <Button
-              variant="outline"
-              size="sm"
               onClick={() => onTerminate(mission)}
-              className="h-8 w-8 p-0 !bg-white !border-orange-200 !text-orange-600 hover:!bg-orange-50 hover:!text-orange-700 hover:!border-orange-300"
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 bg-orange-500 text-white hover:bg-orange-600"
             >
               <StopCircle className="h-4 w-4" />
             </Button>
@@ -67,10 +67,10 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
       
       {canDeleteTrips && (
         <Button
-          variant="outline"
-          size="sm"
           onClick={() => onDelete(mission)}
-          className="h-8 w-8 p-0 !bg-white !border-red-200 !text-red-500 hover:!bg-red-50 hover:!text-red-600 hover:!border-red-300"
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600"
         >
           <Trash2 className="h-4 w-4" />
         </Button>

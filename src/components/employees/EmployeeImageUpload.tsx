@@ -1,8 +1,7 @@
-
 import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Camera, Upload, Loader2, X } from 'lucide-react';
+import { Camera, Upload, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -153,16 +152,6 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
     }
   };
 
-  const handleDeleteImage = () => {
-    console.log('🗑️ Deleting image');
-    onImageChange('');
-    
-    toast({
-      title: 'Succès',
-      description: 'Image supprimée avec succès!',
-    });
-  };
-
   const triggerFileSelect = () => {
     console.log('🖱️ Triggering file input click');
     if (fileInputRef.current && !isDisabled) {
@@ -198,42 +187,26 @@ const EmployeeImageUpload: React.FC<EmployeeImageUploadProps> = ({
         className="hidden"
       />
 
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={triggerFileSelect}
-          disabled={isDisabled}
-          className="flex items-center space-x-2"
-        >
-          {uploading ? (
-            <>
-              <Loader2 className="h-4 w-4 animate-spin" />
-              <span>Téléchargement...</span>
-            </>
-          ) : (
-            <>
-              <Upload className="h-4 w-4" />
-              <span>{profileImage ? 'Remplacer la photo' : 'Télécharger une photo'}</span>
-            </>
-          )}
-        </Button>
-
-        {profileImage && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={handleDeleteImage}
-            disabled={isDisabled}
-            className="flex items-center space-x-2"
-          >
-            <X className="h-4 w-4" />
-            <span>Supprimer</span>
-          </Button>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={triggerFileSelect}
+        disabled={isDisabled}
+        className="flex items-center space-x-2"
+      >
+        {uploading ? (
+          <>
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Téléchargement...</span>
+          </>
+        ) : (
+          <>
+            <Upload className="h-4 w-4" />
+            <span>{profileImage ? 'Remplacer la photo' : 'Télécharger une photo'}</span>
+          </>
         )}
-      </div>
+      </Button>
     </div>
   );
 };

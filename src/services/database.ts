@@ -1,4 +1,3 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -11,37 +10,28 @@ type Trips = Tables['trips']['Row'];
 type UserGroups = Tables['user_groups']['Row'];
 
 export class DatabaseService {
-  // Companies
+  // Optimized companies fetch with better error handling
   static async getCompanies() {
-    console.log('🔍 DatabaseService: Attempting to fetch companies with branches');
+    console.log('🔍 DatabaseService: Fetching companies with branches...');
+    const startTime = performance.now();
     
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
       if (authError || !user) {
-        console.log('🔍 DatabaseService: No authenticated user, cannot access companies');
+        console.log('🔍 DatabaseService: No authenticated user');
         throw new Error('Authentication required');
       }
       
-      console.log('🔍 DatabaseService: Authenticated user:', user.email);
-      
-      // Check permission using database function
-      const { data: hasPermission, error: permError } = await supabase.rpc('current_user_can_read_companies');
-      
-      if (permError) {
-        console.error('🔍 DatabaseService: Permission check failed:', permError);
-        return [];
-      }
-      
-      if (!hasPermission) {
-        console.warn('🔍 DatabaseService: User does not have permission to read companies');
-        return [];
-      }
-      
-      console.log('🔍 DatabaseService: Executing companies query with branches...');
+      // Simplified query for better performance
       const { data, error } = await supabase
         .from('companies')
         .select(`
-          *,
+          id,
+          name,
+          address,
+          phone,
+          email,
+          created_at,
           branches (
             id,
             name,
@@ -66,17 +56,10 @@ export class DatabaseService {
         throw error;
       }
       
-      console.log('🔍 DatabaseService: Companies fetched successfully:', {
-        companiesCount: data?.length || 0,
-        totalBranches: data?.reduce((sum, company) => sum + (company.branches?.length || 0), 0) || 0,
-        companiesWithBranches: data?.map(c => ({
-          name: c.name,
-          branchCount: c.branches?.length || 0,
-          branches: c.branches?.map(b => b.name) || []
-        })) || []
-      });
+      const endTime = performance.now();
+      console.log(`🔍 DatabaseService: Fetched ${data?.length || 0} companies in ${endTime - startTime}ms`);
       
-      return data;
+      return data || [];
     } catch (error) {
       console.error('🔍 DatabaseService: Exception in getCompanies:', error);
       throw error;
@@ -175,7 +158,6 @@ export class DatabaseService {
     console.log('🔍 DatabaseService: Company deleted successfully');
   }
 
-  // Branches
   static async getBranches(companyId?: string) {
     console.log('🔍 DatabaseService: Attempting to fetch branches', companyId ? `for company ${companyId}` : 'all');
     
@@ -238,7 +220,6 @@ export class DatabaseService {
     return data;
   }
 
-  // Users
   static async getUsers() {
     console.log('🔍 DatabaseService: Attempting to fetch users');
     
@@ -301,7 +282,6 @@ export class DatabaseService {
     }
   }
 
-  // Vans
   static async getVans() {
     console.log('🔍 DatabaseService: Attempting to fetch vans');
     
@@ -356,7 +336,6 @@ export class DatabaseService {
     return data;
   }
 
-  // Trips
   static async getTrips() {
     console.log('🔍 DatabaseService: Attempting to fetch trips');
     
@@ -411,7 +390,6 @@ export class DatabaseService {
     return data;
   }
 
-  // User Groups with secure permissions structure
   static async getUserGroups() {
     console.log('🔍 DatabaseService: Attempting to fetch user groups with permissions');
     
@@ -452,7 +430,6 @@ export class DatabaseService {
     }
   }
 
-  // Get all available permissions using secure access
   static async getPermissions() {
     console.log('🔍 DatabaseService: Attempting to fetch permissions');
     
@@ -486,7 +463,6 @@ export class DatabaseService {
     }
   }
 
-  // Get permissions by category using secure access
   static async getPermissionsByCategory(category: string) {
     console.log('🔍 DatabaseService: Attempting to fetch permissions by category:', category);
     

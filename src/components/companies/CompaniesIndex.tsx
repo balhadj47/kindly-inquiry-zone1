@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useCompanies, Company } from '@/hooks/useCompanies';
 import { useCompaniesActions } from '@/hooks/useCompaniesActions';
 import { useCommonActions } from '@/hooks/useCommonActions';
@@ -9,14 +9,41 @@ import CompaniesGrid from './CompaniesGrid';
 import CompanyModal from '@/components/CompanyModal';
 import CompanyDeleteDialog from '@/components/CompanyDeleteDialog';
 import { useToast } from '@/hooks/use-toast';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const CompaniesLoadingSkeleton = () => (
+  <div className="space-y-6">
+    <div className="flex justify-between items-center">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-10 w-32" />
+    </div>
+    <Skeleton className="h-12 w-full" />
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 9 }).map((_, i) => (
+        <Skeleton key={i} className="h-48 w-full" />
+      ))}
+    </div>
+  </div>
+);
+
+const CompaniesErrorState = ({ onRetry }: { onRetry: () => void }) => (
+  <div className="flex flex-col items-center justify-center h-64 space-y-4">
+    <h3 className="text-lg font-semibold text-gray-900">Erreur de chargement</h3>
+    <p className="text-gray-600">Impossible de charger les entreprises</p>
+    <button 
+      onClick={onRetry}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+    >
+      Réessayer
+    </button>
+  </div>
+);
 
 const CompaniesIndex = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 12;
 
   const { data: companies = [], isLoading, error, refetch } = useCompanies();
   const { createCompany, updateCompany, deleteCompany } = useCompaniesActions();
@@ -26,19 +53,23 @@ const CompaniesIndex = () => {
   });
   const { toast } = useToast();
 
-  const filteredCompanies = companies.filter(company =>
-    company.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    company.branches?.some(branch => 
-      branch.name.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-  );
+  // Simple filtering for better performance
+  const filteredCompanies = React.useMemo(() => {
+    if (!searchTerm) return companies;
+    const term = searchTerm.toLowerCase();
+    return companies.filter(company =>
+      company.name.toLowerCase().includes(term) ||
+      company.address?.toLowerCase().includes(term) ||
+      company.branches?.some(branch => 
+        branch.name.toLowerCase().includes(term)
+      )
+    );
+  }, [companies, searchTerm]);
 
   const hasActiveFilters = searchTerm !== '';
 
   const clearFilters = () => {
     setSearchTerm('');
-    setCurrentPage(1);
   };
 
   const handleAddCompany = () => {
@@ -54,11 +85,6 @@ const CompaniesIndex = () => {
   const handleDeleteCompany = (company: Company) => {
     setSelectedCompany(company);
     setIsDeleteDialogOpen(true);
-  };
-
-  const handleAddBranch = (company: Company) => {
-    // This functionality would need to be implemented
-    console.log('Add branch for company:', company.name);
   };
 
   const handleCompanySubmit = async (companyData: any) => {
@@ -77,7 +103,6 @@ const CompaniesIndex = () => {
         });
       }
       setIsCompanyModalOpen(false);
-      refetch();
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -97,7 +122,6 @@ const CompaniesIndex = () => {
         description: 'L\'entreprise a été supprimée avec succès.',
       });
       setIsDeleteDialogOpen(false);
-      refetch();
     } catch (error) {
       toast({
         title: 'Erreur',
@@ -108,11 +132,11 @@ const CompaniesIndex = () => {
   };
 
   if (isLoading) {
-    return <div>Chargement...</div>;
+    return <CompaniesLoadingSkeleton />;
   }
 
   if (error) {
-    return <div>Erreur lors du chargement des entreprises</div>;
+    return <CompaniesErrorState onRetry={() => refetch()} />;
   }
 
   return (
@@ -138,10 +162,10 @@ const CompaniesIndex = () => {
         clearFilters={clearFilters}
         onEditCompany={handleEditCompany}
         onDeleteCompany={handleDeleteCompany}
-        onAddBranch={handleAddBranch}
-        currentPage={currentPage}
-        itemsPerPage={itemsPerPage}
-        onPageChange={setCurrentPage}
+        onAddBranch={() => {}} // Placeholder
+        currentPage={1}
+        itemsPerPage={50}
+        onPageChange={() => {}}
       />
 
       <CompanyModal

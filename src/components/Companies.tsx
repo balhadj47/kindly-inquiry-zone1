@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
+import { useCompanies } from '@/hooks/useCompanies';
 
 // Lazy load company-related components
 const CompaniesIndex = React.lazy(() => import('./companies/CompaniesIndex'));
@@ -16,7 +17,7 @@ const CompanyLoadingSkeleton = () => (
       <Skeleton className="h-10 w-32" />
     </div>
     <Skeleton className="h-12 w-full" />
-    <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
       {Array.from({ length: 6 }).map((_, i) => (
         <Skeleton key={i} className="h-64 w-full" />
       ))}
@@ -38,9 +39,13 @@ const Companies = () => {
   
   const permissions = useSecurePermissions();
   
+  // Preload companies data to improve perceived performance
+  const { isLoading: companiesLoading } = useCompanies();
+  
   console.log('🏢 Companies: Permission check:', {
     canReadCompanies: permissions.canReadCompanies,
-    isAuthenticated: permissions.isAuthenticated
+    isAuthenticated: permissions.isAuthenticated,
+    companiesLoading
   });
 
   // Check if user can read companies

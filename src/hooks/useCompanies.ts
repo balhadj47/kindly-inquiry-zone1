@@ -22,11 +22,13 @@ export interface Company {
   branches: Branch[];
 }
 
+// Optimized query with better caching and error handling
 export const useCompanies = () => {
   return useQuery({
     queryKey: ['companies'],
     queryFn: async (): Promise<Company[]> => {
-      console.log('🏢 useCompanies: Fetching companies with branches...');
+      console.log('🏢 useCompanies: Fetching companies...');
+      const startTime = performance.now();
       
       try {
         const data = await DatabaseService.getCompanies();
@@ -36,28 +38,13 @@ export const useCompanies = () => {
           return [];
         }
 
-        // Enhanced logging to debug branch data
-        console.log('🏢 useCompanies: Raw data from database:', JSON.stringify(data, null, 2));
-        
-        const processedData = data.map(company => {
-          const branches = company.branches || [];
-          console.log(`🏢 Company "${company.name}" has ${branches.length} branches:`, branches);
-          
-          return {
-            ...company,
-            branches: branches
-          };
-        });
+        const processedData = data.map(company => ({
+          ...company,
+          branches: company.branches || []
+        }));
 
-        console.log('🏢 useCompanies: Final processed result:', {
-          companiesCount: processedData.length,
-          totalBranches: processedData.reduce((sum, c) => sum + (c.branches?.length || 0), 0),
-          companiesWithBranches: processedData.map(c => ({
-            name: c.name,
-            branchCount: c.branches?.length || 0,
-            branchNames: c.branches?.map(b => b.name) || []
-          }))
-        });
+        const endTime = performance.now();
+        console.log(`🏢 useCompanies: Fetched ${processedData.length} companies in ${endTime - startTime}ms`);
 
         return processedData;
       } catch (error) {
@@ -73,17 +60,19 @@ export const useCompanies = () => {
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes - reduced for fresher data
+    gcTime: 5 * 60 * 1000, // 5 minutes - reduced memory usage
     retry: (failureCount, error) => {
       // Don't retry permission errors
       if (error instanceof Error && 
           (error.message?.includes('permission') || error.message?.includes('Authentication required'))) {
         return false;
       }
-      return failureCount < 2;
+      return failureCount < 1; // Reduced retry attempts
     },
-    retryDelay: 1000,
+    retryDelay: 500, // Faster retry
+    refetchOnWindowFocus: false, // Prevent unnecessary refetches
+    refetchOnMount: true,
   });
 };
 

@@ -36,35 +36,37 @@ const EmployeesLayout: React.FC<EmployeesLayoutProps> = ({
   children
 }) => {
   return (
-    <div className="space-y-8 max-w-full overflow-hidden p-1">
-      {/* Header section */}
-      <div className="flex items-center justify-between mb-2">
-        <EmployeesHeader employeesCount={employeesCount} />
-        <EmployeesActions 
-          onCreateEmployee={onCreateEmployee}
-          onRefresh={onRefresh}
-          isRefreshing={isRefreshing}
-          canCreateEmployees={canCreateEmployees}
-        />
-      </div>
-
-      {/* Filters section */}
-      <Card className="shadow-sm border-border/20">
-        <CardContent className="p-8">
-          <EmployeesFilters
-            searchTerm={searchTerm}
-            setSearchTerm={setSearchTerm}
-            statusFilter={statusFilter}
-            setStatusFilter={setStatusFilter}
-            clearFilters={clearFilters}
-            employees={employees}
+    <div className="w-full max-w-none">
+      <div className="space-y-6">
+        {/* Header section */}
+        <div className="flex items-center justify-between">
+          <EmployeesHeader employeesCount={employeesCount} />
+          <EmployeesActions 
+            onCreateEmployee={onCreateEmployee}
+            onRefresh={onRefresh}
+            isRefreshing={isRefreshing}
+            canCreateEmployees={canCreateEmployees}
           />
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Main content */}
-      <div className="mt-8">
-        {children}
+        {/* Filters section */}
+        <Card className="shadow-sm border-border/20">
+          <CardContent className="p-6">
+            <EmployeesFilters
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              clearFilters={clearFilters}
+              employees={employees}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Main content */}
+        <div className="w-full">
+          {children}
+        </div>
       </div>
     </div>
   );

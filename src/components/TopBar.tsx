@@ -9,17 +9,21 @@ const TopBar = () => {
   const isMobile = useIsMobile();
   
   return (
-    <div className="flex-shrink-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6">
-      {/* Left side - Branding */}
-      <div className="flex items-center">
-        <SidebarBranding />
+    <div className="flex-shrink-0 flex h-16 items-center justify-between gap-6 border-b border-border bg-white px-6 shadow-sm">
+      {/* Left side - Enhanced Branding */}
+      <div className="flex items-center min-w-0">
+        <div className="flex items-center gap-3">
+          <SidebarBranding />
+        </div>
       </div>
       
       {/* Center - Navigation menu (desktop only) */}
-      <TopNavigation />
+      <div className="flex-1 flex justify-center">
+        <TopNavigation />
+      </div>
       
       {/* Right side - User profile */}
-      <div className="flex items-center">
+      <div className="flex items-center min-w-0">
         <TopBarUserProfile />
       </div>
     </div>

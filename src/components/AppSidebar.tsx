@@ -18,10 +18,10 @@ const AppSidebar = () => {
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 bg-white shadow-sm"
+      className="border-r border-gray-200 bg-white shadow-sm h-screen"
       collapsible="icon"
     >
-      <div className="flex flex-col h-full min-h-0">
+      <div className="flex flex-col h-full">
         <SidebarHeader className="flex-shrink-0 p-4 border-b border-gray-100">
           <SidebarBranding />
         </SidebarHeader>
@@ -30,7 +30,7 @@ const AppSidebar = () => {
           <SidebarMenuContent />
         </SidebarContent>
         
-        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0 sticky bottom-0 bg-white">
+        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0 bg-white">
           <SidebarUserProfile />
         </SidebarFooter>
       </div>

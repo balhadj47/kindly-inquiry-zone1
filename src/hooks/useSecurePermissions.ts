@@ -7,11 +7,50 @@ export const useSecurePermissions = () => {
 
   // Memoize the permissions object to prevent unnecessary re-renders
   const permissions = useMemo(() => {
+    console.log('🔒 useSecurePermissions: Computing permissions', {
+      userId: rbac.currentUser?.id,
+      roleId: rbac.currentUser?.role_id,
+      loading: rbac.loading,
+      hasCurrentUser: !!rbac.currentUser
+    });
+
+    // If still loading, return loading state
+    if (rbac.loading) {
+      return {
+        isAuthenticated: undefined, // Use undefined to indicate loading
+        isAdmin: false,
+        isViewOnly: false,
+        currentUser: null,
+        canAccessDashboard: false,
+        canReadCompanies: false,
+        canCreateCompanies: false,
+        canUpdateCompanies: false,
+        canDeleteCompanies: false,
+        canReadVans: false,
+        canCreateVans: false,
+        canUpdateVans: false,
+        canDeleteVans: false,
+        canReadUsers: false,
+        canCreateUsers: false,
+        canUpdateUsers: false,
+        canDeleteUsers: false,
+        canReadTrips: false,
+        canCreateTrips: false,
+        canUpdateTrips: false,
+        canDeleteTrips: false,
+        canReadAuthUsers: false,
+        canCreateAuthUsers: false,
+        canUpdateAuthUsers: false,
+        canDeleteAuthUsers: false,
+        errors: rbac.errors || {}
+      };
+    }
+
     const isAuthenticated = !!rbac.currentUser;
     const isAdmin = rbac.currentUser?.role_id === 1; // Check for admin role_id
     const isViewOnly = rbac.currentUser?.role_id === 3;
 
-    console.log('🔒 useSecurePermissions: Computing permissions', {
+    console.log('🔒 useSecurePermissions: Final permissions computed', {
       userId: rbac.currentUser?.id,
       roleId: rbac.currentUser?.role_id,
       isAdmin,
@@ -123,6 +162,7 @@ export const useSecurePermissions = () => {
   }, [
     rbac.currentUser?.id,
     rbac.currentUser?.role_id,
+    rbac.loading,
     rbac.errors
   ]);
 

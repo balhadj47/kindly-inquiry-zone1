@@ -91,14 +91,15 @@ const Index = () => {
       authUserId: authUser?.id,
       authUserEmail: authUser?.email,
       isMobile,
-      permissionsLoaded: !!permissions,
+      permissionsAuthenticated: permissions.isAuthenticated,
+      permissionsLoaded: permissions.isAuthenticated !== undefined,
       timestamp: new Date().toISOString()
     });
-  }, [authLoading, authUser, isMobile, permissions]);
+  }, [authLoading, authUser, isMobile, permissions.isAuthenticated]);
 
-  // Add null checks for safety
-  if (authLoading) {
-    console.log('📍 Index: Still loading auth...');
+  // Wait for both auth and permissions to be fully loaded
+  if (authLoading || permissions.isAuthenticated === undefined) {
+    console.log('📍 Index: Still loading auth or permissions...');
     return (
       <ErrorBoundary>
         <PageLoadingSkeleton />
@@ -106,8 +107,8 @@ const Index = () => {
     );
   }
 
-  if (!authUser) {
-    console.log('📍 Index: No auth user, showing access denied');
+  if (!authUser || !permissions.isAuthenticated) {
+    console.log('📍 Index: No auth user or not authenticated, showing access denied');
     return (
       <ErrorBoundary>
         <AccessDenied />

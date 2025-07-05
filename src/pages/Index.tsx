@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -133,7 +132,7 @@ const Index = () => {
     <ErrorBoundary>
       <Sonner />
       
-      <div className="min-h-screen w-full">
+      <div className="min-h-screen bg-gray-50">
         <TooltipProvider>
           {/* Fixed Sidebar - Only show on desktop */}
           <SafeComponent componentName="AppSidebar">
@@ -141,14 +140,14 @@ const Index = () => {
           </SafeComponent>
           
           {/* Main content area - offset by sidebar width on desktop */}
-          <div className={`min-h-screen flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
+          <div className={`min-h-screen ${!isMobile ? 'ml-64' : ''}`}>
             {/* Fixed TopBar */}
             <SafeComponent componentName="TopBar">
               <TopBar />
             </SafeComponent>
             
             {/* Scrollable Main Content */}
-            <main className="flex-1 bg-gray-50 overflow-y-auto">
+            <main className="bg-gray-50">
               <div className={`${
                 isEmployeesPage 
                   ? 'h-full p-6' 

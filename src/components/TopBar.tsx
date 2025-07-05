@@ -1,20 +1,26 @@
 
 import React from 'react';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
 import TopBarUserProfile from './TopBarUserProfile';
+import TopNavigation from './TopNavigation';
+import SidebarBranding from './SidebarBranding';
 
 const TopBar = () => {
   const isMobile = useIsMobile();
   
   return (
     <div className="flex-shrink-0 flex h-16 items-center justify-between gap-4 border-b border-border bg-background px-4 sm:px-6">
-      <div className="flex-1" />
+      {/* Left side - Branding */}
+      <div className="flex items-center">
+        <SidebarBranding />
+      </div>
       
-      {/* Right side - User profile and sidebar toggle */}
-      <div className="flex items-center gap-2">
+      {/* Center - Navigation menu (desktop only) */}
+      <TopNavigation />
+      
+      {/* Right side - User profile */}
+      <div className="flex items-center">
         <TopBarUserProfile />
-        {!isMobile && <SidebarTrigger className="hover:bg-accent h-8 w-8 rounded-md transition-colors" />}
       </div>
     </div>
   );

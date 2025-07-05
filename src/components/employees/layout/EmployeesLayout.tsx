@@ -67,7 +67,7 @@ const EmployeesLayout: React.FC<EmployeesLayoutProps> = ({
 
       {/* Scrollable Content Area - Only this part scrolls */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto p-1">
           {children}
         </div>
       </div>

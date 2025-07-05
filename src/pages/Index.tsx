@@ -14,6 +14,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { SafeComponent } from '@/components/SafeComponent';
 import { Suspense } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useLocation } from 'react-router-dom';
 
 // Import all pages directly
 import UserSettings from '@/pages/UserSettings';
@@ -50,8 +51,12 @@ const AccessDenied = () => (
 
 const Index = () => {
   const isMobile = useIsMobile();
+  const location = useLocation();
   const { user: authUser, loading: authLoading } = useAuth();
   const permissions = useSecurePermissions();
+
+  // Check if current page needs special layout (no padding, full height)
+  const isFullHeightPage = location.pathname === '/employees';
 
   // Add error boundary logging
   React.useEffect(() => {
@@ -142,10 +147,10 @@ const Index = () => {
               </SafeComponent>
               
               {/* Main content area with constrained width and proper scrolling */}
-              <main className="flex-1 bg-gray-50 overflow-hidden">
-                <div className="h-full overflow-y-auto">
-                  <div className={`h-full ${
-                    isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
+              <main className={`flex-1 bg-gray-50 ${isFullHeightPage ? 'overflow-hidden' : 'overflow-hidden'}`}>
+                <div className={`h-full ${isFullHeightPage ? '' : 'overflow-y-auto'}`}>
+                  <div className={`${isFullHeightPage ? 'h-full' : 'h-full'} ${
+                    isMobile ? (isFullHeightPage ? 'p-3 pb-20' : 'p-3 pb-20') : (isFullHeightPage ? 'p-6' : 'p-3 sm:p-4 lg:p-6')
                   }`}>
                     <Suspense fallback={<PageLoadingSkeleton />}>
                       <Routes>

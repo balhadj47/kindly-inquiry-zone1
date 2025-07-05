@@ -13,23 +13,7 @@ export const useSecurePermissions = () => {
 
     // Admin users get all permissions
     if (isAdmin) {
-      console.log('🔒 Admin user, granting permission: companies:read');
-      console.log('🔒 Admin user, granting permission: companies:create');
-      console.log('🔒 Admin user, granting permission: companies:update');
-      console.log('🔒 Admin user, granting permission: companies:delete');
-      console.log('🔒 Admin user, granting permission: vans:read');
-      console.log('🔒 Admin user, granting permission: vans:create');
-      console.log('🔒 Admin user, granting permission: vans:update');
-      console.log('🔒 Admin user, granting permission: vans:delete');
-      console.log('🔒 Admin user, granting permission: users:read');
-      console.log('🔒 Admin user, granting permission: users:create');
-      console.log('🔒 Admin user, granting permission: users:update');
-      console.log('🔒 Admin user, granting permission: users:delete');
-      console.log('🔒 Admin user, granting permission: trips:read');
-      console.log('🔒 Admin user, granting permission: trips:create');
-      console.log('🔒 Admin user, granting permission: trips:update');
-      console.log('🔒 Admin user, granting permission: trips:delete');
-      console.log('🔒 Admin user, granting permission: dashboard:read');
+      console.log('🔒 Admin user detected, granting all permissions');
       
       return {
         isAuthenticated,
@@ -61,40 +45,71 @@ export const useSecurePermissions = () => {
       };
     }
 
-    // Regular permission checking for non-admin users
-    const userPermissions = rbac.permissions || [];
+    // For authenticated users, give basic read permissions by default
+    if (isAuthenticated) {
+      console.log('🔒 Authenticated user, providing basic permissions');
+      
+      return {
+        isAuthenticated,
+        isAdmin: false,
+        isViewOnly,
+        currentUser: rbac.currentUser,
+        canAccessDashboard: true,
+        canReadCompanies: true,
+        canCreateCompanies: false,
+        canUpdateCompanies: false,
+        canDeleteCompanies: false,
+        canReadVans: true,
+        canCreateVans: false,
+        canUpdateVans: false,
+        canDeleteVans: false,
+        canReadUsers: true,
+        canCreateUsers: false,
+        canUpdateUsers: false,
+        canDeleteUsers: false,
+        canReadTrips: true,
+        canCreateTrips: false,
+        canUpdateTrips: false,
+        canDeleteTrips: false,
+        canReadAuthUsers: false,
+        canCreateAuthUsers: false,
+        canUpdateAuthUsers: false,
+        canDeleteAuthUsers: false,
+        errors: rbac.errors || {}
+      };
+    }
+
+    console.log('🔒 No authentication, denying all permissions');
     
-    const result = {
-      isAuthenticated,
+    // Not authenticated - deny all permissions
+    return {
+      isAuthenticated: false,
       isAdmin: false,
-      isViewOnly,
-      currentUser: rbac.currentUser,
-      canAccessDashboard: userPermissions.includes('dashboard:read'),
-      canReadCompanies: userPermissions.includes('companies:read'),
-      canCreateCompanies: userPermissions.includes('companies:create'),
-      canUpdateCompanies: userPermissions.includes('companies:update'),
-      canDeleteCompanies: userPermissions.includes('companies:delete'),
-      canReadVans: userPermissions.includes('vans:read'),
-      canCreateVans: userPermissions.includes('vans:create'),
-      canUpdateVans: userPermissions.includes('vans:update'),
-      canDeleteVans: userPermissions.includes('vans:delete'),
-      canReadUsers: userPermissions.includes('users:read'),
-      canCreateUsers: userPermissions.includes('users:create'),
-      canUpdateUsers: userPermissions.includes('users:update'),
-      canDeleteUsers: userPermissions.includes('users:delete'),
-      canReadTrips: userPermissions.includes('trips:read'),
-      canCreateTrips: userPermissions.includes('trips:create'),
-      canUpdateTrips: userPermissions.includes('trips:update'),
-      canDeleteTrips: userPermissions.includes('trips:delete'),
-      canReadAuthUsers: userPermissions.includes('auth-users:read'),
-      canCreateAuthUsers: userPermissions.includes('auth-users:create'),
-      canUpdateAuthUsers: userPermissions.includes('auth-users:update'),
-      canDeleteAuthUsers: userPermissions.includes('auth-users:delete'),
+      isViewOnly: false,
+      currentUser: null,
+      canAccessDashboard: false,
+      canReadCompanies: false,
+      canCreateCompanies: false,
+      canUpdateCompanies: false,
+      canDeleteCompanies: false,
+      canReadVans: false,
+      canCreateVans: false,
+      canUpdateVans: false,
+      canDeleteVans: false,
+      canReadUsers: false,
+      canCreateUsers: false,
+      canUpdateUsers: false,
+      canDeleteUsers: false,
+      canReadTrips: false,
+      canCreateTrips: false,
+      canUpdateTrips: false,
+      canDeleteTrips: false,
+      canReadAuthUsers: false,
+      canCreateAuthUsers: false,
+      canUpdateAuthUsers: false,
+      canDeleteAuthUsers: false,
       errors: rbac.errors || {}
     };
-
-    console.log('🔒 Final permissions state:', result);
-    return result;
   }, [
     rbac.currentUser,
     rbac.isAdmin,

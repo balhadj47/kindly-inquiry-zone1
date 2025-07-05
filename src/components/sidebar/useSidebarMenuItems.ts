@@ -1,49 +1,48 @@
 
-import { MenuItem } from './types';
-import { createMenuItems, createSystemAlertsItem } from './menuConfig';
+import { useMemo } from 'react';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useRealtimeIndicators } from '@/hooks/useRealtimeIndicators';
+import { menuItems } from './menuConfig';
 
-export const useSidebarMenuItems = (): MenuItem[] => {
+export const useSidebarMenuItems = () => {
   const permissions = useSecurePermissions();
-  const { t } = useLanguage();
-  const indicators = useRealtimeIndicators();
 
-  // If not authenticated, return empty menu
-  if (!permissions.isAuthenticated) {
-    console.log('🔍 useSidebarMenuItems: Not authenticated, returning empty menu');
-    return [];
-  }
-
-  // Get all menu items and filter based on secure permissions
-  const allMenuItems = createMenuItems(t);
-  
-  const filteredMenuItems = allMenuItems.filter((item) => {
-    if (!item.permission) {
-      console.log(`🔍 useSidebarMenuItems: Including ${item.title} - no permission required`);
-      return true;
-    }
-
-    // Use the hasPermission function which checks database permissions
-    const hasAccess = permissions.hasPermission(item.permission);
-    
-    console.log(`🔍 useSidebarMenuItems: ${item.title} (${item.permission}) = ${hasAccess}`, {
+  // Memoize the filtered menu items to prevent unnecessary re-computations
+  const filteredMenuItems = useMemo(() => {
+    console.log('🔍 useSidebarMenuItems: Computing menu items with permissions:', {
       isAdmin: permissions.isAdmin,
       currentUserRole: permissions.currentUser?.role_id
     });
-    
-    return hasAccess;
-  });
 
-  // Add system alerts item if user is admin and there are alerts
-  const systemAlertsItem = permissions.isAdmin ? createSystemAlertsItem(t, indicators.systemAlerts) : null;
-  if (systemAlertsItem) {
-    filteredMenuItems.push(systemAlertsItem);
-  }
+    const items = menuItems.filter(item => {
+      let hasPermission = false;
+      
+      if (permissions.isAdmin) {
+        console.log(`🔒 Admin user, granting permission: ${item.permission}`);
+        hasPermission = true;
+      } else if (item.permission && typeof permissions[item.permission as keyof typeof permissions] === 'boolean') {
+        hasPermission = permissions[item.permission as keyof typeof permissions] as boolean;
+      }
+      
+      console.log(`🔍 useSidebarMenuItems: ${item.title} (${item.permission}) = ${hasPermission}`, {
+        isAdmin: permissions.isAdmin,
+        currentUserRole: permissions.currentUser?.role_id
+      });
+      
+      return hasPermission;
+    });
 
-  console.log('🔍 useSidebarMenuItems: Final filtered menu items:', filteredMenuItems.map(item => item.title));
+    console.log('🔍 useSidebarMenuItems: Final filtered menu items:', items.map(item => item.title));
+    return items;
+  }, [
+    permissions.isAdmin,
+    permissions.canAccessDashboard,
+    permissions.canReadCompanies,
+    permissions.canReadVans,
+    permissions.canReadUsers,
+    permissions.canReadTrips,
+    permissions.canReadAuthUsers,
+    permissions.currentUser?.role_id
+  ]);
+
   return filteredMenuItems;
 };
-
-export { useRealtimeIndicators };

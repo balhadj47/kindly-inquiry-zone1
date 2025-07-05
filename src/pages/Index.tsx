@@ -139,8 +139,13 @@ const Index = () => {
             {!isMobile && <AppSidebar />}
           </SafeComponent>
           
-          {/* Main content area - properly offset by sidebar width on desktop */}
-          <div className={`min-h-screen ${!isMobile ? 'pl-64' : ''}`}>
+          {/* Main content wrapper - uses margin-left to make space for fixed sidebar */}
+          <div 
+            className="min-h-screen"
+            style={{ 
+              marginLeft: !isMobile ? '256px' : '0px' 
+            }}
+          >
             {/* Fixed TopBar */}
             <SafeComponent componentName="TopBar">
               <TopBar />

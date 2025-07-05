@@ -5,10 +5,8 @@ import {
   Sidebar,
   SidebarContent,
   SidebarHeader,
-  SidebarFooter,
 } from '@/components/ui/sidebar';
 import SidebarBranding from './SidebarBranding';
-import SidebarUserProfile from './SidebarUserProfile';
 import SidebarMenuContent from './SidebarMenuContent';
 
 const AppSidebar = () => {
@@ -29,10 +27,6 @@ const AppSidebar = () => {
         <SidebarContent className="flex-1 py-2 bg-white overflow-y-auto">
           <SidebarMenuContent />
         </SidebarContent>
-        
-        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0 bg-white">
-          <SidebarUserProfile />
-        </SidebarFooter>
       </div>
     </Sidebar>
   );

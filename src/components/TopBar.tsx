@@ -2,6 +2,7 @@
 import React from 'react';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useIsMobile } from '@/hooks/use-mobile';
+import TopBarUserProfile from './TopBarUserProfile';
 
 const TopBar = () => {
   const isMobile = useIsMobile();
@@ -12,7 +13,10 @@ const TopBar = () => {
       
       <div className="flex-1" />
       
-      {/* Future: User profile dropdown could go here */}
+      {/* User profile moved to top right */}
+      <div className="flex items-center">
+        <TopBarUserProfile />
+      </div>
     </div>
   );
 };

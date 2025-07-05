@@ -10,6 +10,18 @@ interface RealtimeIndicators {
   systemAlerts: number;
 }
 
+interface AuthUser {
+  id: string;
+  email: string;
+  created_at: string;
+  last_sign_in_at: string | null;
+  email_confirmed_at: string | null;
+  phone: string | null;
+  role: string;
+  user_metadata: any;
+  banned_until?: string | null;
+}
+
 export const useRealtimeIndicators = () => {
   const [indicators, setIndicators] = useState<RealtimeIndicators>({
     activeMissions: 0,
@@ -17,18 +29,21 @@ export const useRealtimeIndicators = () => {
     systemAlerts: 0
   });
 
-  const { data: trips = [] } = useTripsQuery();
+  const { data: tripsData } = useTripsQuery();
   const { data: authUsers = [] } = useAuthUsers();
   const permissions = useSecurePermissions();
 
   useEffect(() => {
+    // Extract trips array from the data structure
+    const trips = tripsData?.trips || [];
+    
     // Calculate active missions (status: active, in_progress)
     const activeMissions = trips.filter(trip => 
       trip.status === 'active' || trip.status === 'in_progress'
     ).length;
 
-    // Calculate pending approvals (inactive auth users waiting for activation)
-    const pendingApprovals = authUsers.filter(user => 
+    // Calculate pending approvals (users without email confirmation or banned)
+    const pendingApprovals = (authUsers as AuthUser[]).filter(user => 
       !user.email_confirmed_at || user.banned_until
     ).length;
 
@@ -56,7 +71,7 @@ export const useRealtimeIndicators = () => {
       pendingApprovals: permissions.canReadAuthUsers ? pendingApprovals : 0,
       systemAlerts: permissions.isAdmin ? systemAlerts : 0
     });
-  }, [trips, authUsers, permissions]);
+  }, [tripsData, authUsers, permissions]);
 
   return indicators;
 };

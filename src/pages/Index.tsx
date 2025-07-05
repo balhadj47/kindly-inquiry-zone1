@@ -133,15 +133,15 @@ const Index = () => {
     <ErrorBoundary>
       <Sonner />
       
-      <div className="min-h-screen w-full flex">
+      <div className="min-h-screen w-full">
         <TooltipProvider>
           {/* Fixed Sidebar - Only show on desktop */}
           <SafeComponent componentName="AppSidebar">
             {!isMobile && <AppSidebar />}
           </SafeComponent>
           
-          {/* Main content area - takes full width on mobile, offset by sidebar on desktop */}
-          <div className={`flex-1 min-h-screen flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
+          {/* Main content area - offset by sidebar width on desktop */}
+          <div className={`min-h-screen flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
             {/* Fixed TopBar */}
             <SafeComponent componentName="TopBar">
               <TopBar />

@@ -69,6 +69,7 @@ const AuthPage = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isSubmitting}
+                autoComplete="email"
               />
             </div>
             <div className="space-y-2">
@@ -81,6 +82,7 @@ const AuthPage = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isSubmitting}
+                autoComplete="current-password"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isSubmitting}>

@@ -30,7 +30,7 @@ const AppSidebar = () => {
           <SidebarMenuContent />
         </SidebarContent>
         
-        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0 mt-auto">
+        <SidebarFooter className="flex-shrink-0 border-t border-gray-100 p-0">
           <SidebarUserProfile />
         </SidebarFooter>
       </div>

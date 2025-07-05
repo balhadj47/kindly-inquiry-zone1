@@ -74,7 +74,7 @@ const SidebarMenuContent = React.memo(() => {
   }
 
   return (
-    <div className="px-2 py-2 space-y-1 group-data-[collapsible=icon]:px-1">
+    <div className="px-2 py-2 space-y-1 group-data-[collapsible=icon]:px-1 h-full">
       <SidebarMenu className="space-y-1">
         {menuItemsWithActiveState.map((item) => {
           const indicatorCount = getIndicatorCount(item.indicatorKey);

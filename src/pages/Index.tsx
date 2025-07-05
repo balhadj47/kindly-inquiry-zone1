@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -134,7 +135,7 @@ const Index = () => {
       <Sonner />
       
       <SidebarProvider>
-        <div className="min-h-screen w-full flex overflow-hidden">
+        <div className="min-h-screen w-full flex">
           <TooltipProvider>
             <SafeComponent componentName="AppSidebar">
               {!isMobile && <AppSidebar />}
@@ -145,8 +146,8 @@ const Index = () => {
                 <TopBar />
               </SafeComponent>
               
-              {/* Main content area - special handling for employees page */}
-              <main className={`flex-1 bg-gray-50 ${isEmployeesPage ? 'overflow-hidden' : 'overflow-hidden'}`}>
+              {/* Main content area - this is where scrolling happens */}
+              <main className="flex-1 bg-gray-50 overflow-hidden">
                 <div className={`h-full ${isEmployeesPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
                   <div className={`${
                     isEmployeesPage 

@@ -6,7 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
-import { SidebarInset } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/AppSidebar';
 import TopBar from '@/components/TopBar';
 import MobileBottomNav from '@/components/MobileBottomNav';
@@ -129,99 +129,100 @@ const Index = () => {
     <ErrorBoundary>
       <Sonner />
       
-      {/* Fixed layout container */}
-      <div className="h-screen flex overflow-hidden">
-        <TooltipProvider>
-          <SafeComponent componentName="AppSidebar">
-            {!isMobile && <AppSidebar />}
-          </SafeComponent>
-          
-          <SidebarInset className="flex flex-col flex-1 min-w-0">
-            <SafeComponent componentName="TopBar">
-              <TopBar />
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full">
+          <TooltipProvider>
+            <SafeComponent componentName="AppSidebar">
+              {!isMobile && <AppSidebar />}
             </SafeComponent>
             
-            {/* Scrollable main content area */}
-            <main className={`flex-1 bg-gray-50 overflow-y-auto ${
-              isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
-            }`}>
-              <Suspense fallback={<PageLoadingSkeleton />}>
-                <Routes>
-                  <Route path="" element={
-                    <SafeComponent componentName="Dashboard">
-                      {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="dashboard" element={
-                    <SafeComponent componentName="Dashboard">
-                      {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="companies/*" element={
-                    <SafeComponent componentName="Companies">
-                      {permissions.canReadCompanies ? <Companies /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="vans/*" element={
-                    <SafeComponent componentName="Vans">
-                      {permissions.canReadVans ? <Vans /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="users" element={
-                    <SafeComponent componentName="Users">
-                      {permissions.canReadUsers ? <Users /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="auth-users" element={
-                    <SafeComponent componentName="AuthUsers">
-                      {permissions.canReadAuthUsers ? <AuthUsersPage /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="employees" element={
-                    <SafeComponent componentName="Employees">
-                      {permissions.canReadUsers ? <Employees /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="log-trip" element={
-                    <SafeComponent componentName="TripLogger">
-                      {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="trip-logger" element={
-                    <SafeComponent componentName="TripLogger">
-                      {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="missions" element={
-                    <SafeComponent componentName="Missions">
-                      {permissions.canReadTrips ? <MissionsPage /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="trip-history" element={
-                    <SafeComponent componentName="TripHistory">
-                      {permissions.canReadTrips ? <TripHistoryPage /> : <AccessDenied />}
-                    </SafeComponent>
-                  } />
-                  <Route path="settings" element={
-                    <SafeComponent componentName="SystemSettings">
-                      <SystemSettingsPage />
-                    </SafeComponent>
-                  } />
-                  <Route path="user-settings" element={
-                    <SafeComponent componentName="UserSettings">
-                      <UserSettings />
-                    </SafeComponent>
-                  } />
-                </Routes>
-              </Suspense>
-            </main>
-          </SidebarInset>
-          
-          <SafeComponent componentName="MobileBottomNav">
-            {isMobile && <MobileBottomNav />}
-          </SafeComponent>
-        </TooltipProvider>
-      </div>
+            <SidebarInset className="flex flex-col flex-1">
+              <SafeComponent componentName="TopBar">
+                <TopBar />
+              </SafeComponent>
+              
+              {/* Main content area with proper scrolling */}
+              <main className={`flex-1 bg-gray-50 overflow-y-auto ${
+                isMobile ? 'p-3 pb-20' : 'p-3 sm:p-4 lg:p-6'
+              }`}>
+                <Suspense fallback={<PageLoadingSkeleton />}>
+                  <Routes>
+                    <Route path="" element={
+                      <SafeComponent componentName="Dashboard">
+                        {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="dashboard" element={
+                      <SafeComponent componentName="Dashboard">
+                        {permissions.canAccessDashboard ? <Dashboard /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="companies/*" element={
+                      <SafeComponent componentName="Companies">
+                        {permissions.canReadCompanies ? <Companies /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="vans/*" element={
+                      <SafeComponent componentName="Vans">
+                        {permissions.canReadVans ? <Vans /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="users" element={
+                      <SafeComponent componentName="Users">
+                        {permissions.canReadUsers ? <Users /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="auth-users" element={
+                      <SafeComponent componentName="AuthUsers">
+                        {permissions.canReadAuthUsers ? <AuthUsersPage /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="employees" element={
+                      <SafeComponent componentName="Employees">
+                        {permissions.canReadUsers ? <Employees /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="log-trip" element={
+                      <SafeComponent componentName="TripLogger">
+                        {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="trip-logger" element={
+                      <SafeComponent componentName="TripLogger">
+                        {permissions.canCreateTrips ? <TripLoggerPage /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="missions" element={
+                      <SafeComponent componentName="Missions">
+                        {permissions.canReadTrips ? <MissionsPage /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="trip-history" element={
+                      <SafeComponent componentName="TripHistory">
+                        {permissions.canReadTrips ? <TripHistoryPage /> : <AccessDenied />}
+                      </SafeComponent>
+                    } />
+                    <Route path="settings" element={
+                      <SafeComponent componentName="SystemSettings">
+                        <SystemSettingsPage />
+                      </SafeComponent>
+                    } />
+                    <Route path="user-settings" element={
+                      <SafeComponent componentName="UserSettings">
+                        <UserSettings />
+                      </SafeComponent>
+                    } />
+                  </Routes>
+                </Suspense>
+              </main>
+            </SidebarInset>
+            
+            <SafeComponent componentName="MobileBottomNav">
+              {isMobile && <MobileBottomNav />}
+            </SafeComponent>
+          </TooltipProvider>
+        </div>
+      </SidebarProvider>
     </ErrorBoundary>
   );
 };

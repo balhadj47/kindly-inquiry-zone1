@@ -17,25 +17,22 @@ const AppSidebar = () => {
   console.log('🔧 AppSidebar: Current location:', location.pathname);
 
   return (
-    <Sidebar 
-      className="fixed left-0 top-0 h-screen border-r border-gray-200 bg-white shadow-sm z-40"
-      collapsible="icon"
-    >
+    <div className="fixed left-0 top-0 h-screen w-64 border-r border-gray-200 bg-white shadow-sm z-40 flex flex-col">
       {/* Fixed Header */}
-      <SidebarHeader className="flex-shrink-0 p-4 border-b border-gray-100">
+      <div className="flex-shrink-0 p-4 border-b border-gray-100">
         <SidebarBranding />
-      </SidebarHeader>
+      </div>
       
       {/* Scrollable Menu Content */}
-      <SidebarContent className="flex-1 overflow-y-auto py-2 bg-white">
+      <div className="flex-1 overflow-y-auto py-2 bg-white">
         <SidebarMenuContent />
-      </SidebarContent>
+      </div>
 
       {/* Fixed Footer */}
-      <SidebarFooter className="flex-shrink-0 border-t border-gray-100">
+      <div className="flex-shrink-0 border-t border-gray-100">
         <SidebarUserProfile />
-      </SidebarFooter>
-    </Sidebar>
+      </div>
+    </div>
   );
 };
 

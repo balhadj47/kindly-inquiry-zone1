@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -132,18 +133,19 @@ const Index = () => {
     <ErrorBoundary>
       <Sonner />
       
-      <div className="min-h-screen bg-gray-50">
+      <div className="flex min-h-screen bg-gray-50" style={{ width: '100vw', overflow: 'hidden' }}>
         <TooltipProvider>
           {/* Fixed Sidebar - Only show on desktop */}
           <SafeComponent componentName="AppSidebar">
             {!isMobile && <AppSidebar />}
           </SafeComponent>
           
-          {/* Main content wrapper - uses margin-left to make space for fixed sidebar */}
+          {/* Main content area - takes remaining space */}
           <div 
-            className="min-h-screen"
+            className="flex-1 min-h-screen flex flex-col bg-gray-50"
             style={{ 
-              marginLeft: !isMobile ? '256px' : '0px' 
+              marginLeft: !isMobile ? '256px' : '0px',
+              width: !isMobile ? 'calc(100vw - 256px)' : '100vw'
             }}
           >
             {/* Fixed TopBar */}
@@ -152,7 +154,7 @@ const Index = () => {
             </SafeComponent>
             
             {/* Scrollable Main Content */}
-            <main className="bg-gray-50">
+            <main className="flex-1 bg-gray-50">
               <div className={`${
                 isEmployeesPage 
                   ? 'h-full p-6' 

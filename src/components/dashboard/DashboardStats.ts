@@ -18,9 +18,9 @@ interface Company {
 }
 
 interface Trip {
-  id?: number;
+  id?: string | number; // Allow both string and number
   timestamp?: string;
-  created_at?: string;
+  created_at?: string;  
   status?: string;
   endKm?: number;
   end_km?: number;

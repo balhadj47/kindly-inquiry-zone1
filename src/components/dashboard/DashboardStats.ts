@@ -1,6 +1,4 @@
 
-import { Trip } from '@/contexts/trip/types';
-
 interface User {
   id: string | number;
   name: string;
@@ -17,6 +15,21 @@ interface Van {
 interface Company {
   id: string;
   name: string;
+}
+
+interface Trip {
+  id?: number;
+  timestamp?: string;
+  created_at?: string;
+  status?: string;
+  endKm?: number;
+  end_km?: number;
+  startKm?: number;
+  start_km?: number;
+  company?: string;
+  van?: string;
+  user_ids?: string[];
+  userIds?: string[];
 }
 
 export const calculateDashboardStats = (

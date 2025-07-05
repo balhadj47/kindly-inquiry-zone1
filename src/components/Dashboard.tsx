@@ -10,7 +10,6 @@ import { calculateDashboardStats, createChartData } from './dashboard/DashboardS
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
 import QuickActions from './dashboard/QuickActions';
-import SystemStatus from './dashboard/SystemStatus';
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -18,9 +17,9 @@ const Dashboard = () => {
   
   // Fetch data using existing hooks
   const { data: tripsData, isLoading: tripsLoading } = useTripsQuery();
-  const { vans, loading: vansLoading } = useVans();
+  const { vans, isLoading: vansLoading } = useVans();
   const { users, loading: usersLoading } = useUsers();
-  const { companies, loading: companiesLoading } = useCompanies();
+  const { data: companies, isLoading: companiesLoading } = useCompanies();
 
   console.log('🏠 Dashboard: Data status', {
     tripsData: tripsData?.trips?.length || 0,
@@ -82,14 +81,7 @@ const Dashboard = () => {
       
       <EnhancedStatsGrid stats={stats} />
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <QuickActions />
-        <SystemStatus 
-          totalUsers={users?.length || 0}
-          activeVans={vans?.filter(van => van.status === 'Active' || !van.status)?.length || 0}
-          totalCompanies={companies?.length || 0}
-        />
-      </div>
+      <QuickActions />
       
       <EnhancedChartsSection chartData={chartData} />
     </div>

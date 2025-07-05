@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -55,8 +54,8 @@ const Index = () => {
   const { user: authUser, loading: authLoading } = useAuth();
   const permissions = useSecurePermissions();
 
-  // Check if current page needs special layout (no padding, full height)
-  const isFullHeightPage = location.pathname === '/employees';
+  // Check if current page needs special layout (no scrolling, full height)
+  const isEmployeesPage = location.pathname === '/employees';
 
   // Add error boundary logging
   React.useEffect(() => {
@@ -146,11 +145,15 @@ const Index = () => {
                 <TopBar />
               </SafeComponent>
               
-              {/* Main content area with constrained width and proper scrolling */}
-              <main className={`flex-1 bg-gray-50 ${isFullHeightPage ? 'overflow-hidden' : 'overflow-hidden'}`}>
-                <div className={`h-full ${isFullHeightPage ? '' : 'overflow-y-auto'}`}>
-                  <div className={`${isFullHeightPage ? 'h-full' : 'h-full'} ${
-                    isMobile ? (isFullHeightPage ? 'p-3 pb-20' : 'p-3 pb-20') : (isFullHeightPage ? 'p-6' : 'p-3 sm:p-4 lg:p-6')
+              {/* Main content area - special handling for employees page */}
+              <main className={`flex-1 bg-gray-50 ${isEmployeesPage ? 'overflow-hidden' : 'overflow-hidden'}`}>
+                <div className={`h-full ${isEmployeesPage ? 'overflow-hidden' : 'overflow-y-auto'}`}>
+                  <div className={`${
+                    isEmployeesPage 
+                      ? 'h-full p-6' 
+                      : isMobile 
+                        ? 'p-3 pb-20' 
+                        : 'p-3 sm:p-4 lg:p-6'
                   }`}>
                     <Suspense fallback={<PageLoadingSkeleton />}>
                       <Routes>

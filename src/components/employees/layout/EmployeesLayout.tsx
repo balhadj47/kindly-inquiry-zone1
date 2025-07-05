@@ -36,10 +36,9 @@ const EmployeesLayout: React.FC<EmployeesLayoutProps> = ({
   children
 }) => {
   return (
-    <div className="h-full flex flex-col overflow-hidden">
-      {/* Fixed Header and Filters Section */}
-      <div className="flex-shrink-0 space-y-6 pb-6">
-        {/* Header section */}
+    <div className="h-full flex flex-col">
+      {/* Fixed Header Section */}
+      <div className="flex-shrink-0 mb-6">
         <div className="flex items-center justify-between">
           <EmployeesHeader employeesCount={employeesCount} />
           <EmployeesActions 
@@ -49,8 +48,10 @@ const EmployeesLayout: React.FC<EmployeesLayoutProps> = ({
             canCreateEmployees={canCreateEmployees}
           />
         </div>
+      </div>
 
-        {/* Filters section */}
+      {/* Fixed Filters Section */}
+      <div className="flex-shrink-0 mb-6">
         <Card className="shadow-sm border-border/20">
           <CardContent className="p-6">
             <EmployeesFilters
@@ -66,8 +67,8 @@ const EmployeesLayout: React.FC<EmployeesLayoutProps> = ({
       </div>
 
       {/* Scrollable Content Area - Only this part scrolls */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        <div className="h-full overflow-y-auto p-1">
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
           {children}
         </div>
       </div>

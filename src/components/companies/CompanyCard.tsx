@@ -2,7 +2,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Trash2, Building, MapPin, Phone, Mail, Plus, Users } from 'lucide-react';
+import { Edit, Trash2, Building, MapPin, Phone, Mail, Users } from 'lucide-react';
 import { EntityCard } from '@/components/ui/entity-card';
 import { Button } from '@/components/ui/button';
 
@@ -87,20 +87,6 @@ const CompanyCard: React.FC<CompanyCardProps> = ({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            {onAddBranch && (
-              <Button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onAddBranch(company);
-                }}
-                variant="ghost"
-                size="sm"
-                className="h-9 w-9 p-0 bg-green-50 text-green-600 hover:bg-green-100"
-                title="Ajouter une succursale"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            )}
             {canEdit && onEdit && (
               <Button
                 onClick={(e) => {

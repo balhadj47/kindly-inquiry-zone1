@@ -111,23 +111,25 @@ const UserDialog: React.FC<UserDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[800px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
-        <DialogHeader className="space-y-3">
-          <DialogTitle className="text-lg sm:text-xl">
+      <DialogContent className="w-[95vw] max-w-[1000px] max-h-[95vh] overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <DialogHeader className="space-y-3 pb-4">
+          <DialogTitle className="text-xl sm:text-2xl font-semibold text-center sm:text-left">
             {config.title}
           </DialogTitle>
-          <DialogDescription className="text-sm sm:text-base">
+          <DialogDescription className="text-sm sm:text-base text-muted-foreground text-center sm:text-left">
             {config.description}
           </DialogDescription>
         </DialogHeader>
         
-        <UserDialogForm
-          user={user}
-          onSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          onCancel={onClose}
-          config={config}
-        />
+        <div className="space-y-6">
+          <UserDialogForm
+            user={user}
+            onSubmit={handleSubmit}
+            isSubmitting={isSubmitting}
+            onCancel={onClose}
+            config={config}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );

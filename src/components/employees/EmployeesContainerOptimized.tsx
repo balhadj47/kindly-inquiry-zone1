@@ -69,6 +69,23 @@ const EmployeesContainerOptimized = () => {
 
   return (
     <>
+      {/* Dialogs placed at the top for better code organization */}
+      <UserDialog
+        isOpen={employeesState.isModalOpen}
+        onClose={() => employeesState.setIsModalOpen(false)}
+        user={employeesState.selectedEmployee}
+        userType="employee"
+        onRefresh={employeesState.handleRefresh}
+      />
+
+      <EmployeeDeleteDialog
+        isOpen={employeesState.isDeleteDialogOpen}
+        onCancel={employeesState.handleCancelDelete}
+        employee={employeesState.selectedEmployee}
+        onConfirm={employeesState.handleConfirmDelete}
+      />
+
+      {/* Main content */}
       <EmployeesLayout
         employeesCount={employees.length}
         canCreateEmployees={employeesState.permissions.canCreateUsers}
@@ -91,21 +108,6 @@ const EmployeesContainerOptimized = () => {
           canDelete={employeesState.permissions.canDeleteUsers}
         />
       </EmployeesLayout>
-
-      <UserDialog
-        isOpen={employeesState.isModalOpen}
-        onClose={() => employeesState.setIsModalOpen(false)}
-        user={employeesState.selectedEmployee}
-        userType="employee"
-        onRefresh={employeesState.handleRefresh}
-      />
-
-      <EmployeeDeleteDialog
-        isOpen={employeesState.isDeleteDialogOpen}
-        onCancel={employeesState.handleCancelDelete}
-        employee={employeesState.selectedEmployee}
-        onConfirm={employeesState.handleConfirmDelete}
-      />
     </>
   );
 };

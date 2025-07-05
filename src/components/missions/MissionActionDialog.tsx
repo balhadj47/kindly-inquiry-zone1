@@ -36,7 +36,7 @@ const MissionActionDialog: React.FC<MissionActionDialogProps> = ({
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
-      <AlertDialogContent className="fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+      <AlertDialogContent className="fixed left-[50%] top-[5%] translate-x-[-50%] translate-y-0">
         <AlertDialogHeader>
           <AlertDialogTitle>
             {isDelete ? 'Supprimer la Mission' : 'Terminer la Mission'}

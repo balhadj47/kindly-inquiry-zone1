@@ -31,7 +31,7 @@ const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
   
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="w-[95vw] max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%]">
+      <DialogContent className="w-[95vw] max-w-[900px] max-h-[90vh] overflow-y-auto p-4 sm:p-6 fixed left-[50%] top-[5%] translate-x-[-50%] translate-y-0">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-lg sm:text-2xl font-bold text-center">
             Créer une Nouvelle Mission

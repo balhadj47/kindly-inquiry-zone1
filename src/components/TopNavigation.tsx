@@ -30,6 +30,7 @@ const TopNavigation = () => {
   }, [menuItems, location.pathname]);
 
   if (memoizedMenuItems.length === 0) {
+    console.log('🔍 TopNavigation: No menu items available, not rendering navigation');
     return null;
   }
 

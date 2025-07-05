@@ -24,7 +24,9 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return false;
     }
 
-    if (globalCurrentUser.id === 'admin-temp' || globalCurrentUser.role_id === 1) {
+    // Check for admin role first
+    if (globalCurrentUser.role_id === 1) {
+      console.log('🔒 hasPermission: Admin user, granting permission:', permission);
       return true;
     }
 
@@ -32,7 +34,8 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       'dashboard:read', 
       'trips:read', 
       'companies:read',
-      'vans:read'
+      'vans:read',
+      'users:read'
     ];
     
     if (basicPermissions.includes(permission)) {
@@ -43,8 +46,8 @@ export const hasPermission = (userId: string, permission: string): boolean => {
       return basicPermissions.includes(permission);
     }
 
-    // FIX: Use id field to match with user's role_id
-    const userRole = globalRoles.find(role => parseInt(role.id) === globalCurrentUser.role_id);
+    // Use role_id field to match with user's role_id
+    const userRole = globalRoles.find(role => role.role_id === globalCurrentUser.role_id);
     if (!userRole) {
       return basicPermissions.includes(permission);
     }
@@ -52,11 +55,14 @@ export const hasPermission = (userId: string, permission: string): boolean => {
     return Array.isArray(userRole.permissions) && userRole.permissions.includes(permission);
 
   } catch (error) {
-    if (globalCurrentUser?.role_id === 1 || globalCurrentUser?.id === 'admin-temp') {
+    console.error('🔒 hasPermission error:', error);
+    
+    // Fallback for admin users
+    if (globalCurrentUser?.role_id === 1) {
       return true;
     }
     
-    const basicPermissions = ['dashboard:read', 'trips:read', 'companies:read', 'vans:read'];
+    const basicPermissions = ['dashboard:read', 'trips:read', 'companies:read', 'vans:read', 'users:read'];
     return basicPermissions.includes(permission);
   }
 };
@@ -71,16 +77,22 @@ export const getUserRole = (userId: string): SystemGroup | null => {
       return null;
     }
     
-    // FIX: Use id field consistently
-    const role = globalRoles.find(r => parseInt(r.id) === globalCurrentUser.role_id);
+    // Use role_id field consistently
+    const role = globalRoles.find(r => r.role_id === globalCurrentUser.role_id);
     return role || null;
   } catch (error) {
+    console.error('🔒 getUserRole error:', error);
     return null;
   }
 };
 
 export const canUserPerformAction = (userId: string, action: string): boolean => {
   try {
+    // Check admin first
+    if (globalCurrentUser?.role_id === 1) {
+      return true;
+    }
+    
     const userRole = getUserRole(userId);
     if (!userRole) {
       return false;
@@ -88,6 +100,7 @@ export const canUserPerformAction = (userId: string, action: string): boolean =>
     
     return Array.isArray(userRole.permissions) && userRole.permissions.includes(action);
   } catch (error) {
-    return false;
+    console.error('🔒 canUserPerformAction error:', error);
+    return globalCurrentUser?.role_id === 1;
   }
 };

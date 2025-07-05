@@ -10,8 +10,16 @@ export const useSidebarMenuItems = () => {
   const filteredMenuItems = useMemo(() => {
     console.log('🔍 useSidebarMenuItems: Computing menu items with permissions:', {
       isAdmin: permissions.isAdmin,
-      currentUserRole: permissions.currentUser?.role_id
+      currentUserRole: permissions.currentUser?.role_id,
+      availablePermissions: Object.keys(permissions).filter(key => 
+        key.startsWith('can') && permissions[key as keyof typeof permissions]
+      )
     });
+
+    if (!permissions.isAuthenticated) {
+      console.log('🔍 useSidebarMenuItems: User not authenticated, returning empty menu');
+      return [];
+    }
 
     const items = menuItems.filter(item => {
       let hasPermission = false;
@@ -23,10 +31,7 @@ export const useSidebarMenuItems = () => {
         hasPermission = permissions[item.permission as keyof typeof permissions] as boolean;
       }
       
-      console.log(`🔍 useSidebarMenuItems: ${item.title} (${item.permission}) = ${hasPermission}`, {
-        isAdmin: permissions.isAdmin,
-        currentUserRole: permissions.currentUser?.role_id
-      });
+      console.log(`🔍 useSidebarMenuItems: ${item.title} (${item.permission}) = ${hasPermission}`);
       
       return hasPermission;
     });
@@ -34,6 +39,7 @@ export const useSidebarMenuItems = () => {
     console.log('🔍 useSidebarMenuItems: Final filtered menu items:', items.map(item => item.title));
     return items;
   }, [
+    permissions.isAuthenticated,
     permissions.isAdmin,
     permissions.canAccessDashboard,
     permissions.canReadCompanies,

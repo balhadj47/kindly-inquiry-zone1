@@ -8,8 +8,15 @@ export const useSecurePermissions = () => {
   // Memoize the permissions object to prevent unnecessary re-renders
   const permissions = useMemo(() => {
     const isAuthenticated = !!rbac.currentUser;
-    const isAdmin = rbac.isAdmin;
+    const isAdmin = rbac.currentUser?.role_id === 1; // Check for admin role_id
     const isViewOnly = rbac.currentUser?.role_id === 3;
+
+    console.log('🔒 useSecurePermissions: Computing permissions', {
+      userId: rbac.currentUser?.id,
+      roleId: rbac.currentUser?.role_id,
+      isAdmin,
+      isAuthenticated
+    });
 
     // Admin users get all permissions
     if (isAdmin) {
@@ -45,9 +52,12 @@ export const useSecurePermissions = () => {
       };
     }
 
-    // For authenticated users, give basic read permissions by default
+    // For authenticated users, give appropriate permissions based on role
     if (isAuthenticated) {
-      console.log('🔒 Authenticated user, providing basic permissions');
+      console.log('🔒 Authenticated user, providing role-based permissions', {
+        roleId: rbac.currentUser?.role_id,
+        isViewOnly
+      });
       
       return {
         isAuthenticated,
@@ -56,22 +66,22 @@ export const useSecurePermissions = () => {
         currentUser: rbac.currentUser,
         canAccessDashboard: true,
         canReadCompanies: true,
-        canCreateCompanies: false,
-        canUpdateCompanies: false,
-        canDeleteCompanies: false,
+        canCreateCompanies: !isViewOnly,
+        canUpdateCompanies: !isViewOnly,
+        canDeleteCompanies: !isViewOnly,
         canReadVans: true,
-        canCreateVans: false,
-        canUpdateVans: false,
-        canDeleteVans: false,
+        canCreateVans: !isViewOnly,
+        canUpdateVans: !isViewOnly,
+        canDeleteVans: !isViewOnly,
         canReadUsers: true,
-        canCreateUsers: false,
-        canUpdateUsers: false,
-        canDeleteUsers: false,
+        canCreateUsers: !isViewOnly,
+        canUpdateUsers: !isViewOnly,
+        canDeleteUsers: !isViewOnly,
         canReadTrips: true,
-        canCreateTrips: false,
-        canUpdateTrips: false,
-        canDeleteTrips: false,
-        canReadAuthUsers: false,
+        canCreateTrips: !isViewOnly,
+        canUpdateTrips: !isViewOnly,
+        canDeleteTrips: !isViewOnly,
+        canReadAuthUsers: false, // Only admins can access auth users
         canCreateAuthUsers: false,
         canUpdateAuthUsers: false,
         canDeleteAuthUsers: false,
@@ -111,9 +121,8 @@ export const useSecurePermissions = () => {
       errors: rbac.errors || {}
     };
   }, [
-    rbac.currentUser,
-    rbac.isAdmin,
-    rbac.permissions,
+    rbac.currentUser?.id,
+    rbac.currentUser?.role_id,
     rbac.errors
   ]);
 

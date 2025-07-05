@@ -2,4 +2,4 @@ name = "vite-react-app"
 compatibility_date = "2025-07-03"
 
 [assets]
-bucket = "./dist"
+directory = "./dist"

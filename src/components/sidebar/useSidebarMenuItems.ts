@@ -1,12 +1,14 @@
 
 import { MenuItem } from './types';
-import { createMenuItems } from './menuConfig';
+import { createMenuItems, createSystemAlertsItem } from './menuConfig';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useRealtimeIndicators } from '@/hooks/useRealtimeIndicators';
 
 export const useSidebarMenuItems = (): MenuItem[] => {
   const permissions = useSecurePermissions();
   const { t } = useLanguage();
+  const indicators = useRealtimeIndicators();
 
   // If not authenticated, return empty menu
   if (!permissions.isAuthenticated) {
@@ -34,6 +36,14 @@ export const useSidebarMenuItems = (): MenuItem[] => {
     return hasAccess;
   });
 
+  // Add system alerts item if user is admin and there are alerts
+  const systemAlertsItem = permissions.isAdmin ? createSystemAlertsItem(t, indicators.systemAlerts) : null;
+  if (systemAlertsItem) {
+    filteredMenuItems.push(systemAlertsItem);
+  }
+
   console.log('🔍 useSidebarMenuItems: Final filtered menu items:', filteredMenuItems.map(item => item.title));
   return filteredMenuItems;
 };
+
+export { useRealtimeIndicators };

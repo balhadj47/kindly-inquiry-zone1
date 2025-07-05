@@ -6,4 +6,6 @@ export interface MenuItem {
   href: string;
   icon: LucideIcon;
   permission?: string;
+  indicatorKey?: 'activeMissions' | 'pendingApprovals' | 'systemAlerts';
+  className?: string;
 }

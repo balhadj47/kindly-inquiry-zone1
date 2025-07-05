@@ -32,16 +32,6 @@ const CompaniesHeader: React.FC<CompaniesHeaderProps> = ({
             Gérez vos entreprises et leurs succursales
           </p>
         </div>
-        {onRefresh && (
-          <Button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="ml-4 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        )}
       </div>
       
       <div className="flex items-center gap-3">
@@ -54,6 +44,16 @@ const CompaniesHeader: React.FC<CompaniesHeaderProps> = ({
           >
             Nouvelle Entreprise
           </ActionButton>
+        )}
+        {onRefresh && (
+          <Button
+            onClick={onRefresh}
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
         )}
       </div>
     </div>

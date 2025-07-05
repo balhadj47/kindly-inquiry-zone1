@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Plus, ExternalLink, AlertTriangle, RefreshCw } from 'lucide-react';
@@ -165,9 +166,17 @@ const AuthUsers = () => {
         <div className="flex items-center justify-between">
           <AuthUsersHeader 
             authUsersCount={0} 
-            onRefresh={handleRefresh}
-            isRefreshing={isRefreshing}
           />
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Actualiser
+            </Button>
+          </div>
         </div>
 
         <Alert className="border-amber-200 bg-amber-50">
@@ -209,8 +218,6 @@ const AuthUsers = () => {
       <div className="flex items-center justify-between">
         <AuthUsersHeader 
           authUsersCount={authUsers.length} 
-          onRefresh={handleRefresh}
-          isRefreshing={isRefreshing}
         />
         <div className="flex items-center gap-3">
           {permissions.canCreate && (
@@ -223,6 +230,14 @@ const AuthUsers = () => {
               Ajouter
             </ActionButton>
           )}
+          <Button
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
         </div>
       </div>
 

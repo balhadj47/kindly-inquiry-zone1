@@ -1,7 +1,6 @@
 
 import React from 'react';
-import { Shield, RefreshCw } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Shield } from 'lucide-react';
 
 interface AuthUsersHeaderProps {
   authUsersCount: number;
@@ -28,16 +27,6 @@ const AuthUsersHeader: React.FC<AuthUsersHeaderProps> = ({
             {authUsersCount} compte{authUsersCount !== 1 ? 's' : ''} d'authentification
           </p>
         </div>
-        {onRefresh && (
-          <Button
-            onClick={onRefresh}
-            disabled={isRefreshing}
-            className="ml-4 bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
-        )}
       </div>
     </div>
   );

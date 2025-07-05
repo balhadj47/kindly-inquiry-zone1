@@ -18,21 +18,21 @@ const AppSidebar = () => {
 
   return (
     <Sidebar 
-      className="border-r border-gray-200 bg-white shadow-sm"
+      className="fixed left-0 top-0 h-screen border-r border-gray-200 bg-white shadow-sm z-40"
       collapsible="icon"
     >
       {/* Fixed Header */}
-      <SidebarHeader className="p-4 border-b border-gray-100">
+      <SidebarHeader className="flex-shrink-0 p-4 border-b border-gray-100">
         <SidebarBranding />
       </SidebarHeader>
       
       {/* Scrollable Menu Content */}
-      <SidebarContent className="flex-1 py-2 bg-white">
+      <SidebarContent className="flex-1 overflow-y-auto py-2 bg-white">
         <SidebarMenuContent />
       </SidebarContent>
 
       {/* Fixed Footer */}
-      <SidebarFooter className="border-t border-gray-100">
+      <SidebarFooter className="flex-shrink-0 border-t border-gray-100">
         <SidebarUserProfile />
       </SidebarFooter>
     </Sidebar>

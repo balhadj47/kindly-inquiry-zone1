@@ -135,18 +135,21 @@ const Index = () => {
       <Sonner />
       
       <SidebarProvider>
-        <div className="min-h-screen w-full flex">
+        <div className="min-h-screen w-full">
           <TooltipProvider>
+            {/* Fixed Sidebar - Only show on desktop */}
             <SafeComponent componentName="AppSidebar">
               {!isMobile && <AppSidebar />}
             </SafeComponent>
             
-            <SidebarInset className="flex-1 flex flex-col min-w-0">
+            {/* Main content area with proper offset for sidebar */}
+            <div className={`min-h-screen flex flex-col ${!isMobile ? 'ml-64' : ''}`}>
+              {/* Fixed TopBar */}
               <SafeComponent componentName="TopBar">
                 <TopBar />
               </SafeComponent>
               
-              {/* Main content area - ONLY this should scroll */}
+              {/* Scrollable Main Content */}
               <main className="flex-1 bg-gray-50 overflow-y-auto">
                 <div className={`${
                   isEmployeesPage 
@@ -226,8 +229,9 @@ const Index = () => {
                   </Suspense>
                 </div>
               </main>
-            </SidebarInset>
+            </div>
             
+            {/* Mobile Bottom Navigation */}
             <SafeComponent componentName="MobileBottomNav">
               {isMobile && <MobileBottomNav />}
             </SafeComponent>

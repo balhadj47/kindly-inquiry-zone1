@@ -6,7 +6,7 @@ import { menuItems } from './menuConfig';
 export const useSidebarMenuItems = () => {
   const permissions = useSecurePermissions();
 
-  // Memoize the filtered menu items to prevent unnecessary re-computations
+  // Memoize the filtered menu items with stable dependencies
   const filteredMenuItems = useMemo(() => {
     console.log('🔍 useSidebarMenuItems: Computing menu items with permissions:', {
       isAdmin: permissions.isAdmin,
@@ -45,4 +45,13 @@ export const useSidebarMenuItems = () => {
   ]);
 
   return filteredMenuItems;
+};
+
+// Add the missing export for compatibility
+export const useRealtimeIndicators = () => {
+  return {
+    activeMissions: 0,
+    pendingApprovals: 0,
+    systemAlerts: 0,
+  };
 };

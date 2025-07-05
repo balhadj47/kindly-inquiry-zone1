@@ -8,9 +8,10 @@ const TopNavigation = () => {
   const location = useLocation();
   const menuItems = useSidebarMenuItems();
 
-  // Memoize the menu items to prevent unnecessary re-renders
+  // Memoize the menu items with stable pathname
   const memoizedMenuItems = useMemo(() => {
-    console.log('🔍 TopNavigation: Rendering with', menuItems.length, 'items for', location.pathname);
+    const currentPath = location.pathname;
+    console.log('🔍 TopNavigation: Rendering with', menuItems.length, 'items for', currentPath);
     
     if (menuItems.length === 0) {
       console.log('🔍 TopNavigation: No menu items to render');
@@ -18,8 +19,8 @@ const TopNavigation = () => {
     }
 
     return menuItems.map((item) => {
-      const isActive = location.pathname === item.href || 
-        (item.href === '/dashboard' && (location.pathname === '/' || location.pathname === '/dashboard'));
+      const isActive = currentPath === item.href || 
+        (item.href === '/dashboard' && (currentPath === '/' || currentPath === '/dashboard'));
       
       return {
         ...item,

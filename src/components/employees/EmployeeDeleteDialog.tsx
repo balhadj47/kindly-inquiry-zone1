@@ -27,7 +27,7 @@ const EmployeeDeleteDialog: React.FC<EmployeeDeleteDialogProps> = ({
 }) => {
   return (
     <AlertDialog open={isOpen} onOpenChange={() => onCancel()}>
-      <AlertDialogContent>
+      <AlertDialogContent className="sm:max-w-[425px] top-8 translate-y-0">
         <AlertDialogHeader>
           <AlertDialogTitle>Supprimer l'employé</AlertDialogTitle>
           <AlertDialogDescription>

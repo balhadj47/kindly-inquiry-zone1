@@ -34,7 +34,10 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onTerminate(mission)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onTerminate(mission);
+          }}
           className="h-8 w-8 p-0 bg-orange-500 text-white hover:bg-orange-600 transition-colors duration-200"
         >
           <StopCircle className="h-4 w-4" />
@@ -45,7 +48,10 @@ const MissionCardActions: React.FC<MissionCardActionsProps> = ({
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => onDelete(mission)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(mission);
+          }}
           className="h-8 w-8 p-0 bg-red-500 text-white hover:bg-red-600 transition-colors duration-200"
         >
           <Trash2 className="h-4 w-4" />

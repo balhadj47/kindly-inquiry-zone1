@@ -74,33 +74,9 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
           setShowTerminatePrompt(true);
           setFinalKm('');
         }}
-        onDeleteClick={async (mission) => {
-          console.log('🗑️ MissionsList: Starting delete for mission:', mission.id);
-          
-          if (deletingMissionId === mission.id) {
-            console.log('🗑️ MissionsList: Already deleting this mission');
-            return;
-          }
-
-          setDeletingMissionId(mission.id);
-          
-          try {
-            await deleteTrip.mutateAsync(mission.id.toString());
-            console.log('🗑️ MissionsList: Mission deleted successfully:', mission.id);
-            
-            if (onDeleteMission) {
-              onDeleteMission(mission);
-            }
-          } catch (error) {
-            console.error('🗑️ MissionsList: Error deleting mission:', error);
-            toast({
-              title: 'Erreur',
-              description: 'Impossible de supprimer la mission',
-              variant: 'destructive',
-            });
-          } finally {
-            setDeletingMissionId(null);
-          }
+        onDeleteClick={(mission) => {
+          console.log('🗑️ MissionsList: Requesting delete confirmation for mission:', mission.id);
+          onDeleteMission(mission);
         }}
       />
 

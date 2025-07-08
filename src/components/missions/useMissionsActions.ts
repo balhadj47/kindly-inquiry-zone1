@@ -17,7 +17,7 @@ export const useMissionsActions = () => {
     action: null
   });
 
-  const { refreshTrips } = useTrip();
+  const { refreshTrips, deleteTrip } = useTrip();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -49,8 +49,10 @@ export const useMissionsActions = () => {
 
     setIsRefreshing(true);
     try {
-      // Handle the actual action here based on actionDialog.action
-      // This would typically call the appropriate service methods
+      if (actionDialog.action === 'delete') {
+        await deleteTrip(actionDialog.mission.id);
+      }
+      // Handle other actions like 'terminate' if needed
       await handleRefresh();
     } finally {
       setIsRefreshing(false);

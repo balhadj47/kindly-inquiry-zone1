@@ -1,11 +1,12 @@
 
 import React, { useMemo, useCallback } from 'react';
-import { useTripFormState } from '@/hooks/trip-form/useTripFormState';
+import { useTripFormStateMultiCompany } from '@/hooks/trip-form/useTripFormStateMultiCompany';
 import { useTripFormValidation } from '@/hooks/trip-form/useTripFormValidation';
 import { useTripFormSubmission } from '@/hooks/trip-form/useTripFormSubmission';
 import { useTripFormWizardState } from '@/hooks/trip-form/useTripFormWizardState';
 import { useTripFormData } from '@/hooks/trip-form/useTripFormData';
 import { TripWizardStep } from '@/hooks/useTripWizard';
+import { SelectedCompany } from '@/hooks/useTripFormMultiCompany';
 
 interface TripFormContextType {
   // Form data and handlers
@@ -13,6 +14,8 @@ interface TripFormContextType {
   handleInputChange: (field: string, value: string) => void;
   handleDateChange: (field: string, value: Date | undefined) => void;
   handleUserRoleSelection: (userId: string, roles: any[]) => void;
+  handleAddCompany: (companyId: string, branchId: string, companyName?: string, branchName?: string) => void;
+  handleRemoveCompany: (index: number) => void;
   userSearchQuery: string;
   setUserSearchQuery: (query: string) => void;
   
@@ -62,8 +65,8 @@ interface TripFormProviderProps {
 export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) => {
   console.log('🔄 TripFormProvider: Component render started');
   
-  // Use the extracted hooks
-  const formState = useTripFormState();
+  // Use the multi-company form state
+  const formState = useTripFormStateMultiCompany();
   const validation = useTripFormValidation();
   const wizardState = useTripFormWizardState();
   const formData = useTripFormData(formState.formData, formState.handleInputChange);
@@ -74,15 +77,26 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
     setUserSearchQuery: formState.setUserSearchQuery,
     resetWizard: wizardState.resetWizard,
     setCompletedSteps: wizardState.setCompletedSteps,
+    useMultiCompany: true, // Enable multi-company support
   });
+
+  // Validate current step for multi-company
+  const validateCurrentStepMultiCompany = useCallback((step: TripWizardStep, data: any) => {
+    switch (step) {
+      case 'company':
+        return data.selectedCompanies && data.selectedCompanies.length > 0;
+      default:
+        return validation.validateCurrentStep(step, data);
+    }
+  }, [validation.validateCurrentStep]);
 
   // Memoize handlers to prevent unnecessary re-renders
   const handleNext = useCallback(() => {
-    if (validation.validateCurrentStep(wizardState.currentStep, formState.formData)) {
+    if (validateCurrentStepMultiCompany(wizardState.currentStep, formState.formData)) {
       wizardState.setCompletedSteps(prev => new Set([...prev, wizardState.currentStep]));
       wizardState.goToNextStep();
     }
-  }, [validation.validateCurrentStep, wizardState.currentStep, formState.formData, wizardState.goToNextStep, wizardState.setCompletedSteps]);
+  }, [validateCurrentStepMultiCompany, wizardState.currentStep, formState.formData, wizardState.goToNextStep, wizardState.setCompletedSteps]);
 
   const handleSubmit = useCallback(async () => {
     await submission.handleSubmit(formState.formData);
@@ -90,7 +104,7 @@ export const TripFormProvider: React.FC<TripFormProviderProps> = ({ children }) 
 
   // Memoize the context value to prevent unnecessary re-renders
   const contextValue = useMemo<TripFormContextType>(() => ({
-    // Form state
+    // Form state (now includes multi-company handlers)
     ...formState,
     
     // Wizard state

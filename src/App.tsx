@@ -1,59 +1,59 @@
 
-import { Toaster } from "@/components/ui/toaster"
-import { HashRouter as Router, Routes, Route } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { RBACProvider } from '@/contexts/RBACContext'
-import { LanguageProvider } from '@/contexts/LanguageContext'
-import { TripProvider } from '@/contexts/TripContext'
-import { ProgressiveLoadingProvider } from '@/contexts/ProgressiveLoadingContext'
-import { ThemeProvider } from "next-themes"
-import { SidebarProvider } from "@/components/ui/sidebar"
-import ProtectedRoute from '@/components/ProtectedRoute'
-import Index from '@/pages/Index'
-import AuthPage from '@/pages/AuthPage'
-import NotFound from '@/pages/NotFound'
-import './App.css'
+import { StrictMode } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/toaster';
+import { AuthProvider } from '@/contexts/AuthContext';
+import { RBACProvider } from '@/contexts/RBACContext';
+import LoginPage from '@/pages/LoginPage';
+import Dashboard from '@/pages/Dashboard';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
+// Create a stable query client instance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      refetchOnWindowFocus: false,
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
     },
   },
-})
+});
 
-const App = () => {
+function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+    <StrictMode>
       <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider>
-            <RBACProvider>
-              <ProgressiveLoadingProvider>
-                <TripProvider>
-                  <Router>
-                    <Routes>
-                      <Route path="auth" element={<AuthPage />} />
-                      <Route path="*" element={
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem={false}
+          disableTransitionOnChange
+        >
+          <Router>
+            <AuthProvider>
+              <RBACProvider>
+                <div className="min-h-screen bg-background">
+                  <Routes>
+                    <Route path="/login" element={<LoginPage />} />
+                    <Route 
+                      path="/*" 
+                      element={
                         <ProtectedRoute>
-                          <SidebarProvider>
-                            <Index />
-                          </SidebarProvider>
+                          <Dashboard />
                         </ProtectedRoute>
-                      } />
-                    </Routes>
-                  </Router>
-                </TripProvider>
-              </ProgressiveLoadingProvider>
-            </RBACProvider>
-          </AuthProvider>
-        </LanguageProvider>
+                      } 
+                    />
+                  </Routes>
+                  <Toaster />
+                </div>
+              </RBACProvider>
+            </AuthProvider>
+          </Router>
+        </ThemeProvider>
       </QueryClientProvider>
-      <Toaster />
-    </ThemeProvider>
-  )
+    </StrictMode>
+  );
 }
 
-export default App
+export default App;

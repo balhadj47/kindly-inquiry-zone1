@@ -1,134 +1,146 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { User } from '@/types/rbac';
-import { useRBAC } from '@/contexts/RBACContext';
-import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { User, FileText, IdCard, Briefcase, Heart, Camera } from 'lucide-react';
+import { User as UserType } from '@/types/rbac';
 import UserDialogForm from './UserDialogForm';
+import EmployeeNotesTab from './EmployeeNotesTab';
+import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 
 interface UserDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  user: User | null;
-  userType?: 'admin' | 'employee' | 'driver';
+  user?: UserType | null;
+  userType?: 'employee' | 'driver' | 'user';
   onRefresh?: () => void;
 }
 
-const UserDialog: React.FC<UserDialogProps> = ({ 
-  isOpen, 
-  onClose, 
-  user, 
-  userType = 'admin',
-  onRefresh 
+const UserDialog: React.FC<UserDialogProps> = ({
+  isOpen,
+  onClose,
+  user,
+  userType = 'user',
+  onRefresh
 }) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const { addUser, updateUser } = useRBAC();
-  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState('basic');
+  const permissions = useEmployeePermissions();
 
-  const getDialogConfig = () => {
-    switch (userType) {
-      case 'employee':
-        return {
-          title: user ? 'Modifier l\'Employé' : 'Ajouter un Nouvel Employé',
-          description: user 
-            ? 'Modifiez les informations de l\'employé ci-dessous.' 
-            : 'Remplissez les informations pour créer un nouvel employé.',
-          defaultRoleId: 3,
-          showEmployeeFields: true,
-          showDriverFields: false,
-          requireEmail: false
-        };
-      case 'driver':
-        return {
-          title: user ? 'Modifier le Chauffeur' : 'Ajouter un Nouveau Chauffeur',
-          description: user 
-            ? 'Modifiez les informations du chauffeur ci-dessous.' 
-            : 'Remplissez les informations pour créer un nouveau chauffeur.',
-          defaultRoleId: 4,
-          showEmployeeFields: false,
-          showDriverFields: true,
-          requireEmail: false
-        };
-      default:
-        return {
-          title: user ? 'Modifier l\'Utilisateur' : 'Ajouter un Nouvel Utilisateur',
-          description: user 
-            ? 'Modifiez les informations de l\'utilisateur ci-dessous.' 
-            : 'Remplissez les informations pour créer un nouvel utilisateur.',
-          defaultRoleId: 2,
-          showEmployeeFields: false,
-          showDriverFields: false,
-          requireEmail: true
-        };
+  const handleSuccess = () => {
+    if (onRefresh) {
+      onRefresh();
     }
+    onClose();
   };
 
-  const config = getDialogConfig();
-
-  const handleSubmit = async (userData: Partial<User>) => {
-    setIsSubmitting(true);
-    try {
-      console.log('UserDialog - Submitting user data:', userData);
-      
-      // Set default role based on user type if not editing
-      const finalUserData = user ? userData : { 
-        ...userData, 
-        role_id: userData.role_id || config.defaultRoleId
-      };
-      
-      console.log('UserDialog - Final user data:', finalUserData);
-      
-      if (user) {
-        await updateUser(user.id, finalUserData);
-        toast({
-          title: 'Succès',
-          description: `${userType === 'employee' ? 'Employé' : userType === 'driver' ? 'Chauffeur' : 'Utilisateur'} modifié avec succès`,
-        });
-      } else {
-        await addUser(finalUserData);
-        toast({
-          title: 'Succès',
-          description: `${userType === 'employee' ? 'Employé' : userType === 'driver' ? 'Chauffeur' : 'Utilisateur'} créé avec succès`,
-        });
-      }
-      
-      if (onRefresh) {
-        onRefresh();
-      }
-      
-      onClose();
-    } catch (error) {
-      console.error('Error submitting user:', error);
-      toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
+  const getDialogTitle = () => {
+    if (user) {
+      return `Modifier ${userType === 'employee' ? 'l\'employé' : userType === 'driver' ? 'le chauffeur' : 'l\'utilisateur'}`;
     }
+    return `Ajouter ${userType === 'employee' ? 'un employé' : userType === 'driver' ? 'un chauffeur' : 'un utilisateur'}`;
   };
+
+  const showNotesTab = user && userType === 'employee' && permissions.hasUsersReadPermission;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-[95vw] max-w-[1000px] max-h-[95vh] overflow-y-auto p-4 sm:p-6 lg:p-8">
-        <DialogHeader className="space-y-3 pb-4">
-          <DialogTitle className="text-xl sm:text-2xl font-semibold text-center sm:text-left">
-            {config.title}
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <User className="h-5 w-5" />
+            {getDialogTitle()}
+            {user && (
+              <span className="text-muted-foreground font-normal">
+                - {user.name}
+              </span>
+            )}
           </DialogTitle>
-          <DialogDescription className="text-sm sm:text-base text-muted-foreground text-center sm:text-left">
-            {config.description}
-          </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-6">
-          <UserDialogForm
-            user={user}
-            onSubmit={handleSubmit}
-            isSubmitting={isSubmitting}
-            onCancel={onClose}
-            config={config}
-          />
+        <div className="flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList className="grid w-full grid-cols-6">
+              <TabsTrigger value="basic" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Informations</span>
+              </TabsTrigger>
+              <TabsTrigger value="identity" className="flex items-center gap-2">
+                <IdCard className="h-4 w-4" />
+                <span className="hidden sm:inline">Identité</span>
+              </TabsTrigger>
+              <TabsTrigger value="professional" className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                <span className="hidden sm:inline">Professionnel</span>
+              </TabsTrigger>
+              <TabsTrigger value="medical" className="flex items-center gap-2">
+                <Heart className="h-4 w-4" />
+                <span className="hidden sm:inline">Médical</span>
+              </TabsTrigger>
+              <TabsTrigger value="photo" className="flex items-center gap-2">
+                <Camera className="h-4 w-4" />
+                <span className="hidden sm:inline">Photo</span>
+              </TabsTrigger>
+              {showNotesTab && (
+                <TabsTrigger value="notes" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Notes</span>
+                </TabsTrigger>
+              )}
+            </TabsList>
+            
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="basic" className="h-full overflow-auto">
+                <UserDialogForm 
+                  user={user} 
+                  userType={userType} 
+                  onSuccess={handleSuccess}
+                  activeSection="basic"
+                />
+              </TabsContent>
+              
+              <TabsContent value="identity" className="h-full overflow-auto">
+                <UserDialogForm 
+                  user={user} 
+                  userType={userType} 
+                  onSuccess={handleSuccess}
+                  activeSection="identity"
+                />
+              </TabsContent>
+              
+              <TabsContent value="professional" className="h-full overflow-auto">
+                <UserDialogForm 
+                  user={user} 
+                  userType={userType} 
+                  onSuccess={handleSuccess}
+                  activeSection="professional"
+                />
+              </TabsContent>
+              
+              <TabsContent value="medical" className="h-full overflow-auto">
+                <UserDialogForm 
+                  user={user} 
+                  userType={userType} 
+                  onSuccess={handleSuccess}
+                  activeSection="medical"
+                />
+              </TabsContent>
+              
+              <TabsContent value="photo" className="h-full overflow-auto">
+                <UserDialogForm 
+                  user={user} 
+                  userType={userType} 
+                  onSuccess={handleSuccess}
+                  activeSection="photo"
+                />
+              </TabsContent>
+              
+              {showNotesTab && (
+                <TabsContent value="notes" className="h-full overflow-auto p-4">
+                  <EmployeeNotesTab user={user} />
+                </TabsContent>
+              )}
+            </div>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>

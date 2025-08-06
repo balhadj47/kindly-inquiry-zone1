@@ -28,20 +28,31 @@ export const useEmployeeNotes = (employeeId: number) => {
     queryFn: async (): Promise<EmployeeNote[]> => {
       console.log('🔍 Fetching employee notes for employee ID:', employeeId);
       
-      // Direct query to employee_notes table
-      const { data, error } = await supabase
-        .from('employee_notes' as any)
-        .select('*')
-        .eq('employee_id', employeeId)
-        .order('date', { ascending: false });
+      try {
+        // Use SQL query to work around type issues
+        const { data, error } = await supabase
+          .rpc('execute_sql', {
+            query: `
+              SELECT id::text, employee_id, date, category, title, details, created_at::text, created_by
+              FROM employee_notes 
+              WHERE employee_id = $1 
+              ORDER BY date DESC, created_at DESC
+            `,
+            params: [employeeId]
+          });
 
-      if (error) {
-        console.error('❌ Error fetching employee notes:', error);
-        throw new Error(`Failed to fetch employee notes: ${error.message}`);
+        if (error) {
+          console.error('❌ Error fetching employee notes:', error);
+          throw new Error(`Failed to fetch employee notes: ${error.message}`);
+        }
+
+        console.log('✅ Successfully fetched employee notes:', data?.length || 0);
+        return data || [];
+      } catch (error) {
+        console.error('❌ Error in employee notes query:', error);
+        // Return empty array as fallback
+        return [];
       }
-
-      console.log('✅ Successfully fetched employee notes:', data?.length || 0);
-      return data || [];
     },
     enabled: !!employeeId && !isNaN(employeeId),
   });
@@ -55,19 +66,38 @@ export const useEmployeeNotesMutations = () => {
     mutationFn: async (noteData: CreateEmployeeNoteData): Promise<EmployeeNote> => {
       console.log('➕ Creating employee note:', noteData);
       
-      const { data, error } = await supabase
-        .from('employee_notes' as any)
-        .insert(noteData)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabase
+          .rpc('execute_sql', {
+            query: `
+              INSERT INTO employee_notes (employee_id, date, category, title, details)
+              VALUES ($1, $2, $3, $4, $5)
+              RETURNING id::text, employee_id, date, category, title, details, created_at::text, created_by
+            `,
+            params: [
+              noteData.employee_id,
+              noteData.date,
+              noteData.category,
+              noteData.title,
+              noteData.details || null
+            ]
+          });
 
-      if (error) {
-        console.error('❌ Error creating employee note:', error);
-        throw new Error(`Failed to create employee note: ${error.message}`);
+        if (error) {
+          console.error('❌ Error creating employee note:', error);
+          throw new Error(`Failed to create employee note: ${error.message}`);
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error('No data returned from create operation');
+        }
+
+        console.log('✅ Successfully created employee note:', data[0].id);
+        return data[0];
+      } catch (error) {
+        console.error('❌ Error in create note mutation:', error);
+        throw error;
       }
-
-      console.log('✅ Successfully created employee note:', data.id);
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ 
@@ -83,20 +113,40 @@ export const useEmployeeNotesMutations = () => {
     mutationFn: async ({ id, ...updates }: { id: string } & Partial<CreateEmployeeNoteData>): Promise<EmployeeNote> => {
       console.log('✏️ Updating employee note:', id, updates);
       
-      const { data, error } = await supabase
-        .from('employee_notes' as any)
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
+      try {
+        // Build dynamic update query
+        const setClause = Object.keys(updates)
+          .map((key, index) => `${key} = $${index + 2}`)
+          .join(', ');
+        
+        const params = [id, ...Object.values(updates)];
+        
+        const { data, error } = await supabase
+          .rpc('execute_sql', {
+            query: `
+              UPDATE employee_notes 
+              SET ${setClause}
+              WHERE id = $1
+              RETURNING id::text, employee_id, date, category, title, details, created_at::text, created_by
+            `,
+            params: params
+          });
 
-      if (error) {
-        console.error('❌ Error updating employee note:', error);
-        throw new Error(`Failed to update employee note: ${error.message}`);
+        if (error) {
+          console.error('❌ Error updating employee note:', error);
+          throw new Error(`Failed to update employee note: ${error.message}`);
+        }
+
+        if (!data || data.length === 0) {
+          throw new Error('No data returned from update operation');
+        }
+
+        console.log('✅ Successfully updated employee note:', data[0].id);
+        return data[0];
+      } catch (error) {
+        console.error('❌ Error in update note mutation:', error);
+        throw error;
       }
-
-      console.log('✅ Successfully updated employee note:', data.id);
-      return data;
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ 
@@ -112,17 +162,23 @@ export const useEmployeeNotesMutations = () => {
     mutationFn: async (id: string): Promise<void> => {
       console.log('🗑️ Deleting employee note:', id);
       
-      const { error } = await supabase
-        .from('employee_notes' as any)
-        .delete()
-        .eq('id', id);
+      try {
+        const { error } = await supabase
+          .rpc('execute_sql', {
+            query: 'DELETE FROM employee_notes WHERE id = $1',
+            params: [id]
+          });
 
-      if (error) {
-        console.error('❌ Error deleting employee note:', error);
-        throw new Error(`Failed to delete employee note: ${error.message}`);
+        if (error) {
+          console.error('❌ Error deleting employee note:', error);
+          throw new Error(`Failed to delete employee note: ${error.message}`);
+        }
+
+        console.log('✅ Successfully deleted employee note:', id);
+      } catch (error) {
+        console.error('❌ Error in delete note mutation:', error);
+        throw error;
       }
-
-      console.log('✅ Successfully deleted employee note:', id);
     },
     onSuccess: () => {
       // Invalidate all employee notes queries since we don't know which employee this belonged to

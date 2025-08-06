@@ -90,38 +90,23 @@ const UserDialog: React.FC<UserDialogProps> = ({
             
             <div className="flex-1 overflow-hidden">
               <TabsContent value="basic" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  activeSection="basic"
-                />
+                <UserDialogForm user={user} />
               </TabsContent>
               
               <TabsContent value="identity" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  activeSection="identity"
-                />
+                <UserDialogForm user={user} />
               </TabsContent>
               
               <TabsContent value="professional" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  activeSection="professional"
-                />
+                <UserDialogForm user={user} />
               </TabsContent>
               
               <TabsContent value="medical" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  activeSection="medical"
-                />
+                <UserDialogForm user={user} />
               </TabsContent>
               
               <TabsContent value="photo" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  activeSection="photo"
-                />
+                <UserDialogForm user={user} />
               </TabsContent>
               
               {showNotesTab && (

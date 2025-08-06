@@ -7,6 +7,8 @@ import { User as UserType } from '@/types/rbac';
 import UserDialogForm from './UserDialogForm';
 import EmployeeNotesTab from './EmployeeNotesTab';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
+import { useRBAC } from '@/contexts/RBACContext';
+import { useToast } from '@/hooks/use-toast';
 
 interface UserDialogProps {
   isOpen: boolean;
@@ -24,7 +26,10 @@ const UserDialog: React.FC<UserDialogProps> = ({
   onRefresh
 }) => {
   const [activeTab, setActiveTab] = useState('basic');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const permissions = useEmployeePermissions();
+  const { updateUser, addUser } = useRBAC();
+  const { toast } = useToast();
 
   const handleSuccess = () => {
     if (onRefresh) {
@@ -33,11 +38,59 @@ const UserDialog: React.FC<UserDialogProps> = ({
     onClose();
   };
 
+  const handleSubmit = async (userData: Partial<UserType>) => {
+    setIsSubmitting(true);
+    try {
+      if (user) {
+        await updateUser(user.id.toString(), userData);
+        toast({
+          title: 'Succès',
+          description: 'Utilisateur modifié avec succès',
+        });
+      } else {
+        await addUser(userData);
+        toast({
+          title: 'Succès',
+          description: 'Utilisateur créé avec succès',
+        });
+      }
+      handleSuccess();
+    } catch (error) {
+      console.error('Error saving user:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder l\'utilisateur',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+  };
+
   const getDialogTitle = () => {
     if (user) {
       return `Modifier ${userType === 'employee' ? 'l\'employé' : userType === 'driver' ? 'le chauffeur' : 'l\'utilisateur'}`;
     }
     return `Ajouter ${userType === 'employee' ? 'un employé' : userType === 'driver' ? 'un chauffeur' : 'un utilisateur'}`;
+  };
+
+  const getConfig = () => {
+    const baseConfig = {
+      title: getDialogTitle(),
+      description: user ? 'Modifier les informations' : 'Créer un nouvel utilisateur',
+      defaultRoleId: userType === 'employee' ? 2 : userType === 'driver' ? 3 : 4, // Default role IDs
+      requireEmail: true,
+    };
+
+    return {
+      ...baseConfig,
+      showEmployeeFields: userType === 'employee',
+      showDriverFields: userType === 'driver',
+    };
   };
 
   const showNotesTab = user && userType === 'employee' && permissions.hasUsersReadPermission;
@@ -90,23 +143,53 @@ const UserDialog: React.FC<UserDialogProps> = ({
             
             <div className="flex-1 overflow-hidden">
               <TabsContent value="basic" className="h-full overflow-auto">
-                <UserDialogForm user={user} />
+                <UserDialogForm 
+                  user={user} 
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                  config={getConfig()}
+                />
               </TabsContent>
               
               <TabsContent value="identity" className="h-full overflow-auto">
-                <UserDialogForm user={user} />
+                <UserDialogForm 
+                  user={user} 
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                  config={getConfig()}
+                />
               </TabsContent>
               
               <TabsContent value="professional" className="h-full overflow-auto">
-                <UserDialogForm user={user} />
+                <UserDialogForm 
+                  user={user} 
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                  config={getConfig()}
+                />
               </TabsContent>
               
               <TabsContent value="medical" className="h-full overflow-auto">
-                <UserDialogForm user={user} />
+                <UserDialogForm 
+                  user={user} 
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                  config={getConfig()}
+                />
               </TabsContent>
               
               <TabsContent value="photo" className="h-full overflow-auto">
-                <UserDialogForm user={user} />
+                <UserDialogForm 
+                  user={user} 
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                  onCancel={handleCancel}
+                  config={getConfig()}
+                />
               </TabsContent>
               
               {showNotesTab && (

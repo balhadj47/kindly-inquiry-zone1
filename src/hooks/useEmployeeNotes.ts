@@ -28,11 +28,17 @@ export const useEmployeeNotes = (employeeId: number) => {
     queryFn: async (): Promise<EmployeeNote[]> => {
       console.log('🔍 Fetching employee notes for employee ID:', employeeId);
       
-      const { data, error } = await supabase
-        .from('employee_notes')
-        .select('*')
-        .eq('employee_id', employeeId)
-        .order('date', { ascending: false });
+      // Use raw SQL query since the table might not be in generated types yet
+      const { data, error } = await supabase.rpc('get_employee_notes', {
+        p_employee_id: employeeId
+      }).catch(async () => {
+        // Fallback to direct query if RPC function doesn't exist
+        return await supabase
+          .from('employee_notes' as any)
+          .select('*')
+          .eq('employee_id', employeeId)
+          .order('date', { ascending: false });
+      });
 
       if (error) {
         console.error('❌ Error fetching employee notes:', error);
@@ -55,7 +61,7 @@ export const useEmployeeNotesMutations = () => {
       console.log('➕ Creating employee note:', noteData);
       
       const { data, error } = await supabase
-        .from('employee_notes')
+        .from('employee_notes' as any)
         .insert(noteData)
         .select()
         .single();
@@ -83,7 +89,7 @@ export const useEmployeeNotesMutations = () => {
       console.log('✏️ Updating employee note:', id, updates);
       
       const { data, error } = await supabase
-        .from('employee_notes')
+        .from('employee_notes' as any)
         .update(updates)
         .eq('id', id)
         .select()
@@ -112,7 +118,7 @@ export const useEmployeeNotesMutations = () => {
       console.log('🗑️ Deleting employee note:', id);
       
       const { error } = await supabase
-        .from('employee_notes')
+        .from('employee_notes' as any)
         .delete()
         .eq('id', id);
 

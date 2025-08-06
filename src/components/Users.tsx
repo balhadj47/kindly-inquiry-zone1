@@ -128,7 +128,7 @@ const Users = () => {
         isOpen={isUserModalOpen}
         onClose={() => setIsUserModalOpen(false)}
         user={selectedUser}
-        userType="admin"
+        userType="user"
       />
 
       <PasswordChangeModal

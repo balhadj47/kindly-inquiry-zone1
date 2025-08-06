@@ -92,7 +92,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
               <TabsContent value="basic" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
-                  userType={userType} 
                   onSuccess={handleSuccess}
                   activeSection="basic"
                 />
@@ -101,7 +100,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
               <TabsContent value="identity" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
-                  userType={userType} 
                   onSuccess={handleSuccess}
                   activeSection="identity"
                 />
@@ -110,7 +108,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
               <TabsContent value="professional" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
-                  userType={userType} 
                   onSuccess={handleSuccess}
                   activeSection="professional"
                 />
@@ -119,7 +116,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
               <TabsContent value="medical" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
-                  userType={userType} 
                   onSuccess={handleSuccess}
                   activeSection="medical"
                 />
@@ -128,7 +124,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
               <TabsContent value="photo" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
-                  userType={userType} 
                   onSuccess={handleSuccess}
                   activeSection="photo"
                 />

@@ -17,7 +17,7 @@ interface EmployeeNotesSectionProps {
 const EmployeeNotesSection: React.FC<EmployeeNotesSectionProps> = ({ employee }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedNote, setSelectedNote] = useState<any>(null);
-  const { notes, isLoading, refetch } = useEmployeeNotes(parseInt(employee.id));
+  const { data: notes, isLoading, refetch } = useEmployeeNotes(parseInt(employee.id));
   const permissions = useEmployeePermissions();
 
   const handleAddNote = () => {

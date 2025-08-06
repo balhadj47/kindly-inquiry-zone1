@@ -1,9 +1,9 @@
 
 import React from 'react';
-import EmployeesContainerOptimized from './employees/EmployeesContainerOptimized';
+import EmployeesContainer from './employees/EmployeesContainer';
 
 const Employees = () => {
-  return <EmployeesContainerOptimized />;
+  return <EmployeesContainer />;
 };
 
 export default Employees;

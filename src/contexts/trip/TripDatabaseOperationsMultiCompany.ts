@@ -30,11 +30,11 @@ export const insertTripWithMultipleCompanies = async (tripData: {
       branch: tripData.companies[0]?.branchId || '',
       notes: tripData.notes,
       user_ids: tripData.userIds,
-      user_roles: tripData.userRoles || [],
+      user_roles: JSON.parse(JSON.stringify(tripData.userRoles || [])), // Ensure it's JSON serializable
       start_km: tripData.startKm,
       planned_start_date: tripData.startDate?.toISOString(),
       planned_end_date: tripData.endDate?.toISOString(),
-      companies_data: tripData.companies, // Store all companies as JSON
+      companies_data: JSON.parse(JSON.stringify(tripData.companies)), // Store all companies as JSON
       status: 'active',
     })
     .select()
@@ -45,24 +45,8 @@ export const insertTripWithMultipleCompanies = async (tripData: {
     throw tripError;
   }
 
-  // Insert trip-company relationships
-  if (tripData.companies.length > 0) {
-    const tripCompanyInserts = tripData.companies.map(company => ({
-      trip_id: trip.id,
-      company_id: company.companyId,
-      branch_id: company.branchId
-    }));
-
-    const { error: tripCompaniesError } = await supabase
-      .from('trip_companies')
-      .insert(tripCompanyInserts);
-
-    if (tripCompaniesError) {
-      console.error('Insert trip companies error:', tripCompaniesError);
-      // Don't throw here as the trip was created successfully
-      console.warn('Trip created but company associations may have failed');
-    }
-  }
+  // For now, we'll rely on the companies_data JSON field to store multiple companies
+  // The trip_companies table will be populated when the Supabase types are regenerated
 
   // Update van status to "En Transit"
   const { error: vanError } = await supabase

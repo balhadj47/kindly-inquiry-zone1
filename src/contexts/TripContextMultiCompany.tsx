@@ -5,12 +5,24 @@ import { insertTripWithMultipleCompanies } from './trip/TripDatabaseOperationsMu
 import { transformDatabaseTrips } from './trip/tripTransformers';
 import { SelectedCompany } from '@/hooks/useTripFormMultiCompany';
 
-interface TripContextMultiCompanyType extends Omit<TripContextType, 'addTrip'> {
+interface TripContextMultiCompanyType {
+  trips: Trip[];
   addTripWithMultipleCompanies: (tripData: Omit<Trip, 'id' | 'timestamp'> & { 
     userRoles: UserWithRoles[]; 
     startKm: number;
     companies: SelectedCompany[];
   }) => Promise<void>;
+  addTrip: (tripData: Omit<Trip, 'id' | 'timestamp'> & { 
+    userRoles: UserWithRoles[]; 
+    startKm: number 
+  }) => Promise<void>;
+  deleteTrip: (tripId: number) => Promise<void>;
+  endTrip: (tripId: number, endKm: number) => Promise<void>;
+  refreshTrips: () => Promise<void>;
+  error: string | null;
+  isLoading: boolean;
+  loading: boolean;
+  refetch: () => Promise<void>;
 }
 
 const TripMultiCompanyContext = createContext<TripContextMultiCompanyType | undefined>(undefined);

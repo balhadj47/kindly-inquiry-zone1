@@ -28,6 +28,15 @@ export const TripFormWizardMultiCompany: React.FC<TripFormWizardMultiCompanyProp
     formData,
     handleAddCompany,
     handleRemoveCompany,
+    handleInputChange,
+    handleDateChange,
+    handleUserRoleSelection,
+    userSearchQuery,
+    setUserSearchQuery,
+    availableVans,
+    vans,
+    lastKm,
+    loadingLastKm,
   } = useTripFormContext();
 
   const getStepTitle = (step: TripWizardStep) => {
@@ -48,7 +57,18 @@ export const TripFormWizardMultiCompany: React.FC<TripFormWizardMultiCompanyProp
   const renderCurrentStep = () => {
     switch (currentStep) {
       case 'van':
-        return <VanSelectionStep />;
+        return (
+          <VanSelectionStep
+            availableVans={availableVans}
+            totalVans={vans}
+            selectedVanId={formData.vanId}
+            onVanChange={(vanId) => handleInputChange('vanId', vanId)}
+            startKm={formData.startKm}
+            onStartKmChange={(value) => handleInputChange('startKm', value)}
+            lastKm={lastKm}
+            loadingLastKm={loadingLastKm}
+          />
+        );
       case 'company':
         return (
           <MultiCompanySelectionStep
@@ -58,9 +78,25 @@ export const TripFormWizardMultiCompany: React.FC<TripFormWizardMultiCompanyProp
           />
         );
       case 'team':
-        return <TeamSelectionStep />;
+        return (
+          <TeamSelectionStep
+            userSearchQuery={userSearchQuery}
+            setUserSearchQuery={setUserSearchQuery}
+            selectedUsersWithRoles={formData.selectedUsersWithRoles}
+            onUserRoleSelection={handleUserRoleSelection}
+          />
+        );
       case 'details':
-        return <TripDetailsStep />;
+        return (
+          <TripDetailsStep
+            notes={formData.notes}
+            onNotesChange={(value) => handleInputChange('notes', value)}
+            startDate={formData.startDate}
+            onStartDateChange={(date) => handleDateChange('startDate', date)}
+            endDate={formData.endDate}
+            onEndDateChange={(date) => handleDateChange('endDate', date)}
+          />
+        );
       default:
         return null;
     }

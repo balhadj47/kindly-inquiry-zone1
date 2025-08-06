@@ -28,17 +28,12 @@ export const useEmployeeNotes = (employeeId: number) => {
     queryFn: async (): Promise<EmployeeNote[]> => {
       console.log('🔍 Fetching employee notes for employee ID:', employeeId);
       
-      // Use raw SQL query since the table might not be in generated types yet
-      const { data, error } = await supabase.rpc('get_employee_notes', {
-        p_employee_id: employeeId
-      }).catch(async () => {
-        // Fallback to direct query if RPC function doesn't exist
-        return await supabase
-          .from('employee_notes' as any)
-          .select('*')
-          .eq('employee_id', employeeId)
-          .order('date', { ascending: false });
-      });
+      // Direct query to employee_notes table
+      const { data, error } = await supabase
+        .from('employee_notes' as any)
+        .select('*')
+        .eq('employee_id', employeeId)
+        .order('date', { ascending: false });
 
       if (error) {
         console.error('❌ Error fetching employee notes:', error);

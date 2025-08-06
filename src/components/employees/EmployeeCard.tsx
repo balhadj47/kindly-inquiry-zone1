@@ -1,11 +1,12 @@
 
-import React, { memo } from 'react';
+import React, { memo, useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart } from 'lucide-react';
+import { Edit, Trash2, Phone, MapPin, CreditCard, Calendar, User, Building, Heart, NotebookPen } from 'lucide-react';
 import { User as UserType } from '@/types/rbac';
 import { EntityCard } from '@/components/ui/entity-card';
 import { Button } from '@/components/ui/button';
+import EmployeeNotesModal from './notes/EmployeeNotesModal';
 
 interface EmployeeCardProps {
   employee: UserType;
@@ -22,6 +23,8 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({
   canEdit,
   canDelete,
 }) => {
+  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
+
   const getUserInitials = (name: string) => {
     return name
       .split(' ')
@@ -87,6 +90,15 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({
 
   const actions = (
     <div className="flex items-center gap-2">
+      <Button
+        onClick={() => setIsNotesModalOpen(true)}
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 bg-green-500 text-white hover:bg-green-600"
+        title="Ajouter une note"
+      >
+        <NotebookPen className="h-4 w-4" />
+      </Button>
       {canEdit && (
         <Button
           onClick={() => onEdit(employee)}
@@ -111,32 +123,41 @@ const EmployeeCard: React.FC<EmployeeCardProps> = memo(({
   );
 
   return (
-    <EntityCard
-      title={employee.name}
-      status={{
-        label: employee.status,
-        variant: statusConfig.variant,
-        color: statusConfig.color
-      }}
-      metadata={metadata}
-      actions={actions}
-      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
-    >
-      <div className="flex items-center space-x-3 mb-4">
-        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
-          <AvatarImage 
-            src={employee.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${employee.name}`}
-            alt={employee.name}
-          />
-          <AvatarFallback className="bg-gray-600 text-white font-medium">
-            {getUserInitials(employee.name)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="text-xs text-gray-500">
-          Créé le: {new Date(employee.createdAt).toLocaleDateString('fr-FR')}
+    <>
+      <EntityCard
+        title={employee.name}
+        status={{
+          label: employee.status,
+          variant: statusConfig.variant,
+          color: statusConfig.color
+        }}
+        metadata={metadata}
+        actions={actions}
+        className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+      >
+        <div className="flex items-center space-x-3 mb-4">
+          <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+            <AvatarImage 
+              src={employee.profileImage || `https://api.dicebear.com/7.x/initials/svg?seed=${employee.name}`}
+              alt={employee.name}
+            />
+            <AvatarFallback className="bg-gray-600 text-white font-medium">
+              {getUserInitials(employee.name)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="text-xs text-gray-500">
+            Créé le: {new Date(employee.createdAt).toLocaleDateString('fr-FR')}
+          </div>
         </div>
-      </div>
-    </EntityCard>
+      </EntityCard>
+
+      <EmployeeNotesModal
+        isOpen={isNotesModalOpen}
+        onClose={() => setIsNotesModalOpen(false)}
+        employee={employee}
+        onSuccess={() => setIsNotesModalOpen(false)}
+      />
+    </>
   );
 });
 

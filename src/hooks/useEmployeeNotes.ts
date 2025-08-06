@@ -29,20 +29,16 @@ export const useEmployeeNotes = (employeeId: number) => {
       console.log('🔍 Fetching employee notes for employee ID:', employeeId);
       
       try {
-        // Use raw SQL query to avoid type issues
-        const { data, error } = await supabase.rpc('execute_sql', {
-          query: `
-            SELECT id::text, employee_id, date::text, category, title, details, created_at::text, created_by
-            FROM employee_notes 
-            WHERE employee_id = $1 
-            ORDER BY date DESC, created_at DESC
-          `,
-          params: [employeeId]
-        });
+        // Use type assertion to work around missing table type
+        const { data, error } = await (supabase as any)
+          .from('employee_notes')
+          .select('*')
+          .eq('employee_id', employeeId)
+          .order('date', { ascending: false })
+          .order('created_at', { ascending: false });
 
         if (error) {
           console.error('❌ Error fetching employee notes:', error);
-          // Fallback: return empty array instead of throwing
           return [];
         }
 
@@ -50,7 +46,6 @@ export const useEmployeeNotes = (employeeId: number) => {
         return (data || []) as EmployeeNote[];
       } catch (error) {
         console.error('❌ Error in employee notes query:', error);
-        // Return empty array as fallback
         return [];
       }
     },
@@ -67,33 +62,25 @@ export const useEmployeeNotesMutations = () => {
       console.log('➕ Creating employee note:', noteData);
       
       try {
-        const { data, error } = await supabase.rpc('execute_sql', {
-          query: `
-            INSERT INTO employee_notes (employee_id, date, category, title, details)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id::text, employee_id, date::text, category, title, details, created_at::text, created_by
-          `,
-          params: [
-            noteData.employee_id,
-            noteData.date,
-            noteData.category,
-            noteData.title,
-            noteData.details || null
-          ]
-        });
+        const { data, error } = await (supabase as any)
+          .from('employee_notes')
+          .insert({
+            employee_id: noteData.employee_id,
+            date: noteData.date,
+            category: noteData.category,
+            title: noteData.title,
+            details: noteData.details || null
+          })
+          .select()
+          .single();
 
         if (error) {
           console.error('❌ Error creating employee note:', error);
           throw new Error(`Failed to create employee note: ${error.message}`);
         }
 
-        if (!data || data.length === 0) {
-          throw new Error('No data returned from create operation');
-        }
-
-        const createdNote = data[0] as EmployeeNote;
-        console.log('✅ Successfully created employee note:', createdNote.id);
-        return createdNote;
+        console.log('✅ Successfully created employee note:', data.id);
+        return data as EmployeeNote;
       } catch (error) {
         console.error('❌ Error in create note mutation:', error);
         throw error;
@@ -103,9 +90,18 @@ export const useEmployeeNotesMutations = () => {
       queryClient.invalidateQueries({ 
         queryKey: ['employee-notes', data.employee_id] 
       });
+      toast({
+        title: 'Succès',
+        description: 'Note ajoutée avec succès',
+      });
     },
     onError: (error) => {
       console.error('❌ Create employee note mutation failed:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible d\'ajouter la note',
+        variant: 'destructive',
+      });
     }
   });
 
@@ -114,52 +110,20 @@ export const useEmployeeNotesMutations = () => {
       console.log('✏️ Updating employee note:', id, updates);
       
       try {
-        // Build dynamic update query based on provided fields
-        const updateFields = [];
-        const params = [];
-        let paramIndex = 1;
-
-        if (updates.date !== undefined) {
-          updateFields.push(`date = $${paramIndex++}`);
-          params.push(updates.date);
-        }
-        if (updates.category !== undefined) {
-          updateFields.push(`category = $${paramIndex++}`);
-          params.push(updates.category);
-        }
-        if (updates.title !== undefined) {
-          updateFields.push(`title = $${paramIndex++}`);
-          params.push(updates.title);
-        }
-        if (updates.details !== undefined) {
-          updateFields.push(`details = $${paramIndex++}`);
-          params.push(updates.details);
-        }
-
-        params.push(id); // ID goes last
-
-        const { data, error } = await supabase.rpc('execute_sql', {
-          query: `
-            UPDATE employee_notes 
-            SET ${updateFields.join(', ')}
-            WHERE id = $${paramIndex}
-            RETURNING id::text, employee_id, date::text, category, title, details, created_at::text, created_by
-          `,
-          params
-        });
+        const { data, error } = await (supabase as any)
+          .from('employee_notes')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
 
         if (error) {
           console.error('❌ Error updating employee note:', error);
           throw new Error(`Failed to update employee note: ${error.message}`);
         }
 
-        if (!data || data.length === 0) {
-          throw new Error('No data returned from update operation');
-        }
-
-        const updatedNote = data[0] as EmployeeNote;
-        console.log('✅ Successfully updated employee note:', updatedNote.id);
-        return updatedNote;
+        console.log('✅ Successfully updated employee note:', data.id);
+        return data as EmployeeNote;
       } catch (error) {
         console.error('❌ Error in update note mutation:', error);
         throw error;
@@ -169,9 +133,18 @@ export const useEmployeeNotesMutations = () => {
       queryClient.invalidateQueries({ 
         queryKey: ['employee-notes', data.employee_id] 
       });
+      toast({
+        title: 'Succès',
+        description: 'Note modifiée avec succès',
+      });
     },
     onError: (error) => {
       console.error('❌ Update employee note mutation failed:', error);
+      toast({
+        title: 'Erreur',
+        description: 'Impossible de modifier la note',
+        variant: 'destructive',
+      });
     }
   });
 
@@ -180,10 +153,10 @@ export const useEmployeeNotesMutations = () => {
       console.log('🗑️ Deleting employee note:', id);
       
       try {
-        const { error } = await supabase.rpc('execute_sql', {
-          query: 'DELETE FROM employee_notes WHERE id = $1',
-          params: [id]
-        });
+        const { error } = await (supabase as any)
+          .from('employee_notes')
+          .delete()
+          .eq('id', id);
 
         if (error) {
           console.error('❌ Error deleting employee note:', error);

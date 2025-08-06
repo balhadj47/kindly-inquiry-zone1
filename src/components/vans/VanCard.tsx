@@ -1,13 +1,12 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Edit, Trash2, Car, Calendar, FileText, Shield, AlertTriangle, Plus } from 'lucide-react';
+import { Edit, Trash2, Car, Calendar, FileText, Shield, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { Van } from '@/types/van';
 import { EntityCard } from '@/components/ui/entity-card';
 import { Button } from '@/components/ui/button';
-import VanNotesModal from './VanNotesModal';
 
 interface VanCardProps {
   van: Van;
@@ -17,8 +16,6 @@ interface VanCardProps {
 }
 
 const VanCard: React.FC<VanCardProps> = ({ van, onEdit, onDelete, onClick }) => {
-  const [isNotesModalOpen, setIsNotesModalOpen] = useState(false);
-  
   // Check if dates are expired
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -90,18 +87,6 @@ const VanCard: React.FC<VanCardProps> = ({ van, onEdit, onDelete, onClick }) => 
       <Button
         onClick={(e) => {
           e.stopPropagation();
-          setIsNotesModalOpen(true);
-        }}
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0 bg-green-500 text-white hover:bg-green-600"
-        title="Ajouter une note"
-      >
-        <Plus className="h-4 w-4" />
-      </Button>
-      <Button
-        onClick={(e) => {
-          e.stopPropagation();
           onEdit(van);
         }}
         variant="ghost"
@@ -125,68 +110,56 @@ const VanCard: React.FC<VanCardProps> = ({ van, onEdit, onDelete, onClick }) => 
   );
 
   return (
-    <>
-      <EntityCard
-        title={van.model || 'Modèle non défini'}
-        status={{
-          label: van.status || 'Active',
-          variant: statusConfig.variant,
-          color: statusConfig.color
-        }}
-        metadata={metadata}
-        actions={actions}
-        onClick={() => onClick(van)}
-        className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
-      >
-        <div className="flex items-center space-x-3 mb-4">
-          <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
-            <AvatarImage 
-              src={`https://api.dicebear.com/7.x/initials/svg?seed=${van.model || van.license_plate}`}
-              alt={van.model || van.license_plate}
-            />
-            <AvatarFallback className="bg-gray-600 text-white font-medium">
-              {getVanInitials(van.model || '', van.license_plate || '')}
-            </AvatarFallback>
-          </Avatar>
-          <div className="text-xs text-gray-500">
-            Créé le: {new Date(van.created_at).toLocaleDateString('fr-FR')}
-          </div>
+    <EntityCard
+      title={van.model || 'Modèle non défini'}
+      status={{
+        label: van.status || 'Active',
+        variant: statusConfig.variant,
+        color: statusConfig.color
+      }}
+      metadata={metadata}
+      actions={actions}
+      onClick={() => onClick(van)}
+      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+    >
+      <div className="flex items-center space-x-3 mb-4">
+        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
+          <AvatarImage 
+            src={`https://api.dicebear.com/7.x/initials/svg?seed=${van.model || van.license_plate}`}
+            alt={van.model || van.license_plate}
+          />
+          <AvatarFallback className="bg-gray-600 text-white font-medium">
+            {getVanInitials(van.model || '', van.license_plate || '')}
+          </AvatarFallback>
+        </Avatar>
+        <div className="text-xs text-gray-500">
+          Créé le: {new Date(van.created_at).toLocaleDateString('fr-FR')}
         </div>
+      </div>
 
-        {hasExpiredDocs && (
-          <div className="mb-4">
-            <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
-              <AlertTriangle className="h-3 w-3 mr-1" />
-              Documents expirés
-            </Badge>
-          </div>
-        )}
+      {hasExpiredDocs && (
+        <div className="mb-4">
+          <Badge variant="destructive" className="bg-red-50 text-red-700 border-red-200">
+            <AlertTriangle className="h-3 w-3 mr-1" />
+            Documents expirés
+          </Badge>
+        </div>
+      )}
 
-        {van.notes && (
-          <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
-            <div className="flex items-start space-x-2">
-              <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
-              <div className="flex-1 min-w-0">
-                <p className="text-xs text-blue-600 font-medium mb-1">Notes</p>
-                <p className="text-sm text-gray-700 leading-relaxed">
-                  {van.notes.length > 80 ? `${van.notes.slice(0, 80)}...` : van.notes}
-                </p>
-              </div>
+      {van.notes && (
+        <div className="mt-4 p-3 bg-blue-50/50 border border-blue-200/50 rounded-lg">
+          <div className="flex items-start space-x-2">
+            <FileText className="h-4 w-4 text-blue-500 mt-0.5 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-blue-600 font-medium mb-1">Notes</p>
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {van.notes.length > 80 ? `${van.notes.slice(0, 80)}...` : van.notes}
+              </p>
             </div>
           </div>
-        )}
-      </EntityCard>
-
-      <VanNotesModal
-        isOpen={isNotesModalOpen}
-        onClose={() => setIsNotesModalOpen(false)}
-        van={van}
-        onSuccess={() => {
-          setIsNotesModalOpen(false);
-          // Trigger a refetch or update of the van data
-        }}
-      />
-    </>
+        </div>
+      )}
+    </EntityCard>
   );
 };
 

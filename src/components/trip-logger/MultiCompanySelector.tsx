@@ -33,18 +33,29 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
     newSelection.companyId || null
   );
 
-  const selectedCompanyIds = useMemo(() => 
-    selectedCompanies.map(c => c.companyId), 
+  // Create a set of selected company-branch combinations to prevent duplicates
+  const selectedCombinations = useMemo(() => 
+    new Set(selectedCompanies.map(c => `${c.companyId}-${c.branchId}`)),
     [selectedCompanies]
   );
 
-  const availableCompanies = useMemo(() => 
-    companies.filter(company => !selectedCompanyIds.includes(company.id)),
-    [companies, selectedCompanyIds]
-  );
+  // Filter available branches based on what's already selected for this company
+  const availableBranches = useMemo(() => {
+    if (!newSelection.companyId) return branches;
+    
+    const selectedBranchIds = selectedCompanies
+      .filter(c => c.companyId === newSelection.companyId)
+      .map(c => c.branchId);
+    
+    return branches.filter(branch => !selectedBranchIds.includes(branch.id));
+  }, [branches, newSelection.companyId, selectedCompanies]);
 
   const handleAddCompany = () => {
     if (!newSelection.companyId || !newSelection.branchId) return;
+
+    // Check if this combination already exists
+    const combinationKey = `${newSelection.companyId}-${newSelection.branchId}`;
+    if (selectedCombinations.has(combinationKey)) return;
 
     const company = companies.find(c => c.id === newSelection.companyId);
     const branch = branches.find(b => b.id === newSelection.branchId);
@@ -62,15 +73,17 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
     setNewSelection({ companyId: '', branchId: '' });
   };
 
-  const handleRemoveCompany = (companyId: string) => {
-    onSelectionChange(selectedCompanies.filter(c => c.companyId !== companyId));
+  const handleRemoveCompany = (index: number) => {
+    const updatedCompanies = selectedCompanies.filter((_, i) => i !== index);
+    onSelectionChange(updatedCompanies);
   };
 
   const handleCompanyChange = (companyId: string) => {
     setNewSelection({ companyId, branchId: '' });
   };
 
-  const canAddCompany = newSelection.companyId && newSelection.branchId;
+  const canAddCompany = newSelection.companyId && newSelection.branchId && 
+    !selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`);
 
   return (
     <div className="space-y-4">
@@ -81,9 +94,9 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
             <CardTitle className="text-lg">Entreprises sélectionnées</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            {selectedCompanies.map((selection) => (
+            {selectedCompanies.map((selection, index) => (
               <div
-                key={selection.companyId}
+                key={`${selection.companyId}-${selection.branchId}-${index}`}
                 className="flex items-center justify-between p-3 bg-muted rounded-lg"
               >
                 <div className="flex items-center space-x-2">
@@ -94,7 +107,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleRemoveCompany(selection.companyId)}
+                  onClick={() => handleRemoveCompany(index)}
                   className="text-destructive hover:text-destructive"
                 >
                   <X className="w-4 h-4" />
@@ -125,7 +138,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
                     <SelectValue placeholder={t.selectCompany} />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableCompanies.map((company) => (
+                    {companies.map((company) => (
                       <SelectItem key={company.id} value={company.id}>
                         {company.name}
                       </SelectItem>
@@ -151,7 +164,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
                       <SelectValue placeholder={t.selectBranch} />
                     </SelectTrigger>
                     <SelectContent>
-                      {branches.map((branch) => (
+                      {availableBranches.map((branch) => (
                         <SelectItem key={branch.id} value={branch.id}>
                           {branch.name}
                         </SelectItem>
@@ -171,6 +184,13 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
             <Plus className="w-4 h-4 mr-2" />
             Ajouter cette entreprise
           </Button>
+
+          {newSelection.companyId && newSelection.branchId && 
+           selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`) && (
+            <p className="text-sm text-muted-foreground text-center">
+              Cette combinaison entreprise-succursale est déjà sélectionnée
+            </p>
+          )}
         </CardContent>
       </Card>
 

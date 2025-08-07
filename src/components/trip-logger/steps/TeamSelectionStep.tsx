@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Users } from 'lucide-react';
 import { UserWithRoles } from '@/hooks/useTripForm';
@@ -69,7 +70,9 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         driver: trip.driver,
         user_roles: trip.user_roles,
         user_ids: trip.user_ids,
-        userRoles: trip.userRoles // Check for transformed property too
+        // Check for potential transformed properties (use type assertion)
+        userRoles: (trip as any).userRoles,
+        userIds: (trip as any).userIds
       });
       
       // Only process active trips
@@ -79,9 +82,10 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       }
       
       // Method 1: Check userRoles array (transformed format) - THIS IS THE KEY FIX
-      if (trip.userRoles && Array.isArray(trip.userRoles)) {
-        console.log('🔍 TeamSelectionStep: Processing transformed userRoles:', trip.userRoles);
-        trip.userRoles.forEach((userRole: any) => {
+      const tripWithUserRoles = trip as any;
+      if (tripWithUserRoles.userRoles && Array.isArray(tripWithUserRoles.userRoles)) {
+        console.log('🔍 TeamSelectionStep: Processing transformed userRoles:', tripWithUserRoles.userRoles);
+        tripWithUserRoles.userRoles.forEach((userRole: any) => {
           const userId = userRole.userId || userRole.user_id;
           if (userId) {
             const userIdStr = String(userId);
@@ -125,10 +129,11 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         });
       }
 
-      // Method 4: Check userIds array (alternative format)
-      if (trip.userIds && Array.isArray(trip.userIds)) {
-        console.log('🔍 TeamSelectionStep: Processing userIds:', trip.userIds);
-        trip.userIds.forEach(userId => {
+      // Method 4: Check userIds array (alternative format) - with type assertion
+      const tripWithUserIds = trip as any;
+      if (tripWithUserIds.userIds && Array.isArray(tripWithUserIds.userIds)) {
+        console.log('🔍 TeamSelectionStep: Processing userIds:', tripWithUserIds.userIds);
+        tripWithUserIds.userIds.forEach((userId: any) => {
           if (userId && userId !== 'undefined' && userId !== 'null') {
             const userIdStr = String(userId);
             activeUserIds.add(userIdStr);

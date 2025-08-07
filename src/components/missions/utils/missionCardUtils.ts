@@ -30,39 +30,57 @@ export const getCompanyDisplayText = (mission: Trip) => {
 };
 
 export const getDriverName = (mission: Trip, users: User[]) => {
-  if (!mission?.userRoles || mission.userRoles.length === 0) {
-    return mission?.driver || 'Aucun chauffeur assigné';
+  // First, try to get driver name from userRoles (most accurate)
+  if (mission?.userRoles && mission.userRoles.length > 0) {
+    const driverUserRole = mission.userRoles.find(userRole => 
+      userRole.roles.some(role => {
+        if (typeof role === 'string') {
+          return role === 'Chauffeur';
+        } else if (typeof role === 'object' && role !== null) {
+          const roleObj = role as any;
+          return roleObj.name === 'Chauffeur';
+        }
+        return false;
+      })
+    );
+
+    if (driverUserRole) {
+      // Try to find user in users array
+      const user = users.find(u => {
+        const userIdStr = u.id.toString();
+        const missionUserIdStr = driverUserRole.userId.toString();
+        return userIdStr === missionUserIdStr;
+      });
+      
+      if (user) {
+        return user.name;
+      }
+      
+      // If user not found in users array but we have userRole, 
+      // still try mission.driver field as it might contain the actual name
+      if (mission?.driver && mission.driver !== driverUserRole.userId.toString()) {
+        return mission.driver;
+      }
+    }
   }
 
-  const driverUserRole = mission.userRoles.find(userRole => 
-    userRole.roles.some(role => {
-      if (typeof role === 'string') {
-        return role === 'Chauffeur';
-      } else if (typeof role === 'object' && role !== null) {
-        const roleObj = role as any;
-        return roleObj.name === 'Chauffeur';
-      }
-      return false;
-    })
-  );
-
-  if (driverUserRole) {
-    const user = users.find(u => {
-      // Convert both to string and compare
-      const userIdStr = u.id.toString();
-      const missionUserIdStr = driverUserRole.userId.toString();
-      return userIdStr === missionUserIdStr;
-    });
-    
-    if (user) {
-      return user.name;
+  // Second, use mission.driver field directly (this should contain the actual name)
+  if (mission?.driver && mission.driver.trim() !== '') {
+    // Check if it's not just a user ID (numeric string)
+    const isNumericId = /^\d+$/.test(mission.driver.trim());
+    if (!isNumericId) {
+      return mission.driver;
     }
     
-    // If user not found in users array, fallback to mission.driver
-    return mission?.driver || `Chauffeur ${driverUserRole.userId}`;
+    // If it is a numeric ID, try to find the user by ID
+    const userById = users.find(u => u.id.toString() === mission.driver);
+    if (userById) {
+      return userById.name;
+    }
   }
 
-  return mission?.driver || 'Aucun chauffeur assigné';
+  // Final fallback
+  return 'Aucun chauffeur assigné';
 };
 
 export const getStatusConfig = (status: string) => {

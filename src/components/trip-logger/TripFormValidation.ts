@@ -52,17 +52,20 @@ export const validateTripForm = (formData: TripFormData): ValidationResult => {
     }
   }
 
-  // Validate date logic if both dates are provided
-  if (formData.startDate && formData.endDate) {
-    const startDate = new Date(formData.startDate);
-    const endDate = new Date(formData.endDate);
-    
-    if (startDate >= endDate) {
-      return {
-        isValid: false,
-        errorMessage: "End date must be after start date"
-      };
-    }
+  // Validate that both dates are provided
+  if (!formData.startDate || !formData.endDate) {
+    return {
+      isValid: false,
+      errorMessage: "Both start and end dates are required"
+    };
+  }
+
+  // Validate date logic
+  if (formData.startDate >= formData.endDate) {
+    return {
+      isValid: false,
+      errorMessage: "End date must be after start date"
+    };
   }
 
   return { isValid: true };
@@ -104,7 +107,14 @@ export const validateTripStep = (step: string, formData: TripFormData): Validati
       return { isValid: true };
       
     case 'details':
-      // Optional step validation
+      // Require both dates
+      if (!formData.startDate || !formData.endDate) {
+        return { isValid: false, errorMessage: "Both start and end dates are required" };
+      }
+      // Validate date logic
+      if (formData.startDate >= formData.endDate) {
+        return { isValid: false, errorMessage: "End date must be after start date" };
+      }
       return { isValid: true };
       
     default:

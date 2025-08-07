@@ -33,7 +33,7 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
           <FileText className="w-6 h-6 text-amber-600" />
         </div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">Détails du voyage</h3>
-        <p className="text-gray-600">Ajoutez les dates et des notes complémentaires (optionnel)</p>
+        <p className="text-gray-600">Sélectionnez les dates de début et de fin du voyage</p>
       </div>
 
       <div className="space-y-6">
@@ -42,19 +42,21 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
             <div className="w-6 h-6 bg-blue-100 rounded-lg flex items-center justify-center">
               <CalendarIconLucide className="w-3 h-3 text-blue-600" />
             </div>
-            <h4 className="font-semibold text-gray-900">Dates du voyage</h4>
+            <h4 className="font-semibold text-gray-900">Dates du voyage <span className="text-red-500">*</span></h4>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Date de début</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Date de début <span className="text-red-500">*</span>
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal border-gray-200 hover:border-blue-500",
-                      !startDate && "text-muted-foreground"
+                      !startDate && "text-muted-foreground border-red-300"
                     )}
                   >
                     <CalendarIcon className="mr-3 h-4 w-4" />
@@ -74,14 +76,16 @@ const TripDetailsStep: React.FC<TripDetailsStepProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-sm font-medium text-gray-700">Date de fin</Label>
+              <Label className="text-sm font-medium text-gray-700">
+                Date de fin <span className="text-red-500">*</span>
+              </Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal border-gray-200 hover:border-blue-500",
-                      !endDate && "text-muted-foreground"
+                      !endDate && "text-muted-foreground border-red-300"
                     )}
                   >
                     <CalendarIcon className="mr-3 h-4 w-4" />

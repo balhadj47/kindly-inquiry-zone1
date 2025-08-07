@@ -73,19 +73,27 @@ export const useTripFormValidation = () => {
       }
     }
 
-    // Validate date logic if both dates are provided
-    if (formData.startDate && formData.endDate) {
-      const startDate = new Date(formData.startDate);
-      const endDate = new Date(formData.endDate);
-      
-      if (startDate >= endDate) {
-        toast({
-          title: t.error,
-          description: "La date de fin doit être après la date de début",
-          variant: "destructive",
-        });
-        return false;
-      }
+    // Validate that both dates are provided
+    if (!formData.startDate || !formData.endDate) {
+      toast({
+        title: t.error,
+        description: "Les dates de début et de fin sont obligatoires",
+        variant: "destructive",
+      });
+      return false;
+    }
+
+    // Validate date logic
+    const startDate = new Date(formData.startDate);
+    const endDate = new Date(formData.endDate);
+    
+    if (startDate >= endDate) {
+      toast({
+        title: t.error,
+        description: "La date de fin doit être après la date de début",
+        variant: "destructive",
+      });
+      return false;
     }
 
     return true;
@@ -157,19 +165,26 @@ export const useTripFormValidation = () => {
         return true;
         
       case 'details':
-        // Validate date logic if both dates are provided
-        if (formData.startDate && formData.endDate) {
-          const startDate = new Date(formData.startDate);
-          const endDate = new Date(formData.endDate);
-          
-          if (startDate >= endDate) {
-            toast({
-              title: t.error,
-              description: "La date de fin doit être après la date de début",
-              variant: "destructive",
-            });
-            return false;
-          }
+        // Require both dates
+        if (!formData.startDate || !formData.endDate) {
+          toast({
+            title: t.error,
+            description: "Les dates de début et de fin sont obligatoires",
+            variant: "destructive",
+          });
+          return false;
+        }
+        // Validate date logic
+        const startDate = new Date(formData.startDate);
+        const endDate = new Date(formData.endDate);
+        
+        if (startDate >= endDate) {
+          toast({
+            title: t.error,
+            description: "La date de fin doit être après la date de début",
+            variant: "destructive",
+          });
+          return false;
         }
         return true;
         

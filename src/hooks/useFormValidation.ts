@@ -18,11 +18,12 @@ export const useFormValidation = () => {
       case 'team':
         return formData.selectedUsersWithRoles.length > 0;
       case 'details':
-        // Validate that start date is before end date if both are provided
-        if (formData.startDate && formData.endDate) {
-          return formData.startDate <= formData.endDate;
+        // Require both start and end dates
+        if (!formData.startDate || !formData.endDate) {
+          return false;
         }
-        return true; // Notes and dates are optional
+        // Validate that start date is before end date
+        return formData.startDate <= formData.endDate;
       default:
         return false;
     }
@@ -41,7 +42,7 @@ export const useFormValidation = () => {
         errorMessage = t.selectAtLeastOneUser;
         break;
       case 'details':
-        errorMessage = t.startDateMustBeBeforeEnd;
+        errorMessage = 'Veuillez sélectionner les dates de début et de fin du voyage';
         break;
     }
     toast({

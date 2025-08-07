@@ -173,13 +173,6 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
               </div>
             )}
           </div>
-
-          <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-md border border-blue-200">
-            <p className="flex items-center gap-2">
-              <Building2 className="w-4 h-4 text-blue-600" />
-              L'entreprise sera automatiquement ajoutée une fois que vous sélectionnez une succursale
-            </p>
-          </div>
         </CardContent>
       </Card>
 

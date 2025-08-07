@@ -65,6 +65,33 @@ const MissionCard: React.FC<MissionCardProps> = ({
     return mission?.driver || 'Aucun chauffeur assigné';
   };
 
+  const getVanReferenceCode = (vanId: string) => {
+    // Extract reference code from van display name or return empty string
+    const displayName = getVanDisplayName(vanId);
+    
+    // Check if the display name contains a reference code pattern
+    // Looking for patterns like "v-m-30" at the beginning or in parentheses
+    const referenceMatch = displayName.match(/^([a-zA-Z]-[a-zA-Z]-\d+)/);
+    if (referenceMatch) {
+      return referenceMatch[1];
+    }
+    
+    // Alternative: look for reference code in parentheses
+    const parenthesesMatch = displayName.match(/\(([a-zA-Z]-[a-zA-Z]-\d+)\)/);
+    if (parenthesesMatch) {
+      return parenthesesMatch[1];
+    }
+    
+    return '';
+  };
+
+  const getMissionTitle = () => {
+    const vanReference = getVanReferenceCode(mission.van);
+    const baseTitle = `${mission.company} - ${mission.branch}`;
+    
+    return vanReference ? `${baseTitle} - ${vanReference}` : baseTitle;
+  };
+
   const getStatusConfig = (status: string) => {
     switch (status) {
       case 'active':
@@ -143,8 +170,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   return (
     <EntityCard
-      title={mission.company}
-      subtitle={mission.branch}
+      title={getMissionTitle()}
       status={{
         label: statusConfig.label,
         variant: statusConfig.variant,

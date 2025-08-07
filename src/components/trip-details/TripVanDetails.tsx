@@ -49,6 +49,18 @@ const TripVanDetails: React.FC<TripVanDetailsProps> = ({ trip, vans }) => {
         </h3>
         
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-3' : 'grid-cols-1 md:grid-cols-2 gap-4'}`}>
+          {vanDetails.referenceCode && (
+            <div className="flex items-center space-x-3">
+              <div className="p-2 bg-indigo-100 rounded-lg">
+                <Truck className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-indigo-600`} />
+              </div>
+              <div>
+                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Code de référence</p>
+                <p className={`${isMobile ? 'text-sm' : ''} font-semibold text-indigo-600`}>{vanDetails.referenceCode}</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-purple-100 rounded-lg">
               <Truck className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-purple-600`} />
@@ -67,18 +79,6 @@ const TripVanDetails: React.FC<TripVanDetailsProps> = ({ trip, vans }) => {
               <div>
                 <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Plaque d'immatriculation</p>
                 <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{vanDetails.licensePlate}</p>
-              </div>
-            </div>
-          )}
-
-          {vanDetails.referenceCode && (
-            <div className="flex items-center space-x-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Truck className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} text-green-600`} />
-              </div>
-              <div>
-                <p className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-500`}>Code de référence</p>
-                <p className={`${isMobile ? 'text-sm' : ''} font-medium`}>{vanDetails.referenceCode}</p>
               </div>
             </div>
           )}

@@ -19,8 +19,9 @@ export const useTripFormValidation = () => {
         description: validation.errorMessage,
         variant: "destructive",
       });
+      return false;
     }
-    return validation;
+    return true;
   }, [toast, t]);
 
   const validateCurrentStep = useCallback((currentStep: TripWizardStep, formData: any) => {

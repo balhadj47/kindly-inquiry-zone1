@@ -19,6 +19,10 @@ export const useRBACOperations = ({
   setUsers, 
   setRoles 
 }: UseRBACOperationsProps) => {
+  if (!React || !React.useState) {
+    throw new Error('React hooks not available');
+  }
+
   const roleOperations = createRoleOperations(setRoles);
   const userOperations = createUserOperations(setUsers);
 

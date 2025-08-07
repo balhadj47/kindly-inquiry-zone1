@@ -7,8 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { TripFormProvider } from './trip-logger/TripFormProvider';
-import { TripFormWizardMultiCompany } from './trip-logger/TripFormWizardMultiCompany';
-import { TripMultiCompanyProvider } from '@/contexts/TripContextMultiCompany';
+import { TripFormWizard } from './trip-logger/TripFormWizard';
 
 interface NewTripDialogProps {
   isOpen: boolean;
@@ -39,13 +38,11 @@ const NewTripDialog: React.FC<NewTripDialogProps> = ({ isOpen, onClose }) => {
           </DialogTitle>
         </DialogHeader>
         
-        <TripMultiCompanyProvider>
-          <TripFormProvider>
-            <div className="p-2">
-              <TripFormWizardMultiCompany onSuccess={handleSuccess} />
-            </div>
-          </TripFormProvider>
-        </TripMultiCompanyProvider>
+        <TripFormProvider>
+          <div className="p-2">
+            <TripFormWizard onSuccess={handleSuccess} />
+          </div>
+        </TripFormProvider>
       </DialogContent>
     </Dialog>
   );

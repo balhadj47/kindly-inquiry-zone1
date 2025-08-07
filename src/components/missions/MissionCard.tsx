@@ -95,12 +95,20 @@ const MissionCard: React.FC<MissionCardProps> = ({
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2 mb-1 hover:text-primary transition-colors">
-                      {missionTitle}
-                    </h3>
+                    <div className="mb-1">
+                      <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
+                        {chefDeGroupeName}
+                      </h3>
+                      <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
+                        {vanReference}
+                      </p>
+                    </div>
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="max-w-xs">{missionTitle}</p>
+                    <div className="max-w-xs">
+                      <p className="font-bold">{chefDeGroupeName}</p>
+                      <p className="text-blue-600">{vanReference}</p>
+                    </div>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>

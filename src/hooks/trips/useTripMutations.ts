@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -93,8 +92,8 @@ export const useTripMutations = () => {
           user_ids: tripData.user_ids || [],
           user_roles: tripData.user_roles || [],
           status: 'active',
-          planned_start_date: tripData.planned_start_date,
-          planned_end_date: tripData.planned_end_date,
+          planned_start_date: tripData.start_date,
+          planned_end_date: tripData.end_date,
         }])
         .select()
         .single();
@@ -118,20 +117,24 @@ export const useTripMutations = () => {
     onMutate: async (tripData) => {
       // Create optimistic trip data
       const optimisticTrip: Trip = {
-        id: Date.now(), // Temporary ID
+        id: Date.now().toString(), // Convert to string
         van: tripData.van || '',
         driver: tripData.driver || '',
         company: tripData.company || '',
         branch: tripData.branch || '',
-        timestamp: new Date().toISOString(),
+        start_date: new Date().toISOString(),
+        end_date: null,
+        start_km: tripData.start_km || 0,
+        end_km: null,
+        destination: tripData.destination || '',
         notes: tripData.notes || '',
-        userIds: tripData.user_ids || [],
-        userRoles: tripData.user_roles || [],
-        start_km: tripData.start_km,
-        status: 'active',
-        startDate: tripData.planned_start_date ? new Date(tripData.planned_start_date) : undefined,
-        endDate: tripData.planned_end_date ? new Date(tripData.planned_end_date) : undefined,
+        company_id: tripData.company_id || '',
+        branch_id: tripData.branch_id || '',
         created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        status: 'active',
+        user_ids: tripData.user_ids || [],
+        user_roles: tripData.user_roles || {},
       };
 
       // Add to cache immediately
@@ -141,7 +144,7 @@ export const useTripMutations = () => {
     },
     onSuccess: (data, variables, context) => {
       // Replace optimistic data with real data
-      if (context?.optimisticTrip) {
+      if (context?.optimisticTriip) {
         removeTripFromCache(context.optimisticTrip.id.toString());
         const realTrip = transformDatabaseToTrip(data);
         addTripToCache(realTrip);

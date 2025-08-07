@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { useTripMutations } from '@/hooks/trips/useTripMutations';
 import { TripBusinessLogic } from '@/services/tripBusinessLogic';
-import { useAuth } from '@/contexts/AuthContext';
+import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/contexts/TripContext';
 
@@ -13,7 +13,7 @@ export const useEndMission = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { updateTrip } = useTripMutations();
-  const { user } = useAuth();
+  const permissions = useSecurePermissions();
   const { toast } = useToast();
 
   const openTerminateDialog = (mission: Trip) => {
@@ -29,11 +29,11 @@ export const useEndMission = () => {
   };
 
   const validateTermination = (mission: Trip, finalKmValue: string) => {
-    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, null);
+    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, permissions.currentUser);
   };
 
   const canTerminate = (mission: Trip) => {
-    return TripBusinessLogic.canTerminateTrip(mission, null);
+    return TripBusinessLogic.canTerminateTrip(mission, permissions.currentUser);
   };
 
   const handleTerminate = async () => {

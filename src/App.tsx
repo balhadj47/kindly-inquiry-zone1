@@ -7,7 +7,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { RBACProvider } from '@/contexts/RBACContext';
 import LoginPage from '@/pages/LoginPage';
-import Dashboard from '@/pages/Dashboard';
+import Index from '@/pages/Index';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 // Create a stable query client instance
@@ -40,7 +40,7 @@ function App() {
                       path="/*" 
                       element={
                         <ProtectedRoute>
-                          <Dashboard />
+                          <Index />
                         </ProtectedRoute>
                       } 
                     />

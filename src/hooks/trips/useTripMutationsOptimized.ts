@@ -50,6 +50,8 @@ export const useTripMutationsOptimized = () => {
           throw tripError;
         }
 
+        console.log('🚗 Retrieved trip info:', tripInfo);
+
         // Update the trip first
         const { data, error } = await supabase
           .from('trips')
@@ -60,18 +62,32 @@ export const useTripMutationsOptimized = () => {
 
         if (error) throw error;
 
+        console.log('🚗 Trip updated successfully:', data);
+
         // Update van status back to "Actif" after successful trip update
         if (tripInfo?.van) {
           console.log('🚐 Setting van status to Actif for van:', tripInfo.van);
-          const { error: vanError } = await supabase
+          
+          // First check current van status
+          const { data: currentVan, error: currentVanError } = await supabase
+            .from('vans')
+            .select('status')
+            .eq('id', tripInfo.van)
+            .single();
+            
+          console.log('🚐 Current van status before update:', currentVan);
+
+          const { data: updatedVan, error: vanError } = await supabase
             .from('vans')
             .update({ status: 'Actif' })
-            .eq('id', tripInfo.van);
+            .eq('id', tripInfo.van)
+            .select()
+            .single();
 
           if (vanError) {
             console.error('❌ Error updating van status to Actif:', vanError);
           } else {
-            console.log('✅ Van status successfully updated to Actif');
+            console.log('✅ Van status successfully updated:', updatedVan);
           }
         }
 
@@ -128,16 +144,19 @@ export const useTripMutationsOptimized = () => {
 
       // If this was a trip completion, show success message and force refresh van data
       if (variables.status === 'completed') {
-        console.log('🚗 Mission completed - refreshing all data');
+        console.log('🚗 Mission completed - forcing immediate data refresh');
         
-        // Force invalidation of both queries to ensure fresh data
+        // Clear van cache completely to force fresh fetch
+        queryClient.removeQueries({ queryKey: ['vans'] });
         queryClient.invalidateQueries({ queryKey: ['vans'] });
         queryClient.invalidateQueries({ queryKey: ['trips'] });
         
-        // Also force refetch to ensure immediate data refresh
+        // Force immediate refetch with delay to ensure database update is complete
         setTimeout(() => {
+          console.log('🚐 Forcing van data refetch after completion');
           queryClient.refetchQueries({ queryKey: ['vans'] });
-        }, 500);
+          queryClient.refetchQueries({ queryKey: ['trips'] });
+        }, 1000); // Increased delay to ensure database consistency
 
         toast({
           title: 'Succès',
@@ -169,6 +188,8 @@ export const useTripMutationsOptimized = () => {
         throw tripError;
       }
 
+      console.log('🚗 Trip to delete:', tripInfo);
+
       // Delete the trip
       const { error } = await supabase
         .from('trips')
@@ -180,15 +201,18 @@ export const useTripMutationsOptimized = () => {
       // If the trip was active, update van status back to "Actif"
       if (tripInfo?.van && tripInfo?.status === 'active') {
         console.log('🚐 Setting van status to Actif after trip deletion for van:', tripInfo.van);
-        const { error: vanError } = await supabase
+        
+        const { data: updatedVan, error: vanError } = await supabase
           .from('vans')
           .update({ status: 'Actif' })
-          .eq('id', tripInfo.van);
+          .eq('id', tripInfo.van)
+          .select()
+          .single();
 
         if (vanError) {
           console.error('❌ Error updating van status to Actif:', vanError);
         } else {
-          console.log('✅ Van status successfully updated to Actif after deletion');
+          console.log('✅ Van status successfully updated to Actif after deletion:', updatedVan);
         }
       }
 
@@ -221,15 +245,18 @@ export const useTripMutationsOptimized = () => {
       });
     },
     onSuccess: () => {
-      console.log('🚗 Mission deleted - refreshing all data');
+      console.log('🚗 Mission deleted - forcing immediate data refresh');
       
-      // Force invalidation and refetch of both queries
+      // Clear van cache completely to force fresh fetch
+      queryClient.removeQueries({ queryKey: ['vans'] });
       queryClient.invalidateQueries({ queryKey: ['vans'] });
       queryClient.invalidateQueries({ queryKey: ['trips'] });
       
       setTimeout(() => {
+        console.log('🚐 Forcing van data refetch after deletion');
         queryClient.refetchQueries({ queryKey: ['vans'] });
-      }, 500);
+        queryClient.refetchQueries({ queryKey: ['trips'] });
+      }, 1000); // Increased delay to ensure database consistency
 
       toast({
         title: 'Succès',
@@ -337,14 +364,16 @@ export const useTripMutationsOptimized = () => {
         )
       );
 
-      console.log('🚗 Mission created - refreshing van data');
+      console.log('🚗 Mission created - forcing immediate van data refresh');
       
-      // Force invalidation of vans query to show updated availability
+      // Clear van cache completely to force fresh fetch
+      queryClient.removeQueries({ queryKey: ['vans'] });
       queryClient.invalidateQueries({ queryKey: ['vans'] });
       
       setTimeout(() => {
+        console.log('🚐 Forcing van data refetch after creation');
         queryClient.refetchQueries({ queryKey: ['vans'] });
-      }, 500);
+      }, 1000); // Increased delay to ensure database consistency
 
       toast({
         title: 'Succès',

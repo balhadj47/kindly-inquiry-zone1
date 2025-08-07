@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Van } from '@/types/van';
@@ -9,7 +10,7 @@ export const useAllVans = () => {
   return useQuery({
     queryKey: VANS_QUERY_KEY,
     queryFn: async (): Promise<Van[]> => {
-      console.log('🚐 useVansOptimized: Fetching fresh data from database...');
+      console.log('🚐 useVansOptimized: Fetching FRESH data from database...');
       const startTime = performance.now();
       
       const { data, error } = await supabase
@@ -42,19 +43,21 @@ export const useAllVans = () => {
       
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
-      console.log('🚐 Current van statuses:', vansData.map(v => ({ 
+      console.log('🚐 DETAILED van statuses:', vansData.map(v => ({ 
         id: v.id, 
         license_plate: v.license_plate, 
-        status: v.status 
+        status: v.status,
+        reference_code: v.reference_code
       })));
       
       return vansData;
     },
-    staleTime: 0, // Always fetch fresh data
-    gcTime: 1 * 60 * 1000, // Keep in cache for 1 minute only
+    staleTime: 0, // Always consider data stale - fetch fresh every time
+    gcTime: 0, // Don't cache at all
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
+    refetchInterval: false, // Don't auto-refetch, only manual refetch
   });
 };
 
@@ -68,11 +71,17 @@ export const useAvailableVans = () => {
   // Filter to only available vans - check for "Actif" status specifically
   const availableVans = allVans.filter(van => {
     const isAvailable = van.status === 'Actif' || van.status === 'Active';
-    console.log(`🚐 Van ${van.license_plate}: status="${van.status}", available=${isAvailable}`);
+    console.log(`🚐 Van ${van.license_plate} (${van.id}): status="${van.status}", available=${isAvailable}`);
     return isAvailable;
   });
   
-  console.log('🚐 Available vans after filtering:', availableVans.map(v => ({ 
+  console.log('🚐 AVAILABLE vans after filtering:', availableVans.map(v => ({ 
+    id: v.id, 
+    license_plate: v.license_plate, 
+    status: v.status 
+  })));
+  
+  console.log('🚐 UNAVAILABLE vans:', allVans.filter(v => v.status !== 'Actif' && v.status !== 'Active').map(v => ({ 
     id: v.id, 
     license_plate: v.license_plate, 
     status: v.status 
@@ -89,10 +98,14 @@ export const useVanMutations = () => {
   const { toast } = useToast();
 
   const invalidateVans = () => {
+    console.log('🚐 Invalidating vans cache...');
+    queryClient.removeQueries({ queryKey: VANS_QUERY_KEY });
     queryClient.invalidateQueries({ queryKey: VANS_QUERY_KEY });
   };
 
   const refreshVans = () => {
+    console.log('🚐 Force refreshing vans data...');
+    queryClient.removeQueries({ queryKey: VANS_QUERY_KEY });
     queryClient.refetchQueries({ queryKey: VANS_QUERY_KEY });
   };
 

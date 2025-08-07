@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -50,28 +50,34 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
     return branches.filter(branch => !selectedBranchIds.includes(branch.id));
   }, [branches, newSelection.companyId, selectedCompanies]);
 
-  const handleAddCompany = () => {
-    if (!newSelection.companyId || !newSelection.branchId) return;
+  // Automatically add selection when both company and branch are selected
+  useEffect(() => {
+    if (newSelection.companyId && newSelection.branchId) {
+      const combinationKey = `${newSelection.companyId}-${newSelection.branchId}`;
+      
+      // Check if this combination already exists
+      if (selectedCombinations.has(combinationKey)) {
+        // Reset selection if already exists
+        setNewSelection({ companyId: '', branchId: '' });
+        return;
+      }
 
-    // Check if this combination already exists
-    const combinationKey = `${newSelection.companyId}-${newSelection.branchId}`;
-    if (selectedCombinations.has(combinationKey)) return;
+      const company = companies.find(c => c.id === newSelection.companyId);
+      const branch = branches.find(b => b.id === newSelection.branchId);
 
-    const company = companies.find(c => c.id === newSelection.companyId);
-    const branch = branches.find(b => b.id === newSelection.branchId);
+      if (company && branch) {
+        const newCompanySelection: CompanyBranchSelection = {
+          companyId: company.id,
+          companyName: company.name,
+          branchId: branch.id,
+          branchName: branch.name
+        };
 
-    if (!company || !branch) return;
-
-    const newCompanySelection: CompanyBranchSelection = {
-      companyId: company.id,
-      companyName: company.name,
-      branchId: branch.id,
-      branchName: branch.name
-    };
-
-    onSelectionChange([...selectedCompanies, newCompanySelection]);
-    setNewSelection({ companyId: '', branchId: '' });
-  };
+        onSelectionChange([...selectedCompanies, newCompanySelection]);
+        setNewSelection({ companyId: '', branchId: '' });
+      }
+    }
+  }, [newSelection.companyId, newSelection.branchId, companies, branches, selectedCompanies, selectedCombinations, onSelectionChange]);
 
   const handleRemoveCompany = (index: number) => {
     const updatedCompanies = selectedCompanies.filter((_, i) => i !== index);
@@ -81,9 +87,6 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
   const handleCompanyChange = (companyId: string) => {
     setNewSelection({ companyId, branchId: '' });
   };
-
-  const canAddCompany = newSelection.companyId && newSelection.branchId && 
-    !selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`);
 
   return (
     <div className="space-y-6">
@@ -171,21 +174,12 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
             )}
           </div>
 
-          <Button
-            onClick={handleAddCompany}
-            disabled={!canAddCompany}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Ajouter cette entreprise
-          </Button>
-
-          {newSelection.companyId && newSelection.branchId && 
-           selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`) && (
-            <p className="text-sm text-amber-600 text-center bg-amber-50 p-2 rounded-md">
-              Cette combinaison entreprise-succursale est déjà sélectionnée
+          <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-md border border-blue-200">
+            <p className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-blue-600" />
+              L'entreprise sera automatiquement ajoutée une fois que vous sélectionnez une succursale
             </p>
-          )}
+          </div>
         </CardContent>
       </Card>
 

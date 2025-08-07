@@ -8,8 +8,6 @@ import { useFilteredData } from '@/hooks/useFilteredData';
 import { useDialogState } from '@/hooks/useDialogState';
 
 export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: string, statusFilter: string) => {
-  const [finalKm, setFinalKm] = useState('');
-  const [isTerminating, setIsTerminating] = useState(false);
   const [deletingMissionId, setDeletingMissionId] = useState<number | null>(null);
 
   const { data: vans = [] } = useVans();
@@ -26,17 +24,11 @@ export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: strin
     debounceMs: 300
   });
 
-  // Use consolidated dialog state management
+  // Use consolidated dialog state management for details only
   const {
     dialogState: detailsDialog,
     openDialog: openDetailsDialog,
     closeDialog: closeDetailsDialog
-  } = useDialogState<Trip>();
-
-  const {
-    dialogState: terminateDialog,
-    openDialog: openTerminateDialog,
-    closeDialog: closeTerminateDialog
   } = useDialogState<Trip>();
 
   const getVanDisplayName = useCallback((vanId: string) => {
@@ -48,7 +40,7 @@ export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: strin
   }, [vans]);
 
   return {
-    // Legacy compatibility
+    // Legacy compatibility for details dialog
     selectedMission: detailsDialog.data,
     setSelectedMission: (mission: Trip | null) => {
       if (mission) openDetailsDialog(mission);
@@ -58,19 +50,7 @@ export const useMissionsListLogic = (missions: Trip[], externalSearchTerm: strin
     setIsDetailsDialogOpen: (open: boolean) => {
       if (!open) closeDetailsDialog();
     },
-    showTerminatePrompt: terminateDialog.isOpen,
-    setShowTerminatePrompt: (open: boolean) => {
-      if (!open) closeTerminateDialog();
-    },
-    terminateMission: terminateDialog.data,
-    setTerminateMission: (mission: Trip | null) => {
-      if (mission) openTerminateDialog(mission);
-      else closeTerminateDialog();
-    },
-    finalKm,
-    setFinalKm,
-    isTerminating,
-    setIsTerminating,
+    // Remove terminate dialog logic - handled by parent component
     deletingMissionId,
     setDeletingMissionId,
     filteredMissions,

@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User, UsersQueryResult } from './types';
 
 // Base hook for all users with pagination
-export const useUsers = (page = 1, limit = 20) => {
+export const useUsers = (page = 1, limit = 50) => { // Increased limit to get more users
   return useQuery({
     queryKey: ['users', page, limit],
     queryFn: async (): Promise<UsersQueryResult> => {
@@ -18,7 +18,7 @@ export const useUsers = (page = 1, limit = 20) => {
         .from('users')
         .select('*', { count: 'exact', head: true });
 
-      // Get paginated users
+      // Get paginated users - removed status filter to get all users
       const { data, error } = await supabase
         .from('users')
         .select('*')
@@ -31,7 +31,8 @@ export const useUsers = (page = 1, limit = 20) => {
       }
 
       const endTime = performance.now();
-      console.log('👥 useUsersQuery: Fetched in:', endTime - startTime, 'ms');
+      console.log('👥 useUsersQuery: Fetched', data?.length || 0, 'users in:', endTime - startTime, 'ms');
+      console.log('👥 useUsersQuery: First few users:', data?.slice(0, 3).map(u => ({ id: u.id, name: u.name })));
       
       return {
         users: (data || []).map(user => transformDbUserToUser(user)),

@@ -50,6 +50,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
   const { data: vans = [] } = useVans();
   const users: User[] = usersData?.users || [];
 
+  console.log('🎯 MissionCard: Rendering mission:', mission.id, 'with users count:', users.length);
+
   const driverName = getDriverName(mission, users);
   const statusConfig = getStatusConfig(mission.status || 'active');
   

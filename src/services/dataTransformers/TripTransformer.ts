@@ -32,6 +32,8 @@ export class TripTransformer extends BaseTransformer<DatabaseTrip, Trip> {
       throw new Error(idValidation.errors?.[0] || 'Invalid trip ID');
     }
 
+    console.log('🔄 TripTransformer: Raw DB data:', JSON.stringify(dbTrip, null, 2));
+
     return {
       id: parseInt(dbTrip.id.toString()),
       van: dbTrip.van || '',
@@ -47,6 +49,10 @@ export class TripTransformer extends BaseTransformer<DatabaseTrip, Trip> {
       status: dbTrip.status || 'active',
       startDate: dbTrip.planned_start_date ? new Date(dbTrip.planned_start_date) : undefined,
       endDate: dbTrip.planned_end_date ? new Date(dbTrip.planned_end_date) : undefined,
+      // Add database field aliases for compatibility
+      start_km: dbTrip.start_km || 0,
+      end_km: dbTrip.end_km || null,
+      created_at: dbTrip.created_at || new Date().toISOString(),
       // Add companies_data for multiple companies support
       companies_data: dbTrip.companies_data || [],
     };

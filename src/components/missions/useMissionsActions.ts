@@ -1,6 +1,8 @@
 
 import { useState } from 'react';
 import { useTrip } from '@/contexts/TripContext';
+import { useTripMutations } from '@/hooks/trips/useTripMutations';
+import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/contexts/TripContext';
 
 interface ActionDialog {
@@ -17,7 +19,9 @@ export const useMissionsActions = () => {
     action: null
   });
 
-  const { refreshTrips, deleteTrip } = useTrip();
+  const { refreshTrips, deleteTrip: contextDeleteTrip, endTrip } = useTrip();
+  const { deleteTrip: mutationDeleteTrip, updateTrip } = useTripMutations();
+  const { toast } = useToast();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -44,16 +48,40 @@ export const useMissionsActions = () => {
     });
   };
 
-  const handleActionConfirm = async () => {
+  const handleActionConfirm = async (finalKm?: string) => {
     if (!actionDialog.mission || !actionDialog.action) return;
 
     setIsRefreshing(true);
     try {
       if (actionDialog.action === 'delete') {
-        await deleteTrip(actionDialog.mission.id);
+        await contextDeleteTrip(actionDialog.mission.id);
+      } else if (actionDialog.action === 'terminate' && finalKm) {
+        const finalKmNumber = parseInt(finalKm);
+        
+        if (isNaN(finalKmNumber) || finalKmNumber < 0) {
+          toast({
+            title: 'Erreur',
+            description: 'Veuillez saisir un kilométrage valide',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        if (actionDialog.mission.start_km && finalKmNumber < actionDialog.mission.start_km) {
+          toast({
+            title: 'Erreur',
+            description: 'Le kilométrage final ne peut pas être inférieur au kilométrage initial',
+            variant: 'destructive',
+          });
+          return;
+        }
+
+        await endTrip(actionDialog.mission.id, finalKmNumber);
       }
-      // Handle other actions like 'terminate' if needed
+      
       await handleRefresh();
+    } catch (error) {
+      console.error('Error in action confirm:', error);
     } finally {
       setIsRefreshing(false);
       setActionDialog({ isOpen: false, mission: null, action: null });

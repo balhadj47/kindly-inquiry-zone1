@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
@@ -26,19 +27,25 @@ import { formatDate } from '@/utils/dateUtils';
 interface MissionCardProps {
   mission: Trip;
   onMissionClick: (mission: Trip) => void;
+  onTerminateClick: (mission: Trip) => void;
   onDeleteClick: (mission: Trip) => void;
-  onTerminateClick?: (mission: Trip) => void;
   getVanDisplayName: (vanId: string) => string;
+  canEdit: boolean;
+  canDelete: boolean;
   actionLoading: string | null;
+  isTerminating: boolean;
 }
 
 const MissionCard: React.FC<MissionCardProps> = ({
   mission,
   onMissionClick,
-  onDeleteClick,
   onTerminateClick,
+  onDeleteClick,
   getVanDisplayName,
+  canEdit,
+  canDelete,
   actionLoading,
+  isTerminating,
 }) => {
   const { data: usersData } = useUsers();
   const { data: vans = [] } = useVans();
@@ -64,9 +71,6 @@ const MissionCard: React.FC<MissionCardProps> = ({
       .toUpperCase()
       .slice(0, 2);
   };
-
-  const canTerminate = mission.status === 'active';
-  const canDelete = mission.status !== 'completed';
 
   return (
     <div 
@@ -132,7 +136,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {canTerminate && onTerminateClick && (
+              {canEdit && mission.status === 'active' && (
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -142,7 +146,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
                   size="sm"
                   className="h-9 w-9 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
                   title="Terminer la mission"
-                  disabled={actionLoading === 'loading'}
+                  disabled={isTerminating}
                 >
                   <StopCircle className="h-4 w-4" />
                 </Button>

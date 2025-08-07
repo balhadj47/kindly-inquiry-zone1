@@ -25,20 +25,6 @@ export class TripBusinessLogic {
       };
     }
 
-    if (!currentUser) {
-      return {
-        isValid: false,
-        errorMessage: 'Utilisateur non authentifié'
-      };
-    }
-
-    if (trip.status !== 'active') {
-      return {
-        isValid: false,
-        errorMessage: 'Seules les missions actives peuvent être terminées'
-      };
-    }
-
     if (!finalKm || finalKm.trim() === '') {
       return {
         isValid: false,
@@ -54,23 +40,11 @@ export class TripBusinessLogic {
       };
     }
 
-    const startKm = trip.start_km || trip.startKm;
-    if (startKm && kmNumber < startKm) {
+    if (trip.start_km && kmNumber < trip.start_km) {
       return {
         isValid: false,
         errorMessage: 'Le kilométrage final ne peut pas être inférieur au kilométrage initial'
       };
-    }
-
-    // Business rule: Check for reasonable distance
-    if (startKm) {
-      const distance = kmNumber - startKm;
-      if (distance > 5000) {
-        return {
-          isValid: false,
-          errorMessage: 'Distance trop importante (>5000km), veuillez vérifier'
-        };
-      }
     }
 
     return { isValid: true };

@@ -69,6 +69,11 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
           setSelectedMission(mission);
           setIsDetailsDialogOpen(true);
         }}
+        onTerminateClick={(mission) => {
+          setTerminateMission(mission);
+          setShowTerminatePrompt(true);
+          setFinalKm('');
+        }}
         onDeleteClick={(mission) => {
           console.log('🗑️ MissionsList: Requesting delete confirmation for mission:', mission.id);
           onDeleteMission(mission);

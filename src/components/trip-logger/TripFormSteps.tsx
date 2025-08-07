@@ -13,6 +13,7 @@ export const TripFormSteps: React.FC = () => {
     handleInputChange,
     handleDateChange,
     handleUserRoleSelection,
+    handleCompanySelection,
     userSearchQuery,
     setUserSearchQuery,
     availableVans,
@@ -50,10 +51,8 @@ export const TripFormSteps: React.FC = () => {
     case 'company':
       return (
         <CompanySelectionStep
-          selectedCompanyId={formData.companyId}
-          selectedBranchId={formData.branchId}
-          onCompanyChange={(value) => handleInputChange('companyId', value)}
-          onBranchChange={(value) => handleInputChange('branchId', value)}
+          selectedCompanies={formData.selectedCompanies}
+          onCompanySelectionChange={handleCompanySelection}
         />
       );
     case 'team':

@@ -2,13 +2,11 @@
 import { TripFormData } from '@/hooks/useTripForm';
 import { useTrip } from '@/contexts/TripContext';
 import { useRBAC } from '@/contexts/RBACContext';
-import { useCompanies } from '@/hooks/useCompanies';
 import { useVans } from '@/hooks/useVans';
 
 export const useTripSubmission = () => {
   const { addTrip } = useTrip();
   const { users } = useRBAC();
-  const { data: companies } = useCompanies();
   const { vans } = useVans();
 
   const submitTrip = async (formData: TripFormData) => {
@@ -23,12 +21,12 @@ export const useTripSubmission = () => {
       throw new Error('Van not found');
     }
 
-    const selectedCompany = companies?.find(company => company.id === formData.companyId);
-    const selectedBranch = selectedCompany?.branches.find(branch => branch.id === formData.branchId);
-
-    if (!selectedCompany || !selectedBranch) {
-      throw new Error('Company or branch not found');
+    if (!formData.selectedCompanies || formData.selectedCompanies.length === 0) {
+      throw new Error('At least one company must be selected');
     }
+
+    // Use first company for legacy compatibility
+    const primaryCompany = formData.selectedCompanies[0];
 
     const driverUserWithRole = formData.selectedUsersWithRoles.find(userWithRole =>
       userWithRole.roles.includes('Chauffeur')
@@ -45,22 +43,20 @@ export const useTripSubmission = () => {
     const tripData = {
       van: selectedVan.id,
       driver: driverName,
-      company: selectedCompany.name,
-      branch: selectedBranch.name,
+      company: primaryCompany.companyName,
+      branch: primaryCompany.branchName,
       notes: formData.notes,
       userIds: formData.selectedUsersWithRoles.map(u => u.userId),
       userRoles: formData.selectedUsersWithRoles,
       startKm: parseInt(formData.startKm),
       startDate: formData.startDate,
-      endDate: formData.endDate
+      endDate: formData.endDate,
+      selectedCompanies: formData.selectedCompanies
     };
 
     console.log('Final trip data before submission:', tripData);
     console.log('Van ID being sent:', tripData.van);
-    console.log('Planned dates being sent:', {
-      startDate: tripData.startDate,
-      endDate: tripData.endDate
-    });
+    console.log('Selected companies being sent:', tripData.selectedCompanies);
 
     if (!tripData.van) {
       throw new Error('Van ID is missing');

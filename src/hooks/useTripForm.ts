@@ -1,6 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { MissionRole } from '@/types/missionRoles';
+import { CompanyBranchSelection } from '@/types/company-selection';
 
 export interface UserWithRoles {
   userId: string;
@@ -10,8 +11,7 @@ export interface UserWithRoles {
 export interface TripFormData {
   vanId: string;
   selectedUsersWithRoles: UserWithRoles[];
-  companyId: string;
-  branchId: string;
+  selectedCompanies: CompanyBranchSelection[];
   notes: string;
   startKm: string;
   startDate: Date | undefined;
@@ -22,21 +22,15 @@ export const useTripForm = () => {
   const [formData, setFormData] = useState<TripFormData>({
     vanId: '',
     selectedUsersWithRoles: [],
-    companyId: '',
-    branchId: '',
+    selectedCompanies: [],
     notes: '',
     startKm: '',
     startDate: undefined,
     endDate: undefined,
   });
 
-  const handleInputChange = useCallback((field: keyof Omit<TripFormData, 'selectedUsersWithRoles' | 'startDate' | 'endDate'>, value: string) => {
-    if (field === 'companyId') {
-      // Reset branch when company changes
-      setFormData(prev => ({ ...prev, [field]: value, branchId: '' }));
-    } else {
-      setFormData(prev => ({ ...prev, [field]: value }));
-    }
+  const handleInputChange = useCallback((field: keyof Omit<TripFormData, 'selectedUsersWithRoles' | 'selectedCompanies' | 'startDate' | 'endDate'>, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
   }, []);
 
   const handleDateChange = useCallback((field: 'startDate' | 'endDate', value: Date | undefined) => {
@@ -73,12 +67,15 @@ export const useTripForm = () => {
     });
   }, []);
 
+  const handleCompanySelection = useCallback((companies: CompanyBranchSelection[]) => {
+    setFormData(prev => ({ ...prev, selectedCompanies: companies }));
+  }, []);
+
   const resetForm = useCallback(() => {
     setFormData({
       vanId: '',
       selectedUsersWithRoles: [],
-      companyId: '',
-      branchId: '',
+      selectedCompanies: [],
       notes: '',
       startKm: '',
       startDate: undefined,
@@ -90,14 +87,16 @@ export const useTripForm = () => {
   const getTripData = useCallback((driver: string) => ({
     van: formData.vanId,
     driver,
-    company: formData.companyId,
-    branch: formData.branchId,
+    // Use first company for legacy compatibility
+    company: formData.selectedCompanies[0]?.companyName || '',
+    branch: formData.selectedCompanies[0]?.branchName || '',
     notes: formData.notes,
     userIds: formData.selectedUsersWithRoles.map(u => u.userId),
     userRoles: formData.selectedUsersWithRoles,
     startKm: parseInt(formData.startKm) || 0,
     startDate: formData.startDate,
     endDate: formData.endDate,
+    selectedCompanies: formData.selectedCompanies,
   }), [formData]);
 
   return {
@@ -105,6 +104,7 @@ export const useTripForm = () => {
     handleInputChange,
     handleDateChange,
     handleUserRoleSelection,
+    handleCompanySelection,
     resetForm,
     getTripData,
   };

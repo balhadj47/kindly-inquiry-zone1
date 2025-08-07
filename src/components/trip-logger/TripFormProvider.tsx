@@ -6,6 +6,7 @@ import { useTripFormSubmission } from '@/hooks/trip-form/useTripFormSubmission';
 import { useTripFormWizardState } from '@/hooks/trip-form/useTripFormWizardState';
 import { useTripFormData } from '@/hooks/trip-form/useTripFormData';
 import { TripWizardStep } from '@/hooks/useTripWizard';
+import { CompanyBranchSelection } from '@/types/company-selection';
 
 interface TripFormContextType {
   // Form data and handlers
@@ -13,6 +14,7 @@ interface TripFormContextType {
   handleInputChange: (field: string, value: string) => void;
   handleDateChange: (field: string, value: Date | undefined) => void;
   handleUserRoleSelection: (userId: string, roles: any[]) => void;
+  handleCompanySelection: (companies: CompanyBranchSelection[]) => void;
   userSearchQuery: string;
   setUserSearchQuery: (query: string) => void;
   

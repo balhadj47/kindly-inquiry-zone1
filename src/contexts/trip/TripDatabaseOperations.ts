@@ -1,6 +1,6 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
+import { CompanyBranchSelection } from '@/types/company-selection';
 import { getTripCache, isTripCacheValid, setTripCache, getTripFetchPromise, setTripFetchPromise } from './TripCacheManager';
 
 export const fetchTripsFromDatabase = async (useCache = true, limit?: number, offset?: number) => {
@@ -47,7 +47,12 @@ export const fetchTripsFromDatabase = async (useCache = true, limit?: number, of
           end_km,
           status,
           planned_start_date,
-          planned_end_date
+          planned_end_date,
+          trip_companies (
+            id,
+            company_id,
+            branch_id
+          )
         `)
         .order('created_at', { ascending: false });
 
@@ -131,57 +136,82 @@ export const insertTripToDatabase = async (tripData: {
   startKm?: number;
   startDate?: Date;
   endDate?: Date;
+  selectedCompanies?: CompanyBranchSelection[];
 }) => {
   // Require authentication
   await requireAuth();
   
-  console.log('Inserting trip with planned dates:', {
-    startDate: tripData.startDate,
-    endDate: tripData.endDate
-  });
+  console.log('Inserting trip with companies:', tripData.selectedCompanies);
 
-  // Start a transaction to update both trip and van status
-  const { data, error } = await (supabase as any)
-    .from('trips')
-    .insert({
-      van: tripData.van,
-      driver: tripData.driver,
-      company: tripData.company,
-      branch: tripData.branch,
-      notes: tripData.notes,
-      user_ids: tripData.userIds,
-      user_roles: tripData.userRoles || [],
-      start_km: tripData.startKm,
-      planned_start_date: tripData.startDate?.toISOString(),
-      planned_end_date: tripData.endDate?.toISOString(),
-      status: 'active',
-    })
-    .select()
-    .single();
+  try {
+    // Start a transaction to insert trip and company relationships
+    const { data: tripResult, error: tripError } = await (supabase as any)
+      .from('trips')
+      .insert({
+        van: tripData.van,
+        driver: tripData.driver,
+        company: tripData.company,
+        branch: tripData.branch,
+        notes: tripData.notes,
+        user_ids: tripData.userIds,
+        user_roles: tripData.userRoles || [],
+        start_km: tripData.startKm,
+        planned_start_date: tripData.startDate?.toISOString(),
+        planned_end_date: tripData.endDate?.toISOString(),
+        status: 'active',
+      })
+      .select()
+      .single();
 
-  if (error) {
-    console.error('Insert trip error:', error);
+    if (tripError) {
+      console.error('Insert trip error:', tripError);
+      throw tripError;
+    }
+
+    console.log('Trip inserted successfully:', tripResult);
+
+    // Insert company relationships if provided
+    if (tripData.selectedCompanies && tripData.selectedCompanies.length > 0) {
+      const companyRelationships = tripData.selectedCompanies.map(company => ({
+        trip_id: tripResult.id,
+        company_id: company.companyId,
+        branch_id: company.branchId
+      }));
+
+      const { error: companiesError } = await (supabase as any)
+        .from('trip_companies')
+        .insert(companyRelationships);
+
+      if (companiesError) {
+        console.error('Insert trip companies error:', companiesError);
+        // Don't throw here, trip was created successfully
+      } else {
+        console.log('Trip companies inserted successfully:', companyRelationships);
+      }
+    }
+
+    // Update van status to "En Transit"
+    const { error: vanError } = await (supabase as any)
+      .from('vans')
+      .update({ status: 'En Transit' })
+      .eq('id', tripData.van);
+
+    if (vanError) {
+      console.error('Update van status error:', vanError);
+      // Don't throw here, trip was created successfully
+    }
+
+    console.log('Trip and companies added successfully, van status updated');
+    
+    // Clear cache to force refresh on next load
+    const { clearTripCache } = await import('./TripCacheManager');
+    clearTripCache();
+    
+    return tripResult;
+  } catch (error) {
+    console.error('Error in insertTripToDatabase:', error);
     throw error;
   }
-
-  // Update van status to "En Transit"
-  const { error: vanError } = await (supabase as any)
-    .from('vans')
-    .update({ status: 'En Transit' })
-    .eq('id', tripData.van);
-
-  if (vanError) {
-    console.error('Update van status error:', vanError);
-    // Don't throw here, trip was created successfully
-  }
-
-  console.log('Trip added successfully and van status updated:', data);
-  
-  // Clear cache to force refresh on next load
-  const { clearTripCache } = await import('./TripCacheManager');
-  clearTripCache();
-  
-  return data;
 };
 
 export const updateTripInDatabase = async (tripId: number, endKm: number) => {

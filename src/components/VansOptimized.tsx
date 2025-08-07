@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useVans, useVanMutations } from '@/hooks/useVansOptimized';
 import { useVansActions } from '@/hooks/useVansActions';
 import { useVansFiltersAndSort } from '@/hooks/useVansFiltersAndSort';
+import { useVanRefreshService } from '@/hooks/useVanRefreshService';
 import VansEnhancedHeader from './vans/VansEnhancedHeader';
 import VansEnhancedFilters from './vans/VansEnhancedFilters';
 import VanEnhancedCard from './vans/VanEnhancedCard';
@@ -14,6 +15,7 @@ import { Van } from '@/types/van';
 const VansOptimized = () => {
   const { data: vansData = [], isLoading, error, refetch } = useVans();
   const { deleteVan } = useVanMutations();
+  const { forceRefreshVans } = useVanRefreshService();
   
   // Filter and sort state
   const [searchTerm, setSearchTerm] = useState('');
@@ -52,7 +54,7 @@ const VansOptimized = () => {
     setIsRefreshing(true);
     
     try {
-      await refetch();
+      await forceRefreshVans();
     } finally {
       setTimeout(() => setIsRefreshing(false), 500);
     }
@@ -66,8 +68,8 @@ const VansOptimized = () => {
     await deleteVan.mutateAsync(van.id);
   };
 
-  const handleModalSuccess = () => {
-    refetch();
+  const handleModalSuccess = async () => {
+    await forceRefreshVans();
     handleModalClose();
   };
 

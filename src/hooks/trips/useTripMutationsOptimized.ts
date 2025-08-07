@@ -3,6 +3,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/contexts/TripContext';
+import { vanRefreshService } from '@/services/vanRefreshService';
 
 const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
   id: parseInt(databaseTrip.id),
@@ -68,15 +69,6 @@ export const useTripMutationsOptimized = () => {
         if (tripInfo?.van) {
           console.log('🚐 Setting van status to Actif for van:', tripInfo.van);
           
-          // First check current van status
-          const { data: currentVan, error: currentVanError } = await supabase
-            .from('vans')
-            .select('status')
-            .eq('id', tripInfo.van)
-            .single();
-            
-          console.log('🚐 Current van status before update:', currentVan);
-
           const { data: updatedVan, error: vanError } = await supabase
             .from('vans')
             .update({ status: 'Actif' })
@@ -86,8 +78,9 @@ export const useTripMutationsOptimized = () => {
 
           if (vanError) {
             console.error('❌ Error updating van status to Actif:', vanError);
+            throw vanError; // Throw error to prevent trip completion if van update fails
           } else {
-            console.log('✅ Van status successfully updated:', updatedVan);
+            console.log('✅ Van status successfully updated to Actif:', updatedVan);
           }
         }
 
@@ -135,29 +128,20 @@ export const useTripMutationsOptimized = () => {
         variant: 'destructive',
       });
     },
-    onSuccess: (data, variables) => {
+    onSuccess: async (data, variables) => {
       // Update with real data from server
       const realTrip = transformDatabaseToTrip(data);
       queryClient.setQueryData<Trip[]>(['trips'], (old = []) =>
         old.map(trip => trip.id === realTrip.id ? realTrip : trip)
       );
 
-      // If this was a trip completion, show success message and force refresh van data
+      // If this was a trip completion, force refresh van data immediately
       if (variables.status === 'completed') {
-        console.log('🚗 Mission completed - forcing immediate data refresh');
+        console.log('🚗 Mission completed - forcing immediate van refresh');
         
-        // Clear van cache completely to force fresh fetch
-        queryClient.removeQueries({ queryKey: ['vans'] });
-        queryClient.invalidateQueries({ queryKey: ['vans'] });
-        queryClient.invalidateQueries({ queryKey: ['trips'] });
+        // Use the refresh service for immediate van data update
+        await vanRefreshService.forceRefreshVans();
         
-        // Force immediate refetch with delay to ensure database update is complete
-        setTimeout(() => {
-          console.log('🚐 Forcing van data refetch after completion');
-          queryClient.refetchQueries({ queryKey: ['vans'] });
-          queryClient.refetchQueries({ queryKey: ['trips'] });
-        }, 1000); // Increased delay to ensure database consistency
-
         toast({
           title: 'Succès',
           description: 'Mission terminée avec succès, le véhicule est maintenant disponible',
@@ -211,6 +195,7 @@ export const useTripMutationsOptimized = () => {
 
         if (vanError) {
           console.error('❌ Error updating van status to Actif:', vanError);
+          throw vanError; // Throw error to prevent deletion completion if van update fails
         } else {
           console.log('✅ Van status successfully updated to Actif after deletion:', updatedVan);
         }
@@ -244,19 +229,11 @@ export const useTripMutationsOptimized = () => {
         variant: 'destructive',
       });
     },
-    onSuccess: () => {
-      console.log('🚗 Mission deleted - forcing immediate data refresh');
+    onSuccess: async () => {
+      console.log('🚗 Mission deleted - forcing immediate van refresh');
       
-      // Clear van cache completely to force fresh fetch
-      queryClient.removeQueries({ queryKey: ['vans'] });
-      queryClient.invalidateQueries({ queryKey: ['vans'] });
-      queryClient.invalidateQueries({ queryKey: ['trips'] });
-      
-      setTimeout(() => {
-        console.log('🚐 Forcing van data refetch after deletion');
-        queryClient.refetchQueries({ queryKey: ['vans'] });
-        queryClient.refetchQueries({ queryKey: ['trips'] });
-      }, 1000); // Increased delay to ensure database consistency
+      // Use the refresh service for immediate van data update
+      await vanRefreshService.forceRefreshVans();
 
       toast({
         title: 'Succès',
@@ -303,6 +280,7 @@ export const useTripMutationsOptimized = () => {
 
         if (vanError) {
           console.error('❌ Error updating van status to En Transit:', vanError);
+          throw vanError; // Throw error to prevent trip creation if van update fails
         } else {
           console.log('✅ Van status successfully updated to En Transit');
         }
@@ -355,7 +333,7 @@ export const useTripMutationsOptimized = () => {
         variant: 'destructive',
       });
     },
-    onSuccess: (data, variables, context) => {
+    onSuccess: async (data, variables, context) => {
       // Replace optimistic data with real data
       const realTrip = transformDatabaseToTrip(data);
       queryClient.setQueryData<Trip[]>(['trips'], (old = []) => 
@@ -364,16 +342,10 @@ export const useTripMutationsOptimized = () => {
         )
       );
 
-      console.log('🚗 Mission created - forcing immediate van data refresh');
+      console.log('🚗 Mission created - forcing immediate van refresh');
       
-      // Clear van cache completely to force fresh fetch
-      queryClient.removeQueries({ queryKey: ['vans'] });
-      queryClient.invalidateQueries({ queryKey: ['vans'] });
-      
-      setTimeout(() => {
-        console.log('🚐 Forcing van data refetch after creation');
-        queryClient.refetchQueries({ queryKey: ['vans'] });
-      }, 1000); // Increased delay to ensure database consistency
+      // Use the refresh service for immediate van data update
+      await vanRefreshService.forceRefreshVans();
 
       toast({
         title: 'Succès',

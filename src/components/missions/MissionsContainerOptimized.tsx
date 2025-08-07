@@ -10,6 +10,7 @@ import { useFastVanData } from '@/hooks/useFastVanData';
 import { useMissionsPermissions } from './MissionsPermissions';
 import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
 import { useTripMutationsOptimized } from '@/hooks/trips/useTripMutationsOptimized';
+import { useVanRefreshService } from '@/hooks/useVanRefreshService';
 import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
@@ -45,6 +46,7 @@ const MissionsContainerOptimized = () => {
 
   const { user: authUser } = useAuth();
   const { isVanDataCached } = useFastVanData();
+  const { forceRefreshVans } = useVanRefreshService();
   const permissions = useMissionsPermissions();
   const { createTrip } = useTripMutationsOptimized();
   
@@ -107,6 +109,11 @@ const MissionsContainerOptimized = () => {
   const clearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
+  };
+
+  const handleRefresh = async () => {
+    await refetch();
+    await forceRefreshVans();
   };
 
   if (isLoading) {
@@ -182,7 +189,7 @@ const MissionsContainerOptimized = () => {
               </Button>
             )}
             <Button 
-              onClick={() => refetch()} 
+              onClick={handleRefresh} 
               disabled={isLoading}
               variant="outline"
             >

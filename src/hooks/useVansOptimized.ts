@@ -43,11 +43,12 @@ export const useAllVans = () => {
       
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
+      console.log('🚐 Van statuses found:', vansData.map(v => ({ id: v.id, license_plate: v.license_plate, status: v.status })));
       
       return vansData;
     },
-    staleTime: 5 * 60 * 1000, // Data is fresh for 5 minutes
-    gcTime: 10 * 60 * 1000, // Keep in cache for 10 minutes
+    staleTime: 1 * 60 * 1000, // Reduced to 1 minute for faster updates
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -57,12 +58,20 @@ export const useAllVans = () => {
 // Export useVans as an alias for backward compatibility
 export const useVans = useAllVans;
 
-// Export useAvailableVans for van selector
+// Export useAvailableVans for van selector - updated to handle both French and English status values
 export const useAvailableVans = () => {
   const { data: allVans = [], ...rest } = useAllVans();
   
-  // Filter to only available vans (assuming 'Actif' status means available)
-  const availableVans = allVans.filter(van => van.status === 'Actif');
+  // Filter to only available vans (handle both 'Active' and 'Actif' status)
+  const availableVans = allVans.filter(van => 
+    van.status === 'Actif' || van.status === 'Active'
+  );
+  
+  console.log('🚐 Available vans filtered:', availableVans.map(v => ({ 
+    id: v.id, 
+    license_plate: v.license_plate, 
+    status: v.status 
+  })));
   
   return {
     data: availableVans,

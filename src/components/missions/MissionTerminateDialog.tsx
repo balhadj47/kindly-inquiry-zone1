@@ -40,14 +40,24 @@ const MissionTerminateDialog: React.FC<MissionTerminateDialogProps> = ({
         </DialogHeader>
         
         <div className="space-y-4">
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              Mission: <span className="font-medium">{mission.company}</span>
-            </p>
+          <div className="space-y-2">
+            <div className="text-sm">
+              <span className="font-medium text-muted-foreground">Société:</span>
+              <span className="ml-2">{mission.company}</span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium text-muted-foreground">Succursale:</span>
+              <span className="ml-2">{mission.branch}</span>
+            </div>
+            <div className="text-sm">
+              <span className="font-medium text-muted-foreground">Conducteur:</span>
+              <span className="ml-2">{mission.driver}</span>
+            </div>
             {mission.start_km && (
-              <p className="text-sm text-gray-600 mb-4">
-                Kilométrage initial: {mission.start_km} km
-              </p>
+              <div className="text-sm">
+                <span className="font-medium text-muted-foreground">Kilométrage initial:</span>
+                <span className="ml-2">{mission.start_km} km</span>
+              </div>
             )}
           </div>
 
@@ -72,7 +82,7 @@ const MissionTerminateDialog: React.FC<MissionTerminateDialogProps> = ({
               disabled={!finalKm || isTerminating}
               className="flex-1"
             >
-              {isTerminating ? 'Finalisation...' : 'Confirmer'}
+              {isTerminating ? 'Finalisation...' : 'Terminer la Mission'}
             </Button>
             <Button variant="outline" onClick={onClose} className="flex-1">
               Annuler

@@ -5,30 +5,23 @@ import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/contexts/TripContext';
 
 const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
-  id: parseInt(databaseTrip.id.toString()),
+  id: databaseTrip.id.toString(),
   van: databaseTrip.van || '',
   driver: databaseTrip.driver || '',
   company: databaseTrip.company || '',
   branch: databaseTrip.branch || '',
-  startDate: databaseTrip.planned_start_date ? new Date(databaseTrip.planned_start_date) : undefined,
-  endDate: databaseTrip.planned_end_date ? new Date(databaseTrip.planned_end_date) : undefined,
-  startKm: databaseTrip.start_km || 0,
-  endKm: databaseTrip.end_km || undefined,
+  start_date: databaseTrip.planned_start_date || databaseTrip.start_date || new Date().toISOString(),
+  end_date: databaseTrip.planned_end_date || databaseTrip.end_date || null,
+  start_km: databaseTrip.start_km || 0,
+  end_km: databaseTrip.end_km || null,
   destination: databaseTrip.destination || '',
   notes: databaseTrip.notes || '',
-  company_id: databaseTrip.company_id || '',
-  branch_id: databaseTrip.branch_id || '',
-  created_at: databaseTrip.created_at ? databaseTrip.created_at : new Date().toISOString(),
-  updated_at: databaseTrip.updated_at ? databaseTrip.updated_at : new Date().toISOString(),
-  timestamp: databaseTrip.created_at ? databaseTrip.created_at : new Date().toISOString(),
+  created_at: databaseTrip.created_at || new Date().toISOString(),
+  updated_at: databaseTrip.updated_at || new Date().toISOString(),
   status: databaseTrip.status || 'active',
-  userIds: databaseTrip.user_ids || [],
-  userRoles: databaseTrip.user_roles || [],
-  companies_data: databaseTrip.companies_data || [],
-  start_km: databaseTrip.start_km || 0,
-  end_km: databaseTrip.end_km || undefined,
-  planned_start_date: databaseTrip.planned_start_date || undefined,
-  planned_end_date: databaseTrip.planned_end_date || undefined,
+  user_ids: databaseTrip.user_ids || [],
+  user_roles: databaseTrip.user_roles || [],
+  timestamp: databaseTrip.created_at || new Date().toISOString(),
 });
 
 export const useTripMutations = () => {
@@ -104,7 +97,7 @@ export const useTripMutations = () => {
       // Update React Query cache
       const numericId = parseInt(id, 10);
       queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
-        return oldData.filter(trip => trip.id !== numericId);
+        return oldData.filter(trip => parseInt(trip.id) !== numericId);
       });
 
       // Invalidate and refetch query
@@ -161,30 +154,23 @@ export const useTripMutations = () => {
     onMutate: async (tripData) => {
       // Create optimistic trip data
       const optimisticTrip: Trip = {
-        id: Date.now(),
+        id: Date.now().toString(),
         van: tripData.van || '',
         driver: tripData.driver || '',
         company: tripData.company || '',
         branch: tripData.branch || '',
-        startDate: tripData.startDate || new Date(),
-        endDate: tripData.endDate || undefined,
-        startKm: tripData.start_km || 0,
-        endKm: undefined,
+        start_date: tripData.startDate ? tripData.startDate.toISOString() : new Date().toISOString(),
+        end_date: tripData.endDate ? tripData.endDate.toISOString() : null,
+        start_km: tripData.start_km || 0,
+        end_km: null,
         destination: tripData.destination || '',
         notes: tripData.notes || '',
-        company_id: tripData.company_id || '',
-        branch_id: tripData.branch_id || '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
         timestamp: new Date().toISOString(),
         status: 'active',
-        userIds: tripData.user_ids || [],
-        userRoles: tripData.user_roles || [],
-        companies_data: tripData.companies_data || [],
-        start_km: tripData.start_km || 0,
-        end_km: undefined,
-        planned_start_date: tripData.startDate ? tripData.startDate.toISOString() : undefined,
-        planned_end_date: tripData.endDate ? tripData.endDate.toISOString() : undefined,
+        user_ids: tripData.user_ids || [],
+        user_roles: tripData.user_roles || [],
       };
 
       // Add to React Query cache optimistically

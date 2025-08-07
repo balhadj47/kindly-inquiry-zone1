@@ -1,313 +1,214 @@
 
 import React from 'react';
-import { Trip } from '@/contexts/TripContext';
-import { useUsers } from '@/hooks/users';
-import { User } from '@/hooks/users/types';
-import { useVans } from '@/hooks/useVansOptimized';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { 
-  Trash2, 
-  Car, 
-  MapPin, 
-  Phone, 
-  Mail, 
+  Calendar, 
   Users, 
-  Building2, 
-  Calendar,
-  Clock,
-  StopCircle
+  Building, 
+  MapPin, 
+  Car,
+  Edit,
+  Trash2,
+  StopCircle,
+  Loader2
 } from 'lucide-react';
-import { getChefDeGroupeName, getStatusConfig } from './utils/missionCardUtils';
-import { formatDate } from '@/utils/dateUtils';
+import { Trip } from '@/contexts/TripContext';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 
 interface MissionCardProps {
   mission: Trip;
-  onMissionClick: (mission: Trip) => void;
-  onTerminateClick: (mission: Trip) => void;
-  onDeleteClick: (mission: Trip) => void;
-  getVanDisplayName: (vanId: string) => string;
+  onClick: () => void;
+  onEdit: (e: React.MouseEvent) => void;
+  onDelete: (e: React.MouseEvent) => void;
+  onTerminate: (e: React.MouseEvent) => void;
   canEdit: boolean;
   canDelete: boolean;
-  actionLoading: string | null;
-  isTerminating: boolean;
+  isDeleting?: boolean;
+  isTerminating?: boolean;
+  getVanDisplayName: (vanId: string) => string;
+  getChefDeGroupeName: (mission: Trip) => string;
 }
 
 const MissionCard: React.FC<MissionCardProps> = ({
   mission,
-  onMissionClick,
-  onTerminateClick,
-  onDeleteClick,
-  getVanDisplayName,
+  onClick,
+  onEdit,
+  onDelete,
+  onTerminate,
   canEdit,
   canDelete,
-  actionLoading,
-  isTerminating,
+  isDeleting = false,
+  isTerminating = false,
+  getVanDisplayName,
+  getChefDeGroupeName,
 }) => {
-  const { data: usersData } = useUsers();
-  const { data: vans = [] } = useVans();
-  const users: User[] = usersData?.users || [];
-
-  const chefDeGroupeName = getChefDeGroupeName(mission, users);
-  const statusConfig = getStatusConfig(mission.status || 'active');
-  
-  // Get van reference code (not license plate)
-  const van = vans.find(v => v.id === mission.van || v.reference_code === mission.van);
-  const vanReference = van?.reference_code || mission.van;
-  
-  // Create mission title with Chef de Groupe name and van reference
-  const missionTitle = `${chefDeGroupeName} - ${vanReference}`;
-
-  const getMissionInitials = (title: string) => {
-    return title
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
+  const handleTerminateClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('🎯 MissionCard: Terminate button clicked for mission:', mission.id);
+    onTerminate(e);
   };
 
-  const isActiveMission = mission.status === 'active';
+  const formatDate = (dateString: string | Date | null | undefined) => {
+    if (!dateString) return 'Non défini';
+    
+    try {
+      let date: Date;
+      
+      if (typeof dateString === 'string') {
+        date = new Date(dateString);
+      } else if (dateString instanceof Date) {
+        date = dateString;
+      } else {
+        return 'Non défini';
+      }
+      
+      if (isNaN(date.getTime())) {
+        return 'Date invalide';
+      }
+      
+      return format(date, 'dd/MM/yyyy HH:mm', { locale: fr });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Date invalide';
+    }
+  };
+
+  const getStatusBadge = (status?: string) => {
+    switch (status) {
+      case 'active':
+        return <Badge variant="default" className="bg-green-500 hover:bg-green-600">Actif</Badge>;
+      case 'completed':
+        return <Badge variant="secondary">Terminé</Badge>;
+      default:
+        return <Badge variant="outline">Inconnu</Badge>;
+    }
+  };
+
+  const isActive = mission.status === 'active';
+  const chefDeGroupe = getChefDeGroupeName(mission);
 
   return (
-    <div 
-      className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
-      onClick={() => onMissionClick(mission)}
+    <Card 
+      className="cursor-pointer hover:shadow-lg transition-all duration-200 border-l-4 border-l-blue-500"
+      onClick={onClick}
     >
-      {/* Header Section */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <Avatar className="h-14 w-14 ring-2 ring-blue-100 shadow-sm">
-              <AvatarImage 
-                src={`https://api.dicebear.com/7.x/initials/svg?seed=${missionTitle}`}
-                alt={missionTitle}
-              />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-lg">
-                {getMissionInitials(missionTitle)}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 min-w-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="mb-1">
-                      <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
-                        {chefDeGroupeName}
-                      </h3>
-                      <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
-                        {vanReference}
-                      </p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="max-w-xs">
-                      <p className="font-bold">{chefDeGroupeName}</p>
-                      <p className="text-blue-600">{vanReference}</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <p className="text-sm text-gray-500">
-                {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
-              </p>
-            </div>
-          </div>
-
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-2">
-            <Badge 
-              variant={statusConfig.variant as any}
-              className={`text-xs font-medium ${
-                statusConfig.color === 'emerald' 
-                  ? 'bg-green-100 text-green-800 border-green-200' 
-                  : statusConfig.color === 'blue'
-                  ? 'bg-blue-100 text-blue-800 border-blue-200'
-                  : statusConfig.color === 'red'
-                  ? 'bg-red-100 text-red-800 border-red-200'
-                  : 'bg-gray-100 text-gray-600 border-gray-200'
-              }`}
-            >
-              {statusConfig.label}
-            </Badge>
+            <h3 className="font-semibold text-lg text-gray-900">
+              Mission #{mission.id}
+            </h3>
+            {getStatusBadge(mission.status)}
           </div>
-        </div>
-
-        {/* Action Buttons - More Prominent for Active Missions */}
-        {isActiveMission && canEdit && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600 font-medium">Actions disponibles:</span>
-              <div className="flex gap-2">
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onTerminateClick(mission);
-                  }}
-                  size="sm"
-                  className="bg-orange-600 hover:bg-orange-700 text-white"
-                  disabled={isTerminating}
-                >
-                  <StopCircle className="h-4 w-4 mr-2" />
-                  Terminer
-                </Button>
-                {canDelete && (
-                  <Button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onDeleteClick(mission);
-                    }}
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 border-red-200 hover:bg-red-50"
-                    disabled={actionLoading === 'loading'}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+          
+          <div className="flex items-center gap-2">
+            {/* Terminate Button - More Prominent for Active Missions */}
+            {isActive && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-orange-500 text-orange-600 hover:bg-orange-50 hover:border-orange-600"
+                onClick={handleTerminateClick}
+                disabled={isTerminating}
+              >
+                {isTerminating ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <StopCircle className="w-4 h-4" />
                 )}
-              </div>
+                <span className="ml-1 text-xs font-medium">
+                  {isTerminating ? 'Arrêt...' : 'Terminer'}
+                </span>
+              </Button>
+            )}
+            
+            {canEdit && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onEdit}
+                className="text-gray-600 hover:text-blue-600"
+              >
+                <Edit className="w-4 h-4" />
+              </Button>
+            )}
+            
+            {canDelete && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={onDelete}
+                disabled={isDeleting}
+                className="text-gray-600 hover:text-red-600"
+              >
+                {isDeleting ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Trash2 className="w-4 h-4" />
+                )}
+              </Button>
+            )}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+          <div className="flex items-center gap-2 text-gray-600">
+            <Building className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Entreprise:</span>
+            <span className="truncate">{mission.company}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-gray-600">
+            <MapPin className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Agence:</span>
+            <span className="truncate">{mission.branch}</span>
+          </div>
+          
+          <div className="flex items-center gap-2 text-gray-600">
+            <Car className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Véhicule:</span>
+            <span className="truncate">{getVanDisplayName(mission.van)}</span>
+          </div>
+          
+          {chefDeGroupe && (
+            <div className="flex items-center gap-2 text-gray-600">
+              <Users className="w-4 h-4 flex-shrink-0" />
+              <span className="font-medium">Chef:</span>
+              <span className="truncate">{chefDeGroupe}</span>
             </div>
+          )}
+          
+          <div className="flex items-center gap-2 text-gray-600 md:col-span-2">
+            <Calendar className="w-4 h-4 flex-shrink-0" />
+            <span className="font-medium">Début:</span>
+            <span>{formatDate(mission.startDate || mission.planned_start_date)}</span>
+          </div>
+          
+          {mission.start_km && (
+            <div className="text-gray-600">
+              <span className="font-medium">Km initial:</span> {mission.start_km} km
+            </div>
+          )}
+          
+          {mission.end_km && (
+            <div className="text-gray-600">
+              <span className="font-medium">Km final:</span> {mission.end_km} km
+            </div>
+          )}
+        </div>
+
+        {mission.notes && (
+          <div className="mt-3 p-2 bg-gray-50 rounded">
+            <span className="font-medium text-gray-700">Notes:</span>
+            <p className="text-gray-600 text-sm mt-1">{mission.notes}</p>
           </div>
         )}
-
-        {/* Subtle Action Buttons for Non-Active Missions */}
-        {!isActiveMission && canDelete && (
-          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-            <Button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDeleteClick(mission);
-              }}
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 bg-red-50 text-red-600 hover:bg-red-100"
-              title="Supprimer la mission"
-              disabled={actionLoading === 'loading'}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Companies Section */}
-      <div className="px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2 mb-3">
-          <Building2 className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-semibold text-gray-900">
-            {mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 1 
-              ? `Entreprises (${mission.companies_data.length})` 
-              : 'Entreprise'
-            }
-          </span>
-        </div>
-
-        <div className="space-y-2">
-          {mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 0 ? (
-            mission.companies_data.map((company, index) => (
-              <Card key={index} className="transition-all duration-200 hover:shadow-sm border-gray-100">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-blue-600" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <Badge 
-                          variant="secondary" 
-                          className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-xs"
-                        >
-                          {company.companyName}
-                        </Badge>
-                      </div>
-                      
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <MapPin className="h-3 w-3 text-gray-400" />
-                        <span className="font-medium">{company.branchName}</span>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))
-          ) : (
-            <Card className="transition-all duration-200 hover:shadow-sm border-gray-100">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4 w-4 text-blue-600" />
-                  </div>
-                  
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <Badge 
-                        variant="secondary" 
-                        className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-xs"
-                      >
-                        {mission.company}
-                      </Badge>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <MapPin className="h-3 w-3 text-gray-400" />
-                      <span className="font-medium">{mission.branch}</span>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
-
-      {/* Mission Information Section */}
-      <div className="px-6 py-4 bg-gray-50">
-        <div className="grid grid-cols-1 gap-3">
-          {mission.destination && (
-            <div className="flex items-center text-sm">
-              <MapPin className="h-4 w-4 text-purple-600 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 truncate" title={mission.destination}>
-                {mission.destination.length > 40 ? `${mission.destination.substring(0, 40)}...` : mission.destination}
-              </span>
-            </div>
-          )}
-
-          {(mission.startKm || mission.start_km) && (
-            <div className="flex items-center text-sm">
-              <Clock className="h-4 w-4 text-orange-600 mr-3 flex-shrink-0" />
-              <span className="text-gray-700">
-                {mission.startKm || mission.start_km}
-                {(mission.endKm || mission.end_km) ? ` → ${mission.endKm || mission.end_km} km` : ' km'}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Notes Section */}
-      {mission.notes && (
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center">
-              <Building2 className="h-5 w-5 text-gray-600 mr-2" />
-              <span className="text-sm font-semibold text-gray-900">
-                Notes
-              </span>
-            </div>
-          </div>
-
-          <div className="text-sm bg-blue-50 rounded-lg p-3">
-            <span className="text-blue-800">
-              {mission.notes.length > 100 ? `${mission.notes.substring(0, 100)}...` : mission.notes}
-            </span>
-          </div>
-        </div>
-      )}
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 

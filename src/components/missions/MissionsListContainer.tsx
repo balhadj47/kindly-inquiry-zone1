@@ -55,9 +55,23 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
     validateAndEndMission,
   } = useEndMissionFlow();
 
-  const handleTerminateSuccess = () => {
+  // Enhanced terminate handler that properly calls parent function
+  const handleTerminateClick = (mission: Trip) => {
+    console.log('🎯 MissionsListContainer: handleTerminateClick called with mission:', mission.id);
+    initiateEndMission(mission);
+  };
+
+  // Handle successful mission termination
+  const handleMissionTerminated = async () => {
     if (endMission) {
-      onTerminateMission(endMission);
+      console.log('🎯 MissionsListContainer: Mission terminated successfully:', endMission.id);
+      try {
+        await validateAndEndMission();
+        // Call parent termination handler
+        onTerminateMission(endMission);
+      } catch (error) {
+        console.error('🎯 MissionsListContainer: Error in mission termination:', error);
+      }
     }
   };
 
@@ -78,7 +92,7 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
           setSelectedMission(mission);
           setIsDetailsDialogOpen(true);
         }}
-        onTerminateClick={initiateEndMission}
+        onTerminateClick={handleTerminateClick}
         onDeleteClick={(mission) => {
           onDeleteMission(mission);
         }}
@@ -98,7 +112,7 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
         isTerminating={isEnding}
         onClose={cancelEndMission}
         onFinalKmChange={setFinalKm}
-        onSubmit={validateAndEndMission}
+        onSubmit={handleMissionTerminated}
       />
 
       {selectedMission && (

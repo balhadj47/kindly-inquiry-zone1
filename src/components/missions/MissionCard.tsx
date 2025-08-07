@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Edit, 
   Trash2, 
@@ -91,9 +92,18 @@ const MissionCard: React.FC<MissionCardProps> = ({
             </Avatar>
             
             <div className="flex-1 min-w-0">
-              <h3 className="text-xl font-bold text-gray-900 truncate mb-1">
-                {missionTitle}
-              </h3>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-2 mb-1 hover:text-primary transition-colors">
+                      {missionTitle}
+                    </h3>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="max-w-xs">{missionTitle}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <p className="text-sm text-gray-500">
                 {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
               </p>

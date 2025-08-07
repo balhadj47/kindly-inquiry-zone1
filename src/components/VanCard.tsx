@@ -110,25 +110,17 @@ const VanCard: React.FC<VanCardProps> = ({ van, onEdit, onQuickAction, onDelete 
       <CardContent className="pt-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="flex items-center text-sm">
-            <span className="text-gray-600 mr-2">Kilométrage:</span>
+            <span className="text-gray-600 mr-2">Plaque:</span>
             <span className="font-medium text-gray-900 truncate">
-              {van.mileage ? `${van.mileage.toLocaleString()} km` : 'Non spécifié'}
+              {van.license_plate || 'Non spécifiée'}
             </span>
           </div>
           <div className="flex items-center text-sm">
-            <span className="text-gray-600 mr-2">Capacité:</span>
+            <span className="text-gray-600 mr-2">Statut:</span>
             <span className="font-medium text-gray-900 truncate">
-              {van.capacity || 'Non spécifiée'}
+              {van.status || 'Non spécifié'}
             </span>
           </div>
-          {van.last_maintenance && (
-            <div className="flex items-center text-sm">
-              <span className="text-gray-600 mr-2">Maintenance:</span>
-              <span className="font-medium text-gray-900 truncate">
-                {new Date(van.last_maintenance).toLocaleDateString()}
-              </span>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>

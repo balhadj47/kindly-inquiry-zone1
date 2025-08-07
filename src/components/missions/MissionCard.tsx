@@ -3,7 +3,6 @@ import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
 import { User } from '@/hooks/users/types';
-import { EntityCard } from '@/components/ui/entity-card';
 import MissionCardActions from './MissionCardActions';
 import MissionCardHeader from './components/MissionCardHeader';
 import MissionCardAvatar from './components/MissionCardAvatar';
@@ -51,17 +50,26 @@ const MissionCard: React.FC<MissionCardProps> = ({
   return (
     <div 
       onClick={() => onMissionClick(mission)}
-      className="group hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-gray-300 rounded-lg p-4 cursor-pointer bg-white"
+      className="group hover:shadow-lg transition-all duration-200 border border-gray-200 hover:border-gray-300 rounded-lg p-3 cursor-pointer bg-white h-40 flex flex-col"
     >
       <MissionCardHeader mission={mission} vans={vans} />
-      <MissionCardAvatar mission={mission} users={users} />
-      <MissionCardMetadata mission={mission} users={users} getVanDisplayName={getVanDisplayName} />
-      <MissionCardNotes mission={mission} />
-      {actions && (
-        <div className="mt-4 flex justify-end">
-          {actions}
+      
+      <div className="flex items-center justify-between flex-1 min-h-0">
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          <MissionCardAvatar mission={mission} users={users} />
+          <div className="flex-1 min-w-0">
+            <MissionCardMetadata mission={mission} users={users} getVanDisplayName={getVanDisplayName} />
+          </div>
         </div>
-      )}
+        
+        {actions && (
+          <div className="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            {actions}
+          </div>
+        )}
+      </div>
+      
+      <MissionCardNotes mission={mission} />
     </div>
   );
 };

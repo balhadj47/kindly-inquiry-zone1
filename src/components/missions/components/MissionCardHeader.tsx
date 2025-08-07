@@ -18,11 +18,11 @@ const MissionCardHeader: React.FC<MissionCardHeaderProps> = ({
   const statusConfig = getStatusConfig(mission.status || 'active');
 
   return (
-    <div className="flex items-start justify-between mb-4">
-      <div>
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+    <div className="flex items-start justify-between mb-2">
+      <div className="flex-1 min-w-0">
+        <h3 className="text-sm font-semibold text-gray-900 truncate">{title}</h3>
       </div>
-      <Badge variant={statusConfig.variant as any} className="ml-2">
+      <Badge variant={statusConfig.variant as any} className="ml-2 text-xs">
         {statusConfig.label}
       </Badge>
     </div>

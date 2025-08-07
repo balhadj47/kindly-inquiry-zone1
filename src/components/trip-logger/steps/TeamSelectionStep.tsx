@@ -81,21 +81,13 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       }
 
       // Also check if trip has a driver property
-      if (trip.driver && trip.driver !== 'N/A') {
+      if (trip.driver && trip.driver !== 'N/A' && trip.driver !== 'No Driver Assigned') {
         // Try to extract user ID from driver name or find matching user
         const driverUser = users.find(u => u.name === trip.driver);
         if (driverUser) {
           activeUserIds.add(driverUser.id.toString());
           console.log('🔍 TeamSelectionStep: Found driver user:', driverUser.id);
         }
-      }
-
-      // Check for any direct user assignments in the trip object
-      if (trip.assigned_users && Array.isArray(trip.assigned_users)) {
-        trip.assigned_users.forEach(userId => {
-          activeUserIds.add(userId.toString());
-          console.log('🔍 TeamSelectionStep: Found user in assigned_users:', userId);
-        });
       }
     });
     

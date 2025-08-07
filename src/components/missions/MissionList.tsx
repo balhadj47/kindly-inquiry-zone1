@@ -39,6 +39,16 @@ const MissionList: React.FC<MissionListProps> = ({
     onDeleteTrip(mission);
   };
 
+  const handleEditClick = (mission: Trip) => {
+    // For now, just call the trip click handler
+    onTripClick(mission);
+  };
+
+  const getChefDeGroupeName = (mission: Trip) => {
+    // Simple implementation - you can enhance this based on your needs
+    return mission.driver || 'Non assigné';
+  };
+
   return (
     <div className="bg-white border rounded-xl shadow-sm">
       <div className="p-6 border-b">
@@ -69,13 +79,27 @@ const MissionList: React.FC<MissionListProps> = ({
               <MissionCard 
                 key={trip.id}
                 mission={trip}
-                onMissionClick={handleMissionClick}
-                onTerminateClick={handleTerminateClick}
-                onDeleteClick={handleDeleteClick}
+                onClick={() => handleMissionClick(trip)}
+                onEdit={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleEditClick(trip);
+                }}
+                onDelete={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleDeleteClick(trip);
+                }}
+                onTerminate={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleTerminateClick(trip);
+                }}
                 getVanDisplayName={getVanDisplayName}
+                getChefDeGroupeName={getChefDeGroupeName}
                 canEdit={true}
                 canDelete={true}
-                actionLoading={deletingTripId === trip.id ? 'loading' : null}
+                isDeleting={deletingTripId === trip.id}
                 isTerminating={false}
               />
             ))}

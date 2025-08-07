@@ -39,17 +39,36 @@ const MissionsListContent: React.FC<MissionsListContentProps> = ({
 }) => {
   usePerformanceMonitor('MissionsListContent');
 
+  const getChefDeGroupeName = useCallback((mission: Trip) => {
+    // Simple implementation - you can enhance this based on your needs
+    return mission.driver || 'Non assigné';
+  }, []);
+
   const renderMissionItem = useCallback((mission: Trip, index: number) => (
     <MissionCard
       key={mission.id}
       mission={mission}
-      onMissionClick={onMissionClick}
-      onTerminateClick={onTerminateClick}
-      onDeleteClick={onDeleteClick}
+      onClick={() => onMissionClick(mission)}
+      onEdit={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onMissionClick(mission); // For now, edit just opens the mission
+      }}
+      onDelete={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onDeleteClick(mission);
+      }}
+      onTerminate={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        onTerminateClick(mission);
+      }}
       getVanDisplayName={getVanDisplayName}
+      getChefDeGroupeName={getChefDeGroupeName}
       canEdit={canEdit}
       canDelete={canDelete}
-      actionLoading={deletingMissionId === mission.id ? 'loading' : null}
+      isDeleting={deletingMissionId === mission.id}
       isTerminating={isTerminating && terminateMission?.id === mission.id}
     />
   ), [
@@ -57,6 +76,7 @@ const MissionsListContent: React.FC<MissionsListContentProps> = ({
     onTerminateClick,
     onDeleteClick,
     getVanDisplayName,
+    getChefDeGroupeName,
     canEdit,
     canDelete,
     deletingMissionId,

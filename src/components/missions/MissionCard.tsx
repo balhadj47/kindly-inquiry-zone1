@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
@@ -8,7 +7,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
   Trash2, 
   Car, 
@@ -92,26 +90,14 @@ const MissionCard: React.FC<MissionCardProps> = ({
             </Avatar>
             
             <div className="flex-1 min-w-0">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="mb-1">
-                      <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
-                        {chefDeGroupeName}
-                      </h3>
-                      <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
-                        {vanReference}
-                      </p>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="max-w-xs">
-                      <p className="font-bold">{chefDeGroupeName}</p>
-                      <p className="text-blue-600">{vanReference}</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <div className="mb-1">
+                <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
+                  {chefDeGroupeName}
+                </h3>
+                <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
+                  {vanReference}
+                </p>
+              </div>
               <p className="text-sm text-gray-500">
                 {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
               </p>

@@ -126,11 +126,16 @@ const MissionsContainerOptimized = () => {
     );
   }
 
-  // Fix the type error by properly checking the error type
-  const showPermissionError = error && (
-    (typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('Insufficient permissions')) ||
-    (typeof error === 'string' && error.includes('Insufficient permissions'))
-  );
+  // Check for permission errors
+  const getErrorMessage = (error: unknown): string => {
+    if (typeof error === 'string') return error;
+    if (error && typeof error === 'object' && 'message' in error) {
+      return String((error as any).message);
+    }
+    return '';
+  };
+
+  const showPermissionError = error && getErrorMessage(error).includes('Insufficient permissions');
 
   if (showPermissionError || !permissions.canRead) {
     return (

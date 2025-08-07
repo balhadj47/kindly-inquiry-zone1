@@ -1,47 +1,49 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/contexts/TripContext';
-import { useTrip } from '@/contexts/TripContext';
 
 const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
-  id: databaseTrip.id.toString(),
+  id: parseInt(databaseTrip.id.toString()),
   van: databaseTrip.van || '',
   driver: databaseTrip.driver || '',
   company: databaseTrip.company || '',
   branch: databaseTrip.branch || '',
-  start_date: databaseTrip.planned_start_date ? new Date(databaseTrip.planned_start_date).toISOString() : null,
-  end_date: databaseTrip.planned_end_date ? new Date(databaseTrip.planned_end_date).toISOString() : null,
+  startDate: databaseTrip.planned_start_date ? new Date(databaseTrip.planned_start_date) : undefined,
+  endDate: databaseTrip.planned_end_date ? new Date(databaseTrip.planned_end_date) : undefined,
   startKm: databaseTrip.start_km || 0,
-  endKm: databaseTrip.end_km || null,
+  endKm: databaseTrip.end_km || undefined,
   destination: databaseTrip.destination || '',
   notes: databaseTrip.notes || '',
   company_id: databaseTrip.company_id || '',
   branch_id: databaseTrip.branch_id || '',
-  created_at: databaseTrip.created_at ? new Date(databaseTrip.created_at).toISOString() : null,
-  updated_at: databaseTrip.updated_at ? new Date(databaseTrip.updated_at).toISOString() : null,
-  timestamp: databaseTrip.timestamp ? new Date(databaseTrip.timestamp).toISOString() : null,
+  created_at: databaseTrip.created_at ? databaseTrip.created_at : new Date().toISOString(),
+  updated_at: databaseTrip.updated_at ? databaseTrip.updated_at : new Date().toISOString(),
+  timestamp: databaseTrip.created_at ? databaseTrip.created_at : new Date().toISOString(),
   status: databaseTrip.status || 'active',
-  user_ids: databaseTrip.user_ids || [],
-  user_roles: databaseTrip.user_roles || {},
+  userIds: databaseTrip.user_ids || [],
+  userRoles: databaseTrip.user_roles || [],
   companies_data: databaseTrip.companies_data || [],
-  start_km: databaseTrip.start_km || null,
-  end_km: databaseTrip.end_km || null,
+  start_km: databaseTrip.start_km || 0,
+  end_km: databaseTrip.end_km || undefined,
+  planned_start_date: databaseTrip.planned_start_date || undefined,
+  planned_end_date: databaseTrip.planned_end_date || undefined,
 });
 
 export const useTripMutations = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
-  const { addTrip: addTripToCache, removeTrip: removeTripFromCache, updateTrip: updateTripInCache } = useTrip();
 
   const updateTrip = useMutation({
     mutationFn: async ({ id, ...tripData }: { id: string; [key: string]: any }) => {
       console.log(`Updating trip with ID: ${id} and data:`, tripData);
 
+      const numericId = parseInt(id, 10);
       const { data, error } = await supabase
         .from('trips')
         .update(tripData)
-        .eq('id', id)
+        .eq('id', numericId)
         .select()
         .single();
 
@@ -54,9 +56,13 @@ export const useTripMutations = () => {
       return data;
     },
     onSuccess: (data) => {
-      // Optimistically update the cache
-      const updatedTrip = transformDatabaseToTrip(data);
-      updateTripInCache(updatedTrip);
+      // Update React Query cache
+      queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
+        const updatedTrip = transformDatabaseToTrip(data);
+        return oldData.map(trip => 
+          trip.id === updatedTrip.id ? updatedTrip : trip
+        );
+      });
 
       // Invalidate and refetch query
       queryClient.invalidateQueries({ queryKey: ['trips'] });
@@ -80,10 +86,11 @@ export const useTripMutations = () => {
     mutationFn: async (id: string) => {
       console.log('🗑️ Deleting trip with ID:', id);
 
+      const numericId = parseInt(id, 10);
       const { error } = await supabase
         .from('trips')
         .delete()
-        .eq('id', id);
+        .eq('id', numericId);
 
       if (error) {
         console.error('❌ Error deleting trip:', error);
@@ -94,8 +101,11 @@ export const useTripMutations = () => {
       return id;
     },
     onSuccess: (id) => {
-      // Optimistically remove from cache
-      removeTripFromCache(id);
+      // Update React Query cache
+      const numericId = parseInt(id, 10);
+      queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
+        return oldData.filter(trip => trip.id !== numericId);
+      });
 
       // Invalidate and refetch query
       queryClient.invalidateQueries({ queryKey: ['trips'] });
@@ -134,8 +144,8 @@ export const useTripMutations = () => {
           user_ids: tripData.user_ids || [],
           user_roles: tripData.user_roles || [],
           status: 'active',
-          planned_start_date: tripData.start_date,
-          planned_end_date: tripData.end_date,
+          planned_start_date: tripData.startDate,
+          planned_end_date: tripData.endDate,
         }])
         .select()
         .single();
@@ -151,43 +161,46 @@ export const useTripMutations = () => {
     onMutate: async (tripData) => {
       // Create optimistic trip data
       const optimisticTrip: Trip = {
-        id: Date.now().toString(), // Convert to string
+        id: Date.now(),
         van: tripData.van || '',
         driver: tripData.driver || '',
         company: tripData.company || '',
         branch: tripData.branch || '',
-        start_date: new Date().toISOString(),
-        end_date: null,
+        startDate: tripData.startDate || new Date(),
+        endDate: tripData.endDate || undefined,
         startKm: tripData.start_km || 0,
-        endKm: null,
+        endKm: undefined,
         destination: tripData.destination || '',
         notes: tripData.notes || '',
         company_id: tripData.company_id || '',
         branch_id: tripData.branch_id || '',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
+        timestamp: new Date().toISOString(),
         status: 'active',
-        user_ids: tripData.user_ids || [],
-        user_roles: tripData.user_roles || {},
+        userIds: tripData.user_ids || [],
+        userRoles: tripData.user_roles || [],
+        companies_data: tripData.companies_data || [],
+        start_km: tripData.start_km || 0,
+        end_km: undefined,
+        planned_start_date: tripData.startDate ? tripData.startDate.toISOString() : undefined,
+        planned_end_date: tripData.endDate ? tripData.endDate.toISOString() : undefined,
       };
 
-      // Add to cache immediately
-      addTripToCache(optimisticTrip);
+      // Add to React Query cache optimistically
+      queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
+        return [optimisticTrip, ...oldData];
+      });
       
       return { optimisticTrip };
     },
     onSuccess: (data, variables, context) => {
       // Replace optimistic data with real data
-      if (context?.optimisticTrip) {
-        removeTripFromCache(context.optimisticTrip.id.toString());
-        const realTrip = transformDatabaseToTrip(data);
-        addTripToCache(realTrip);
-      }
-
-      // Update React Query cache
+      const realTrip = transformDatabaseToTrip(data);
       queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
-        const realTrip = transformDatabaseToTrip(data);
-        return [...oldData.filter(trip => trip.id !== context?.optimisticTrip?.id), realTrip];
+        return oldData.map(trip => 
+          trip.id === context?.optimisticTrip?.id ? realTrip : trip
+        );
       });
 
       toast({
@@ -198,7 +211,9 @@ export const useTripMutations = () => {
     onError: (error, variables, context) => {
       // Remove optimistic data on error
       if (context?.optimisticTrip) {
-        removeTripFromCache(context.optimisticTrip.id.toString());
+        queryClient.setQueryData(['trips'], (oldData: Trip[] = []) => {
+          return oldData.filter(trip => trip.id !== context.optimisticTrip.id);
+        });
       }
 
       console.error('Error creating trip:', error);

@@ -29,11 +29,11 @@ export const useEndMission = () => {
   };
 
   const validateTermination = (mission: Trip, finalKmValue: string) => {
-    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, user);
+    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, null);
   };
 
   const canTerminate = (mission: Trip) => {
-    return TripBusinessLogic.canTerminateTrip(mission, user);
+    return TripBusinessLogic.canTerminateTrip(mission, null);
   };
 
   const handleTerminate = async () => {

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Van } from '@/types/van';
@@ -10,7 +9,7 @@ export const useAllVans = () => {
   return useQuery({
     queryKey: VANS_QUERY_KEY,
     queryFn: async (): Promise<Van[]> => {
-      console.log('🚐 useVansOptimized: Fetching data from database...');
+      console.log('🚐 useVansOptimized: Fetching fresh data from database...');
       const startTime = performance.now();
       
       const { data, error } = await supabase
@@ -43,12 +42,16 @@ export const useAllVans = () => {
       
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');
-      console.log('🚐 Van statuses found:', vansData.map(v => ({ id: v.id, license_plate: v.license_plate, status: v.status })));
+      console.log('🚐 Current van statuses:', vansData.map(v => ({ 
+        id: v.id, 
+        license_plate: v.license_plate, 
+        status: v.status 
+      })));
       
       return vansData;
     },
-    staleTime: 1 * 60 * 1000, // Reduced to 1 minute for faster updates
-    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 1 * 60 * 1000, // Keep in cache for 1 minute only
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
@@ -58,16 +61,18 @@ export const useAllVans = () => {
 // Export useVans as an alias for backward compatibility
 export const useVans = useAllVans;
 
-// Export useAvailableVans for van selector - updated to handle both French and English status values
+// Export useAvailableVans for van selector - only show truly available vans
 export const useAvailableVans = () => {
   const { data: allVans = [], ...rest } = useAllVans();
   
-  // Filter to only available vans (handle both 'Active' and 'Actif' status)
-  const availableVans = allVans.filter(van => 
-    van.status === 'Actif' || van.status === 'Active'
-  );
+  // Filter to only available vans - check for "Actif" status specifically
+  const availableVans = allVans.filter(van => {
+    const isAvailable = van.status === 'Actif' || van.status === 'Active';
+    console.log(`🚐 Van ${van.license_plate}: status="${van.status}", available=${isAvailable}`);
+    return isAvailable;
+  });
   
-  console.log('🚐 Available vans filtered:', availableVans.map(v => ({ 
+  console.log('🚐 Available vans after filtering:', availableVans.map(v => ({ 
     id: v.id, 
     license_plate: v.license_plate, 
     status: v.status 

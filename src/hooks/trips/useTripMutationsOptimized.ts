@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,7 +36,7 @@ export const useTripMutationsOptimized = () => {
       
       // If we're completing a trip (setting end_km and status to completed)
       if (tripData.status === 'completed' && tripData.end_km) {
-        console.log('🚗 Trip being completed, will update van status');
+        console.log('🚗 Trip being completed, will update van status to Actif');
         
         // First get the trip to find the van ID
         const { data: tripInfo, error: tripError } = await supabase
@@ -49,7 +50,7 @@ export const useTripMutationsOptimized = () => {
           throw tripError;
         }
 
-        // Update the trip
+        // Update the trip first
         const { data, error } = await supabase
           .from('trips')
           .update(tripData)
@@ -59,22 +60,18 @@ export const useTripMutationsOptimized = () => {
 
         if (error) throw error;
 
-        // Update van status back to "Actif" (French version used in database) after successful trip update
+        // Update van status back to "Actif" after successful trip update
         if (tripInfo?.van) {
-          console.log('🚐 Updating van status to Actif for van:', tripInfo.van);
+          console.log('🚐 Setting van status to Actif for van:', tripInfo.van);
           const { error: vanError } = await supabase
             .from('vans')
             .update({ status: 'Actif' })
             .eq('id', tripInfo.van);
 
           if (vanError) {
-            console.error('Error updating van status:', vanError);
-            // Don't throw here, trip was updated successfully
+            console.error('❌ Error updating van status to Actif:', vanError);
           } else {
-            console.log('✅ Van status updated to Actif');
-            // Invalidate both vans and trips queries to refresh data
-            queryClient.invalidateQueries({ queryKey: ['vans'] });
-            queryClient.invalidateQueries({ queryKey: ['trips'] });
+            console.log('✅ Van status successfully updated to Actif');
           }
         }
 
@@ -115,7 +112,7 @@ export const useTripMutationsOptimized = () => {
         queryClient.setQueryData(['trips'], context.previousTrips);
       }
       
-      console.error('Error updating trip:', err);
+      console.error('❌ Error updating trip:', err);
       toast({
         title: 'Erreur',
         description: 'Impossible de mettre à jour la mission',
@@ -129,14 +126,23 @@ export const useTripMutationsOptimized = () => {
         old.map(trip => trip.id === realTrip.id ? realTrip : trip)
       );
 
-      // If this was a trip completion, show success message and refresh van data
+      // If this was a trip completion, show success message and force refresh van data
       if (variables.status === 'completed') {
+        console.log('🚗 Mission completed - refreshing all data');
+        
+        // Force invalidation of both queries to ensure fresh data
+        queryClient.invalidateQueries({ queryKey: ['vans'] });
+        queryClient.invalidateQueries({ queryKey: ['trips'] });
+        
+        // Also force refetch to ensure immediate data refresh
+        setTimeout(() => {
+          queryClient.refetchQueries({ queryKey: ['vans'] });
+        }, 500);
+
         toast({
           title: 'Succès',
           description: 'Mission terminée avec succès, le véhicule est maintenant disponible',
         });
-        // Force refresh of vans data to show updated availability
-        queryClient.invalidateQueries({ queryKey: ['vans'] });
       } else {
         toast({
           title: 'Succès',
@@ -173,20 +179,16 @@ export const useTripMutationsOptimized = () => {
 
       // If the trip was active, update van status back to "Actif"
       if (tripInfo?.van && tripInfo?.status === 'active') {
-        console.log('🚐 Updating van status to Actif after trip deletion for van:', tripInfo.van);
+        console.log('🚐 Setting van status to Actif after trip deletion for van:', tripInfo.van);
         const { error: vanError } = await supabase
           .from('vans')
           .update({ status: 'Actif' })
           .eq('id', tripInfo.van);
 
         if (vanError) {
-          console.error('Error updating van status:', vanError);
-          // Don't throw here, trip was deleted successfully
+          console.error('❌ Error updating van status to Actif:', vanError);
         } else {
-          console.log('✅ Van status updated to Actif after deletion');
-          // Invalidate both vans and trips queries to refresh available vans
-          queryClient.invalidateQueries({ queryKey: ['vans'] });
-          queryClient.invalidateQueries({ queryKey: ['trips'] });
+          console.log('✅ Van status successfully updated to Actif after deletion');
         }
       }
 
@@ -211,7 +213,7 @@ export const useTripMutationsOptimized = () => {
         queryClient.setQueryData(['trips'], context.previousTrips);
       }
       
-      console.error('Error deleting trip:', err);
+      console.error('❌ Error deleting trip:', err);
       toast({
         title: 'Erreur',
         description: 'Impossible de supprimer la mission',
@@ -219,17 +221,27 @@ export const useTripMutationsOptimized = () => {
       });
     },
     onSuccess: () => {
+      console.log('🚗 Mission deleted - refreshing all data');
+      
+      // Force invalidation and refetch of both queries
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['vans'] });
+      }, 500);
+
       toast({
         title: 'Succès',
         description: 'Mission supprimée avec succès, le véhicule est maintenant disponible',
       });
-      // Force refresh of vans data to show updated availability
-      queryClient.invalidateQueries({ queryKey: ['vans'] });
     }
   });
 
   const createTrip = useMutation({
     mutationFn: async (tripData: any) => {
+      console.log('🚗 Creating trip with van:', tripData.van);
+      
       const { data, error } = await supabase
         .from('trips')
         .insert([{
@@ -253,6 +265,22 @@ export const useTripMutationsOptimized = () => {
         .single();
 
       if (error) throw error;
+
+      // Update van status to "En Transit" after successful trip creation
+      if (tripData.van) {
+        console.log('🚐 Setting van status to En Transit for van:', tripData.van);
+        const { error: vanError } = await supabase
+          .from('vans')
+          .update({ status: 'En Transit' })
+          .eq('id', tripData.van);
+
+        if (vanError) {
+          console.error('❌ Error updating van status to En Transit:', vanError);
+        } else {
+          console.log('✅ Van status successfully updated to En Transit');
+        }
+      }
+
       return data;
     },
     onMutate: async (tripData) => {
@@ -293,7 +321,7 @@ export const useTripMutationsOptimized = () => {
         queryClient.setQueryData(['trips'], context.previousTrips);
       }
       
-      console.error('Error creating trip:', err);
+      console.error('❌ Error creating trip:', err);
       toast({
         title: 'Erreur',
         description: 'Impossible de créer la mission',
@@ -308,6 +336,15 @@ export const useTripMutationsOptimized = () => {
           trip.id === context?.optimisticTrip?.id ? realTrip : trip
         )
       );
+
+      console.log('🚗 Mission created - refreshing van data');
+      
+      // Force invalidation of vans query to show updated availability
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
+      
+      setTimeout(() => {
+        queryClient.refetchQueries({ queryKey: ['vans'] });
+      }, 500);
 
       toast({
         title: 'Succès',

@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { 
-  Edit, 
   Trash2, 
   Car, 
   MapPin, 
@@ -19,7 +18,8 @@ import {
   Users, 
   Building2, 
   Calendar,
-  Clock
+  Clock,
+  StopCircle
 } from 'lucide-react';
 import { getChefDeGroupeName, getStatusConfig } from './utils/missionCardUtils';
 import { formatDate } from '@/utils/dateUtils';
@@ -136,18 +136,19 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {canEdit && (
+              {canEdit && mission.status === 'active' && (
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onMissionClick(mission);
+                    onTerminateClick(mission);
                   }}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 bg-blue-50 text-blue-600 hover:bg-blue-100"
-                  title="Modifier la mission"
+                  className="h-9 w-9 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
+                  title="Terminer la mission"
+                  disabled={isTerminating}
                 >
-                  <Edit className="h-4 w-4" />
+                  <StopCircle className="h-4 w-4" />
                 </Button>
               )}
               {canDelete && (

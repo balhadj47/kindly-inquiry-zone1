@@ -51,8 +51,6 @@ const MissionCard: React.FC<MissionCardProps> = ({
   const { data: vans = [] } = useVans();
   const users: User[] = usersData?.users || [];
 
-  console.log('🎯 MissionCard: Rendering mission:', mission.id, 'with users count:', users.length);
-
   const chefDeGroupeName = getChefDeGroupeName(mission, users);
   const statusConfig = getStatusConfig(mission.status || 'active');
   
@@ -71,6 +69,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const isActiveMission = mission.status === 'active';
 
   return (
     <div 
@@ -133,42 +133,64 @@ const MissionCard: React.FC<MissionCardProps> = ({
             >
               {statusConfig.label}
             </Badge>
+          </div>
+        </div>
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {canEdit && mission.status === 'active' && (
+        {/* Action Buttons - More Prominent for Active Missions */}
+        {isActiveMission && canEdit && (
+          <div className="mt-4 pt-4 border-t border-gray-100">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-gray-600 font-medium">Actions disponibles:</span>
+              <div className="flex gap-2">
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
                     onTerminateClick(mission);
                   }}
-                  variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
-                  title="Terminer la mission"
+                  className="bg-orange-600 hover:bg-orange-700 text-white"
                   disabled={isTerminating}
                 >
-                  <StopCircle className="h-4 w-4" />
+                  <StopCircle className="h-4 w-4 mr-2" />
+                  Terminer
                 </Button>
-              )}
-              {canDelete && (
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteClick(mission);
-                  }}
-                  variant="ghost"
-                  size="sm"
-                  className="h-9 w-9 p-0 bg-red-50 text-red-600 hover:bg-red-100"
-                  title="Supprimer la mission"
-                  disabled={actionLoading === 'loading'}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+                {canDelete && (
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteClick(mission);
+                    }}
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 border-red-200 hover:bg-red-50"
+                    disabled={actionLoading === 'loading'}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* Subtle Action Buttons for Non-Active Missions */}
+        {!isActiveMission && canDelete && (
+          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDeleteClick(mission);
+              }}
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0 bg-red-50 text-red-600 hover:bg-red-100"
+              title="Supprimer la mission"
+              disabled={actionLoading === 'loading'}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
 
       {/* Companies Section */}

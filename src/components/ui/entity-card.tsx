@@ -2,7 +2,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 interface EntityCardProps {
@@ -46,18 +45,9 @@ export const EntityCard: React.FC<EntityCardProps> = ({
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0 pr-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <h3 className="font-semibold text-gray-900 text-lg leading-tight line-clamp-2 hover:text-primary transition-colors">
-                    {title}
-                  </h3>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">{title}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <h3 className="font-semibold text-gray-900 text-lg leading-tight line-clamp-2 hover:text-primary transition-colors">
+              {title}
+            </h3>
             {subtitle && (
               <p className="text-sm text-gray-600 mt-1 truncate">
                 {subtitle}

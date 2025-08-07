@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Users } from 'lucide-react';
 import { UserWithRoles } from '@/hooks/useTripForm';
@@ -59,16 +58,16 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     const activeUserIds = new Set<string>();
     
     activeTrips.forEach(trip => {
-      // Check userRoles for user assignments
-      if (trip.userRoles && Array.isArray(trip.userRoles)) {
-        trip.userRoles.forEach(userRole => {
-          activeUserIds.add(userRole.userId.toString());
+      // Check user_roles for user assignments (correct property name)
+      if (trip.user_roles && Array.isArray(trip.user_roles)) {
+        trip.user_roles.forEach((userRole: any) => {
+          activeUserIds.add(userRole.userId?.toString() || userRole.user_id?.toString());
         });
       }
       
-      // Also check userIds as fallback
-      if (trip.userIds && Array.isArray(trip.userIds)) {
-        trip.userIds.forEach(userId => {
+      // Also check user_ids as fallback (correct property name)
+      if (trip.user_ids && Array.isArray(trip.user_ids)) {
+        trip.user_ids.forEach(userId => {
           activeUserIds.add(userId.toString());
         });
       }

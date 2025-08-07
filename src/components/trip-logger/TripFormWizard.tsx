@@ -40,20 +40,20 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
     
     switch (step.id) {
       case 'vehicle':
-        return tripForm.vanId.trim() !== '';
+        return tripForm.formData.vanId.trim() !== '';
       
       case 'team': {
-        const validation = validateTeamSelection(tripForm.selectedUsersWithRoles);
+        const validation = validateTeamSelection(tripForm.formData.selectedUsersWithRoles);
         return validation.isValid;
       }
       
       case 'companies':
-        return tripForm.selectedCompanies.length > 0;
+        return tripForm.formData.selectedCompanies.length > 0;
       
       case 'details':
-        return tripForm.startKm.trim() !== '' && 
-               tripForm.startDate !== null && 
-               tripForm.endDate !== null;
+        return tripForm.formData.startKm.trim() !== '' && 
+               tripForm.formData.startDate !== null && 
+               tripForm.formData.endDate !== null;
       
       default:
         return true;
@@ -66,7 +66,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
     } else if (canGoNext()) {
       // Show validation warnings for team step
       if (STEPS[currentStep].id === 'team') {
-        const validation = validateTeamSelection(tripForm.selectedUsersWithRoles);
+        const validation = validateTeamSelection(tripForm.formData.selectedUsersWithRoles);
         if (validation.warnings.length > 0) {
           validation.warnings.forEach(warning => {
             toast.warning(warning);
@@ -78,7 +78,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
       // Show specific validation errors
       const step = STEPS[currentStep];
       if (step.id === 'team') {
-        const validation = validateTeamSelection(tripForm.selectedUsersWithRoles);
+        const validation = validateTeamSelection(tripForm.formData.selectedUsersWithRoles);
         validation.errors.forEach(error => {
           toast.error(error);
         });
@@ -99,7 +99,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
       setIsSubmitting(true);
       
       // Final validation
-      const teamValidation = validateTeamSelection(tripForm.selectedUsersWithRoles);
+      const teamValidation = validateTeamSelection(tripForm.formData.selectedUsersWithRoles);
       if (!teamValidation.isValid) {
         teamValidation.errors.forEach(error => {
           toast.error(error);
@@ -107,7 +107,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
         return;
       }
 
-      await submitTrip(tripForm);
+      await submitTrip(tripForm.formData);
       toast.success('Mission créée avec succès!');
       onSuccess();
     } catch (error) {
@@ -160,7 +160,13 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
       {/* Step Content */}
       <Card>
         <CardContent className="p-6">
-          <CurrentStepComponent {...tripForm} />
+          <CurrentStepComponent 
+            {...tripForm.formData}
+            handleInputChange={tripForm.handleInputChange}
+            handleDateChange={tripForm.handleDateChange}
+            handleUserRoleSelection={tripForm.handleUserRoleSelection}
+            handleCompanySelection={tripForm.handleCompanySelection}
+          />
         </CardContent>
       </Card>
 

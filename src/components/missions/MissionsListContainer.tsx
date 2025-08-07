@@ -2,10 +2,9 @@
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useMissionsListLogic } from './MissionsListLogic';
-import { useEndMissionFlow } from '@/hooks/missions/useEndMissionFlow';
+import { TripBusinessLogic } from '@/services/tripBusinessLogic';
 import MissionsListContent from './MissionsListContent';
 import MissionDetailsDialog from './MissionDetailsDialog';
-import MissionEndConfirmationDialog from './MissionEndConfirmationDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
 
 interface MissionsListContainerProps {
@@ -36,44 +35,22 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
     setSelectedMission,
     isDetailsDialogOpen,
     setIsDetailsDialogOpen,
+    showTerminatePrompt,
+    setShowTerminatePrompt,
+    terminateMission,
+    setTerminateMission,
+    finalKm,
+    setFinalKm,
+    isTerminating,
+    setIsTerminating,
     deletingMissionId,
     setDeletingMissionId,
     filteredMissions,
     getVanDisplayName,
+    updateTrip,
+    deleteTrip,
+    toast
   } = useMissionsListLogic(missions, searchTerm, statusFilter);
-
-  const {
-    selectedMission: endMission,
-    showConfirmation,
-    showDialog,
-    finalKm,
-    isEnding,
-    setFinalKm,
-    initiateEndMission,
-    confirmEndMission,
-    cancelEndMission,
-    validateAndEndMission,
-  } = useEndMissionFlow();
-
-  // Enhanced terminate handler that properly calls parent function
-  const handleTerminateClick = (mission: Trip) => {
-    console.log('🎯 MissionsListContainer: handleTerminateClick called with mission:', mission.id);
-    initiateEndMission(mission);
-  };
-
-  // Handle successful mission termination
-  const handleMissionTerminated = async () => {
-    if (endMission) {
-      console.log('🎯 MissionsListContainer: Mission terminated successfully:', endMission.id);
-      try {
-        await validateAndEndMission();
-        // Call parent termination handler
-        onTerminateMission(endMission);
-      } catch (error) {
-        console.error('🎯 MissionsListContainer: Error in mission termination:', error);
-      }
-    }
-  };
 
   return (
     <>
@@ -85,34 +62,82 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
         canDelete={canDelete}
         actionLoading={actionLoading}
         deletingMissionId={deletingMissionId}
-        isTerminating={isEnding}
-        terminateMission={endMission}
+        isTerminating={isTerminating}
+        terminateMission={terminateMission}
         getVanDisplayName={getVanDisplayName}
         onMissionClick={(mission) => {
           setSelectedMission(mission);
           setIsDetailsDialogOpen(true);
         }}
-        onTerminateClick={handleTerminateClick}
         onDeleteClick={(mission) => {
+          console.log('🗑️ MissionsList: Requesting delete confirmation for mission:', mission.id);
           onDeleteMission(mission);
         }}
       />
 
-      <MissionEndConfirmationDialog
-        mission={endMission}
-        isOpen={showConfirmation}
-        onConfirm={confirmEndMission}
-        onCancel={cancelEndMission}
-      />
-
       <MissionTerminateDialog
-        isOpen={showDialog}
-        mission={endMission}
+        isOpen={showTerminatePrompt}
+        mission={terminateMission}
         finalKm={finalKm}
-        isTerminating={isEnding}
-        onClose={cancelEndMission}
+        isTerminating={isTerminating}
+        onClose={() => {
+          setShowTerminatePrompt(false);
+          setTerminateMission(null);
+          setFinalKm('');
+        }}
         onFinalKmChange={setFinalKm}
-        onSubmit={handleMissionTerminated}
+        onSubmit={async () => {
+          if (!terminateMission) return;
+
+          // Use business logic for validation
+          const validation = TripBusinessLogic.validateTripTermination(
+            terminateMission,
+            finalKm,
+            null // Current user would be passed here
+          );
+
+          if (!validation.isValid) {
+            toast({
+              title: 'Erreur',
+              description: validation.errorMessage,
+              variant: 'destructive',
+            });
+            return;
+          }
+
+          const kmNumber = parseInt(finalKm, 10);
+          setIsTerminating(true);
+          
+          try {
+            await updateTrip.mutateAsync({
+              id: terminateMission.id.toString(),
+              end_km: kmNumber,
+              status: 'completed'
+            });
+            
+            toast({
+              title: 'Succès',
+              description: 'Mission terminée avec succès',
+            });
+            
+            setShowTerminatePrompt(false);
+            setTerminateMission(null);
+            setFinalKm('');
+            
+            if (onTerminateMission) {
+              onTerminateMission(terminateMission);
+            }
+          } catch (error) {
+            console.error('Error terminating mission:', error);
+            toast({
+              title: 'Erreur',
+              description: 'Impossible de terminer la mission',
+              variant: 'destructive',
+            });
+          } finally {
+            setIsTerminating(false);
+          }
+        }}
       />
 
       {selectedMission && (

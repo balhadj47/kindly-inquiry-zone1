@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
-import MissionCard from './MissionCard';
+import MissionCardWithTermination from './MissionCardWithTermination';
 import MissionsEmptyState from './MissionsEmptyState';
 import OptimizedVirtualList from '@/components/ui/optimized-virtual-list';
 
@@ -18,7 +18,6 @@ interface MissionsListContentProps {
   terminateMission: Trip | null;
   getVanDisplayName: (vanId: string) => string;
   onMissionClick: (mission: Trip) => void;
-  onTerminateClick: (mission: Trip) => void;
   onDeleteClick: (mission: Trip) => void;
 }
 
@@ -34,54 +33,24 @@ const MissionsListContent: React.FC<MissionsListContentProps> = ({
   terminateMission,
   getVanDisplayName,
   onMissionClick,
-  onTerminateClick,
   onDeleteClick,
 }) => {
   usePerformanceMonitor('MissionsListContent');
 
-  const getChefDeGroupeName = useCallback((mission: Trip) => {
-    // Simple implementation - you can enhance this based on your needs
-    return mission.driver || 'Non assigné';
-  }, []);
-
   const renderMissionItem = useCallback((mission: Trip, index: number) => (
-    <MissionCard
+    <MissionCardWithTermination
       key={mission.id}
       mission={mission}
-      onClick={() => onMissionClick(mission)}
-      onEdit={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onMissionClick(mission); // For now, edit just opens the mission
-      }}
-      onDelete={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onDeleteClick(mission);
-      }}
-      onTerminate={(e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        onTerminateClick(mission);
-      }}
+      onMissionClick={onMissionClick}
+      onDeleteClick={onDeleteClick}
       getVanDisplayName={getVanDisplayName}
-      getChefDeGroupeName={getChefDeGroupeName}
-      canEdit={canEdit}
-      canDelete={canDelete}
-      isDeleting={deletingMissionId === mission.id}
-      isTerminating={isTerminating && terminateMission?.id === mission.id}
+      actionLoading={deletingMissionId === mission.id ? 'loading' : null}
     />
   ), [
     onMissionClick,
-    onTerminateClick,
     onDeleteClick,
     getVanDisplayName,
-    getChefDeGroupeName,
-    canEdit,
-    canDelete,
-    deletingMissionId,
-    isTerminating,
-    terminateMission?.id
+    deletingMissionId
   ]);
 
   if (filteredMissions.length === 0) {

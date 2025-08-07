@@ -22,12 +22,12 @@ import {
 } from 'lucide-react';
 import { getChefDeGroupeName, getStatusConfig } from './utils/missionCardUtils';
 import { formatDate } from '@/utils/dateUtils';
-import { useEndMission } from '@/hooks/missions/useEndMission';
 
 interface MissionCardProps {
   mission: Trip;
   onMissionClick: (mission: Trip) => void;
   onDeleteClick: (mission: Trip) => void;
+  onTerminateClick?: (mission: Trip) => void;
   getVanDisplayName: (vanId: string) => string;
   actionLoading: string | null;
 }
@@ -36,14 +36,13 @@ const MissionCard: React.FC<MissionCardProps> = ({
   mission,
   onMissionClick,
   onDeleteClick,
+  onTerminateClick,
   getVanDisplayName,
   actionLoading,
 }) => {
   const { data: usersData } = useUsers();
   const { data: vans = [] } = useVans();
   const users: User[] = usersData?.users || [];
-  
-  const { canTerminate, openTerminateDialog, isTerminating } = useEndMission();
 
   console.log('🎯 MissionCard: Rendering mission:', mission.id, 'with users count:', users.length);
 
@@ -66,7 +65,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
       .slice(0, 2);
   };
 
-  const canEdit = canTerminate(mission);
+  const canTerminate = mission.status === 'active';
   const canDelete = mission.status !== 'completed';
 
   return (
@@ -133,17 +132,17 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
             {/* Action Buttons */}
             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              {canEdit && mission.status === 'active' && (
+              {canTerminate && onTerminateClick && (
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    openTerminateDialog(mission);
+                    onTerminateClick(mission);
                   }}
                   variant="ghost"
                   size="sm"
                   className="h-9 w-9 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
                   title="Terminer la mission"
-                  disabled={isTerminating}
+                  disabled={actionLoading === 'loading'}
                 >
                   <StopCircle className="h-4 w-4" />
                 </Button>

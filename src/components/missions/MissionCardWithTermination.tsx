@@ -19,6 +19,7 @@ const MissionCardWithTermination: React.FC<MissionCardWithTerminationProps> = (p
     finalKm,
     selectedMission,
     isDialogOpen,
+    openTerminateDialog,
     closeTerminateDialog,
     setFinalKm,
     handleTerminate,
@@ -26,7 +27,10 @@ const MissionCardWithTermination: React.FC<MissionCardWithTerminationProps> = (p
 
   return (
     <>
-      <MissionCard {...props} />
+      <MissionCard 
+        {...props} 
+        onTerminateClick={openTerminateDialog}
+      />
       
       <MissionTerminateDialog
         isOpen={isDialogOpen}

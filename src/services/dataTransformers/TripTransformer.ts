@@ -1,6 +1,7 @@
 
 import { BaseTransformer } from './types';
 import { Trip } from '@/contexts/TripContext';
+import { CompanyBranchSelection } from '@/types/company-selection';
 
 export interface DatabaseTrip {
   id: any;
@@ -17,6 +18,7 @@ export interface DatabaseTrip {
   status?: string;
   planned_start_date?: string;
   planned_end_date?: string;
+  companies_data?: CompanyBranchSelection[];
 }
 
 export class TripTransformer extends BaseTransformer<DatabaseTrip, Trip> {
@@ -45,6 +47,8 @@ export class TripTransformer extends BaseTransformer<DatabaseTrip, Trip> {
       status: dbTrip.status || 'active',
       startDate: dbTrip.planned_start_date ? new Date(dbTrip.planned_start_date) : undefined,
       endDate: dbTrip.planned_end_date ? new Date(dbTrip.planned_end_date) : undefined,
+      // Add companies_data for multiple companies support
+      companies_data: dbTrip.companies_data || [],
     };
   }
 

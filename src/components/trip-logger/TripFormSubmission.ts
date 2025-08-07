@@ -51,12 +51,13 @@ export const useTripSubmission = () => {
       startKm: parseInt(formData.startKm),
       startDate: formData.startDate,
       endDate: formData.endDate,
-      selectedCompanies: formData.selectedCompanies
+      selectedCompanies: formData.selectedCompanies // Pass all selected companies
     };
 
     console.log('Final trip data before submission:', tripData);
     console.log('Van ID being sent:', tripData.van);
     console.log('Selected companies being sent:', tripData.selectedCompanies);
+    console.log('Number of companies:', tripData.selectedCompanies.length);
 
     if (!tripData.van) {
       throw new Error('Van ID is missing');

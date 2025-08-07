@@ -1,3 +1,4 @@
+
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
 import { CompanyBranchSelection } from '@/types/company-selection';
@@ -48,6 +49,7 @@ export const fetchTripsFromDatabase = async (useCache = true, limit?: number, of
           status,
           planned_start_date,
           planned_end_date,
+          companies_data,
           trip_companies (
             id,
             company_id,
@@ -144,6 +146,10 @@ export const insertTripToDatabase = async (tripData: {
   console.log('Inserting trip with companies:', tripData.selectedCompanies);
 
   try {
+    // Prepare companies_data for storage
+    const companiesData = tripData.selectedCompanies || [];
+    console.log('Companies data being saved:', companiesData);
+
     // Start a transaction to insert trip and company relationships
     const { data: tripResult, error: tripError } = await (supabase as any)
       .from('trips')
@@ -159,6 +165,7 @@ export const insertTripToDatabase = async (tripData: {
         planned_start_date: tripData.startDate?.toISOString(),
         planned_end_date: tripData.endDate?.toISOString(),
         status: 'active',
+        companies_data: companiesData, // Store multiple companies here
       })
       .select()
       .single();
@@ -168,7 +175,7 @@ export const insertTripToDatabase = async (tripData: {
       throw tripError;
     }
 
-    console.log('Trip inserted successfully:', tripResult);
+    console.log('Trip inserted successfully with companies_data:', tripResult);
 
     // Insert company relationships if provided
     if (tripData.selectedCompanies && tripData.selectedCompanies.length > 0) {

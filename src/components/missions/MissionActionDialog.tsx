@@ -131,7 +131,7 @@ const MissionActionDialog: React.FC<MissionActionDialogProps> = ({
             {isLoading ? 'En cours...' : (isDelete ? 'Supprimer' : 'Terminer')}
           </AlertDialogAction>
         </AlertDialogFooter>
-      </DialogContent>
+      </AlertDialogContent>
     </AlertDialog>
   );
 };

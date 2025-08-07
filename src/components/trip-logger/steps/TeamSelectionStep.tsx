@@ -36,6 +36,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
   // Get active trips to filter out employees already on missions
   const { data: activeTrips = [] } = useActiveTrips();
 
+  console.log('🔍 TeamSelectionStep: Active trips data:', activeTrips);
+
   // Transform optimized user data to match expected format
   const users = React.useMemo(() => {
     if (loading || error || !employees || !Array.isArray(employees)) {
@@ -53,29 +55,53 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     }));
   }, [employees, loading, error]);
 
-  // Get user IDs that are currently on active missions
+  // Get user IDs that are currently on active missions - improved logic
   const usersOnActiveMissions = React.useMemo(() => {
     const activeUserIds = new Set<string>();
     
     activeTrips.forEach(trip => {
-      // Check user_roles for user assignments (correct property name)
+      console.log('🔍 TeamSelectionStep: Checking trip:', trip.id, trip);
+      
+      // Check various possible properties where user IDs might be stored
       if (trip.user_roles && Array.isArray(trip.user_roles)) {
         trip.user_roles.forEach((userRole: any) => {
-          activeUserIds.add(userRole.userId?.toString() || userRole.user_id?.toString());
+          const userId = userRole.userId || userRole.user_id || userRole.id;
+          if (userId) {
+            activeUserIds.add(userId.toString());
+            console.log('🔍 TeamSelectionStep: Found user in user_roles:', userId);
+          }
         });
       }
       
-      // Also check user_ids as fallback (correct property name)
       if (trip.user_ids && Array.isArray(trip.user_ids)) {
         trip.user_ids.forEach(userId => {
           activeUserIds.add(userId.toString());
+          console.log('🔍 TeamSelectionStep: Found user in user_ids:', userId);
+        });
+      }
+
+      // Also check if trip has a driver property
+      if (trip.driver && trip.driver !== 'N/A') {
+        // Try to extract user ID from driver name or find matching user
+        const driverUser = users.find(u => u.name === trip.driver);
+        if (driverUser) {
+          activeUserIds.add(driverUser.id.toString());
+          console.log('🔍 TeamSelectionStep: Found driver user:', driverUser.id);
+        }
+      }
+
+      // Check for any direct user assignments in the trip object
+      if (trip.assigned_users && Array.isArray(trip.assigned_users)) {
+        trip.assigned_users.forEach(userId => {
+          activeUserIds.add(userId.toString());
+          console.log('🔍 TeamSelectionStep: Found user in assigned_users:', userId);
         });
       }
     });
     
     console.log('🚫 Users on active missions:', Array.from(activeUserIds));
     return activeUserIds;
-  }, [activeTrips]);
+  }, [activeTrips, users]);
 
   // Safely handle users data and filter out those on active missions
   const availableUsers = React.useMemo(() => {
@@ -84,7 +110,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     }
 
     // Filter out invalid users, users on active missions, and ensure they have required fields
-    return users.filter(user => {
+    const filtered = users.filter(user => {
       const isValidUser = user && 
              user.id && 
              user.name && 
@@ -93,8 +119,13 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       
       const isOnActiveMission = usersOnActiveMissions.has(user.id.toString());
       
+      console.log('🔍 TeamSelectionStep: User', user.name, 'valid:', isValidUser, 'on mission:', isOnActiveMission);
+      
       return isValidUser && !isOnActiveMission;
     });
+
+    console.log('🔍 TeamSelectionStep: Available users after filtering:', filtered.length);
+    return filtered;
   }, [users, usersOnActiveMissions]);
 
   // Filter users based on search

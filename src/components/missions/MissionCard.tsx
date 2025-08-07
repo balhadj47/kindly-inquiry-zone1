@@ -2,6 +2,7 @@
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
+import { User } from '@/hooks/users/types';
 import { EntityCard } from '@/components/ui/entity-card';
 import MissionCardActions from './MissionCardActions';
 import MissionCardHeader from './components/MissionCardHeader';
@@ -35,10 +36,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
 }) => {
   const { data: usersData } = useUsers();
   const { data: vans = [] } = useVans();
-  const users = usersData?.users || [];
-
-  const headerData = MissionCardHeader({ mission, vans });
-  const metadata = MissionCardMetadata({ mission, users, getVanDisplayName });
+  const users: User[] = usersData?.users || [];
 
   const actions = (canEdit || canDelete) && (
     <MissionCardActions
@@ -51,17 +49,20 @@ const MissionCard: React.FC<MissionCardProps> = ({
   );
 
   return (
-    <EntityCard
-      title={headerData.title}
-      status={headerData.status}
-      metadata={metadata}
-      actions={actions}
+    <div 
       onClick={() => onMissionClick(mission)}
-      className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
+      className="group hover:shadow-md transition-all duration-200 border border-gray-200 hover:border-gray-300 rounded-lg p-4 cursor-pointer bg-white"
     >
+      <MissionCardHeader mission={mission} vans={vans} />
       <MissionCardAvatar mission={mission} users={users} />
+      <MissionCardMetadata mission={mission} users={users} getVanDisplayName={getVanDisplayName} />
       <MissionCardNotes mission={mission} />
-    </EntityCard>
+      {actions && (
+        <div className="mt-4 flex justify-end">
+          {actions}
+        </div>
+      )}
+    </div>
   );
 };
 

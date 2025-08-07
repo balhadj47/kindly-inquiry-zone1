@@ -2,7 +2,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trip } from '@/contexts/TripContext';
-import { User } from '@/types/rbac';
+import { User } from '@/hooks/users/types';
 import { getUserInitials } from '@/utils/userDisplayUtils';
 import { getDriverName } from '../utils/missionCardUtils';
 

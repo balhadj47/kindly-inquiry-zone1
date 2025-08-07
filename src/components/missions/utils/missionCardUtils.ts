@@ -1,6 +1,6 @@
 
 import { Trip } from '@/contexts/TripContext';
-import { User } from '@/types/rbac';
+import { User } from '@/hooks/users/types';
 import { Van } from '@/types/van';
 
 export const getMissionTitle = (mission: Trip, vans: Van[]) => {

@@ -2,7 +2,7 @@
 import React from 'react';
 import { Clock, MapPin, Users, Car } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
-import { User } from '@/types/rbac';
+import { User } from '@/hooks/users/types';
 import { getDriverName } from '../utils/missionCardUtils';
 
 interface MissionCardMetadataProps {
@@ -18,7 +18,7 @@ const MissionCardMetadata: React.FC<MissionCardMetadataProps> = ({
 }) => {
   const driverName = getDriverName(mission, users);
 
-  const metadata = [
+  const metadataItems = [
     {
       label: 'Chauffeur',
       value: driverName,
@@ -43,7 +43,17 @@ const MissionCardMetadata: React.FC<MissionCardMetadataProps> = ({
     }
   ].filter(Boolean);
 
-  return metadata;
+  return (
+    <div className="grid grid-cols-1 gap-2 mb-4">
+      {metadataItems.map((item, index) => item && (
+        <div key={index} className="flex items-center space-x-2 text-sm text-gray-600">
+          {item.icon}
+          <span className="font-medium">{item.label}:</span>
+          <span>{item.value}</span>
+        </div>
+      ))}
+    </div>
+  );
 };
 
 export default MissionCardMetadata;

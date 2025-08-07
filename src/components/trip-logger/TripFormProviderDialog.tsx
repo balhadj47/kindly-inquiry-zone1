@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useCallback, useRef } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useTripForm } from '@/hooks/useTripForm';
@@ -11,6 +10,7 @@ import { useTripSubmission } from './TripFormSubmission';
 import { useTripWizard, TripWizardStep } from '@/hooks/useTripWizard';
 import { useVanKilometerLogic } from '@/hooks/useVanKilometerLogic';
 import { useFormValidation } from '@/hooks/useFormValidation';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface TripFormContextType {
   // Form data and handlers
@@ -74,6 +74,7 @@ export const TripFormProviderDialog: React.FC<TripFormProviderDialogProps> = ({
   const [userSearchQuery, setUserSearchQuery] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { validateStep, showValidationError } = useFormValidation();
+  const queryClient = useQueryClient();
   
   const {
     currentStep,
@@ -132,6 +133,14 @@ export const TripFormProviderDialog: React.FC<TripFormProviderDialogProps> = ({
     setIsSubmitting(true);
     try {
       await submitTrip(formData);
+      
+      // Invalidate active trips cache to refresh the employee list immediately
+      await queryClient.invalidateQueries({
+        queryKey: ['trips', 'active']
+      });
+      
+      console.log('🔄 TripFormProviderDialog: Cache invalidated after successful submission');
+      
       resetForm();
       setUserSearchQuery('');
       resetWizard();

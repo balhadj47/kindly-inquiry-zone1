@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +6,7 @@ import { useTripForm } from '@/hooks/useTripForm';
 import { useTripSubmission } from './TripFormSubmission';
 import { useTripFormValidation } from '@/hooks/useTripFormValidation';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 // Import step components
 import VehicleSelectionStep from './steps/VehicleSelectionStep';
@@ -34,6 +34,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
   const tripForm = useTripForm();
   const { submitTrip } = useTripSubmission();
   const { validateTeamSelection } = useTripFormValidation();
+  const queryClient = useQueryClient();
 
   const canGoNext = () => {
     const step = STEPS[currentStep];
@@ -108,6 +109,14 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
       }
 
       await submitTrip(tripForm.formData);
+      
+      // Invalidate active trips cache to refresh the employee list immediately
+      await queryClient.invalidateQueries({
+        queryKey: ['trips', 'active']
+      });
+      
+      console.log('🔄 TripFormWizard: Cache invalidated after successful submission');
+      
       toast.success('Mission créée avec succès!');
       onSuccess();
     } catch (error) {

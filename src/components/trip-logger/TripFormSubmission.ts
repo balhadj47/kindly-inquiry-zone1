@@ -1,70 +1,68 @@
 
-import { TripFormData } from '@/hooks/useTripForm';
 import { useTrip } from '@/contexts/TripContext';
-import { useRBAC } from '@/contexts/RBACContext';
-import { useVans } from '@/hooks/useVans';
+import { useToast } from '@/hooks/use-toast';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { useQueryClient } from '@tanstack/react-query';
 
 export const useTripSubmission = () => {
   const { addTrip } = useTrip();
-  const { users } = useRBAC();
-  const { vans } = useVans();
+  const { toast } = useToast();
+  const { t } = useLanguage();
+  const queryClient = useQueryClient();
 
-  const submitTrip = async (formData: TripFormData) => {
-    console.log('Form data received:', formData);
-    console.log('Available vans:', vans);
-    
-    const selectedVan = vans.find(van => van.id === formData.vanId);
-    console.log('Selected van:', selectedVan);
-    
-    if (!selectedVan) {
-      console.error('Van not found for ID:', formData.vanId);
-      throw new Error('Van not found');
-    }
-
-    if (!formData.selectedCompanies || formData.selectedCompanies.length === 0) {
-      throw new Error('At least one company must be selected');
-    }
-
-    // Use first company for legacy compatibility
-    const primaryCompany = formData.selectedCompanies[0];
-
-    const driverUserWithRole = formData.selectedUsersWithRoles.find(userWithRole =>
-      userWithRole.roles.includes('Chauffeur')
-    );
-
-    let driverName = 'No Driver Assigned';
-    if (driverUserWithRole) {
-      const driverUser = users.find(user => user.id.toString() === driverUserWithRole.userId);
-      if (driverUser) {
-        driverName = driverUser.name;
+  const submitTrip = async (formData: any) => {
+    try {
+      console.log('🚀 TripSubmission: Submitting trip with data:', formData);
+      
+      if (!formData.selectedUsersWithRoles || formData.selectedUsersWithRoles.length === 0) {
+        throw new Error('At least one user with roles must be selected');
       }
+
+      if (!formData.startKm || formData.startKm.trim() === '') {
+        throw new Error('Starting kilometers must be provided');
+      }
+
+      // Prepare the trip data
+      const tripToSubmit = {
+        van: formData.vanId,
+        driver: formData.driver || 'N/A',
+        company: formData.company || 'N/A',
+        branch: formData.branch || 'N/A',
+        notes: formData.notes || '',
+        userIds: formData.selectedUsersWithRoles.map((user: any) => user.userId),
+        userRoles: formData.selectedUsersWithRoles,
+        startKm: parseInt(formData.startKm),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+        selectedCompanies: formData.selectedCompanies || []
+      };
+
+      console.log('🚀 TripSubmission: Prepared trip data:', tripToSubmit);
+      
+      // Submit the trip
+      await addTrip(tripToSubmit);
+      
+      console.log('✅ TripSubmission: Trip submitted successfully');
+      
+      // Invalidate active trips cache to refresh the employee list immediately
+      await queryClient.invalidateQueries({
+        queryKey: ['trips', 'active']
+      });
+      
+      // Also invalidate general trips cache
+      await queryClient.invalidateQueries({
+        queryKey: ['trips']
+      });
+      
+      console.log('🔄 TripSubmission: Cache invalidated for immediate refresh');
+      
+    } catch (error) {
+      console.error('❌ TripSubmission: Error submitting trip:', error);
+      throw error;
     }
-
-    const tripData = {
-      van: selectedVan.id,
-      driver: driverName,
-      company: primaryCompany.companyName,
-      branch: primaryCompany.branchName,
-      notes: formData.notes,
-      userIds: formData.selectedUsersWithRoles.map(u => u.userId),
-      userRoles: formData.selectedUsersWithRoles,
-      startKm: parseInt(formData.startKm),
-      startDate: formData.startDate,
-      endDate: formData.endDate,
-      selectedCompanies: formData.selectedCompanies // Pass all selected companies to TripContext
-    };
-
-    console.log('Final trip data before submission:', tripData);
-    console.log('Van ID being sent:', tripData.van);
-    console.log('Selected companies being sent from TripFormSubmission:', tripData.selectedCompanies);
-    console.log('Number of companies:', tripData.selectedCompanies.length);
-
-    if (!tripData.van) {
-      throw new Error('Van ID is missing');
-    }
-
-    await addTrip(tripData);
   };
 
-  return { submitTrip };
+  return {
+    submitTrip
+  };
 };

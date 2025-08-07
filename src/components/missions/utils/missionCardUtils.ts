@@ -29,6 +29,52 @@ export const getCompanyDisplayText = (mission: Trip) => {
   return `${mission.company} - ${mission.branch}`;
 };
 
+export const getChefDeGroupeName = (mission: Trip, users: User[]) => {
+  console.log('👑 getChefDeGroupeName: Mission data:', {
+    id: mission.id,
+    userRoles: mission.userRoles
+  });
+  console.log('👑 getChefDeGroupeName: Available users count:', users.length);
+
+  // Try to get Chef de Groupe name from userRoles
+  if (mission?.userRoles && mission.userRoles.length > 0) {
+    console.log('👑 getChefDeGroupeName: Checking userRoles...');
+    const chefUserRole = mission.userRoles.find(userRole => 
+      userRole.roles.some(role => {
+        if (typeof role === 'string') {
+          return role === 'Chef de Groupe';
+        } else if (typeof role === 'object' && role !== null) {
+          const roleObj = role as any;
+          return roleObj.name === 'Chef de Groupe';
+        }
+        return false;
+      })
+    );
+
+    if (chefUserRole) {
+      console.log('👑 getChefDeGroupeName: Found Chef de Groupe userRole:', chefUserRole);
+      // Try to find user in users array
+      const user = users.find(u => {
+        const userIdStr = u.id.toString();
+        const missionUserIdStr = chefUserRole.userId.toString();
+        console.log('👑 getChefDeGroupeName: Comparing user IDs:', { userIdStr, missionUserIdStr });
+        return userIdStr === missionUserIdStr;
+      });
+      
+      if (user) {
+        console.log('👑 getChefDeGroupeName: Found user by userRole:', user.name);
+        return user.name;
+      } else {
+        console.log('👑 getChefDeGroupeName: User not found in users array for userId:', chefUserRole.userId);
+      }
+    }
+  }
+
+  // Final fallback
+  console.log('👑 getChefDeGroupeName: No Chef de Groupe found, using fallback');
+  return 'Aucun Chef de Groupe assigné';
+};
+
 export const getDriverName = (mission: Trip, users: User[]) => {
   console.log('🚗 getDriverName: Mission data:', {
     id: mission.id,

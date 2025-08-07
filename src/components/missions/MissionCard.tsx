@@ -20,7 +20,7 @@ import {
   Calendar,
   Clock
 } from 'lucide-react';
-import { getDriverName, getStatusConfig } from './utils/missionCardUtils';
+import { getChefDeGroupeName, getStatusConfig } from './utils/missionCardUtils';
 import { formatDate } from '@/utils/dateUtils';
 
 interface MissionCardProps {
@@ -52,15 +52,15 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   console.log('🎯 MissionCard: Rendering mission:', mission.id, 'with users count:', users.length);
 
-  const driverName = getDriverName(mission, users);
+  const chefDeGroupeName = getChefDeGroupeName(mission, users);
   const statusConfig = getStatusConfig(mission.status || 'active');
   
   // Get van reference code (not license plate)
   const van = vans.find(v => v.id === mission.van || v.reference_code === mission.van);
   const vanReference = van?.reference_code || mission.van;
   
-  // Create mission title with driver name and van reference
-  const missionTitle = `${driverName} - ${vanReference}`;
+  // Create mission title with Chef de Groupe name and van reference
+  const missionTitle = `${chefDeGroupeName} - ${vanReference}`;
 
   const getMissionInitials = (title: string) => {
     return title

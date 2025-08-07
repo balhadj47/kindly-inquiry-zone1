@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Users } from 'lucide-react';
 import { UserWithRoles } from '@/hooks/useTripForm';
@@ -7,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Search, Shield, Car, UserCheck, Target } from 'lucide-react';
 import { useUsersByRoleId } from '@/hooks/users';
+import { useActiveTrips } from '@/hooks/trips/useActiveTrips';
 import { Badge } from '@/components/ui/badge';
 
 interface TeamSelectionStepProps {
@@ -31,6 +33,9 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 }) => {
   // Use the optimized employees hook (role_id: 3) instead of RBAC context
   const { data: employees = [], isLoading: loading, error } = useUsersByRoleId(3);
+  
+  // Get active trips to filter out employees already on missions
+  const { data: activeTrips = [] } = useActiveTrips();
 
   // Transform optimized user data to match expected format
   const users = React.useMemo(() => {
@@ -49,35 +54,63 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     }));
   }, [employees, loading, error]);
 
-  // Safely handle users data
-  const safeUsers = React.useMemo(() => {
+  // Get user IDs that are currently on active missions
+  const usersOnActiveMissions = React.useMemo(() => {
+    const activeUserIds = new Set<string>();
+    
+    activeTrips.forEach(trip => {
+      // Check userRoles for user assignments
+      if (trip.userRoles && Array.isArray(trip.userRoles)) {
+        trip.userRoles.forEach(userRole => {
+          activeUserIds.add(userRole.userId.toString());
+        });
+      }
+      
+      // Also check userIds as fallback
+      if (trip.userIds && Array.isArray(trip.userIds)) {
+        trip.userIds.forEach(userId => {
+          activeUserIds.add(userId.toString());
+        });
+      }
+    });
+    
+    console.log('🚫 Users on active missions:', Array.from(activeUserIds));
+    return activeUserIds;
+  }, [activeTrips]);
+
+  // Safely handle users data and filter out those on active missions
+  const availableUsers = React.useMemo(() => {
     if (!Array.isArray(users)) {
       return [];
     }
 
-    // Filter out invalid users and ensure they have required fields
+    // Filter out invalid users, users on active missions, and ensure they have required fields
     return users.filter(user => {
-      return user && 
+      const isValidUser = user && 
              user.id && 
              user.name && 
              typeof user.name === 'string' &&
              user.name.trim().length > 0;
+      
+      const isOnActiveMission = usersOnActiveMissions.has(user.id.toString());
+      
+      return isValidUser && !isOnActiveMission;
     });
-  }, [users]);
+  }, [users, usersOnActiveMissions]);
 
   // Filter users based on search
   const filteredUsers = React.useMemo(() => {
     if (!userSearchQuery.trim()) {
-      return safeUsers;
+      return availableUsers;
     }
 
     const searchLower = userSearchQuery.toLowerCase().trim();
-    return safeUsers.filter(user => {
+    return availableUsers.filter(user => {
       return user.name.toLowerCase().includes(searchLower) ||
              (user.email && user.email.toLowerCase().includes(searchLower)) ||
              (user.badge_number && user.badge_number.toLowerCase().includes(searchLower));
     });
-  }, [safeUsers, userSearchQuery]);
+  }, [availableUsers, userSearchQuery]);
 
   // Sort users: active first, then by name
   const sortedUsers = React.useMemo(() => {
@@ -116,6 +149,10 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
 
   const totalSelectedUsers = selectedUsersWithRoles.filter(u => u.roles.length > 0).length;
 
+  // Validation: Check if we have required roles
+  const hasChefDeGroupe = selectedUsersWithRoles.some(u => u.roles.includes('Chef de Groupe'));
+  const hasChauffeur = selectedUsersWithRoles.some(u => u.roles.includes('Chauffeur'));
+
   // Show loading state if still loading
   if (loading) {
     return (
@@ -141,11 +178,32 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         <p className="text-gray-600">Sélectionnez les employés et leurs rôles pour cette mission</p>
       </div>
 
+      {/* Validation Messages */}
+      {(!hasChefDeGroupe || !hasChauffeur) && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <div className="flex items-start space-x-2">
+            <div className="text-yellow-600">⚠️</div>
+            <div className="text-sm text-yellow-800">
+              <p className="font-medium mb-1">Rôles obligatoires manquants:</p>
+              <ul className="list-disc list-inside space-y-1">
+                {!hasChefDeGroupe && <li>Au moins un <strong>Chef de Groupe</strong> est requis</li>}
+                {!hasChauffeur && <li>Au moins un <strong>Chauffeur</strong> est requis</li>}
+              </ul>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* User Search */}
       <div className="space-y-4">
         <Label className="flex items-center space-x-2">
           <Users className="h-4 w-4" />
-          <span>Employés ({totalSelectedUsers} sélectionnés sur {sortedUsers.length} disponibles)</span>
+          <span>Employés disponibles ({totalSelectedUsers} sélectionnés sur {sortedUsers.length} disponibles)</span>
+          {usersOnActiveMissions.size > 0 && (
+            <Badge variant="secondary" className="text-xs">
+              {usersOnActiveMissions.size} en mission
+            </Badge>
+          )}
         </Label>
         
         <div className="relative">
@@ -180,8 +238,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
             <div className="p-8 text-center">
               <p className="text-sm text-gray-500">
                 {userSearchQuery ? 
-                  `Aucun employé trouvé pour "${userSearchQuery}".` : 
-                  'Aucun employé disponible.'
+                  `Aucun employé disponible trouvé pour "${userSearchQuery}".` : 
+                  'Aucun employé disponible (tous sont peut-être en mission).'
                 }
               </p>
               {error && (
@@ -276,7 +334,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         
         {userSearchQuery && (
           <p className="text-xs text-gray-500">
-            {sortedUsers.length} employé(s) trouvé(s) sur {safeUsers.length} total
+            {sortedUsers.length} employé(s) disponible(s) trouvé(s)
           </p>
         )}
         

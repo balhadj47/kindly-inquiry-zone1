@@ -7,7 +7,7 @@ interface SafeComponentProps {
   componentName?: string;
 }
 
-export const SafeComponent: React.FC<SafeComponentProps> = ({ 
+const SafeComponent: React.FC<SafeComponentProps> = ({ 
   children, 
   fallback = null, 
   componentName = 'Component' 
@@ -19,3 +19,6 @@ export const SafeComponent: React.FC<SafeComponentProps> = ({
     return <>{fallback}</>;
   }
 };
+
+export { SafeComponent };
+export default SafeComponent;

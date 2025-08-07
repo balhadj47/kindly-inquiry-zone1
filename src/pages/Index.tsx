@@ -6,25 +6,15 @@ import { LanguageProvider } from '@/contexts/LanguageContext';
 import { TripProvider } from '@/contexts/TripContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRoleData } from '@/hooks/useRoleData';
-import { useLanguage } from '@/contexts/LanguageContext';
-import Sidebar from '@/components/Sidebar';
-import MobileSidebar from '@/components/MobileSidebar';
-import TopBar from '@/components/TopBar';
-import ErrorBoundary from '@/components/ErrorBoundary';
-import SafeComponent from '@/components/SafeComponent';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import AppSidebar from '@/components/AppSidebar';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SafeComponent } from '@/components/SafeComponent';
 
 // Lazy load pages
-const DashboardPage = React.lazy(() => import('./DashboardPage'));
 const MissionsPage = React.lazy(() => import('./MissionsPage'));
-const VansPage = React.lazy(() => import('./VansPage'));
-const CompaniesPage = React.lazy(() => import('./CompaniesPage'));
-const UsersPage = React.lazy(() => import('./UsersPage'));
-const ReportsPage = React.lazy(() => import('./ReportsPage'));
-const SettingsPage = React.lazy(() => import('./SettingsPage'));
 
 const Index = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const { roleName } = useRoleData(0);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -44,7 +34,7 @@ const Index = () => {
     setSidebarOpen(!sidebarOpen);
   };
 
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/login" replace />;
   }
 
@@ -56,33 +46,27 @@ const Index = () => {
             <ErrorBoundary>
               {/* Desktop Sidebar */}
               <div className="hidden md:flex">
-                <Sidebar />
+                <AppSidebar />
               </div>
               
-              {/* Mobile Sidebar */}
-              <MobileSidebar 
-                isOpen={sidebarOpen} 
-                onToggle={toggleSidebar}
-              />
-              
               {/* Main Content */}
-              <main className="flex-1 flex flex-col overflow-hidden">
-                <TopBar 
-                  user={user}
-                  roleName={roleName}
-                  onMobileMenuToggle={toggleSidebar}
-                  isMobile={isMobile}
-                />
-                
+              <main className="flex-1 flex flex-col overflow-hidden md:ml-64">
                 <div className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 p-4">
-                  <Suspense fallback={<LoadingSpinner />}>
+                  <Suspense fallback={
+                    <div className="flex items-center justify-center h-64">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    </div>
+                  }>
                     <Routes>
                       <Route path="/" element={<Navigate to="/dashboard" replace />} />
                       <Route 
                         path="/dashboard" 
                         element={
                           <SafeComponent>
-                            <DashboardPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+                              <p className="text-gray-600 mt-2">Welcome to your dashboard</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />
@@ -98,7 +82,10 @@ const Index = () => {
                         path="/vans" 
                         element={
                           <SafeComponent>
-                            <VansPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Vans</h1>
+                              <p className="text-gray-600 mt-2">Vans page coming soon</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />
@@ -106,7 +93,10 @@ const Index = () => {
                         path="/companies" 
                         element={
                           <SafeComponent>
-                            <CompaniesPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Companies</h1>
+                              <p className="text-gray-600 mt-2">Companies page coming soon</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />
@@ -114,7 +104,10 @@ const Index = () => {
                         path="/users" 
                         element={
                           <SafeComponent>
-                            <UsersPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Users</h1>
+                              <p className="text-gray-600 mt-2">Users page coming soon</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />
@@ -122,7 +115,10 @@ const Index = () => {
                         path="/reports" 
                         element={
                           <SafeComponent>
-                            <ReportsPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+                              <p className="text-gray-600 mt-2">Reports page coming soon</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />
@@ -130,7 +126,10 @@ const Index = () => {
                         path="/settings" 
                         element={
                           <SafeComponent>
-                            <SettingsPage />
+                            <div className="text-center py-8">
+                              <h1 className="text-2xl font-bold text-gray-900">Settings</h1>
+                              <p className="text-gray-600 mt-2">Settings page coming soon</p>
+                            </div>
                           </SafeComponent>
                         } 
                       />

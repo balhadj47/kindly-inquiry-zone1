@@ -70,8 +70,9 @@ const MissionsContainer = () => {
 
   if (showPermissionError || !permissions.canRead) {
     return (
-      <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
-        <div className="flex items-center justify-between">
+      <div className="h-full flex flex-col">
+        {/* Fixed Header Section */}
+        <div className="flex-shrink-0 mb-6">
           <MissionsHeader missionsCount={0} />
         </div>
 
@@ -89,9 +90,9 @@ const MissionsContainer = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 max-w-full overflow-hidden">
+    <div className="h-full flex flex-col">
       {showVanLoadingWarning && (
-        <Alert className="border-blue-200 bg-blue-50">
+        <Alert className="border-blue-200 bg-blue-50 mb-6">
           <AlertTriangle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
             Données des véhicules en cours de chargement pour optimiser les performances...
@@ -99,49 +100,60 @@ const MissionsContainer = () => {
         </Alert>
       )}
 
-      <div className="flex items-center justify-between">
-        <MissionsHeader missionsCount={trips?.length || 0} />
-        <div className="flex items-center space-x-2">
-          {permissions.canCreate && (
+      {/* Fixed Header Section */}
+      <div className="flex-shrink-0 mb-6">
+        <div className="flex items-center justify-between">
+          <MissionsHeader missionsCount={trips?.length || 0} />
+          <div className="flex items-center gap-3">
+            {permissions.canCreate && (
+              <Button 
+                onClick={handleAddMission} 
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Nouvelle Mission
+              </Button>
+            )}
             <Button 
-              onClick={handleAddMission} 
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleRefresh} 
+              disabled={isRefreshing}
+              variant="outline"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Nouvelle Mission
+              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Actualiser
             </Button>
-          )}
-          <Button 
-            onClick={handleRefresh} 
-            disabled={isRefreshing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Actualiser
-          </Button>
+          </div>
         </div>
       </div>
 
-      <MissionsFilters
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-        clearFilters={clearFilters}
-        missions={trips || []}
-      />
+      {/* Fixed Filters Section */}
+      <div className="flex-shrink-0 mb-6">
+        <MissionsFilters
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          clearFilters={clearFilters}
+          missions={trips || []}
+        />
+      </div>
 
-      <MissionsList
-        missions={trips || []}
-        searchTerm={searchTerm}
-        statusFilter={statusFilter}
-        onEditMission={handleEditMission}
-        onDeleteMission={handleDeleteMission}
-        onTerminateMission={handleTerminateMission}
-        canEdit={permissions.canEdit}
-        canDelete={permissions.canDelete}
-        actionLoading={isRefreshing ? 'loading' : null}
-      />
+      {/* Scrollable Content Area */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto">
+          <MissionsList
+            missions={trips || []}
+            searchTerm={searchTerm}
+            statusFilter={statusFilter}
+            onEditMission={handleEditMission}
+            onDeleteMission={handleDeleteMission}
+            onTerminateMission={handleTerminateMission}
+            canEdit={permissions.canEdit}
+            canDelete={permissions.canDelete}
+            actionLoading={isRefreshing ? 'loading' : null}
+          />
+        </div>
+      </div>
 
       {permissions.canCreate && (
         <NewTripDialog

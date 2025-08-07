@@ -8,11 +8,21 @@ export interface ValidationResult {
 
 export const validateTripForm = (formData: TripFormData): ValidationResult => {
   // Basic required fields validation
-  if (!formData.vanId || !formData.companyId || !formData.branchId || !formData.startKm) {
+  if (!formData.vanId || !formData.selectedCompanies?.length || !formData.startKm) {
     return {
       isValid: false,
-      errorMessage: "Please fill in all required fields including starting kilometers"
+      errorMessage: "Please fill in all required fields including starting kilometers and at least one company"
     };
+  }
+
+  // Validate that all selected companies have branches
+  for (const company of formData.selectedCompanies) {
+    if (!company.branchId) {
+      return {
+        isValid: false,
+        errorMessage: `Please select a branch for ${company.companyName}`
+      };
+    }
   }
 
   // Use business logic for kilometer validation
@@ -70,8 +80,14 @@ export const validateTripStep = (step: string, formData: TripFormData): Validati
       return { isValid: true };
       
     case 'company':
-      if (!formData.companyId || !formData.branchId) {
-        return { isValid: false, errorMessage: "Please select company and branch" };
+      if (!formData.selectedCompanies?.length) {
+        return { isValid: false, errorMessage: "Please select at least one company" };
+      }
+      // Validate that all selected companies have branches
+      for (const company of formData.selectedCompanies) {
+        if (!company.branchId) {
+          return { isValid: false, errorMessage: `Please select a branch for ${company.companyName}` };
+        }
       }
       return { isValid: true };
       

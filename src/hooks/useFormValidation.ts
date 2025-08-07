@@ -13,7 +13,8 @@ export const useFormValidation = () => {
       case 'van':
         return !!(formData.vanId && formData.startKm && parseInt(formData.startKm) >= 0);
       case 'company':
-        return !!(formData.companyId && formData.branchId);
+        return !!(formData.selectedCompanies?.length && 
+                 formData.selectedCompanies.every(company => company.branchId));
       case 'team':
         return formData.selectedUsersWithRoles.length > 0;
       case 'details':

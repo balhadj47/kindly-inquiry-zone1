@@ -1,103 +1,121 @@
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 import { Check } from 'lucide-react';
 import { TripWizardStep } from '@/hooks/useTripWizard';
 
 interface WizardProgressProps {
   currentStep: TripWizardStep;
+  completedSteps: Set<TripWizardStep>;
   allSteps: TripWizardStep[];
   getStepLabel: (step: TripWizardStep) => string;
   goToStep: (step: TripWizardStep) => void;
-  completedSteps: Set<TripWizardStep>;
 }
+
+const getStepInfo = (step: TripWizardStep) => {
+  switch (step) {
+    case 'van':
+      return {
+        title: 'Véhicule',
+        description: 'Sélection véhicule et km',
+        icon: '🚐'
+      };
+    case 'company':
+      return {
+        title: 'Entreprise', 
+        description: 'Choix entreprise et filiale',
+        icon: '🏢'
+      };
+    case 'team':
+      return {
+        title: 'Équipe',
+        description: 'Membres et rôles',
+        icon: '👥'
+      };
+    case 'details':
+      return {
+        title: 'Détails',
+        description: 'Notes et dates',
+        icon: '📝'
+      };
+    default:
+      return {
+        title: step,
+        description: '',
+        icon: '📋'
+      };
+  }
+};
 
 const WizardProgress: React.FC<WizardProgressProps> = ({
   currentStep,
+  completedSteps,
   allSteps,
-  getStepLabel,
-  goToStep,
-  completedSteps
+  goToStep
 }) => {
-  const currentStepIndex = allSteps.indexOf(currentStep);
-
-  const getStepDescription = (step: TripWizardStep): string => {
-    switch (step) {
-      case 'van':
-        return 'Sélection du véhicule';
-      case 'company':
-        return 'Choix de l\'entreprise';
-      case 'team':
-        return 'Sélection de l\'équipe';
-      case 'details':
-        return 'Informations détaillées';
-      default:
-        return '';
-    }
-  };
+  console.log('🔄 WizardProgress: Current step:', currentStep, 'Completed steps:', Array.from(completedSteps));
 
   return (
-    <div className="mb-8">
-      {/* Tab-style Progress */}
-      <div className="flex items-center bg-gray-50 rounded-lg p-1 overflow-x-auto">
+    <div className="w-full mb-8">
+      <div className="flex bg-muted/30 rounded-lg p-1 overflow-x-auto">
         {allSteps.map((step, index) => {
+          const stepInfo = getStepInfo(step);
           const isCompleted = completedSteps.has(step);
-          const isCurrent = step === currentStep;
-          const isAccessible = index <= currentStepIndex || isCompleted;
+          const isCurrent = currentStep === step;
+          const isClickable = isCompleted || isCurrent || index === 0;
+
+          console.log('🔄 WizardProgress: Step', step, '- isCompleted:', isCompleted, 'isCurrent:', isCurrent, 'isClickable:', isClickable);
 
           return (
             <button
               key={step}
-              onClick={() => isAccessible && goToStep(step)}
-              disabled={!isAccessible}
-              className={`
-                flex-1 min-w-0 px-4 py-3 rounded-md text-sm font-medium transition-all duration-200
-                flex items-center justify-center gap-2 whitespace-nowrap
-                ${isCurrent
-                  ? 'bg-white text-blue-600 shadow-sm border border-blue-200'
-                  : isCompleted
-                    ? 'text-green-600 hover:bg-white/50'
-                    : isAccessible
-                      ? 'text-gray-600 hover:bg-white/50'
-                      : 'text-gray-400 cursor-not-allowed'
+              onClick={() => {
+                if (isClickable) {
+                  console.log('🔄 WizardProgress: Navigating to step:', step);
+                  goToStep(step);
                 }
-                ${isAccessible ? 'hover:shadow-sm' : ''}
-              `}
+              }}
+              disabled={!isClickable}
+              className={cn(
+                "flex-1 min-w-0 px-3 py-3 rounded-md transition-all duration-200 text-left",
+                "focus:outline-none focus:ring-2 focus:ring-primary/20",
+                {
+                  "bg-primary text-primary-foreground shadow-sm": isCurrent,
+                  "bg-green-100 text-green-800 hover:bg-green-200": isCompleted && !isCurrent,
+                  "hover:bg-muted/60": !isCurrent && !isCompleted && isClickable,
+                  "opacity-50 cursor-not-allowed": !isClickable,
+                  "text-muted-foreground": !isCurrent && !isCompleted
+                }
+              )}
             >
-              <div className="flex items-center gap-2">
-                {/* Step Icon */}
-                <div className={`
-                  flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold
-                  ${isCurrent
-                    ? 'bg-blue-100 text-blue-600'
-                    : isCompleted
-                      ? 'bg-green-100 text-green-600'
-                      : 'bg-gray-200 text-gray-500'
-                  }
-                `}>
-                  {isCompleted ? (
-                    <Check className="w-3 h-3" />
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="flex-shrink-0 flex items-center">
+                  {isCompleted && !isCurrent ? (
+                    <div className="w-5 h-5 bg-green-600 rounded-full flex items-center justify-center">
+                      <Check className="w-3 h-3 text-white" />
+                    </div>
                   ) : (
-                    <span>{index + 1}</span>
+                    <span className="text-lg">{stepInfo.icon}</span>
                   )}
                 </div>
-                
-                {/* Step Title and Description in one line */}
-                <div className="text-left min-w-0">
-                  <span className="font-medium">{getStepLabel(step)}</span>
-                  <span className="mx-1 opacity-60">•</span>
-                  <span className="text-xs opacity-75">{getStepDescription(step)}</span>
+                <div className="min-w-0 flex-1">
+                  <div className={cn(
+                    "font-medium text-sm truncate",
+                    isCurrent && "text-primary-foreground"
+                  )}>
+                    {stepInfo.title}
+                  </div>
+                  <div className={cn(
+                    "text-xs opacity-75 truncate",
+                    isCurrent ? "text-primary-foreground/80" : "text-muted-foreground"
+                  )}>
+                    {stepInfo.description}
+                  </div>
                 </div>
               </div>
             </button>
           );
         })}
-      </div>
-      
-      {/* Current Step Indicator */}
-      <div className="mt-4 text-center">
-        <span className="text-sm text-gray-500">
-          Étape {currentStepIndex + 1} sur {allSteps.length}
-        </span>
       </div>
     </div>
   );

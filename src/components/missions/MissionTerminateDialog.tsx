@@ -1,9 +1,14 @@
 
 import React from 'react';
-import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Trip } from '@/contexts/TripContext';
 
 interface MissionTerminateDialogProps {
@@ -25,17 +30,14 @@ const MissionTerminateDialog: React.FC<MissionTerminateDialogProps> = ({
   onFinalKmChange,
   onSubmit,
 }) => {
-  if (!isOpen || !mission) return null;
+  if (!mission) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-start justify-center z-50 pt-[5vh]">
-      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Terminer la Mission</h3>
-          <Button variant="ghost" size="sm" onClick={onClose}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="w-[95vw] max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-semibold">Terminer la Mission</DialogTitle>
+        </DialogHeader>
         
         <div className="space-y-4">
           <div>
@@ -77,8 +79,8 @@ const MissionTerminateDialog: React.FC<MissionTerminateDialogProps> = ({
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

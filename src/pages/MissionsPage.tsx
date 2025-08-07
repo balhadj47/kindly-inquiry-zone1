@@ -3,11 +3,11 @@ import React from 'react';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 import { useRoleData } from '@/hooks/useRoleData';
 import { useDataPreloader } from '@/hooks/useDataPreloader';
-import MissionsContainer from '@/components/missions/MissionsContainer';
+import MissionsContainerOptimized from '@/components/missions/MissionsContainerOptimized';
 
 const MissionsPage = () => {
   const permissions = useSecurePermissions();
-  const { roleName } = useRoleData(0); // Default role for display
+  const { roleName } = useRoleData(0);
   
   // Preload vans and users data when entering missions page
   useDataPreloader({
@@ -44,7 +44,7 @@ const MissionsPage = () => {
     );
   }
 
-  return <MissionsContainer />;
+  return <MissionsContainerOptimized />;
 };
 
 export default MissionsPage;

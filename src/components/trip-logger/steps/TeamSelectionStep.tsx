@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Users } from 'lucide-react';
 import { UserWithRoles } from '@/hooks/useTripForm';
@@ -57,7 +56,7 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     }));
   }, [employees, loading, error]);
 
-  // Get user IDs that are currently on active missions - improved comparison logic
+  // Get user IDs that are currently on active missions - FIXED comparison logic
   const usersOnActiveMissions = React.useMemo(() => {
     const activeUserIds = new Set<string>();
     
@@ -69,7 +68,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         status: trip.status,
         driver: trip.driver,
         user_roles: trip.user_roles,
-        user_ids: trip.user_ids
+        user_ids: trip.user_ids,
+        userRoles: trip.userRoles // Check for transformed property too
       });
       
       // Only process active trips
@@ -78,9 +78,22 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         return;
       }
       
-      // Method 1: Check user_roles array (this seems to be the main data structure)
+      // Method 1: Check userRoles array (transformed format) - THIS IS THE KEY FIX
+      if (trip.userRoles && Array.isArray(trip.userRoles)) {
+        console.log('🔍 TeamSelectionStep: Processing transformed userRoles:', trip.userRoles);
+        trip.userRoles.forEach((userRole: any) => {
+          const userId = userRole.userId || userRole.user_id;
+          if (userId) {
+            const userIdStr = String(userId);
+            activeUserIds.add(userIdStr);
+            console.log('🔍 TeamSelectionStep: Added user from transformed userRoles:', userIdStr);
+          }
+        });
+      }
+      
+      // Method 2: Check user_roles array (database format)
       if (trip.user_roles && Array.isArray(trip.user_roles)) {
-        console.log('🔍 TeamSelectionStep: Processing user_roles:', trip.user_roles);
+        console.log('🔍 TeamSelectionStep: Processing database user_roles:', trip.user_roles);
         trip.user_roles.forEach((userRole: any) => {
           // Try different possible property names for user ID and normalize to string
           const possibleUserIds = [
@@ -94,13 +107,13 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
           possibleUserIds.forEach(userId => {
             if (userId && userId !== 'undefined' && userId !== 'null') {
               activeUserIds.add(userId);
-              console.log('🔍 TeamSelectionStep: Added user from user_roles:', userId);
+              console.log('🔍 TeamSelectionStep: Added user from database user_roles:', userId);
             }
           });
         });
       }
       
-      // Method 2: Check user_ids array
+      // Method 3: Check user_ids array
       if (trip.user_ids && Array.isArray(trip.user_ids)) {
         console.log('🔍 TeamSelectionStep: Processing user_ids:', trip.user_ids);
         trip.user_ids.forEach(userId => {
@@ -112,7 +125,19 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
         });
       }
 
-      // Method 3: Check driver field and match with employee names/IDs
+      // Method 4: Check userIds array (alternative format)
+      if (trip.userIds && Array.isArray(trip.userIds)) {
+        console.log('🔍 TeamSelectionStep: Processing userIds:', trip.userIds);
+        trip.userIds.forEach(userId => {
+          if (userId && userId !== 'undefined' && userId !== 'null') {
+            const userIdStr = String(userId);
+            activeUserIds.add(userIdStr);
+            console.log('🔍 TeamSelectionStep: Added user from userIds:', userIdStr);
+          }
+        });
+      }
+
+      // Method 5: Check driver field and match with employee names/IDs
       if (trip.driver && 
           trip.driver !== 'N/A' && 
           trip.driver !== 'No Driver Assigned' && 
@@ -152,11 +177,18 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
     return activeUserIds;
   }, [activeTrips, users]);
 
-  // Filter available users (exclude those on active missions)
+  // Filter available users (exclude those on active missions) - ENHANCED LOGGING
   const availableUsers = React.useMemo(() => {
     if (!Array.isArray(users)) {
+      console.log('🔍 TeamSelectionStep: Users is not an array:', users);
       return [];
     }
+
+    console.log('🔍 TeamSelectionStep: Starting user filtering process:', {
+      totalUsers: users.length,
+      usersOnActiveMissions: usersOnActiveMissions.size,
+      activeUserIds: Array.from(usersOnActiveMissions)
+    });
 
     const filtered = users.filter(user => {
       // Check if user has valid data
@@ -193,7 +225,8 @@ const TeamSelectionStep: React.FC<TeamSelectionStepProps> = ({
       total: users.length,
       onMission: usersOnActiveMissions.size,
       available: filtered.length,
-      filteredOut: users.length - filtered.length
+      filteredOut: users.length - filtered.length,
+      availableUserNames: filtered.map(u => u.name)
     });
     
     return filtered;

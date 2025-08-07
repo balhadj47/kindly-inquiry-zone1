@@ -3,7 +3,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Edit, Trash2, Navigation } from 'lucide-react';
 import { Van } from '@/types/van';
 import { usePermissionCheck } from '@/hooks/usePermissionCheck';
@@ -49,18 +48,9 @@ const VanCard: React.FC<VanCardProps> = ({ van, onEdit, onQuickAction, onDelete 
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0 pr-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <CardTitle className="text-lg font-semibold text-gray-900 leading-tight line-clamp-2 hover:text-primary transition-colors">
-                    {van.model || 'Modèle non spécifié'}
-                  </CardTitle>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="max-w-xs">{van.model || 'Modèle non spécifié'}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <CardTitle className="text-lg font-semibold text-gray-900 leading-tight line-clamp-2 hover:text-primary transition-colors">
+              {van.model || 'Modèle non spécifié'}
+            </CardTitle>
             <p className="text-sm text-gray-600 mt-1 truncate">
               {van.license_plate || 'Plaque non spécifiée'}
             </p>

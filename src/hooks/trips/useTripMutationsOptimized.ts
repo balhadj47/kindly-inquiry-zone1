@@ -1,4 +1,3 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -31,16 +30,66 @@ export const useTripMutationsOptimized = () => {
 
   const updateTrip = useMutation({
     mutationFn: async ({ id, ...tripData }: { id: string; [key: string]: any }) => {
+      console.log('🚗 Updating trip:', id, tripData);
       const numericId = parseInt(id, 10);
-      const { data, error } = await supabase
-        .from('trips')
-        .update(tripData)
-        .eq('id', numericId)
-        .select()
-        .single();
+      
+      // If we're completing a trip (setting end_km and status to completed)
+      if (tripData.status === 'completed' && tripData.end_km) {
+        console.log('🚗 Trip being completed, will update van status');
+        
+        // First get the trip to find the van ID
+        const { data: tripInfo, error: tripError } = await supabase
+          .from('trips')
+          .select('van')
+          .eq('id', numericId)
+          .single();
 
-      if (error) throw error;
-      return data;
+        if (tripError) {
+          console.error('Error fetching trip info:', tripError);
+          throw tripError;
+        }
+
+        // Update the trip
+        const { data, error } = await supabase
+          .from('trips')
+          .update(tripData)
+          .eq('id', numericId)
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Update van status back to "Active" after successful trip update
+        if (tripInfo?.van) {
+          console.log('🚐 Updating van status to Active for van:', tripInfo.van);
+          const { error: vanError } = await supabase
+            .from('vans')
+            .update({ status: 'Active' })
+            .eq('id', tripInfo.van);
+
+          if (vanError) {
+            console.error('Error updating van status:', vanError);
+            // Don't throw here, trip was updated successfully
+          } else {
+            console.log('✅ Van status updated to Active');
+            // Invalidate vans query to refresh available vans
+            queryClient.invalidateQueries({ queryKey: ['vans'] });
+          }
+        }
+
+        return data;
+      } else {
+        // Regular trip update
+        const { data, error } = await supabase
+          .from('trips')
+          .update(tripData)
+          .eq('id', numericId)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
     },
     onMutate: async ({ id, ...tripData }) => {
       await queryClient.cancelQueries({ queryKey: ['trips'] });
@@ -79,22 +128,64 @@ export const useTripMutationsOptimized = () => {
         old.map(trip => trip.id === realTrip.id ? realTrip : trip)
       );
 
-      toast({
-        title: 'Succès',
-        description: 'Mission mise à jour avec succès',
-      });
+      // If this was a trip completion, show success message
+      if (variables.status === 'completed') {
+        toast({
+          title: 'Succès',
+          description: 'Mission terminée avec succès, le véhicule est maintenant disponible',
+        });
+      } else {
+        toast({
+          title: 'Succès',
+          description: 'Mission mise à jour avec succès',
+        });
+      }
     }
   });
 
   const deleteTrip = useMutation({
     mutationFn: async (id: string) => {
+      console.log('🚗 Deleting trip:', id);
       const numericId = parseInt(id, 10);
+      
+      // First get the trip to find the van ID and status
+      const { data: tripInfo, error: tripError } = await supabase
+        .from('trips')
+        .select('van, status')
+        .eq('id', numericId)
+        .single();
+
+      if (tripError) {
+        console.error('Error fetching trip info:', tripError);
+        throw tripError;
+      }
+
+      // Delete the trip
       const { error } = await supabase
         .from('trips')
         .delete()
         .eq('id', numericId);
 
       if (error) throw error;
+
+      // If the trip was active, update van status back to "Active"
+      if (tripInfo?.van && tripInfo?.status === 'active') {
+        console.log('🚐 Updating van status to Active after trip deletion for van:', tripInfo.van);
+        const { error: vanError } = await supabase
+          .from('vans')
+          .update({ status: 'Active' })
+          .eq('id', tripInfo.van);
+
+        if (vanError) {
+          console.error('Error updating van status:', vanError);
+          // Don't throw here, trip was deleted successfully
+        } else {
+          console.log('✅ Van status updated to Active after deletion');
+          // Invalidate vans query to refresh available vans
+          queryClient.invalidateQueries({ queryKey: ['vans'] });
+        }
+      }
+
       return numericId;
     },
     onMutate: async (id) => {
@@ -126,7 +217,7 @@ export const useTripMutationsOptimized = () => {
     onSuccess: () => {
       toast({
         title: 'Succès',
-        description: 'Mission supprimée avec succès',
+        description: 'Mission supprimée avec succès, le véhicule est maintenant disponible',
       });
     }
   });

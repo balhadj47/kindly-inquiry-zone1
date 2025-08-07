@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
@@ -23,33 +22,28 @@ import {
 } from 'lucide-react';
 import { getChefDeGroupeName, getStatusConfig } from './utils/missionCardUtils';
 import { formatDate } from '@/utils/dateUtils';
+import { useEndMission } from '@/hooks/missions/useEndMission';
 
 interface MissionCardProps {
   mission: Trip;
   onMissionClick: (mission: Trip) => void;
-  onTerminateClick: (mission: Trip) => void;
   onDeleteClick: (mission: Trip) => void;
   getVanDisplayName: (vanId: string) => string;
-  canEdit: boolean;
-  canDelete: boolean;
   actionLoading: string | null;
-  isTerminating: boolean;
 }
 
 const MissionCard: React.FC<MissionCardProps> = ({
   mission,
   onMissionClick,
-  onTerminateClick,
   onDeleteClick,
   getVanDisplayName,
-  canEdit,
-  canDelete,
   actionLoading,
-  isTerminating,
 }) => {
   const { data: usersData } = useUsers();
   const { data: vans = [] } = useVans();
   const users: User[] = usersData?.users || [];
+  
+  const { canTerminate, openTerminateDialog, isTerminating } = useEndMission();
 
   console.log('🎯 MissionCard: Rendering mission:', mission.id, 'with users count:', users.length);
 
@@ -71,6 +65,9 @@ const MissionCard: React.FC<MissionCardProps> = ({
       .toUpperCase()
       .slice(0, 2);
   };
+
+  const canEdit = canTerminate(mission);
+  const canDelete = mission.status !== 'completed';
 
   return (
     <div 
@@ -140,7 +137,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onTerminateClick(mission);
+                    openTerminateDialog(mission);
                   }}
                   variant="ghost"
                   size="sm"

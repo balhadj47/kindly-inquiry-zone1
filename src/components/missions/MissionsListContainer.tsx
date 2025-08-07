@@ -2,10 +2,8 @@
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useMissionsListLogic } from './MissionsListLogic';
-import { TripBusinessLogic } from '@/services/tripBusinessLogic';
 import MissionsListContent from './MissionsListContent';
 import MissionDetailsDialog from './MissionDetailsDialog';
-import MissionTerminateDialog from './MissionTerminateDialog';
 
 interface MissionsListContainerProps {
   missions: Trip[];
@@ -35,21 +33,10 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
     setSelectedMission,
     isDetailsDialogOpen,
     setIsDetailsDialogOpen,
-    showTerminatePrompt,
-    setShowTerminatePrompt,
-    terminateMission,
-    setTerminateMission,
-    finalKm,
-    setFinalKm,
-    isTerminating,
-    setIsTerminating,
     deletingMissionId,
     setDeletingMissionId,
     filteredMissions,
     getVanDisplayName,
-    updateTrip,
-    deleteTrip,
-    toast
   } = useMissionsListLogic(missions, searchTerm, statusFilter);
 
   return (
@@ -62,86 +49,20 @@ const MissionsListContainer: React.FC<MissionsListContainerProps> = ({
         canDelete={canDelete}
         actionLoading={actionLoading}
         deletingMissionId={deletingMissionId}
-        isTerminating={isTerminating}
-        terminateMission={terminateMission}
+        isTerminating={false} // No longer managed here
+        terminateMission={null} // No longer managed here
         getVanDisplayName={getVanDisplayName}
         onMissionClick={(mission) => {
           setSelectedMission(mission);
           setIsDetailsDialogOpen(true);
         }}
         onTerminateClick={(mission) => {
-          setTerminateMission(mission);
-          setShowTerminatePrompt(true);
-          setFinalKm('');
+          console.log('🔧 MissionsList: Requesting terminate for mission:', mission.id);
+          onTerminateMission(mission);
         }}
         onDeleteClick={(mission) => {
           console.log('🗑️ MissionsList: Requesting delete confirmation for mission:', mission.id);
           onDeleteMission(mission);
-        }}
-      />
-
-      <MissionTerminateDialog
-        isOpen={showTerminatePrompt}
-        mission={terminateMission}
-        finalKm={finalKm}
-        isTerminating={isTerminating}
-        onClose={() => {
-          setShowTerminatePrompt(false);
-          setTerminateMission(null);
-          setFinalKm('');
-        }}
-        onFinalKmChange={setFinalKm}
-        onSubmit={async () => {
-          if (!terminateMission) return;
-
-          // Use business logic for validation
-          const validation = TripBusinessLogic.validateTripTermination(
-            terminateMission,
-            finalKm,
-            null // Current user would be passed here
-          );
-
-          if (!validation.isValid) {
-            toast({
-              title: 'Erreur',
-              description: validation.errorMessage,
-              variant: 'destructive',
-            });
-            return;
-          }
-
-          const kmNumber = parseInt(finalKm, 10);
-          setIsTerminating(true);
-          
-          try {
-            await updateTrip.mutateAsync({
-              id: terminateMission.id.toString(),
-              end_km: kmNumber,
-              status: 'completed'
-            });
-            
-            toast({
-              title: 'Succès',
-              description: 'Mission terminée avec succès',
-            });
-            
-            setShowTerminatePrompt(false);
-            setTerminateMission(null);
-            setFinalKm('');
-            
-            if (onTerminateMission) {
-              onTerminateMission(terminateMission);
-            }
-          } catch (error) {
-            console.error('Error terminating mission:', error);
-            toast({
-              title: 'Erreur',
-              description: 'Impossible de terminer la mission',
-              variant: 'destructive',
-            });
-          } finally {
-            setIsTerminating(false);
-          }
         }}
       />
 

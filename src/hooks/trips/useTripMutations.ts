@@ -3,20 +3,84 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Trip } from '@/types/trip';
+import { transformDatabaseToTrip } from '@/utils/tripTransformers';
 
 export const useTripMutations = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  const invalidateTrips = () => {
-    queryClient.invalidateQueries({ queryKey: ['trips'] });
-    // Also invalidate vans to refresh the status
-    queryClient.invalidateQueries({ queryKey: ['vans'] });
+  const updateCacheOptimistically = (updatedTrip: Partial<Trip> & { id: string }) => {
+    // Update all trip-related queries immediately
+    queryClient.setQueriesData(
+      { queryKey: ['trips'] },
+      (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        if (oldData.trips) {
+          // Handle paginated data structure
+          return {
+            ...oldData,
+            trips: oldData.trips.map((trip: Trip) => 
+              trip.id.toString() === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+            )
+          };
+        } else if (Array.isArray(oldData)) {
+          // Handle simple array structure
+          return oldData.map((trip: Trip) => 
+            trip.id.toString() === updatedTrip.id ? { ...trip, ...updatedTrip } : trip
+          );
+        }
+        return oldData;
+      }
+    );
+  };
+
+  const addTripToCache = (newTrip: Trip) => {
+    queryClient.setQueriesData(
+      { queryKey: ['trips'] },
+      (oldData: any) => {
+        if (!oldData) return { trips: [newTrip], total: 1 };
+        
+        if (oldData.trips) {
+          // Handle paginated data structure
+          return {
+            ...oldData,
+            trips: [newTrip, ...oldData.trips],
+            total: (oldData.total || 0) + 1
+          };
+        } else if (Array.isArray(oldData)) {
+          // Handle simple array structure
+          return [newTrip, ...oldData];
+        }
+        return oldData;
+      }
+    );
+  };
+
+  const removeTripFromCache = (tripId: string) => {
+    queryClient.setQueriesData(
+      { queryKey: ['trips'] },
+      (oldData: any) => {
+        if (!oldData) return oldData;
+        
+        if (oldData.trips) {
+          // Handle paginated data structure
+          return {
+            ...oldData,
+            trips: oldData.trips.filter((trip: Trip) => trip.id.toString() !== tripId),
+            total: Math.max((oldData.total || 0) - 1, 0)
+          };
+        } else if (Array.isArray(oldData)) {
+          // Handle simple array structure
+          return oldData.filter((trip: Trip) => trip.id.toString() !== tripId);
+        }
+        return oldData;
+      }
+    );
   };
 
   const createTrip = useMutation({
     mutationFn: async (tripData: Partial<Trip>) => {
-      // Insert trip
       const { data, error } = await supabase
         .from('trips')
         .insert([{
@@ -29,6 +93,8 @@ export const useTripMutations = () => {
           user_ids: tripData.user_ids || [],
           user_roles: tripData.user_roles || [],
           status: 'active',
+          planned_start_date: tripData.planned_start_date,
+          planned_end_date: tripData.planned_end_date,
         }])
         .select()
         .single();
@@ -49,18 +115,56 @@ export const useTripMutations = () => {
 
       return data;
     },
-    onSuccess: () => {
-      invalidateTrips();
+    onMutate: async (tripData) => {
+      // Create optimistic trip data
+      const optimisticTrip: Trip = {
+        id: Date.now(), // Temporary ID
+        van: tripData.van || '',
+        driver: tripData.driver || '',
+        company: tripData.company || '',
+        branch: tripData.branch || '',
+        timestamp: new Date().toISOString(),
+        notes: tripData.notes || '',
+        userIds: tripData.user_ids || [],
+        userRoles: tripData.user_roles || [],
+        start_km: tripData.start_km,
+        status: 'active',
+        startDate: tripData.planned_start_date ? new Date(tripData.planned_start_date) : undefined,
+        endDate: tripData.planned_end_date ? new Date(tripData.planned_end_date) : undefined,
+        created_at: new Date().toISOString(),
+      };
+
+      // Add to cache immediately
+      addTripToCache(optimisticTrip);
+      
+      return { optimisticTrip };
+    },
+    onSuccess: (data, variables, context) => {
+      // Replace optimistic data with real data
+      if (context?.optimisticTrip) {
+        removeTripFromCache(context.optimisticTrip.id.toString());
+        const realTrip = transformDatabaseToTrip(data);
+        addTripToCache(realTrip);
+      }
+      
+      // Update van cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
+      
       toast({
         title: 'Succès',
-        description: 'Voyage créé avec succès',
+        description: 'Mission créée avec succès',
       });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Remove optimistic data on error
+      if (context?.optimisticTrip) {
+        removeTripFromCache(context.optimisticTrip.id.toString());
+      }
+      
       console.error('Error creating trip:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de créer le voyage',
+        description: 'Impossible de créer la mission',
         variant: 'destructive',
       });
     },
@@ -70,7 +174,6 @@ export const useTripMutations = () => {
     mutationFn: async ({ id, ...tripData }: Partial<Trip> & { id: string }) => {
       const numericId = parseInt(id, 10);
       
-      // Get current trip data to find the van
       const { data: currentTrip } = await supabase
         .from('trips')
         .select('van, status')
@@ -94,7 +197,7 @@ export const useTripMutations = () => {
 
       if (error) throw error;
 
-      // If trip is being completed (end_km is provided), update van status to Active
+      // If trip is being completed, update van status to Active
       if (tripData.end_km && currentTrip?.van) {
         const { error: vanError } = await supabase
           .from('vans')
@@ -108,18 +211,31 @@ export const useTripMutations = () => {
 
       return data;
     },
-    onSuccess: () => {
-      invalidateTrips();
+    onMutate: async ({ id, ...tripData }) => {
+      // Update cache immediately
+      updateCacheOptimistically({ id, ...tripData });
+    },
+    onSuccess: (data) => {
+      // Ensure cache is consistent with server data
+      const updatedTrip = transformDatabaseToTrip(data);
+      updateCacheOptimistically({ id: updatedTrip.id.toString(), ...updatedTrip });
+      
+      // Update van cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
+      
       toast({
         title: 'Succès',
-        description: 'Voyage modifié avec succès',
+        description: 'Mission modifiée avec succès',
       });
     },
-    onError: (error) => {
+    onError: (error, variables) => {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      
       console.error('Error updating trip:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de modifier le voyage',
+        description: 'Impossible de modifier la mission',
         variant: 'destructive',
       });
     },
@@ -129,7 +245,6 @@ export const useTripMutations = () => {
     mutationFn: async (tripId: string) => {
       const numericId = parseInt(tripId, 10);
       
-      // Get trip data to find the van
       const { data: tripData } = await supabase
         .from('trips')
         .select('van, status')
@@ -154,19 +269,30 @@ export const useTripMutations = () => {
           console.error('Error updating van status:', vanError);
         }
       }
+
+      return tripData;
+    },
+    onMutate: async (tripId) => {
+      // Remove from cache immediately
+      removeTripFromCache(tripId);
     },
     onSuccess: () => {
-      invalidateTrips();
+      // Update van cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
+      
       toast({
         title: 'Succès',
-        description: 'Voyage supprimé avec succès',
+        description: 'Mission supprimée avec succès',
       });
     },
-    onError: (error) => {
+    onError: (error, tripId) => {
+      // Revert optimistic update
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      
       console.error('Error deleting trip:', error);
       toast({
         title: 'Erreur',
-        description: 'Impossible de supprimer le voyage',
+        description: 'Impossible de supprimer la mission',
         variant: 'destructive',
       });
     },
@@ -176,6 +302,5 @@ export const useTripMutations = () => {
     createTrip,
     updateTrip,
     deleteTrip,
-    invalidateTrips,
   };
 };

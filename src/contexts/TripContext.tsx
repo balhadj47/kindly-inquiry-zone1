@@ -1,8 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
 import { insertTripToDatabase, fetchTripsFromDatabase, updateTripInDatabase, deleteTripFromDatabase } from './trip/TripDatabaseOperations';
 import { transformDatabaseTrips } from './trip/tripTransformers';
 import { CompanyBranchSelection } from '@/types/company-selection';
+import { useQueryClient } from '@tanstack/react-query';
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
@@ -11,6 +13,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const isMountedRef = useRef(true);
+  const queryClient = useQueryClient();
 
   const loadTrips = useCallback(async (useCache = true) => {
     try {
@@ -45,7 +48,7 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.log('🚗 TripProvider: Cleanup - component unmounting');
       isMountedRef.current = false;
     };
-  }, []); // Remove loadTrips from dependencies to prevent infinite loop
+  }, []);
 
   const addTrip = useCallback(async (tripData: Omit<Trip, 'id' | 'timestamp'> & { 
     userRoles: UserWithRoles[]; 
@@ -54,11 +57,6 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }) => {
     try {
       console.log('TripProvider: Adding trip with data:', tripData);
-      console.log('Planned dates being sent:', {
-        startDate: tripData.startDate,
-        endDate: tripData.endDate
-      });
-      console.log('Selected companies being sent from TripContext:', tripData.selectedCompanies);
       
       if (!tripData.userRoles || tripData.userRoles.length === 0) {
         throw new Error('At least one user with roles must be selected');
@@ -67,6 +65,28 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!tripData.startKm || tripData.startKm < 0) {
         throw new Error('Starting kilometers must be provided and valid');
       }
+
+      // Create optimistic trip
+      const optimisticTrip: Trip = {
+        id: Date.now(),
+        van: tripData.van,
+        driver: tripData.driver,
+        company: tripData.company,
+        branch: tripData.branch,
+        timestamp: new Date().toISOString(),
+        notes: tripData.notes,
+        userIds: tripData.userIds,
+        userRoles: tripData.userRoles,
+        start_km: tripData.startKm,
+        status: 'active',
+        startDate: tripData.startDate,
+        endDate: tripData.endDate,
+        companies_data: tripData.selectedCompanies,
+        created_at: new Date().toISOString(),
+      };
+
+      // Add optimistically to local state
+      setTrips(prevTrips => [optimisticTrip, ...prevTrips]);
 
       const tripToInsert = {
         van: tripData.van,
@@ -79,48 +99,84 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         startKm: tripData.startKm,
         startDate: tripData.startDate,
         endDate: tripData.endDate,
-        selectedCompanies: tripData.selectedCompanies // Pass selectedCompanies to database operation
+        selectedCompanies: tripData.selectedCompanies
       };
 
       const newTrip = await insertTripToDatabase(tripToInsert);
       console.log('TripProvider: Trip inserted successfully:', newTrip);
       
-      // Force refresh without cache
-      await loadTrips(false);
+      // Replace optimistic data with real data
+      const realTrip = {
+        ...optimisticTrip,
+        id: newTrip.id,
+        timestamp: newTrip.created_at
+      };
+      
+      setTrips(prevTrips => 
+        prevTrips.map(trip => 
+          trip.id === optimisticTrip.id ? realTrip : trip
+        )
+      );
+      
+      // Update React Query cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
       setError(null);
     } catch (error) {
       console.error('TripProvider: Error adding trip:', error);
+      // Remove optimistic trip on error
+      setTrips(prevTrips => 
+        prevTrips.filter(trip => trip.id !== Date.now())
+      );
       const errorMessage = error instanceof Error ? error.message : 'Failed to add trip';
       setError(errorMessage);
       throw error;
     }
-  }, [loadTrips]);
+  }, [queryClient]);
 
   const deleteTrip = useCallback(async (tripId: number) => {
     try {
+      // Remove optimistically
+      const tripToDelete = trips.find(trip => trip.id === tripId);
+      setTrips(prevTrips => prevTrips.filter(trip => trip.id !== tripId));
+      
       await deleteTripFromDatabase(tripId);
-      // Force refresh without cache
-      await loadTrips(false);
+      
+      // Update React Query cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
       setError(null);
     } catch (error) {
       console.error('Error deleting trip:', error);
+      // Restore trip on error
+      await loadTrips(false);
       setError('Failed to delete trip');
       throw error;
     }
-  }, [loadTrips]);
+  }, [trips, queryClient, loadTrips]);
 
   const endTrip = useCallback(async (tripId: number, endKm: number) => {
     try {
+      // Update optimistically
+      setTrips(prevTrips =>
+        prevTrips.map(trip =>
+          trip.id === tripId
+            ? { ...trip, end_km: endKm, status: 'completed' }
+            : trip
+        )
+      );
+      
       await updateTripInDatabase(tripId, endKm);
-      // Force refresh without cache
-      await loadTrips(false);
+      
+      // Update React Query cache
+      queryClient.invalidateQueries({ queryKey: ['vans'] });
       setError(null);
     } catch (error) {
       console.error('Error ending trip:', error);
+      // Restore original state on error
+      await loadTrips(false);
       setError('Failed to end trip');
       throw error;
     }
-  }, [loadTrips]);
+  }, [queryClient, loadTrips]);
 
   const refreshTrips = useCallback(async () => {
     console.log('🚗 TripProvider: Force refreshing trips...');
@@ -135,7 +191,6 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     refreshTrips,
     error,
     isLoading,
-    // Add aliases for compatibility
     loading: isLoading,
     refetch: refreshTrips,
   };
@@ -151,8 +206,6 @@ export const useTrip = () => {
   return context;
 };
 
-// Export the hook with the expected name for backward compatibility
 export const useTripContext = useTrip;
 
-// Re-export types for easy access
 export type { Trip, TripContextType, UserWithRoles } from './trip/types';

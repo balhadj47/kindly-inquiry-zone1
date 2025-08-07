@@ -1,16 +1,16 @@
 
 import React, { useState, useMemo } from 'react';
-import { Check, Plus, X, Building2 } from 'lucide-react';
+import { Plus, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useCompaniesBase } from '@/hooks/useCompaniesOptimized';
 import { useCompanyBranches } from '@/hooks/useBranchesOptimized';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CompanyBranchSelection } from '@/types/company-selection';
+import SelectedCompanyCard from './SelectedCompanyCard';
 
 interface MultiCompanySelectorProps {
   selectedCompanies: CompanyBranchSelection[];
@@ -86,55 +86,48 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
     !selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       {/* Selected Companies */}
       {selectedCompanies.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Entreprises sélectionnées</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Building2 className="h-5 w-5 text-blue-600" />
+            Entreprises sélectionnées ({selectedCompanies.length})
+          </h3>
+          <div className="grid gap-4">
             {selectedCompanies.map((selection, index) => (
-              <div
+              <SelectedCompanyCard
                 key={`${selection.companyId}-${selection.branchId}-${index}`}
-                className="flex items-center justify-between p-3 bg-muted rounded-lg"
-              >
-                <div className="flex items-center space-x-2">
-                  <Badge variant="secondary">{selection.companyName}</Badge>
-                  <span className="text-sm text-muted-foreground">→</span>
-                  <Badge variant="outline">{selection.branchName}</Badge>
-                </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleRemoveCompany(index)}
-                  className="text-destructive hover:text-destructive"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
+                company={selection}
+                onRemove={() => handleRemoveCompany(index)}
+              />
             ))}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Add New Company */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Ajouter une entreprise</CardTitle>
+      <Card className="border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Plus className="h-5 w-5 text-blue-600" />
+            Ajouter une entreprise
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="company">{t.selectCompany}</Label>
+              <Label htmlFor="company" className="text-sm font-medium text-gray-700">
+                {t.selectCompany}
+              </Label>
               {isLoadingCompanies ? (
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full mt-1" />
               ) : (
                 <Select 
                   value={newSelection.companyId} 
                   onValueChange={handleCompanyChange}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="mt-1">
                     <SelectValue placeholder={t.selectCompany} />
                   </SelectTrigger>
                   <SelectContent>
@@ -150,9 +143,11 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
 
             {newSelection.companyId && (
               <div>
-                <Label htmlFor="branch">{t.selectBranch}</Label>
+                <Label htmlFor="branch" className="text-sm font-medium text-gray-700">
+                  {t.selectBranch}
+                </Label>
                 {isLoadingBranches ? (
-                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full mt-1" />
                 ) : (
                   <Select 
                     value={newSelection.branchId} 
@@ -160,7 +155,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
                       setNewSelection(prev => ({ ...prev, branchId }))
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="mt-1">
                       <SelectValue placeholder={t.selectBranch} />
                     </SelectTrigger>
                     <SelectContent>
@@ -179,7 +174,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
           <Button
             onClick={handleAddCompany}
             disabled={!canAddCompany}
-            className="w-full"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" />
             Ajouter cette entreprise
@@ -187,7 +182,7 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
 
           {newSelection.companyId && newSelection.branchId && 
            selectedCombinations.has(`${newSelection.companyId}-${newSelection.branchId}`) && (
-            <p className="text-sm text-muted-foreground text-center">
+            <p className="text-sm text-amber-600 text-center bg-amber-50 p-2 rounded-md">
               Cette combinaison entreprise-succursale est déjà sélectionnée
             </p>
           )}
@@ -195,9 +190,9 @@ const MultiCompanySelector: React.FC<MultiCompanySelectorProps> = ({
       </Card>
 
       {selectedCompanies.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Building2 className="w-12 h-12 mx-auto mb-3 opacity-50" />
-          <p>Aucune entreprise sélectionnée</p>
+        <div className="text-center py-12 text-gray-500 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+          <Building2 className="w-16 h-16 mx-auto mb-4 text-gray-300" />
+          <h3 className="text-lg font-medium text-gray-700 mb-2">Aucune entreprise sélectionnée</h3>
           <p className="text-sm">Sélectionnez au moins une entreprise pour continuer</p>
         </div>
       )}

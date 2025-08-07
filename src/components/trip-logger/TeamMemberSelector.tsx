@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useUsersByRoleId } from '@/hooks/users';
-import { User as UserType } from '@/types/rbac';
+import { User as RBACUser } from '@/types/rbac';
 
 export interface UserWithRole {
   userId: string;
@@ -28,6 +28,25 @@ const ROLE_OPTIONS = [
   { value: 'superviseur', label: 'Superviseur' }
 ];
 
+// Helper function to transform database user to RBAC User type
+const transformDatabaseUserToRBACUser = (dbUser: any): RBACUser => ({
+  id: dbUser.id.toString(),
+  name: dbUser.name,
+  email: dbUser.email,
+  phone: dbUser.phone,
+  role_id: dbUser.role_id,
+  status: dbUser.status,
+  createdAt: dbUser.created_at,
+  profileImage: dbUser.profile_image,
+  totalTrips: dbUser.total_trips,
+  lastTrip: dbUser.last_trip,
+  badgeNumber: dbUser.badge_number,
+  dateOfBirth: dbUser.date_of_birth,
+  placeOfBirth: dbUser.place_of_birth,
+  address: dbUser.address,
+  driverLicense: dbUser.driver_license,
+});
+
 const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   userSearchQuery,
   setUserSearchQuery,
@@ -37,13 +56,17 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   const { data: employees, isLoading } = useUsersByRoleId(3);
   const [selectedRole, setSelectedRole] = useState<string>('conducteur');
 
-  const availableEmployees = useMemo(() => {
+  // Transform database users to RBAC Users
+  const transformedEmployees = useMemo(() => {
     if (!employees) return [];
-    
+    return employees.map(transformDatabaseUserToRBACUser);
+  }, [employees]);
+
+  const availableEmployees = useMemo(() => {
     // Filter out already selected employees
     const selectedUserIds = selectedUsersWithRoles.map(u => u.userId);
-    return employees.filter(emp => !selectedUserIds.includes(emp.id.toString()));
-  }, [employees, selectedUsersWithRoles]);
+    return transformedEmployees.filter(emp => !selectedUserIds.includes(emp.id));
+  }, [transformedEmployees, selectedUsersWithRoles]);
 
   const filteredEmployees = useMemo(() => {
     if (!userSearchQuery.trim()) return availableEmployees;
@@ -57,16 +80,14 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
   }, [availableEmployees, userSearchQuery]);
 
   const selectedEmployees = useMemo(() => {
-    if (!employees) return [];
-    
     return selectedUsersWithRoles.map(userRole => {
-      const employee = employees.find(emp => emp.id.toString() === userRole.userId);
+      const employee = transformedEmployees.find(emp => emp.id === userRole.userId);
       return employee ? { ...employee, assignedRole: userRole.role } : null;
-    }).filter(Boolean) as (UserType & { assignedRole: string })[];
-  }, [employees, selectedUsersWithRoles]);
+    }).filter(Boolean) as (RBACUser & { assignedRole: string })[];
+  }, [transformedEmployees, selectedUsersWithRoles]);
 
-  const handleAddEmployee = (employee: UserType) => {
-    onUserRoleSelection(employee.id.toString(), selectedRole);
+  const handleAddEmployee = (employee: RBACUser) => {
+    onUserRoleSelection(employee.id, selectedRole);
     setUserSearchQuery('');
     setSelectedRole('conducteur');
   };
@@ -218,7 +239,7 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
                   <div className="flex items-center gap-3">
                     <Select
                       value={employee.assignedRole}
-                      onValueChange={(value) => handleRoleChange(employee.id.toString(), value)}
+                      onValueChange={(value) => handleRoleChange(employee.id, value)}
                     >
                       <SelectTrigger className="w-32">
                         <SelectValue />
@@ -239,7 +260,7 @@ const TeamMemberSelector: React.FC<TeamMemberSelectorProps> = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleRemoveEmployee(employee.id.toString())}
+                      onClick={() => handleRemoveEmployee(employee.id)}
                       className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
                     >
                       <X className="h-4 w-4" />

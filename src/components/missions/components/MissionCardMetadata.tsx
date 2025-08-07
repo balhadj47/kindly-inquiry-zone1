@@ -1,9 +1,9 @@
 
 import React from 'react';
-import { Clock, MapPin, Users, Car } from 'lucide-react';
+import { Clock, MapPin, Users, Car, Building } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { User } from '@/hooks/users/types';
-import { getDriverName } from '../utils/missionCardUtils';
+import { getDriverName, getCompanyDisplayText } from '../utils/missionCardUtils';
 
 interface MissionCardMetadataProps {
   mission: Trip;
@@ -17,6 +17,7 @@ const MissionCardMetadata: React.FC<MissionCardMetadataProps> = ({
   getVanDisplayName
 }) => {
   const driverName = getDriverName(mission, users);
+  const companyDisplayText = getCompanyDisplayText(mission);
 
   return (
     <div className="space-y-1">
@@ -28,6 +29,11 @@ const MissionCardMetadata: React.FC<MissionCardMetadataProps> = ({
       <div className="flex items-center space-x-2 text-xs text-gray-600">
         <Car className="h-3 w-3 flex-shrink-0" />
         <span className="truncate">{getVanDisplayName(mission.van)}</span>
+      </div>
+
+      <div className="flex items-center space-x-2 text-xs text-gray-600">
+        <Building className="h-3 w-3 flex-shrink-0" />
+        <span className="truncate" title={companyDisplayText}>{companyDisplayText}</span>
       </div>
       
       {(mission.startKm || mission.start_km) && (

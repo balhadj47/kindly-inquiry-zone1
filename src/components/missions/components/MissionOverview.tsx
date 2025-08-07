@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { User, Truck, Building, Calendar } from 'lucide-react';
+import { User, Truck, Calendar } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { formatDate } from '@/utils/dateUtils';
 
@@ -21,7 +21,7 @@ const MissionOverview: React.FC<MissionOverviewProps> = ({
   return (
     <div className="bg-white rounded-xl border border-gray-100 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">Informations Générales</h3>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
             <User className="h-5 w-5 text-blue-600" />
@@ -40,17 +40,6 @@ const MissionOverview: React.FC<MissionOverviewProps> = ({
             <p className="text-sm text-gray-500">Véhicule</p>
             <p className="text-base font-medium text-gray-900">{vanInfo.model}</p>
             <p className="text-sm text-gray-600">{vanInfo.licensePlate}</p>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4">
-          <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
-            <Building className="h-5 w-5 text-green-600" />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500">Entreprise</p>
-            <p className="text-base font-medium text-gray-900">{mission.company}</p>
-            <p className="text-sm text-gray-600">{mission.branch}</p>
           </div>
         </div>
 

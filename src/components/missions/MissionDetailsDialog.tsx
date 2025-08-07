@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -16,6 +15,7 @@ import MissionTimeline from './components/MissionTimeline';
 import MissionDestination from './components/MissionDestination';
 import MissionNotes from './components/MissionNotes';
 import MissionTeam from './components/MissionTeam';
+import MissionCompanies from './components/MissionCompanies';
 
 interface MissionDetailsDialogProps {
   mission: Trip | null;
@@ -186,6 +186,8 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
             driverName={driverName}
             vanInfo={vanInfo}
           />
+          
+          <MissionCompanies mission={mission} />
           
           <MissionTimeline mission={mission} />
           

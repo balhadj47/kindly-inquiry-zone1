@@ -1,5 +1,6 @@
 
 import { MissionRole } from '@/types/missionRoles';
+import { CompanyBranchSelection } from '@/types/company-selection';
 
 export interface UserWithRoles {
   userId: string;
@@ -31,6 +32,8 @@ export interface Trip {
   // Add missing timestamp properties for compatibility
   created_at?: string;
   updated_at?: string;
+  // Add multiple companies support
+  companies_data?: CompanyBranchSelection[];
 }
 
 export interface TripContextType {

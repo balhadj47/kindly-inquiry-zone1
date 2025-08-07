@@ -147,7 +147,7 @@ const MissionsContainerOptimized = () => {
   if (showPermissionError || !permissions.canRead) {
     return (
       <div className="h-full flex flex-col">
-        <div className="flex-shrink-0 mb-6">
+        <div className="mb-6">
           <MissionsHeader missionsCount={0} />
         </div>
 
@@ -175,7 +175,7 @@ const MissionsContainerOptimized = () => {
         </Alert>
       )}
 
-      <div className="flex-shrink-0 mb-6">
+      <div className="mb-6">
         <div className="flex items-center justify-between">
           <MissionsHeader missionsCount={trips.length} />
           <div className="flex items-center gap-3">
@@ -200,7 +200,7 @@ const MissionsContainerOptimized = () => {
         </div>
       </div>
 
-      <div className="flex-shrink-0 mb-6">
+      <div className="mb-6">
         <MissionsFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}

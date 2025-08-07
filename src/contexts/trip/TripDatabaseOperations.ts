@@ -1,4 +1,3 @@
-
 import { supabase, requireAuth } from '@/integrations/supabase/client';
 import { Trip, UserWithRoles } from './types';
 import { CompanyBranchSelection } from '@/types/company-selection';
@@ -144,6 +143,7 @@ export const insertTripToDatabase = async (tripData: {
   await requireAuth();
   
   console.log('Inserting trip with companies:', tripData.selectedCompanies);
+  console.log('Full tripData received in insertTripToDatabase:', JSON.stringify(tripData, null, 2));
 
   try {
     // Prepare companies_data for storage
@@ -179,21 +179,26 @@ export const insertTripToDatabase = async (tripData: {
 
     // Insert company relationships if provided
     if (tripData.selectedCompanies && tripData.selectedCompanies.length > 0) {
+      console.log('Inserting trip companies relationships:', tripData.selectedCompanies.length, 'companies');
       const companyRelationships = tripData.selectedCompanies.map(company => ({
         trip_id: tripResult.id,
         company_id: company.companyId,
         branch_id: company.branchId
       }));
 
-      const { error: companiesError } = await (supabase as any)
+      console.log('Company relationships to insert:', companyRelationships);
+
+      const { data: insertedRelationships, error: companiesError } = await (supabase as any)
         .from('trip_companies')
-        .insert(companyRelationships);
+        .insert(companyRelationships)
+        .select();
 
       if (companiesError) {
         console.error('Insert trip companies error:', companiesError);
         // Don't throw here, trip was created successfully
+        console.error('Failed to insert company relationships, but trip was created');
       } else {
-        console.log('Trip companies inserted successfully:', companyRelationships);
+        console.log('Trip companies inserted successfully:', insertedRelationships);
       }
     }
 

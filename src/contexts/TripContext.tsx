@@ -1,8 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback } from 'react';
 import { Trip, TripContextType, UserWithRoles } from './trip/types';
 import { insertTripToDatabase, fetchTripsFromDatabase, updateTripInDatabase, deleteTripFromDatabase } from './trip/TripDatabaseOperations';
 import { transformDatabaseTrips } from './trip/tripTransformers';
+import { CompanyBranchSelection } from '@/types/company-selection';
 
 const TripContext = createContext<TripContextType | undefined>(undefined);
 
@@ -47,13 +47,18 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []); // Remove loadTrips from dependencies to prevent infinite loop
 
-  const addTrip = useCallback(async (tripData: Omit<Trip, 'id' | 'timestamp'> & { userRoles: UserWithRoles[]; startKm: number }) => {
+  const addTrip = useCallback(async (tripData: Omit<Trip, 'id' | 'timestamp'> & { 
+    userRoles: UserWithRoles[]; 
+    startKm: number; 
+    selectedCompanies?: CompanyBranchSelection[];
+  }) => {
     try {
       console.log('TripProvider: Adding trip with data:', tripData);
       console.log('Planned dates being sent:', {
         startDate: tripData.startDate,
         endDate: tripData.endDate
       });
+      console.log('Selected companies being sent from TripContext:', tripData.selectedCompanies);
       
       if (!tripData.userRoles || tripData.userRoles.length === 0) {
         throw new Error('At least one user with roles must be selected');
@@ -73,7 +78,8 @@ export const TripProvider: React.FC<{ children: React.ReactNode }> = ({ children
         userRoles: tripData.userRoles,
         startKm: tripData.startKm,
         startDate: tripData.startDate,
-        endDate: tripData.endDate
+        endDate: tripData.endDate,
+        selectedCompanies: tripData.selectedCompanies // Pass selectedCompanies to database operation
       };
 
       const newTrip = await insertTripToDatabase(tripToInsert);

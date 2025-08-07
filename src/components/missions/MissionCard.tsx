@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Circle, Clock, MapPin, Users, Car } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
@@ -6,6 +5,7 @@ import { useUsers } from '@/hooks/users';
 import { EntityCard } from '@/components/ui/entity-card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MissionCardActions from './MissionCardActions';
+import { useVans } from '@/hooks/useVansOptimized';
 
 interface MissionCardProps {
   mission: Trip;
@@ -31,6 +31,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
   isTerminating,
 }) => {
   const { data: usersData } = useUsers();
+  const { data: vans = [] } = useVans();
   const users = usersData?.users || [];
 
   const getUserName = (userId: string) => {
@@ -66,20 +67,11 @@ const MissionCard: React.FC<MissionCardProps> = ({
   };
 
   const getVanReferenceCode = (vanId: string) => {
-    // Extract reference code from van display name or return empty string
-    const displayName = getVanDisplayName(vanId);
+    // Find the van directly from the vans data
+    const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
     
-    // Check if the display name contains a reference code pattern
-    // Looking for patterns like "v-m-30" at the beginning or in parentheses
-    const referenceMatch = displayName.match(/^([a-zA-Z]-[a-zA-Z]-\d+)/);
-    if (referenceMatch) {
-      return referenceMatch[1];
-    }
-    
-    // Alternative: look for reference code in parentheses
-    const parenthesesMatch = displayName.match(/\(([a-zA-Z]-[a-zA-Z]-\d+)\)/);
-    if (parenthesesMatch) {
-      return parenthesesMatch[1];
+    if (van && van.reference_code) {
+      return van.reference_code;
     }
     
     return '';

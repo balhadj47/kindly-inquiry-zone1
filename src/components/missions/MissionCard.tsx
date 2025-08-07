@@ -1,10 +1,13 @@
+
 import React from 'react';
-import { Circle, Clock, MapPin, Users, Car } from 'lucide-react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
 import { EntityCard } from '@/components/ui/entity-card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import MissionCardActions from './MissionCardActions';
+import MissionCardHeader from './components/MissionCardHeader';
+import MissionCardAvatar from './components/MissionCardAvatar';
+import MissionCardMetadata from './components/MissionCardMetadata';
+import MissionCardNotes from './components/MissionCardNotes';
 import { useVans } from '@/hooks/useVansOptimized';
 
 interface MissionCardProps {
@@ -34,121 +37,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
   const { data: vans = [] } = useVans();
   const users = usersData?.users || [];
 
-  const getUserName = (userId: string) => {
-    const user = users.find(u => {
-      const userIdStr = u.id.toString();
-      return userIdStr === userId;
-    });
-    return user ? user.name : `User ${userId}`;
-  };
-
-  const getDriverName = () => {
-    if (!mission?.userRoles || mission.userRoles.length === 0) {
-      return mission?.driver || 'Aucun chauffeur assigné';
-    }
-
-    const driverUserRole = mission.userRoles.find(userRole => 
-      userRole.roles.some(role => {
-        if (typeof role === 'string') {
-          return role === 'Chauffeur';
-        } else if (typeof role === 'object' && role !== null) {
-          const roleObj = role as any;
-          return roleObj.name === 'Chauffeur';
-        }
-        return false;
-      })
-    );
-
-    if (driverUserRole) {
-      return getUserName(driverUserRole.userId);
-    }
-
-    return mission?.driver || 'Aucun chauffeur assigné';
-  };
-
-  const getVanReferenceCode = (vanId: string) => {
-    // Find the van directly from the vans data
-    const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
-    
-    if (van && van.reference_code) {
-      return van.reference_code;
-    }
-    
-    return '';
-  };
-
-  const getMissionTitle = () => {
-    const vanReference = getVanReferenceCode(mission.van);
-    const baseTitle = `${mission.company} - ${mission.branch}`;
-    
-    return vanReference ? `${baseTitle} - ${vanReference}` : baseTitle;
-  };
-
-  const getStatusConfig = (status: string) => {
-    switch (status) {
-      case 'active':
-        return { 
-          label: 'Active', 
-          variant: 'default' as const, 
-          color: 'emerald' 
-        };
-      case 'completed':
-        return { 
-          label: 'Terminée', 
-          variant: 'outline' as const, 
-          color: 'blue' 
-        };
-      case 'terminated':
-        return { 
-          label: 'Annulée', 
-          variant: 'destructive' as const, 
-          color: 'red' 
-        };
-      default:
-        return { 
-          label: 'Inconnu', 
-          variant: 'secondary' as const, 
-          color: 'gray' 
-        };
-    }
-  };
-
-  const getUserInitials = (name: string) => {
-    return name
-      .split(' ')
-      .map(n => n[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  const statusConfig = getStatusConfig(mission.status || 'active');
-  const driverName = getDriverName();
-
-  const metadata = [
-    {
-      label: 'Chauffeur',
-      value: driverName,
-      icon: <Users className="h-4 w-4" />
-    },
-    {
-      label: 'Véhicule',
-      value: getVanDisplayName(mission.van),
-      icon: <Car className="h-4 w-4" />
-    },
-    (mission.startKm || mission.start_km) && {
-      label: 'Kilométrage',
-      value: `${mission.startKm || mission.start_km}${
-        (mission.endKm || mission.end_km) ? ` → ${mission.endKm || mission.end_km}` : ''
-      }`,
-      icon: <Clock className="h-4 w-4" />
-    },
-    mission.destination && {
-      label: 'Destination',
-      value: mission.destination,
-      icon: <MapPin className="h-4 w-4" />
-    }
-  ].filter(Boolean);
+  const headerData = MissionCardHeader({ mission, vans });
+  const metadata = MissionCardMetadata({ mission, users, getVanDisplayName });
 
   const actions = (canEdit || canDelete) && (
     <MissionCardActions
@@ -162,39 +52,15 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   return (
     <EntityCard
-      title={getMissionTitle()}
-      status={{
-        label: statusConfig.label,
-        variant: statusConfig.variant,
-        color: statusConfig.color
-      }}
+      title={headerData.title}
+      status={headerData.status}
       metadata={metadata}
       actions={actions}
       onClick={() => onMissionClick(mission)}
       className="group hover:shadow-md transition-all duration-200 border-gray-200 hover:border-gray-300"
     >
-      <div className="flex items-center space-x-3 mb-4">
-        <Avatar className="h-12 w-12 ring-1 ring-gray-200 group-hover:ring-gray-300 transition-all duration-200">
-          <AvatarImage 
-            src={`https://api.dicebear.com/7.x/initials/svg?seed=${driverName}`}
-            alt={driverName}
-          />
-          <AvatarFallback className="bg-gray-600 text-white font-medium">
-            {getUserInitials(driverName)}
-          </AvatarFallback>
-        </Avatar>
-        <div className="text-xs text-gray-500">
-          Mission: {mission.status === 'active' ? 'En cours' : 'Terminée'}
-        </div>
-      </div>
-
-      {mission.notes && (
-        <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-sm text-amber-800">
-            <span className="font-medium">Notes:</span> {mission.notes}
-          </p>
-        </div>
-      )}
+      <MissionCardAvatar mission={mission} users={users} />
+      <MissionCardNotes mission={mission} />
     </EntityCard>
   );
 };

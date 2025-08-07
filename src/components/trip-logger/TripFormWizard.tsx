@@ -160,13 +160,39 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
       {/* Step Content */}
       <Card>
         <CardContent className="p-6">
-          <CurrentStepComponent 
-            {...tripForm.formData}
-            handleInputChange={tripForm.handleInputChange}
-            handleDateChange={tripForm.handleDateChange}
-            handleUserRoleSelection={tripForm.handleUserRoleSelection}
-            handleCompanySelection={tripForm.handleCompanySelection}
-          />
+          {STEPS[currentStep].id === 'vehicle' && (
+            <VehicleSelectionStep 
+              {...tripForm.formData}
+              handleInputChange={tripForm.handleInputChange}
+            />
+          )}
+          {STEPS[currentStep].id === 'team' && (
+            <TeamSelectionStep 
+              selectedUsersWithRoles={tripForm.formData.selectedUsersWithRoles}
+              onUserRoleSelection={tripForm.handleUserRoleSelection}
+              userSearchQuery=""
+              setUserSearchQuery={() => {}}
+            />
+          )}
+          {STEPS[currentStep].id === 'companies' && (
+            <CompanySelectionStep 
+              selectedCompanies={tripForm.formData.selectedCompanies}
+              onCompanySelectionChange={tripForm.handleCompanySelection}
+            />
+          )}
+          {STEPS[currentStep].id === 'details' && (
+            <TripDetailsStep 
+              notes={tripForm.formData.notes}
+              onNotesChange={(value: string) => tripForm.handleInputChange('notes', value)}
+              startDate={tripForm.formData.startDate}
+              onStartDateChange={(value: Date | undefined) => tripForm.handleDateChange('startDate', value)}
+              endDate={tripForm.formData.endDate}
+              onEndDateChange={(value: Date | undefined) => tripForm.handleDateChange('endDate', value)}
+            />
+          )}
+          {STEPS[currentStep].id === 'review' && (
+            <ReviewStep {...tripForm.formData} />
+          )}
         </CardContent>
       </Card>
 

@@ -52,10 +52,13 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   const driverName = getDriverName(mission, users);
   const statusConfig = getStatusConfig(mission.status || 'active');
-  const vanDisplayName = getVanDisplayName(mission.van);
+  
+  // Get van reference code (not license plate)
+  const van = vans.find(v => v.id === mission.van || v.reference_code === mission.van);
+  const vanReference = van?.reference_code || mission.van;
   
   // Create mission title with driver name and van reference
-  const missionTitle = `${driverName} - ${vanDisplayName}`;
+  const missionTitle = `${driverName} - ${vanReference}`;
 
   const getMissionInitials = (title: string) => {
     return title

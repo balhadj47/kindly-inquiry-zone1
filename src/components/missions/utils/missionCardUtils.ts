@@ -48,10 +48,18 @@ export const getDriverName = (mission: Trip, users: User[]) => {
 
   if (driverUserRole) {
     const user = users.find(u => {
+      // Convert both to string and compare
       const userIdStr = u.id.toString();
-      return userIdStr === driverUserRole.userId;
+      const missionUserIdStr = driverUserRole.userId.toString();
+      return userIdStr === missionUserIdStr;
     });
-    return user ? user.name : `User ${driverUserRole.userId}`;
+    
+    if (user) {
+      return user.name;
+    }
+    
+    // If user not found in users array, fallback to mission.driver
+    return mission?.driver || `Chauffeur ${driverUserRole.userId}`;
   }
 
   return mission?.driver || 'Aucun chauffeur assigné';

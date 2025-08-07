@@ -13,7 +13,7 @@ export const useEndMission = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const { updateTrip } = useTripMutations();
-  const { currentUser } = useAuth();
+  const { user } = useAuth();
   const { toast } = useToast();
 
   const openTerminateDialog = (mission: Trip) => {
@@ -29,11 +29,11 @@ export const useEndMission = () => {
   };
 
   const validateTermination = (mission: Trip, finalKmValue: string) => {
-    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, currentUser);
+    return TripBusinessLogic.validateTripTermination(mission, finalKmValue, user);
   };
 
   const canTerminate = (mission: Trip) => {
-    return TripBusinessLogic.canTerminateTrip(mission, currentUser);
+    return TripBusinessLogic.canTerminateTrip(mission, user);
   };
 
   const handleTerminate = async () => {

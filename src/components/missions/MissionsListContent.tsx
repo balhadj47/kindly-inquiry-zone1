@@ -2,7 +2,7 @@
 import React, { useCallback } from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { usePerformanceMonitor } from '@/hooks/usePerformanceMonitor';
-import MissionCard from './MissionCard';
+import MissionCardWithTermination from './MissionCardWithTermination';
 import MissionsEmptyState from './MissionsEmptyState';
 import OptimizedVirtualList from '@/components/ui/optimized-virtual-list';
 
@@ -18,7 +18,6 @@ interface MissionsListContentProps {
   terminateMission: Trip | null;
   getVanDisplayName: (vanId: string) => string;
   onMissionClick: (mission: Trip) => void;
-  onTerminateClick: (mission: Trip) => void;
   onDeleteClick: (mission: Trip) => void;
 }
 
@@ -34,34 +33,24 @@ const MissionsListContent: React.FC<MissionsListContentProps> = ({
   terminateMission,
   getVanDisplayName,
   onMissionClick,
-  onTerminateClick,
   onDeleteClick,
 }) => {
   usePerformanceMonitor('MissionsListContent');
 
   const renderMissionItem = useCallback((mission: Trip, index: number) => (
-    <MissionCard
+    <MissionCardWithTermination
       key={mission.id}
       mission={mission}
       onMissionClick={onMissionClick}
-      onTerminateClick={onTerminateClick}
       onDeleteClick={onDeleteClick}
       getVanDisplayName={getVanDisplayName}
-      canEdit={canEdit}
-      canDelete={canDelete}
       actionLoading={deletingMissionId === mission.id ? 'loading' : null}
-      isTerminating={isTerminating && terminateMission?.id === mission.id}
     />
   ), [
     onMissionClick,
-    onTerminateClick,
     onDeleteClick,
     getVanDisplayName,
-    canEdit,
-    canDelete,
-    deletingMissionId,
-    isTerminating,
-    terminateMission?.id
+    deletingMissionId
   ]);
 
   if (filteredMissions.length === 0) {

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Search } from 'lucide-react';
+import { Search, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface Van {
@@ -51,6 +51,7 @@ const VanSelector: React.FC<VanSelectorProps> = ({
   };
 
   const filteredVans = getFilteredVans();
+  const unavailableVansCount = totalVans.length - availableVans.length;
 
   return (
     <div className="space-y-3">
@@ -90,10 +91,13 @@ const VanSelector: React.FC<VanSelectorProps> = ({
         </SelectContent>
       </Select>
       
-      {availableVans.length < totalVans.length && (
-        <p className="text-sm text-muted-foreground">
-          {totalVans.length - availableVans.length} van(s) currently in mission
-        </p>
+      {unavailableVansCount > 0 && (
+        <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <AlertTriangle className="w-4 h-4 text-amber-600" />
+          <p className="text-sm text-amber-700">
+            {unavailableVansCount} véhicule(s) actuellement en mission
+          </p>
+        </div>
       )}
       
       {searchQuery && filteredVans.length !== availableVans.length && (

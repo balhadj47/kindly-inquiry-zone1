@@ -115,7 +115,7 @@ export const TripFormProviderDialog: React.FC<TripFormProviderDialogProps> = ({
       setCompletedSteps(prev => new Set([...prev, currentStep]));
       goToNextStep();
     } else {
-      showValidationError(currentStep);
+      showValidationError(currentStep, formData);
     }
   };
 

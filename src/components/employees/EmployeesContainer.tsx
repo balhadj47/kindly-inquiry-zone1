@@ -6,7 +6,7 @@ import { useEmployeeDataProcessor } from './data/EmployeeDataProcessor';
 import { useEmployeeFiltering } from './data/EmployeeFiltering';
 import EmployeesLayout from './layout/EmployeesLayout';
 import EmployeesListOptimized from './EmployeesListOptimized';
-import UserDialog from '../user-dialog/UserDialog';
+import EmployeeModal from './EmployeeModal';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import EmployeesEnhancedSkeleton from './EmployeesEnhancedSkeleton';
 
@@ -70,11 +70,10 @@ const EmployeesContainerOptimized = () => {
   return (
     <>
       {/* Dialogs placed at the top for better code organization */}
-      <UserDialog
+      <EmployeeModal
         isOpen={employeesState.isModalOpen}
         onClose={() => employeesState.setIsModalOpen(false)}
-        user={employeesState.selectedEmployee}
-        userType="employee"
+        employee={employeesState.selectedEmployee}
         onRefresh={employeesState.handleRefresh}
       />
 

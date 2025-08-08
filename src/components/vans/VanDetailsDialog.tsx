@@ -1,311 +1,208 @@
-import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
+
+import React from 'react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useVanForm } from '@/hooks/useVanForm';
-import { useVanMutations } from '@/hooks/useVansOptimized';
-import { format } from 'date-fns';
-import { DatePicker } from "@/components/ui/date-picker"
-import { Trash } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Van } from '@/types/van';
+import { Edit, Calendar, User, MapPin, Fuel, Gauge } from 'lucide-react';
 
 interface VanDetailsDialogProps {
-  van: any;
+  van: Van | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate?: (vanId: string) => void;
-  onDelete?: (vanId: string) => void;
-  onEdit?: (van: any) => void;
+  onEdit: (van: Van) => void;
 }
 
-const VanDetailsDialog = ({ van, isOpen, onClose, onUpdate, onDelete, onEdit }: VanDetailsDialogProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const { formData, handleInputChange, handleDateChange } = useVanForm(van);
-  const { updateVan, deleteVan } = useVanMutations();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const { toast } = useToast();
+const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
+  van,
+  isOpen,
+  onClose,
+  onEdit,
+}) => {
+  // Early return if van is null
+  if (!van) {
+    return null;
+  }
 
-  const handleSave = async () => {
-    try {
-      const updateData = {
-        id: van.id,
-        reference_code: formData.referenceCode,
-        license_plate: formData.plateNumber,
-        model: formData.model,
-        status: formData.status,
-        insurer: formData.insurer,
-        insurance_date: formData.insuranceDate?.toISOString().split('T')[0],
-        control_date: formData.controlDate?.toISOString().split('T')[0],
-        notes: formData.notes,
-        current_location: formData.currentLocation,
-        current_responsible_id: formData.currentResponsibleId,
-        current_odometer_km: formData.currentOdometerKm,
-      };
+  const handleEdit = () => {
+    onEdit(van);
+    onClose();
+  };
 
-      await updateVan.mutateAsync(updateData);
-      setIsEditing(false);
-      onUpdate?.(van.id);
-    } catch (error) {
-      console.error('Error updating van:', error);
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active':
+      case 'actif':
+        return 'bg-green-100 text-green-800';
+      case 'inactive':
+      case 'inactif':
+        return 'bg-gray-100 text-gray-800';
+      case 'en transit':
+        return 'bg-blue-100 text-blue-800';
+      case 'maintenance':
+        return 'bg-yellow-100 text-yellow-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      await deleteVan.mutateAsync(van.id);
-      onDelete?.(van.id);
-      onClose();
-      toast({
-        title: 'Succès',
-        description: 'Camionnette supprimée avec succès',
-      });
-    } catch (error) {
-      console.error('Error deleting van:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Erreur lors de la suppression de la camionnette',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
-  const handleEditClick = () => {
-    setIsEditing(true);
-    onEdit?.(van);
-  };
-
-  // Fixed comparison to handle both string and number types
-  const isCurrentUserResponsible = van.current_responsible_id?.toString() === '1' || van.current_responsible_id === 1;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEditing ? `Modifier ${van.license_plate}` : `Détails du véhicule ${van.license_plate}`}</DialogTitle>
-          <DialogDescription>
-            {isEditing ? 'Modifiez les informations du véhicule.' : 'Consultez les informations détaillées du véhicule.'}
-          </DialogDescription>
+          <div className="flex items-center justify-between">
+            <DialogTitle className="text-xl font-semibold">
+              Détails du véhicule
+            </DialogTitle>
+            <Button
+              onClick={handleEdit}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <Edit className="h-4 w-4" />
+              Modifier
+            </Button>
+          </div>
         </DialogHeader>
-        
+
         <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-6">
+          {/* Header Section */}
+          <div className="flex items-start justify-between">
             <div>
-              <Label htmlFor="referenceCode" className="text-sm font-medium text-gray-700">
-                Code de référence
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="referenceCode"
-                  value={formData.referenceCode}
-                  onChange={(e) => handleInputChange('referenceCode', e.target.value)}
-                  placeholder="Entrez le code de référence"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.reference_code || 'Non spécifié'}</p>
-              )}
+              <h2 className="text-2xl font-bold text-gray-900">
+                {van.license_plate}
+              </h2>
+              <p className="text-lg text-gray-600 mt-1">
+                {van.model}
+              </p>
+            </div>
+            <Badge className={getStatusColor(van.status)}>
+              {van.status}
+            </Badge>
+          </div>
+
+          <Separator />
+
+          {/* Basic Information */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Informations générales
+              </h3>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <MapPin className="h-5 w-5 text-gray-500" />
+                  <div>
+                    <p className="text-sm font-medium text-gray-700">
+                      Code de référence
+                    </p>
+                    <p className="text-gray-900">
+                      {van.reference_code || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+
+                {van.year && (
+                  <div className="flex items-center gap-3">
+                    <Calendar className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Année
+                      </p>
+                      <p className="text-gray-900">{van.year}</p>
+                    </div>
+                  </div>
+                )}
+
+                {van.fuel_type && (
+                  <div className="flex items-center gap-3">
+                    <Fuel className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Type de carburant
+                      </p>
+                      <p className="text-gray-900">{van.fuel_type}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div>
-              <Label htmlFor="plateNumber" className="text-sm font-medium text-gray-700">
-                Numéro de plaque
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="plateNumber"
-                  value={formData.plateNumber}
-                  onChange={(e) => handleInputChange('plateNumber', e.target.value)}
-                  placeholder="Entrez le numéro de plaque"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.license_plate || 'Non spécifié'}</p>
-              )}
-            </div>
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Détails techniques
+              </h3>
+              
+              <div className="space-y-3">
+                {van.current_km && (
+                  <div className="flex items-center gap-3">
+                    <Gauge className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Kilométrage actuel
+                      </p>
+                      <p className="text-gray-900">
+                        {van.current_km.toLocaleString()} km
+                      </p>
+                    </div>
+                  </div>
+                )}
 
-            <div>
-              <Label htmlFor="model" className="text-sm font-medium text-gray-700">
-                Modèle
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="model"
-                  value={formData.model}
-                  onChange={(e) => handleInputChange('model', e.target.value)}
-                  placeholder="Entrez le modèle"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.model || 'Non spécifié'}</p>
-              )}
+                {van.current_responsible_id && (
+                  <div className="flex items-center gap-3">
+                    <User className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-700">
+                        Responsable actuel
+                      </p>
+                      <p className="text-gray-900">
+                        ID: {van.current_responsible_id}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
 
-            <div>
-              <Label htmlFor="status" className="text-sm font-medium text-gray-700">
-                Statut
-              </Label>
-              {isEditing ? (
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) => handleInputChange('status', e.target.value)}
-                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                >
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Maintenance">Maintenance</option>
-                </select>
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.status || 'Non spécifié'}</p>
-              )}
-            </div>
-            
-            <div>
-              <Label htmlFor="currentLocation" className="text-sm font-medium text-gray-700">
-                Lieu actuel
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="currentLocation"
-                  value={formData.currentLocation}
-                  onChange={(e) => handleInputChange('currentLocation', e.target.value)}
-                  placeholder="Entrez le lieu actuel"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.current_location || 'Non spécifié'}</p>
-              )}
-            </div>
+          {/* Additional Information */}
+          {van.notes && (
+            <>
+              <Separator />
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">
+                  Notes
+                </h3>
+                <div className="bg-gray-50 rounded-lg p-4">
+                  <p className="text-gray-700 whitespace-pre-wrap">
+                    {van.notes}
+                  </p>
+                </div>
+              </div>
+            </>
+          )}
 
+          {/* Timestamps */}
+          <Separator />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
             <div>
-              <Label htmlFor="currentOdometerKm" className="text-sm font-medium text-gray-700">
-                Kilométrage actuel
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="currentOdometerKm"
-                  type="number"
-                  value={formData.currentOdometerKm}
-                  onChange={(e) => handleInputChange('currentOdometerKm', parseInt(e.target.value) || 0)}
-                  placeholder="0"
-                  min="0"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">
-                  {van.current_odometer_km ? `${van.current_odometer_km} km` : 'Non spécifié'}
-                </p>
-              )}
+              <p className="font-medium">Créé le:</p>
+              <p>{new Date(van.created_at).toLocaleString('fr-FR')}</p>
             </div>
-
             <div>
-              <Label htmlFor="insurer" className="text-sm font-medium text-gray-700">
-                Assureur
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="insurer"
-                  value={formData.insurer}
-                  onChange={(e) => handleInputChange('insurer', e.target.value)}
-                  placeholder="Nom de l'assureur"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.insurer || 'Non spécifié'}</p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="insurance_date" className="text-sm font-medium text-gray-700">
-                Date d'assurance
-              </Label>
-              {isEditing ? (
-                <DatePicker
-                  id="insurance_date"
-                  onSelect={(date) => handleDateChange('insuranceDate', date)}
-                  defaultMonth={formData.insuranceDate}
-                  mode="single"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">
-                  {van.insurance_date ? format(new Date(van.insurance_date), 'dd/MM/yyyy') : 'Non spécifiée'}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="control_date" className="text-sm font-medium text-gray-700">
-                Date de contrôle technique
-              </Label>
-              {isEditing ? (
-                <DatePicker
-                  id="control_date"
-                  onSelect={(date) => handleDateChange('controlDate', date)}
-                  defaultMonth={formData.controlDate}
-                  mode="single"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">
-                  {van.control_date ? format(new Date(van.control_date), 'dd/MM/yyyy') : 'Non spécifiée'}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <Label htmlFor="notes" className="text-sm font-medium text-gray-700">
-                Notes
-              </Label>
-              {isEditing ? (
-                <Input
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleInputChange('notes', e.target.value)}
-                  placeholder="Ajouter des notes"
-                  className="mt-1"
-                />
-              ) : (
-                <p className="mt-1 text-sm text-gray-900">{van.notes || 'Aucune note'}</p>
-              )}
+              <p className="font-medium">Modifié le:</p>
+              <p>{new Date(van.updated_at).toLocaleString('fr-FR')}</p>
             </div>
           </div>
         </div>
-
-        <DialogFooter>
-          {isEditing ? (
-            <div className="space-x-2">
-              <Button variant="ghost" onClick={() => setIsEditing(false)}>
-                Annuler
-              </Button>
-              <Button onClick={handleSave}>Enregistrer</Button>
-            </div>
-          ) : (
-            <div className="space-x-2">
-              <Button variant="outline" onClick={handleEditClick}>
-                Modifier
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={isDeleting}
-              >
-                {isDeleting ? (
-                  <>Suppression...</>
-                ) : (
-                  <>
-                    <Trash className="w-4 h-4 mr-2" />
-                    Supprimer
-                  </>
-                )}
-              </Button>
-            </div>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

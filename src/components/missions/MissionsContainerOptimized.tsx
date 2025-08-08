@@ -177,7 +177,7 @@ const MissionsContainerOptimized = () => {
 
       <div className="mb-6">
         <div className="flex items-center justify-between">
-          <MissionsHeader missionsCount={trips.length} />
+          <MissionsHeader missionsCount={trips.filter(trip => trip.status === 'active').length} />
           <div className="flex items-center gap-3">
             {permissions.canCreate && (
               <Button 

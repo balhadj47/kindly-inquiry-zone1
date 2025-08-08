@@ -1,63 +1,55 @@
 
 import { useState } from 'react';
 
-export type TripWizardStep = 'van' | 'company' | 'team' | 'details';
+// Updated to match actual step names used in components
+export type TripWizardStep = 'van' | 'company' | 'team' | 'details' | 'review';
 
-const STEP_ORDER: TripWizardStep[] = ['van', 'company', 'team', 'details'];
+export interface TripWizardState {
+  currentStep: TripWizardStep;
+  completedSteps: TripWizardStep[];
+}
 
-export const useTripWizard = () => {
-  const [currentStep, setCurrentStep] = useState<TripWizardStep>('van');
-
-  const currentStepIndex = STEP_ORDER.indexOf(currentStep);
-  const isFirstStep = currentStepIndex === 0;
-  const isLastStep = currentStepIndex === STEP_ORDER.length - 1;
-
-  const goToNextStep = () => {
-    if (!isLastStep) {
-      setCurrentStep(STEP_ORDER[currentStepIndex + 1]);
-    }
-  };
-
-  const goToPreviousStep = () => {
-    if (!isFirstStep) {
-      setCurrentStep(STEP_ORDER[currentStepIndex - 1]);
-    }
-  };
+export const useTripWizard = (initialStep: TripWizardStep = 'van') => {
+  const [currentStep, setCurrentStep] = useState<TripWizardStep>(initialStep);
+  const [completedSteps, setCompletedSteps] = useState<TripWizardStep[]>([]);
 
   const goToStep = (step: TripWizardStep) => {
     setCurrentStep(step);
   };
 
-  const resetWizard = () => {
-    setCurrentStep('van');
+  const nextStep = () => {
+    const steps: TripWizardStep[] = ['van', 'company', 'team', 'details', 'review'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex < steps.length - 1) {
+      const nextStep = steps[currentIndex + 1];
+      setCurrentStep(nextStep);
+      markStepComplete(currentStep);
+    }
   };
 
-  const getStepLabel = (step: TripWizardStep): string => {
-    switch (step) {
-      case 'van':
-        return 'Véhicule';
-      case 'company':
-        return 'Entreprise';
-      case 'team':
-        return 'Équipe';
-      case 'details':
-        return 'Détails';
-      default:
-        return '';
+  const previousStep = () => {
+    const steps: TripWizardStep[] = ['van', 'company', 'team', 'details', 'review'];
+    const currentIndex = steps.indexOf(currentStep);
+    if (currentIndex > 0) {
+      setCurrentStep(steps[currentIndex - 1]);
     }
+  };
+
+  const markStepComplete = (step: TripWizardStep) => {
+    setCompletedSteps(prev => [...prev.filter(s => s !== step), step]);
+  };
+
+  const isStepComplete = (step: TripWizardStep): boolean => {
+    return completedSteps.includes(step);
   };
 
   return {
     currentStep,
-    currentStepIndex,
-    isFirstStep,
-    isLastStep,
-    goToNextStep,
-    goToPreviousStep,
+    completedSteps,
     goToStep,
-    resetWizard,
-    getStepLabel,
-    totalSteps: STEP_ORDER.length,
-    allSteps: STEP_ORDER,
+    nextStep,
+    previousStep,
+    markStepComplete,
+    isStepComplete
   };
 };

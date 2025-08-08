@@ -119,6 +119,9 @@ export const useVanMutations = () => {
       insurance_date?: string;
       control_date?: string;
       notes?: string;
+      current_location?: string;
+      current_responsible_id?: number | null;
+      current_odometer_km?: number;
     }) => {
       // Ensure reference_code has a value
       const dataToInsert = {
@@ -154,9 +157,15 @@ export const useVanMutations = () => {
 
   const updateVan = useMutation({
     mutationFn: async ({ id, ...updateData }: Partial<Van> & { id: string }) => {
+      // Fix type compatibility for current_responsible_id
+      const sanitizedData = {
+        ...updateData,
+        current_responsible_id: updateData.current_responsible_id ? Number(updateData.current_responsible_id) : null
+      };
+
       const { data, error } = await supabase
         .from('vans')
-        .update(updateData)
+        .update(sanitizedData)
         .eq('id', id)
         .select()
         .single();

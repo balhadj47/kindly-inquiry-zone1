@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -172,6 +173,7 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
           {STEPS[currentStep].id === 'vehicle' && (
             <VehicleSelectionStep 
               {...tripForm.formData}
+              startKm={tripForm.formData.startKm}
               handleInputChange={tripForm.handleInputChange}
             />
           )}
@@ -200,7 +202,10 @@ export const TripFormWizard: React.FC<TripFormWizardProps> = ({ onSuccess }) => 
             />
           )}
           {STEPS[currentStep].id === 'review' && (
-            <ReviewStep {...tripForm.formData} />
+            <ReviewStep 
+              {...tripForm.formData}
+              startKm={tripForm.formData.startKm}
+            />
           )}
         </CardContent>
       </Card>

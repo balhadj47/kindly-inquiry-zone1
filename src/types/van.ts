@@ -17,6 +17,7 @@ export interface Van {
   current_odometer_km?: number;
 }
 
+// Updated to match actual database schema
 export interface VanLog {
   id: string;
   van_id: string;

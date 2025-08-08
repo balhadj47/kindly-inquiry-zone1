@@ -52,12 +52,11 @@ export const useAllVans = () => {
       
       return vansData;
     },
-    staleTime: 0, // Always consider data stale - fetch fresh every time
-    gcTime: 0, // Don't cache at all
+    staleTime: 3000, // 3 seconds for real-time sync
+    gcTime: 30000, // Keep in cache for 30 seconds
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     refetchOnReconnect: true,
-    refetchInterval: false, // Don't auto-refetch, only manual refetch
   });
 };
 

@@ -11,6 +11,7 @@ import { useMissionsPermissions } from './MissionsPermissions';
 import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
 import { useTripMutationsOptimized } from '@/hooks/trips/useTripMutationsOptimized';
 import { useVanRefreshService } from '@/hooks/useVanRefreshService';
+import { useRealtimeCache } from '@/hooks/useRealtimeCache';
 import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
@@ -50,6 +51,9 @@ const MissionsContainerOptimized = () => {
   const permissions = useMissionsPermissions();
   const { createTrip } = useTripMutationsOptimized();
   
+  // Initialize real-time cache invalidation
+  const { invalidateAll } = useRealtimeCache();
+  
   const {
     actionDialog,
     setActionDialog,
@@ -59,11 +63,13 @@ const MissionsContainerOptimized = () => {
     isLoading: isActionLoading
   } = useMissionsActionsOptimized();
 
-  // Use React Query for trips data
+  // Use React Query for trips data with improved caching
   const { data: trips = [], isLoading, error, refetch } = useQuery({
     queryKey: ['trips'],
     queryFn: async (): Promise<Trip[]> => {
       console.log('🚗 Fetching trips with React Query...');
+      const startTime = performance.now();
+      
       const { data, error } = await supabase
         .from('trips')
         .select(`
@@ -90,10 +96,14 @@ const MissionsContainerOptimized = () => {
         throw error;
       }
 
+      const endTime = performance.now();
+      console.log('🚗 Fetched trips in:', endTime - startTime, 'ms');
+      
       return (data || []).map(transformDatabaseToTrip);
     },
-    staleTime: 30000, // 30 seconds
-    refetchOnWindowFocus: false,
+    staleTime: 5000, // 5 seconds for mission-critical data
+    gcTime: 30000, // Keep in cache for 30 seconds
+    refetchOnWindowFocus: true, // Enable window focus refetch
   });
 
   const showVanLoadingWarning = !isVanDataCached();
@@ -112,8 +122,16 @@ const MissionsContainerOptimized = () => {
   };
 
   const handleRefresh = async () => {
-    await refetch();
-    await forceRefreshVans();
+    console.log('🔄 Manual refresh triggered');
+    
+    // Use the cache invalidation system for coordinated refresh
+    await Promise.all([
+      refetch(),
+      forceRefreshVans(),
+      invalidateAll()
+    ]);
+    
+    console.log('✅ Manual refresh completed');
   };
 
   if (isLoading) {

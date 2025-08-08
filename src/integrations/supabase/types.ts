@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instanciate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "12.2.3 (519615d)"
+    PostgrestVersion: "12.2.12 (cd3cf9e)"
   }
   public: {
     Tables: {
@@ -78,6 +78,47 @@ export type Database = {
           phone?: string | null
         }
         Relationships: []
+      }
+      employee_notes: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          date: string
+          details: string | null
+          employee_id: number
+          id: string
+          title: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          created_by?: string | null
+          date: string
+          details?: string | null
+          employee_id: number
+          id?: string
+          title: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          date?: string
+          details?: string | null
+          employee_id?: number
+          id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_notes_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mission_roles: {
         Row: {
@@ -216,9 +257,56 @@ export type Database = {
         }
         Relationships: []
       }
+      trip_companies: {
+        Row: {
+          branch_id: string | null
+          company_id: string
+          created_at: string
+          id: string
+          trip_id: number
+        }
+        Insert: {
+          branch_id?: string | null
+          company_id: string
+          created_at?: string
+          id?: string
+          trip_id: number
+        }
+        Update: {
+          branch_id?: string | null
+          company_id?: string
+          created_at?: string
+          id?: string
+          trip_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_trip_companies_branch"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_trip_companies_company"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_trip_companies_trip"
+            columns: ["trip_id"]
+            isOneToOne: false
+            referencedRelation: "trips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trips: {
         Row: {
           branch: string
+          companies_data: Json | null
           company: string
           created_at: string
           driver: string
@@ -235,6 +323,7 @@ export type Database = {
         }
         Insert: {
           branch: string
+          companies_data?: Json | null
           company: string
           created_at?: string
           driver: string
@@ -251,6 +340,7 @@ export type Database = {
         }
         Update: {
           branch?: string
+          companies_data?: Json | null
           company?: string
           created_at?: string
           driver?: string

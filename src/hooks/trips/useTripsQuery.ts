@@ -37,8 +37,9 @@ export const useTripsQuery = (page = 1, limit = 20) => {
         total: count || 0
       };
     },
-    staleTime: 2 * 60 * 1000,
-    gcTime: 5 * 60 * 1000,
+    staleTime: 5000, // Reduced from 2 minutes to 5 seconds for mission-critical data
+    gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
+    refetchOnWindowFocus: true, // Enable window focus refetch for better sync
   });
 };
 

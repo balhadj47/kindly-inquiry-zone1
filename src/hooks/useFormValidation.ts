@@ -3,53 +3,27 @@ import { useToast } from '@/hooks/use-toast';
 import { TripFormData } from '@/hooks/useTripForm';
 import { TripWizardStep } from '@/hooks/useTripWizard';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { TripValidators } from '@/validation';
 
 export const useFormValidation = () => {
   const { toast } = useToast();
   const { t } = useLanguage();
 
   const validateStep = (step: TripWizardStep, formData: TripFormData): boolean => {
-    switch (step) {
-      case 'van':
-        return !!(formData.vanId && formData.startKm && parseInt(formData.startKm) >= 0);
-      case 'company':
-        return !!(formData.selectedCompanies?.length && 
-                 formData.selectedCompanies.every(company => company.branchId));
-      case 'team':
-        return formData.selectedUsersWithRoles.length > 0;
-      case 'details':
-        // Require both start and end dates
-        if (!formData.startDate || !formData.endDate) {
-          return false;
-        }
-        // Validate that start date is before end date
-        return formData.startDate <= formData.endDate;
-      default:
-        return false;
-    }
+    const result = TripValidators.validateStep(step, formData);
+    return result.isValid;
   };
 
-  const showValidationError = (step: TripWizardStep) => {
-    let errorMessage = '';
-    switch (step) {
-      case 'van':
-        errorMessage = t.selectVehicleAndKm;
-        break;
-      case 'company':
-        errorMessage = t.selectCompanyAndBranch;
-        break;
-      case 'team':
-        errorMessage = t.selectAtLeastOneUser;
-        break;
-      case 'details':
-        errorMessage = 'Veuillez sélectionner les dates de début et de fin du voyage';
-        break;
+  const showValidationError = (step: TripWizardStep, formData: TripFormData) => {
+    const result = TripValidators.validateStep(step, formData);
+    
+    if (!result.isValid && result.errorMessage) {
+      toast({
+        title: t.incompleteStep,
+        description: result.errorMessage,
+        variant: "destructive",
+      });
     }
-    toast({
-      title: t.incompleteStep,
-      description: errorMessage,
-      variant: "destructive",
-    });
   };
 
   return {

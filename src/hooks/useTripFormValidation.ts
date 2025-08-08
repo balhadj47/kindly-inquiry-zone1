@@ -1,5 +1,6 @@
 
 import { UserWithRoles } from './useTripForm';
+import { TripValidators } from '@/validation';
 
 export interface TripFormValidation {
   isValid: boolean;
@@ -12,23 +13,14 @@ export const useTripFormValidation = () => {
     const errors: string[] = [];
     const warnings: string[] = [];
 
-    // Check for required roles
-    const hasChefDeGroupe = selectedUsersWithRoles.some(u => u.roles.includes('Chef de Groupe'));
-    const hasChauffeur = selectedUsersWithRoles.some(u => u.roles.includes('Chauffeur'));
-
-    if (!hasChefDeGroupe) {
-      errors.push('Au moins un Chef de Groupe est requis pour la mission');
+    // Use centralized validation
+    const basicValidation = TripValidators.validateTeamRoles(selectedUsersWithRoles);
+    
+    if (!basicValidation.isValid && basicValidation.errorMessage) {
+      errors.push(basicValidation.errorMessage);
     }
 
-    if (!hasChauffeur) {
-      errors.push('Au moins un Chauffeur est requis pour la mission');
-    }
-
-    if (selectedUsersWithRoles.length === 0) {
-      errors.push('Au moins un employé doit être assigné à la mission');
-    }
-
-    // Check for potential issues
+    // Additional business rule warnings
     if (selectedUsersWithRoles.length === 1) {
       warnings.push('Mission avec un seul employé - considérez d\'ajouter plus de personnel');
     }

@@ -5,10 +5,14 @@ export const kilometerSchema = z.string()
   .regex(/^\d+$/, 'Le kilométrage doit être un nombre')
   .refine((val) => parseInt(val) >= 0, 'Le kilométrage ne peut pas être négatif');
 
-export const dateRangeSchema = z.object({
+// Base date range schema without effects for merging
+export const baseDateRangeSchema = z.object({
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-}).refine((data) => {
+});
+
+// Enhanced date range schema with validation effects
+export const dateRangeSchema = baseDateRangeSchema.refine((data) => {
   if (!data.startDate || !data.endDate) return true;
   return data.startDate <= data.endDate;
 }, {
@@ -37,9 +41,17 @@ export const tripTeamSchema = z.object({
   })).min(1, 'Au moins un membre d\'équipe doit être sélectionné'),
 });
 
-export const tripDetailsSchema = dateRangeSchema;
+export const tripDetailsSchema = baseDateRangeSchema;
 
+// Use the base schema for merging, apply effects separately
 export const fullTripSchema = tripBasicSchema
   .merge(tripCompanySchema)
   .merge(tripTeamSchema)
-  .merge(tripDetailsSchema);
+  .merge(tripDetailsSchema)
+  .refine((data) => {
+    if (!data.startDate || !data.endDate) return true;
+    return data.startDate <= data.endDate;
+  }, {
+    message: 'La date de fin doit être après la date de début',
+    path: ['endDate'],
+  });

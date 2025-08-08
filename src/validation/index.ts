@@ -22,6 +22,7 @@ export {
 
 export {
   kilometerSchema,
+  baseDateRangeSchema,
   dateRangeSchema,
   tripBasicSchema,
   tripCompanySchema,

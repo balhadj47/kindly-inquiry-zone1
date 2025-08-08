@@ -16,9 +16,10 @@ interface VanDetailsDialogProps {
   onClose: () => void;
   onUpdate?: (vanId: string) => void;
   onDelete?: (vanId: string) => void;
+  onEdit?: (van: any) => void;
 }
 
-const VanDetailsDialog = ({ van, isOpen, onClose, onUpdate, onDelete }: VanDetailsDialogProps) => {
+const VanDetailsDialog = ({ van, isOpen, onClose, onUpdate, onDelete, onEdit }: VanDetailsDialogProps) => {
   const [isEditing, setIsEditing] = useState(false);
   const { formData, handleInputChange, handleDateChange } = useVanForm(van);
   const { updateVan, deleteVan } = useVanMutations();
@@ -70,6 +71,11 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onUpdate, onDelete }: VanDetai
     } finally {
       setIsDeleting(false);
     }
+  };
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+    onEdit?.(van);
   };
 
   // Fixed comparison to handle both string and number types
@@ -280,7 +286,7 @@ const VanDetailsDialog = ({ van, isOpen, onClose, onUpdate, onDelete }: VanDetai
             </div>
           ) : (
             <div className="space-x-2">
-              <Button variant="outline" onClick={() => setIsEditing(true)}>
+              <Button variant="outline" onClick={handleEditClick}>
                 Modifier
               </Button>
               <Button

@@ -110,26 +110,26 @@ const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
                   </div>
                 </div>
 
-                {van.year && (
+                {van.insurer && (
                   <div className="flex items-center gap-3">
                     <Calendar className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-700">
-                        Année
+                        Assureur
                       </p>
-                      <p className="text-gray-900">{van.year}</p>
+                      <p className="text-gray-900">{van.insurer}</p>
                     </div>
                   </div>
                 )}
 
-                {van.fuel_type && (
+                {van.insurance_date && (
                   <div className="flex items-center gap-3">
                     <Fuel className="h-5 w-5 text-gray-500" />
                     <div>
                       <p className="text-sm font-medium text-gray-700">
-                        Type de carburant
+                        Date d'assurance
                       </p>
-                      <p className="text-gray-900">{van.fuel_type}</p>
+                      <p className="text-gray-900">{new Date(van.insurance_date).toLocaleDateString('fr-FR')}</p>
                     </div>
                   </div>
                 )}
@@ -142,7 +142,7 @@ const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
               </h3>
               
               <div className="space-y-3">
-                {van.current_km && (
+                {van.current_odometer_km && (
                   <div className="flex items-center gap-3">
                     <Gauge className="h-5 w-5 text-gray-500" />
                     <div>
@@ -150,7 +150,7 @@ const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
                         Kilométrage actuel
                       </p>
                       <p className="text-gray-900">
-                        {van.current_km.toLocaleString()} km
+                        {van.current_odometer_km.toLocaleString()} km
                       </p>
                     </div>
                   </div>

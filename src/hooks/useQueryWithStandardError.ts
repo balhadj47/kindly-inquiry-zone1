@@ -1,6 +1,7 @@
 
 import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
 import { useStandardErrorHandler } from './useStandardErrorHandler';
+import { useEffect } from 'react';
 
 export function useQueryWithStandardError<
   TQueryFnData = unknown,
@@ -15,15 +16,14 @@ export function useQueryWithStandardError<
 ): UseQueryResult<TData, TError> {
   const { handleError } = useStandardErrorHandler();
   
-  const queryOptions: UseQueryOptions<TQueryFnData, TError, TData, TQueryKey> = {
-    ...options,
-    onError: (error: TError) => {
-      if (options.showErrorToast !== false) {
-        handleError(error, options.context);
-      }
-      options.onError?.(error);
-    }
-  };
+  const queryResult = useQuery(options);
 
-  return useQuery(queryOptions);
+  // Handle errors using useEffect when error state changes
+  useEffect(() => {
+    if (queryResult.error && options.showErrorToast !== false) {
+      handleError(queryResult.error, options.context);
+    }
+  }, [queryResult.error, handleError, options.context, options.showErrorToast]);
+
+  return queryResult;
 }

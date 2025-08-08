@@ -3,104 +3,93 @@ import React from 'react';
 import { Control } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { User as UserIcon, IdCard, Car, Heart } from 'lucide-react';
-import BasicInfoSection from './BasicInfoSection';
-import IdentityDocumentsSection from './IdentityDocumentsSection';
-import DriverLicenseSection from './DriverLicenseSection';
-import MedicalInfoSection from '../../user-dialog/MedicalInfoSection';
+import { User as UserIcon, FileText, StickyNote } from 'lucide-react';
+import { User } from '@/types/rbac';
+import PersonalInfoSection from './PersonalInfoSection';
+import DocumentsMedicalSection from './DocumentsMedicalSection';
+import EmployeeNotesSection from '../notes/EmployeeNotesSection';
 
 interface FormTabsProps {
   control: Control<any>;
   isSubmitting: boolean;
+  employee?: User | null;
 }
 
 const FormTabs: React.FC<FormTabsProps> = ({
   control,
   isSubmitting,
+  employee,
 }) => {
   return (
     <TooltipProvider>
-      <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-12 bg-gray-100 rounded-lg border border-gray-200">
+      <Tabs defaultValue="personal" className="w-full">
+        <TabsList className="grid w-full grid-cols-3 h-12 bg-gray-100 rounded-lg border border-gray-200">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger 
-                value="basic" 
+                value="personal" 
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-sm hover:text-blue-500"
               >
                 <UserIcon className="h-4 w-4" />
-                <span className="hidden sm:inline">Base</span>
+                <span className="hidden sm:inline">Personnel</span>
               </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>Informations de base</p>
+              <p>Informations personnelles</p>
             </TooltipContent>
           </Tooltip>
           
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger 
-                value="identity"
+                value="documents"
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-purple-600 data-[state=active]:shadow-sm hover:text-purple-500"
               >
-                <IdCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Identité</span>
+                <FileText className="h-4 w-4" />
+                <span className="hidden sm:inline">Documents</span>
               </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>Documents d'identité</p>
+              <p>Documents et informations médicales</p>
             </TooltipContent>
           </Tooltip>
           
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger 
-                value="driver"
+                value="notes"
                 className="flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-green-600 data-[state=active]:shadow-sm hover:text-green-500"
               >
-                <Car className="h-4 w-4" />
-                <span className="hidden sm:inline">Permis</span>
+                <StickyNote className="h-4 w-4" />
+                <span className="hidden sm:inline">Notes</span>
               </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              <p>Permis de conduire</p>
-            </TooltipContent>
-          </Tooltip>
-          
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <TabsTrigger 
-                value="medical"
-                className="flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-red-600 data-[state=active]:shadow-sm hover:text-red-500"
-              >
-                <Heart className="h-4 w-4" />
-                <span className="hidden sm:inline">Médical</span>
-              </TabsTrigger>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <p>Informations médicales</p>
+              <p>Notes de l'employé</p>
             </TooltipContent>
           </Tooltip>
         </TabsList>
         
-        {/* Basic Info Tab */}
-        <TabsContent value="basic" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
-          <BasicInfoSection control={control} isSubmitting={isSubmitting} />
+        {/* Personal Information Tab */}
+        <TabsContent value="personal" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
+          <PersonalInfoSection control={control} isSubmitting={isSubmitting} />
         </TabsContent>
         
-        {/* Identity Documents Tab */}
-        <TabsContent value="identity" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
-          <IdentityDocumentsSection control={control} isSubmitting={isSubmitting} />
+        {/* Documents & Medical Tab */}
+        <TabsContent value="documents" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
+          <DocumentsMedicalSection control={control} isSubmitting={isSubmitting} />
         </TabsContent>
         
-        {/* Driver License Tab */}
-        <TabsContent value="driver" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
-          <DriverLicenseSection control={control} isSubmitting={isSubmitting} />
-        </TabsContent>
-        
-        {/* Medical Info Tab */}
-        <TabsContent value="medical" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
-          <MedicalInfoSection control={control} isSubmitting={isSubmitting} />
+        {/* Notes Tab */}
+        <TabsContent value="notes" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
+          {employee ? (
+            <EmployeeNotesSection employee={employee} />
+          ) : (
+            <div className="text-center text-gray-500 py-8">
+              <StickyNote className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>Les notes seront disponibles après la création de l'employé</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </TooltipProvider>

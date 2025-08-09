@@ -17,7 +17,15 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
   control,
   isSubmitting,
 }) => {
-  const { setValue } = useFormContext();
+  // Safely access form context with error handling
+  let setValue: any = null;
+  try {
+    const formContext = useFormContext();
+    setValue = formContext?.setValue;
+  } catch (error) {
+    console.error('🔴 Form context not available in DriverLicenseSection:', error);
+  }
+
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [expiryDate, setExpiryDate] = useState<string>('');
@@ -62,41 +70,61 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
   );
 
   const addCategory = () => {
-    if (!selectedCategory || !startDate) return;
+    if (!selectedCategory || !startDate || !setValue) {
+      console.warn('🔴 Cannot add category: missing data or setValue function');
+      return;
+    }
 
-    // Add to categories array
-    const updatedCategories = [...(currentCategories || []), selectedCategory];
-    
-    // Add to dates object
-    const updatedDates = {
-      ...currentCategoryDates,
-      [selectedCategory]: {
-        start: startDate,
-        expiry: expiryDate
-      }
-    };
+    try {
+      // Add to categories array
+      const updatedCategories = [...(currentCategories || []), selectedCategory];
+      
+      // Add to dates object
+      const updatedDates = {
+        ...currentCategoryDates,
+        [selectedCategory]: {
+          start: startDate,
+          expiry: expiryDate
+        }
+      };
 
-    // Update form values using setValue from useFormContext
-    setValue('driverLicenseCategory', updatedCategories);
-    setValue('driverLicenseCategoryDates', updatedDates);
+      // Update form values using setValue from useFormContext
+      setValue('driverLicenseCategory', updatedCategories);
+      setValue('driverLicenseCategoryDates', updatedDates);
 
-    // Reset form
-    setSelectedCategory('');
-    setStartDate('');
-    setExpiryDate('');
+      // Reset form
+      setSelectedCategory('');
+      setStartDate('');
+      setExpiryDate('');
+      
+      console.log('✅ Category added successfully:', selectedCategory);
+    } catch (error) {
+      console.error('🔴 Error adding category:', error);
+    }
   };
 
   const removeCategory = (categoryToRemove: string) => {
-    // Remove from categories array
-    const updatedCategories = currentCategories?.filter(cat => cat !== categoryToRemove) || [];
-    
-    // Remove from dates object
-    const updatedDates = { ...currentCategoryDates };
-    delete updatedDates[categoryToRemove];
+    if (!setValue) {
+      console.warn('🔴 Cannot remove category: setValue function not available');
+      return;
+    }
 
-    // Update form values using setValue from useFormContext
-    setValue('driverLicenseCategory', updatedCategories);
-    setValue('driverLicenseCategoryDates', updatedDates);
+    try {
+      // Remove from categories array
+      const updatedCategories = currentCategories?.filter(cat => cat !== categoryToRemove) || [];
+      
+      // Remove from dates object
+      const updatedDates = { ...currentCategoryDates };
+      delete updatedDates[categoryToRemove];
+
+      // Update form values using setValue from useFormContext
+      setValue('driverLicenseCategory', updatedCategories);
+      setValue('driverLicenseCategoryDates', updatedDates);
+      
+      console.log('✅ Category removed successfully:', categoryToRemove);
+    } catch (error) {
+      console.error('🔴 Error removing category:', error);
+    }
   };
 
   return (
@@ -207,7 +235,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             <Button
               type="button"
               onClick={addCategory}
-              disabled={!selectedCategory || !startDate || isSubmitting}
+              disabled={!selectedCategory || !startDate || isSubmitting || !setValue}
               size="sm"
               className="h-9"
             >
@@ -215,6 +243,12 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
               Ajouter
             </Button>
           </div>
+
+          {!setValue && (
+            <p className="text-xs text-destructive mt-2">
+              ⚠️ Form context non disponible - Les modifications ne seront pas sauvegardées
+            </p>
+          )}
         </div>
 
         {/* Added Categories List */}
@@ -257,7 +291,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
                       variant="ghost"
                       size="sm"
                       onClick={() => removeCategory(category)}
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || !setValue}
                       className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <X className="h-4 w-4" />

@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, FileText, IdCard, Briefcase, Heart } from 'lucide-react';
 import { User as UserType } from '@/types/rbac';
@@ -78,6 +78,13 @@ const UserDialog: React.FC<UserDialogProps> = ({
     return `Ajouter ${userType === 'employee' ? 'un employé' : userType === 'driver' ? 'un chauffeur' : 'un utilisateur'}`;
   };
 
+  const getDialogDescription = () => {
+    if (user) {
+      return `Modifier les informations de ${user.name || 'cet utilisateur'}`;
+    }
+    return `Créer un nouveau ${userType === 'employee' ? 'employé' : userType === 'driver' ? 'chauffeur' : 'utilisateur'} dans le système`;
+  };
+
   const getConfig = () => {
     const baseConfig = {
       title: getDialogTitle(),
@@ -108,6 +115,9 @@ const UserDialog: React.FC<UserDialogProps> = ({
               </span>
             )}
           </DialogTitle>
+          <DialogDescription>
+            {getDialogDescription()}
+          </DialogDescription>
         </DialogHeader>
         
         <div className="flex-1 overflow-hidden">

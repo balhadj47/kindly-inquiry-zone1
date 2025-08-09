@@ -59,11 +59,18 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
     category => !currentCategories.includes(category.value)
   );
 
-  // Auto-add category when both category and start date are selected
+  // Auto-add category when ALL fields are filled (category, start date, AND expiry date)
   React.useEffect(() => {
-    if (selectedCategory && startDate && setValue) {
+    // Only auto-add when ALL three fields are filled
+    if (selectedCategory && startDate && expiryDate && setValue) {
       // Don't add if already exists
       if (currentCategories.includes(selectedCategory)) {
+        return;
+      }
+
+      // Validate that start date is before expiry date
+      if (new Date(startDate) >= new Date(expiryDate)) {
+        console.warn('🔴 Start date must be before expiry date');
         return;
       }
 
@@ -72,24 +79,28 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
         ...currentCategoryDates,
         [selectedCategory]: {
           start: startDate,
-          expiry: expiryDate || undefined
+          expiry: expiryDate
         }
       };
 
-      console.log('🚗 Auto-adding license category:', selectedCategory);
+      console.log('🚗 Auto-adding license category:', selectedCategory, 'with dates:', { start: startDate, expiry: expiryDate });
 
-      // Update form values
-      setValue('driverLicenseCategory', updatedCategories);
-      setValue('driverLicenseCategoryDates', updatedDates);
+      try {
+        // Update form values
+        setValue('driverLicenseCategory', updatedCategories);
+        setValue('driverLicenseCategoryDates', updatedDates);
 
-      // Clear the form
-      setSelectedCategory('');
-      setStartDate('');
-      setExpiryDate('');
-      
-      console.log('✅ License category auto-added successfully:', selectedCategory);
+        // Clear the form
+        setSelectedCategory('');
+        setStartDate('');
+        setExpiryDate('');
+        
+        console.log('✅ License category auto-added successfully:', selectedCategory);
+      } catch (error) {
+        console.error('🔴 Error auto-adding license category:', error);
+      }
     }
-  }, [selectedCategory, startDate, setValue, currentCategories, currentCategoryDates, expiryDate]);
+  }, [selectedCategory, startDate, expiryDate, setValue, currentCategories, currentCategoryDates]);
 
   const handleRemoveCategory = (category: string) => {
     if (!setValue) {
@@ -117,6 +128,10 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
     const category = licenseCategories.find(cat => cat.value === categoryValue);
     return category ? category.label : categoryValue;
   };
+
+  // Check if all fields are filled for visual feedback
+  const allFieldsFilled = selectedCategory && startDate && expiryDate;
+  const isValidDateRange = startDate && expiryDate && new Date(startDate) < new Date(expiryDate);
 
   return (
     <div className="space-y-4">
@@ -151,7 +166,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             {/* Category Selection */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Catégorie
+                Catégorie *
               </label>
               <Select 
                 value={selectedCategory} 
@@ -179,7 +194,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             {/* Start Date */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Date d'obtention
+                Date d'obtention *
               </label>
               <Input
                 type="date"
@@ -193,7 +208,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             {/* Expiry Date */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                Date d'expiration
+                Date d'expiration *
               </label>
               <Input
                 type="date"
@@ -205,11 +220,28 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             </div>
           </div>
 
-          {availableCategories.length === 0 && (
-            <p className="text-sm text-muted-foreground mt-2 text-center italic">
-              Toutes les catégories disponibles ont été ajoutées
-            </p>
-          )}
+          {/* Status Messages */}
+          <div className="mt-3 text-xs text-center">
+            {availableCategories.length === 0 ? (
+              <p className="text-muted-foreground italic">
+                Toutes les catégories disponibles ont été ajoutées
+              </p>
+            ) : allFieldsFilled ? (
+              isValidDateRange ? (
+                <p className="text-green-600 font-medium">
+                  ✅ La catégorie sera ajoutée automatiquement
+                </p>
+              ) : (
+                <p className="text-red-600 font-medium">
+                  ⚠️ La date d'obtention doit être antérieure à la date d'expiration
+                </p>
+              )
+            ) : (
+              <p className="text-muted-foreground">
+                Remplissez tous les champs pour ajouter automatiquement la catégorie
+              </p>
+            )}
+          </div>
         </div>
 
         {/* Added Categories List */}
@@ -219,7 +251,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
           {(!currentCategories || currentCategories.length === 0) ? (
             <div className="text-sm text-muted-foreground p-4 text-center border border-dashed border-border/50 rounded-lg">
               <div>Aucune catégorie ajoutée</div>
-              <div className="text-xs mt-1">Sélectionnez une catégorie et une date pour l'ajouter automatiquement</div>
+              <div className="text-xs mt-1">Sélectionnez une catégorie et les deux dates pour l'ajouter automatiquement</div>
             </div>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">

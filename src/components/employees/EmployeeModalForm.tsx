@@ -30,6 +30,9 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     defaultValues: getDefaultFormValues(employee),
   });
 
+  console.log('🔍 EmployeeModalForm - employee prop:', employee);
+  console.log('🔍 EmployeeModalForm - employee ID:', employee?.id);
+
   // Reset form only when employee changes (not on errors)
   useEffect(() => {
     const currentEmployeeId = employee?.id;

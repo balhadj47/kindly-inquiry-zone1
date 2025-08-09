@@ -22,7 +22,10 @@ const FormTabs: React.FC<FormTabsProps> = ({
   isSubmitting,
   employee,
 }) => {
-  const showNotesTab = !!employee; // Only show notes tab when editing existing employee
+  const showNotesTab = !!employee;
+
+  console.log('🔍 FormTabs - employee:', employee);
+  console.log('🔍 FormTabs - showNotesTab:', showNotesTab);
 
   return (
     <TooltipProvider>

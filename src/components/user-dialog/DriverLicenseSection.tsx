@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Control, useWatch } from 'react-hook-form';
+import { Control, useWatch, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,6 +17,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
   control,
   isSubmitting,
 }) => {
+  const { setValue } = useFormContext();
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [expiryDate, setExpiryDate] = useState<string>('');
@@ -65,8 +66,6 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
 
     // Add to categories array
     const updatedCategories = [...(currentCategories || []), selectedCategory];
-    control._formState.isDirty = true;
-    control._subjects.state.next({ isDirty: true });
     
     // Add to dates object
     const updatedDates = {
@@ -77,9 +76,9 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
       }
     };
 
-    // Update form values
-    control.setValue('driverLicenseCategory', updatedCategories);
-    control.setValue('driverLicenseCategoryDates', updatedDates);
+    // Update form values using setValue from useFormContext
+    setValue('driverLicenseCategory', updatedCategories);
+    setValue('driverLicenseCategoryDates', updatedDates);
 
     // Reset form
     setSelectedCategory('');
@@ -95,9 +94,9 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
     const updatedDates = { ...currentCategoryDates };
     delete updatedDates[categoryToRemove];
 
-    // Update form values
-    control.setValue('driverLicenseCategory', updatedCategories);
-    control.setValue('driverLicenseCategoryDates', updatedDates);
+    // Update form values using setValue from useFormContext
+    setValue('driverLicenseCategory', updatedCategories);
+    setValue('driverLicenseCategoryDates', updatedDates);
   };
 
   return (

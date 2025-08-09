@@ -16,15 +16,17 @@ interface EmployeeModalProps {
 
 const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee, onRefresh }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const { addUser, updateUser } = useRBAC();
   const { toast } = useToast();
   const { refreshPage } = useCacheRefresh();
 
   const handleSubmit = async (userData: Partial<User>) => {
     setIsSubmitting(true);
+    setSubmitError(null); // Clear previous errors
+    
     try {
       console.log('🔍 EmployeeModal - Received data from form:', userData);
-      console.log('🖼️ EmployeeModal - ProfileImage value:', JSON.stringify(userData.profileImage));
       
       // Ensure role_id is 3 for employees
       const employeeData = { 
@@ -60,21 +62,45 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
         onRefresh();
       }
       
+      // Only close on success
       onClose();
+      
     } catch (error) {
       console.error('❌ EmployeeModal - Error submitting employee:', error);
-      toast({
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue',
-        variant: 'destructive',
-      });
+      
+      // Set error state but don't close modal or reset form
+      if (error instanceof Error) {
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          if (error.message.includes('email')) {
+            setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente.');
+          } else {
+            setSubmitError('Cette valeur est déjà utilisée. Veuillez en choisir une autre.');
+          }
+        } else if (error.message.includes('permission')) {
+          setSubmitError('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
+        } else if (error.message.includes('violates row-level security')) {
+          setSubmitError('Erreur de sécurité lors de l\'enregistrement. Vérifiez vos permissions.');
+        } else {
+          setSubmitError(`Erreur: ${error.message}`);
+        }
+      } else {
+        setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
+      }
+      
+      // Don't show toast here as we're showing error in form
+      
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  const handleClose = () => {
+    setSubmitError(null); // Clear errors when closing
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="w-[95vw] max-w-[700px] max-h-[90vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="space-y-3">
           <DialogTitle className="text-lg sm:text-xl">
@@ -92,7 +118,8 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
           employee={employee}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          onCancel={onClose}
+          onCancel={handleClose}
+          submitError={submitError}
         />
       </DialogContent>
     </Dialog>

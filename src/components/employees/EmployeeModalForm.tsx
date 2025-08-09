@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ interface EmployeeModalFormProps {
   onSubmit: (userData: Partial<User>) => Promise<void>;
   isSubmitting: boolean;
   onCancel: () => void;
+  submitError?: string | null;
 }
 
 const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
@@ -23,75 +24,51 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   onSubmit,
   isSubmitting,
   onCancel,
+  submitError,
 }) => {
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
   const form = useForm<FormData>({
     defaultValues: getDefaultFormValues(employee),
   });
 
+  // Reset form only when employee changes (not on errors)
+  useEffect(() => {
+    if (employee?.id !== form.getValues().id) {
+      console.log('🔄 EmployeeModalForm - Resetting form for new employee');
+      form.reset(getDefaultFormValues(employee));
+    }
+  }, [employee?.id, form]);
+
   const handleSubmit = async (data: FormData) => {
     try {
-      setSubmitError(null);
       console.log('🔍 EmployeeModalForm - Raw form data:', data);
       
-      // Clean and prepare the data for submission - include ALL fields
+      // Clean and prepare the data for submission
       const submitData = prepareSubmitData(data);
       
       console.log('🚀 EmployeeModalForm - Final submit data:', submitData);
-      console.log('🖼️ EmployeeModalForm - ProfileImage value:', JSON.stringify(submitData.profileImage));
-      console.log('📅 EmployeeModalForm - Date fields:', {
-        dateOfBirth: submitData.dateOfBirth,
-        carteNationalStartDate: submitData.carte_national_start_date,
-        carteNationalExpiryDate: submitData.carte_national_expiry_date,
-        driverLicenseStartDate: submitData.driver_license_start_date,
-        driverLicenseExpiryDate: submitData.driver_license_expiry_date,
-        companyAssignmentDate: submitData.company_assignment_date,
-      });
-      
-      // Log the exact data being sent to the API
-      console.log('📡 EmployeeModalForm - Data being sent to API:', JSON.stringify(submitData, null, 2));
       
       await onSubmit(submitData);
       console.log('✅ EmployeeModalForm - Form submitted successfully');
       
+      // Only reset form on successful submission
       form.reset();
+      
     } catch (error) {
       console.error('❌ EmployeeModalForm - Error submitting form:', error);
-      
-      // Log more details about the error
-      if (error instanceof Error) {
-        console.error('❌ Error message:', error.message);
-        console.error('❌ Error stack:', error.stack);
-        
-        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
-          if (error.message.includes('email')) {
-            setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente ou laisser le champ vide.');
-          } else {
-            setSubmitError('Cette valeur est déjà utilisée. Veuillez en choisir une autre.');
-          }
-        } else if (error.message.includes('permission')) {
-          setSubmitError('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
-        } else if (error.message.includes('violates row-level security')) {
-          setSubmitError('Erreur de sécurité lors de l\'enregistrement. Vérifiez vos permissions.');
-        } else if (error.message.includes('invalid input syntax')) {
-          setSubmitError('Format de données invalide. Vérifiez les dates et autres champs.');
-        } else {
-          setSubmitError(`Erreur: ${error.message}`);
-        }
-      } else {
-        console.error('❌ Unknown error type:', typeof error, error);
-        setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
-      }
+      // Don't reset form on error - let the error be displayed and form data preserved
     }
   };
 
   const handleImageChange = (url: string) => {
     console.log('🖼️ EmployeeModalForm - Image changed to:', JSON.stringify(url));
     form.setValue('profileImage', url);
-    
-    // Force form to re-render by triggering a change
     form.trigger('profileImage');
+  };
+
+  const handleCancel = () => {
+    // Reset form when canceling
+    form.reset();
+    onCancel();
   };
 
   return (
@@ -122,10 +99,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              setSubmitError(null);
-              onCancel();
-            }}
+            onClick={handleCancel}
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >

@@ -25,26 +25,21 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
   const formContext = useFormContext();
   const setValue = formContext?.setValue;
 
-  const licenseCategories = ['A', 'A1', 'A2', 'B', 'BE', 'C', 'CE', 'C1', 'C1E', 'D', 'DE', 'D1', 'D1E'];
-
-  const getCategoryDescription = (category: string) => {
-    const descriptions: Record<string, string> = {
-      'A': 'Motocyclettes',
-      'A1': 'Motocyclettes légères',
-      'A2': 'Motocyclettes intermédiaires',
-      'B': 'Voitures particulières',
-      'BE': 'Voitures + remorque',
-      'C': 'Poids lourds',
-      'CE': 'Poids lourds + remorque',
-      'C1': 'Camions moyens',
-      'C1E': 'Camions moyens + remorque',
-      'D': 'Autobus',
-      'DE': 'Autobus + remorque',
-      'D1': 'Minibus',
-      'D1E': 'Minibus + remorque'
-    };
-    return descriptions[category] || '';
-  };
+  const licenseCategories = [
+    { value: 'A', label: 'A - Motocyclettes' },
+    { value: 'A1', label: 'A1 - Motocyclettes légères' },
+    { value: 'A2', label: 'A2 - Motocyclettes intermédiaires' },
+    { value: 'B', label: 'B - Voitures particulières' },
+    { value: 'BE', label: 'BE - Voitures + remorque' },
+    { value: 'C', label: 'C - Poids lourds' },
+    { value: 'CE', label: 'CE - Poids lourds + remorque' },
+    { value: 'C1', label: 'C1 - Camions moyens' },
+    { value: 'C1E', label: 'C1E - Camions moyens + remorque' },
+    { value: 'D', label: 'D - Autobus' },
+    { value: 'DE', label: 'DE - Autobus + remorque' },
+    { value: 'D1', label: 'D1 - Minibus' },
+    { value: 'D1E', label: 'D1E - Minibus + remorque' }
+  ];
 
   // Watch the current form values
   const currentCategories = useWatch({
@@ -61,28 +56,61 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
 
   // Get available categories (not already added)
   const availableCategories = licenseCategories.filter(
-    category => !currentCategories.includes(category)
+    category => !currentCategories.includes(category.value)
   );
 
-  const handleAddCategory = () => {
-    if (!selectedCategory || !startDate || !setValue) {
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    
+    // If we have both category and start date, add it immediately
+    if (category && startDate) {
+      handleAddCategory(category, startDate, expiryDate);
+    }
+  };
+
+  const handleStartDateChange = (date: string) => {
+    setStartDate(date);
+    
+    // If we have both category and start date, add it immediately
+    if (selectedCategory && date) {
+      handleAddCategory(selectedCategory, date, expiryDate);
+    }
+  };
+
+  const handleExpiryDateChange = (date: string) => {
+    setExpiryDate(date);
+    
+    // If we have category and start date, update the existing entry or add new one
+    if (selectedCategory && startDate) {
+      handleAddCategory(selectedCategory, startDate, date);
+    }
+  };
+
+  const handleAddCategory = (category?: string, start?: string, expiry?: string) => {
+    const categoryToAdd = category || selectedCategory;
+    const startToAdd = start || startDate;
+    const expiryToAdd = expiry || expiryDate;
+
+    if (!categoryToAdd || !startToAdd || !setValue) {
       console.warn('🔴 Cannot add category: missing data or setValue function');
       return;
     }
 
     try {
       // Create clean copies to avoid circular references
-      const updatedCategories = [...currentCategories, selectedCategory];
+      const updatedCategories = currentCategories.includes(categoryToAdd) 
+        ? currentCategories 
+        : [...currentCategories, categoryToAdd];
       
       const updatedDates = {
         ...currentCategoryDates,
-        [selectedCategory]: {
-          start: startDate,
-          expiry: expiryDate || undefined
+        [categoryToAdd]: {
+          start: startToAdd,
+          expiry: expiryToAdd || undefined
         }
       };
 
-      console.log('🔍 DriverLicenseSection - Adding category:', selectedCategory);
+      console.log('🔍 DriverLicenseSection - Adding/updating category:', categoryToAdd);
       console.log('🔍 DriverLicenseSection - Updated categories:', updatedCategories);
       console.log('🔍 DriverLicenseSection - Updated dates:', updatedDates);
 
@@ -90,14 +118,16 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
       setValue('driverLicenseCategory', updatedCategories);
       setValue('driverLicenseCategoryDates', updatedDates);
 
-      // Reset form
-      setSelectedCategory('');
-      setStartDate('');
-      setExpiryDate('');
+      // Reset form only if this was a new addition
+      if (!currentCategories.includes(categoryToAdd)) {
+        setSelectedCategory('');
+        setStartDate('');
+        setExpiryDate('');
+      }
       
-      console.log('✅ DriverLicenseSection - Category added successfully:', selectedCategory);
+      console.log('✅ DriverLicenseSection - Category processed successfully:', categoryToAdd);
     } catch (error) {
-      console.error('🔴 DriverLicenseSection - Error adding category:', error);
+      console.error('🔴 DriverLicenseSection - Error processing category:', error);
     }
   };
 
@@ -126,6 +156,11 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
     } catch (error) {
       console.error('🔴 DriverLicenseSection - Error removing category:', error);
     }
+  };
+
+  const getCategoryLabel = (categoryValue: string) => {
+    const category = licenseCategories.find(cat => cat.value === categoryValue);
+    return category ? category.label : categoryValue;
   };
 
   return (
@@ -175,7 +210,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
         <div className="bg-background/50 rounded-lg p-4 border border-border/30 mb-4">
           <h5 className="text-sm font-medium mb-3">Ajouter une catégorie</h5>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Category Selection */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
@@ -183,20 +218,20 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
               </label>
               <Select 
                 value={selectedCategory} 
-                onValueChange={setSelectedCategory}
+                onValueChange={handleCategorySelect}
                 disabled={isSubmitting || availableCategories.length === 0}
               >
                 <SelectTrigger className="h-9">
-                  <SelectValue placeholder="Sélectionner..." />
+                  <SelectValue placeholder="Sélectionner une catégorie..." />
                 </SelectTrigger>
                 <SelectContent className="bg-popover border border-border shadow-lg z-50">
                   {availableCategories.map((category) => (
-                    <SelectItem key={category} value={category}>
+                    <SelectItem key={category.value} value={category.value}>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs">
-                          {category}
+                          {category.value}
                         </Badge>
-                        <span className="text-sm">{getCategoryDescription(category)}</span>
+                        <span className="text-sm">{category.label.split(' - ')[1]}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -207,14 +242,15 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
             {/* Start Date */}
             <div>
               <label className="text-xs font-medium text-muted-foreground mb-1 block">
-                📅 Date d'obtention
+                📅 Date d'obtention *
               </label>
               <Input
                 type="date"
                 value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                disabled={isSubmitting}
+                onChange={(e) => handleStartDateChange(e.target.value)}
+                disabled={isSubmitting || !selectedCategory}
                 className="h-9 text-xs"
+                placeholder="Date d'obtention requise"
               />
             </div>
 
@@ -226,24 +262,19 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
               <Input
                 type="date"
                 value={expiryDate}
-                onChange={(e) => setExpiryDate(e.target.value)}
-                disabled={isSubmitting}
+                onChange={(e) => handleExpiryDateChange(e.target.value)}
+                disabled={isSubmitting || !selectedCategory}
                 className="h-9 text-xs"
+                placeholder="Optionnelle"
               />
             </div>
-
-            {/* Add Button */}
-            <Button
-              type="button"
-              onClick={handleAddCategory}
-              disabled={!selectedCategory || !startDate || isSubmitting || !setValue}
-              size="sm"
-              className="h-9"
-            >
-              <Plus className="h-4 w-4 mr-1" />
-              Ajouter
-            </Button>
           </div>
+
+          {availableCategories.length === 0 && (
+            <p className="text-sm text-muted-foreground mt-2 text-center">
+              Toutes les catégories disponibles ont été ajoutées
+            </p>
+          )}
         </div>
 
         {/* Added Categories List */}
@@ -269,7 +300,7 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
                       </Badge>
                       <div className="flex-1">
                         <div className="text-sm font-medium">
-                          {getCategoryDescription(category)}
+                          {getCategoryLabel(category)}
                         </div>
                         {dates && (
                           <div className="text-xs text-muted-foreground mt-1">

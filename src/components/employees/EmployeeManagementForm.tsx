@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -29,6 +28,9 @@ const EmployeeManagementForm: React.FC<EmployeeManagementFormProps> = ({
   const form = useForm<FormData>({
     defaultValues: getDefaultFormValues(employee),
   });
+
+  console.log('🔍 EmployeeManagementForm - employee prop:', employee);
+  console.log('🔍 EmployeeManagementForm - employee ID:', employee?.id);
 
   // Reset form only when employee changes (not on errors)
   useEffect(() => {
@@ -95,8 +97,8 @@ const EmployeeManagementForm: React.FC<EmployeeManagementFormProps> = ({
           />
         </div>
 
-        {/* Tabbed Interface */}
-        <FormTabs control={form.control} isSubmitting={isSubmitting} />
+        {/* Tabbed Interface - now includes employee prop for notes tab */}
+        <FormTabs control={form.control} isSubmitting={isSubmitting} employee={employee} />
 
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
           <Button

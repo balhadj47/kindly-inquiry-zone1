@@ -1,4 +1,3 @@
-
 import React, { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
@@ -11,7 +10,7 @@ import EmployeeImageUpload from './EmployeeImageUpload';
 import FormTabs from './form-sections/FormTabs';
 import { FormData, getDefaultFormValues, prepareSubmitData } from './form-sections/FormDataHelpers';
 
-interface EmployeeModalFormProps {
+interface EmployeeFormProps {
   employee?: User | null;
   onSubmit: (userData: Partial<User>) => Promise<void>;
   isSubmitting: boolean;
@@ -19,7 +18,7 @@ interface EmployeeModalFormProps {
   submitError?: string | null;
 }
 
-const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
+const EmployeeForm: React.FC<EmployeeFormProps> = ({
   employee,
   onSubmit,
   isSubmitting,
@@ -30,8 +29,8 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     defaultValues: getDefaultFormValues(employee),
   });
 
-  console.log('🔍 EmployeeModalForm - employee prop:', employee);
-  console.log('🔍 EmployeeModalForm - employee ID:', employee?.id);
+  console.log('🔍 EmployeeForm - employee prop:', employee);
+  console.log('🔍 EmployeeForm - employee ID:', employee?.id);
 
   // Reset form only when employee changes (not on errors)
   useEffect(() => {
@@ -39,34 +38,34 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
     const formEmployeeId = form.getValues().name; // Use name as identifier since FormData doesn't have id
     
     if (currentEmployeeId !== formEmployeeId) {
-      console.log('🔄 EmployeeModalForm - Resetting form for new employee');
+      console.log('🔄 EmployeeForm - Resetting form for new employee');
       form.reset(getDefaultFormValues(employee));
     }
   }, [employee?.id, form]);
 
   const handleSubmit = async (data: FormData) => {
     try {
-      console.log('🔍 EmployeeModalForm - Raw form data:', data);
+      console.log('🔍 EmployeeForm - Raw form data:', data);
       
       // Clean and prepare the data for submission
       const submitData = prepareSubmitData(data);
       
-      console.log('🚀 EmployeeModalForm - Final submit data:', submitData);
+      console.log('🚀 EmployeeForm - Final submit data:', submitData);
       
       await onSubmit(submitData);
-      console.log('✅ EmployeeModalForm - Form submitted successfully');
+      console.log('✅ EmployeeForm - Form submitted successfully');
       
       // Only reset form on successful submission
       form.reset();
       
     } catch (error) {
-      console.error('❌ EmployeeModalForm - Error submitting form:', error);
+      console.error('❌ EmployeeForm - Error submitting form:', error);
       // Don't reset form on error - let the error be displayed and form data preserved
     }
   };
 
   const handleImageChange = (url: string) => {
-    console.log('🖼️ EmployeeModalForm - Image changed to:', JSON.stringify(url));
+    console.log('🖼️ EmployeeForm - Image changed to:', JSON.stringify(url));
     form.setValue('profileImage', url);
     form.trigger('profileImage');
   };
@@ -98,7 +97,7 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           />
         </div>
 
-        {/* Tabbed Interface - now includes employee prop for notes tab */}
+        {/* Tabbed Interface - includes employee prop for notes tab */}
         <FormTabs control={form.control} isSubmitting={isSubmitting} employee={employee} />
 
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
@@ -124,4 +123,4 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
   );
 };
 
-export default EmployeeModalForm;
+export default EmployeeForm;

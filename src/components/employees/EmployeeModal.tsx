@@ -5,7 +5,7 @@ import { User } from '@/types/rbac';
 import { useRBAC } from '@/contexts/RBACContext';
 import { useToast } from '@/hooks/use-toast';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
-import EmployeeModalForm from './EmployeeModalForm';
+import EmployeeForm from './EmployeeForm';
 
 interface EmployeeModalProps {
   isOpen: boolean;
@@ -114,7 +114,7 @@ const EmployeeModal: React.FC<EmployeeModalProps> = ({ isOpen, onClose, employee
           </DialogDescription>
         </DialogHeader>
         
-        <EmployeeModalForm
+        <EmployeeForm
           employee={employee}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}

@@ -9,7 +9,7 @@ import { useUserMutations } from '@/hooks/users';
 import { User } from '@/types/rbac';
 import EmployeesLayout from './layout/EmployeesLayout';
 import EmployeesListOptimized from './EmployeesListOptimized';
-import EmployeeManagementModal from './EmployeeManagementModal';
+import EmployeeModal from './EmployeeModal';
 import EmployeeDeleteDialog from './EmployeeDeleteDialog';
 import EmployeesEnhancedSkeleton from './EmployeesEnhancedSkeleton';
 
@@ -154,7 +154,7 @@ const EmployeesPageContainer = () => {
 
   return (
     <>
-      <EmployeeManagementModal
+      <EmployeeModal
         isOpen={isModalOpen}
         onClose={handleModalClose}
         employee={selectedEmployee}

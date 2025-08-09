@@ -95,8 +95,8 @@ const EmployeeModalForm: React.FC<EmployeeModalFormProps> = ({
           />
         </div>
 
-        {/* Tabbed Interface - now passing employee data */}
-        <FormTabs control={form.control} isSubmitting={isSubmitting} employee={employee} />
+        {/* Tabbed Interface */}
+        <FormTabs control={form.control} isSubmitting={isSubmitting} />
 
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
           <Button

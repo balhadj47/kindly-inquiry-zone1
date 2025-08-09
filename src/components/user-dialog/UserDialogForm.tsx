@@ -14,7 +14,6 @@ import IdentityDocumentsSection from './IdentityDocumentsSection';
 import DriverLicenseSection from './DriverLicenseSection';
 import MedicalInfoSection from './MedicalInfoSection';
 import { User as UserIcon, IdCard, Car, Heart, Briefcase } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface UserDialogFormProps {
   user?: User | null;
@@ -29,6 +28,7 @@ interface UserDialogFormProps {
     showDriverFields: boolean;
     requireEmail: boolean;
   };
+  activeTab?: string;
 }
 
 interface FormData {
@@ -71,6 +71,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   isSubmitting,
   onCancel,
   config,
+  activeTab = 'personal',
 }) => {
   const [isEmailValid, setIsEmailValid] = useState(true);
   
@@ -156,148 +157,116 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   const shouldShowEmployeeSection = config.showEmployeeFields;
   const shouldShowDriverSection = config.showDriverFields;
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        {/* Compact profile section */}
-        <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
-          <ProfileImageSection
-            profileImage={form.watch('profileImage') || ''}
-            userName={form.watch('name')}
-            onImageChange={(url) => form.setValue('profileImage', url)}
-            isSubmitting={isSubmitting}
-          />
-        </div>
-
-        {/* Compact tabs with smaller colored icons */}
-        <TooltipProvider>
-          <Tabs defaultValue="basic" className="w-full">
-            <TabsList className="grid w-full h-10 p-1 bg-muted/50 border border-border/50" style={{
-              gridTemplateColumns: (shouldShowEmployeeSection || shouldShowDriverSection) 
-                ? 'repeat(5, 1fr)' 
-                : 'repeat(4, 1fr)'
-            }}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <TabsTrigger 
-                    value="basic" 
-                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-                  >
-                    <UserIcon className="h-3.5 w-3.5 text-blue-600" />
-                  </TabsTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Informations de base</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <TabsTrigger 
-                    value="identity"
-                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-                  >
-                    <IdCard className="h-3.5 w-3.5 text-purple-600" />
-                  </TabsTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Documents d'identité</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <TabsTrigger 
-                    value="license"
-                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-                  >
-                    <Car className="h-3.5 w-3.5 text-green-600" />
-                  </TabsTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Permis de conduire</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <TabsTrigger 
-                    value="medical"
-                    className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-                  >
-                    <Heart className="h-3.5 w-3.5 text-red-500" />
-                  </TabsTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Informations médicales</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <TabsTrigger 
-                      value="details"
-                      className="flex items-center justify-center py-2 px-2 data-[state=active]:bg-background data-[state=active]:shadow-sm transition-all duration-200"
-                    >
-                      <Briefcase className="h-3.5 w-3.5 text-orange-600" />
-                    </TabsTrigger>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Détails professionnels</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </TabsList>
+  // Render content based on active tab
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'personal':
+        return (
+          <div className="space-y-6">
+            {/* Profile Photo Section */}
+            <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
+              <ProfileImageSection
+                profileImage={form.watch('profileImage') || ''}
+                userName={form.watch('name')}
+                onImageChange={(url) => form.setValue('profileImage', url)}
+                isSubmitting={isSubmitting}
+              />
+            </div>
             
-            <TabsContent value="basic" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+            {/* Basic Information */}
+            <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <BasicInfoSection 
                 control={form.control} 
                 isSubmitting={isSubmitting} 
                 isEmailRequired={config.requireEmail}
               />
-            </TabsContent>
-            
-            <TabsContent value="identity" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+            </div>
+          </div>
+        );
+        
+      case 'documents':
+        return (
+          <div className="space-y-6">
+            {/* Identity Documents */}
+            <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <IdCard className="h-5 w-5 text-purple-600" />
+                <h3 className="text-lg font-semibold">Documents d'identité</h3>
+              </div>
               <IdentityDocumentsSection 
                 control={form.control} 
                 isSubmitting={isSubmitting} 
               />
-            </TabsContent>
+            </div>
             
-            <TabsContent value="license" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+            {/* Driver License */}
+            <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Car className="h-5 w-5 text-green-600" />
+                <h3 className="text-lg font-semibold">Permis de conduire</h3>
+              </div>
               <DriverLicenseSection 
                 control={form.control} 
                 isSubmitting={isSubmitting} 
               />
-            </TabsContent>
+            </div>
+          </div>
+        );
+        
+      case 'professional':
+        return (
+          <div className="space-y-6">
+            {/* Employee Details */}
+            {shouldShowEmployeeSection && (
+              <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Briefcase className="h-5 w-5 text-green-600" />
+                  <h3 className="text-lg font-semibold">Informations employé</h3>
+                </div>
+                <EmployeeDetailsSection 
+                  control={form.control} 
+                  isSubmitting={isSubmitting} 
+                />
+              </div>
+            )}
             
-            <TabsContent value="medical" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
+            {/* Driver Details */}
+            {shouldShowDriverSection && (
+              <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Car className="h-5 w-5 text-blue-600" />
+                  <h3 className="text-lg font-semibold">Informations chauffeur</h3>
+                </div>
+                <DriverDetailsSection 
+                  control={form.control} 
+                  isSubmitting={isSubmitting} 
+                />
+              </div>
+            )}
+            
+            {/* Medical Information */}
+            <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
+              <div className="flex items-center gap-2 mb-4">
+                <Heart className="h-5 w-5 text-red-500" />
+                <h3 className="text-lg font-semibold">Informations médicales</h3>
+              </div>
               <MedicalInfoSection 
                 control={form.control} 
                 isSubmitting={isSubmitting} 
               />
-            </TabsContent>
-            
-            {(shouldShowEmployeeSection || shouldShowDriverSection) && (
-              <TabsContent value="details" className="mt-4 bg-card/50 rounded-lg p-3 sm:p-4 border border-border/50 space-y-4">
-                {shouldShowEmployeeSection && (
-                  <EmployeeDetailsSection 
-                    control={form.control} 
-                    isSubmitting={isSubmitting} 
-                  />
-                )}
-                
-                {shouldShowDriverSection && (
-                  <DriverDetailsSection 
-                    control={form.control} 
-                    isSubmitting={isSubmitting} 
-                  />
-                )}
-              </TabsContent>
-            )}
-          </Tabs>
-        </TooltipProvider>
+            </div>
+          </div>
+        );
+        
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        {renderTabContent()}
 
         {/* Save/Cancel buttons at bottom */}
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">

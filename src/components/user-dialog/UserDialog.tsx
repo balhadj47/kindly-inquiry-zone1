@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { User, FileText, IdCard, Briefcase, Heart, Camera } from 'lucide-react';
+import { User, FileText, IdCard, Briefcase, Heart } from 'lucide-react';
 import { User as UserType } from '@/types/rbac';
 import UserDialogForm from './UserDialogForm';
 import EmployeeNotesTab from './EmployeeNotesTab';
@@ -25,7 +25,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
   userType = 'user',
   onRefresh
 }) => {
-  const [activeTab, setActiveTab] = useState('basic');
+  const [activeTab, setActiveTab] = useState('personal');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const permissions = useEmployeePermissions();
   const { updateUser, addUser } = useRBAC();
@@ -112,53 +112,47 @@ const UserDialog: React.FC<UserDialogProps> = ({
         
         <div className="flex-1 overflow-hidden">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
-            <TabsList className="grid w-full grid-cols-6">
-              <TabsTrigger value="basic" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Informations</span>
+            <TabsList className={`grid w-full ${showNotesTab ? 'grid-cols-4' : 'grid-cols-3'}`}>
+              <TabsTrigger value="personal" className="flex items-center gap-2">
+                <User className="h-4 w-4 text-blue-600" />
+                <span className="hidden sm:inline">Personnel</span>
               </TabsTrigger>
-              <TabsTrigger value="identity" className="flex items-center gap-2">
-                <IdCard className="h-4 w-4" />
-                <span className="hidden sm:inline">Identité</span>
+              <TabsTrigger value="documents" className="flex items-center gap-2">
+                <IdCard className="h-4 w-4 text-purple-600" />
+                <span className="hidden sm:inline">Documents</span>
               </TabsTrigger>
               <TabsTrigger value="professional" className="flex items-center gap-2">
-                <Briefcase className="h-4 w-4" />
+                <Briefcase className="h-4 w-4 text-green-600" />
                 <span className="hidden sm:inline">Professionnel</span>
-              </TabsTrigger>
-              <TabsTrigger value="medical" className="flex items-center gap-2">
-                <Heart className="h-4 w-4" />
-                <span className="hidden sm:inline">Médical</span>
-              </TabsTrigger>
-              <TabsTrigger value="photo" className="flex items-center gap-2">
-                <Camera className="h-4 w-4" />
-                <span className="hidden sm:inline">Photo</span>
               </TabsTrigger>
               {showNotesTab && (
                 <TabsTrigger value="notes" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
+                  <FileText className="h-4 w-4 text-orange-600" />
                   <span className="hidden sm:inline">Notes</span>
                 </TabsTrigger>
               )}
             </TabsList>
             
             <div className="flex-1 overflow-hidden">
-              <TabsContent value="basic" className="h-full overflow-auto">
+              <TabsContent value="personal" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
                   config={getConfig()}
+                  activeTab="personal"
                 />
               </TabsContent>
               
-              <TabsContent value="identity" className="h-full overflow-auto">
+              <TabsContent value="documents" className="h-full overflow-auto">
                 <UserDialogForm 
                   user={user} 
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
                   config={getConfig()}
+                  activeTab="documents"
                 />
               </TabsContent>
               
@@ -169,26 +163,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
                   config={getConfig()}
-                />
-              </TabsContent>
-              
-              <TabsContent value="medical" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  onSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
-                  onCancel={handleCancel}
-                  config={getConfig()}
-                />
-              </TabsContent>
-              
-              <TabsContent value="photo" className="h-full overflow-auto">
-                <UserDialogForm 
-                  user={user} 
-                  onSubmit={handleSubmit}
-                  isSubmitting={isSubmitting}
-                  onCancel={handleCancel}
-                  config={getConfig()}
+                  activeTab="professional"
                 />
               </TabsContent>
               

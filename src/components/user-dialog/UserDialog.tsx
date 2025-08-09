@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { User, FileText, IdCard, Briefcase, Heart } from 'lucide-react';
@@ -30,6 +30,22 @@ const UserDialog: React.FC<UserDialogProps> = ({
   const permissions = useEmployeePermissions();
   const { updateUser, addUser } = useRBAC();
   const { toast } = useToast();
+
+  // Memoize config to prevent unnecessary re-renders
+  const config = useMemo(() => {
+    const baseConfig = {
+      title: user ? 
+        `Modifier ${userType === 'employee' ? 'l\'employé' : userType === 'driver' ? 'le chauffeur' : 'l\'utilisateur'}` :
+        `Ajouter ${userType === 'employee' ? 'un employé' : userType === 'driver' ? 'un chauffeur' : 'un utilisateur'}`,
+      description: user ? 'Modifier les informations' : 'Créer un nouvel utilisateur',
+      defaultRoleId: userType === 'employee' ? 2 : userType === 'driver' ? 3 : 4, // Default role IDs
+      requireEmail: true,
+      showEmployeeFields: userType === 'employee',
+      showDriverFields: userType === 'driver',
+    };
+
+    return baseConfig;
+  }, [user, userType]);
 
   const handleSuccess = () => {
     if (onRefresh) {
@@ -85,7 +101,8 @@ const UserDialog: React.FC<UserDialogProps> = ({
         variant: 'destructive',
       });
       
-      // Don't close the dialog on error - let user fix the issue
+      // Re-throw to prevent dialog from closing
+      throw error;
     } finally {
       setIsSubmitting(false);
     }
@@ -107,21 +124,6 @@ const UserDialog: React.FC<UserDialogProps> = ({
       return `Modifier les informations de ${user.name || 'cet utilisateur'}`;
     }
     return `Créer un nouveau ${userType === 'employee' ? 'employé' : userType === 'driver' ? 'chauffeur' : 'utilisateur'} dans le système`;
-  };
-
-  const getConfig = () => {
-    const baseConfig = {
-      title: getDialogTitle(),
-      description: user ? 'Modifier les informations' : 'Créer un nouvel utilisateur',
-      defaultRoleId: userType === 'employee' ? 2 : userType === 'driver' ? 3 : 4, // Default role IDs
-      requireEmail: true,
-    };
-
-    return {
-      ...baseConfig,
-      showEmployeeFields: userType === 'employee',
-      showDriverFields: userType === 'driver',
-    };
   };
 
   const showNotesTab = user && userType === 'employee' && permissions.hasUsersReadPermission;
@@ -174,7 +176,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
-                  config={getConfig()}
+                  config={config}
                   activeTab="personal"
                 />
               </TabsContent>
@@ -185,7 +187,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
-                  config={getConfig()}
+                  config={config}
                   activeTab="documents"
                 />
               </TabsContent>
@@ -196,7 +198,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
                   onCancel={handleCancel}
-                  config={getConfig()}
+                  config={config}
                   activeTab="professional"
                 />
               </TabsContent>

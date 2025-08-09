@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -91,31 +91,41 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   
+  // Memoize default values to prevent re-initialization
+  const defaultValues = useMemo(() => ({
+    name: user?.name || '',
+    email: extractStringValue(user?.email) || '',
+    phone: user?.phone || '',
+    status: user?.status || 'Active' as UserStatus,
+    profileImage: extractStringValue(user?.profileImage) || '',
+    badgeNumber: extractStringValue(user?.badgeNumber) || '',
+    dateOfBirth: extractStringValue(user?.dateOfBirth) || '',
+    placeOfBirth: extractStringValue(user?.placeOfBirth) || '',
+    address: extractStringValue(user?.address) || '',
+    driverLicense: extractStringValue(user?.driverLicense) || '',
+    // New fields with proper mapping and safe extraction
+    identificationNational: extractStringValue((user as any)?.identification_national) || '',
+    carteNational: extractStringValue((user as any)?.carte_national) || '',
+    carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date) || '',
+    carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date) || '',
+    driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date) || '',
+    driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date) || '',
+    driverLicenseCategory: extractArrayValue((user as any)?.driver_license_category),
+    driverLicenseCategoryDates: extractObjectValue((user as any)?.driver_license_category_dates),
+    bloodType: extractStringValue((user as any)?.blood_type) || '',
+    companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date) || '',
+  }), [user]);
+  
   const form = useForm<FormData>({
-    defaultValues: {
-      name: user?.name || '',
-      email: extractStringValue(user?.email) || '',
-      phone: user?.phone || '',
-      status: user?.status || 'Active',
-      profileImage: extractStringValue(user?.profileImage) || '',
-      badgeNumber: extractStringValue(user?.badgeNumber) || '',
-      dateOfBirth: extractStringValue(user?.dateOfBirth) || '',
-      placeOfBirth: extractStringValue(user?.placeOfBirth) || '',
-      address: extractStringValue(user?.address) || '',
-      driverLicense: extractStringValue(user?.driverLicense) || '',
-      // New fields with proper mapping and safe extraction
-      identificationNational: extractStringValue((user as any)?.identification_national) || '',
-      carteNational: extractStringValue((user as any)?.carte_national) || '',
-      carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date) || '',
-      carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date) || '',
-      driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date) || '',
-      driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date) || '',
-      driverLicenseCategory: extractArrayValue((user as any)?.driver_license_category),
-      driverLicenseCategoryDates: extractObjectValue((user as any)?.driver_license_category_dates),
-      bloodType: extractStringValue((user as any)?.blood_type) || '',
-      companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date) || '',
-    },
+    defaultValues,
+    mode: 'onChange', // Enable real-time validation
   });
+
+  // Reset form only when user changes (not on tab changes)
+  useEffect(() => {
+    console.log('🔄 UserDialogForm - User changed, resetting form with:', defaultValues);
+    form.reset(defaultValues);
+  }, [user?.id, form, defaultValues]);
 
   const watchedEmail = form.watch('email') || '';
 
@@ -149,7 +159,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       // Map form data to proper field names and include the default role_id
       const submitData = {
         name: data.name,
-        email: data.email,
+        email: data.email || null,
         phone: data.phone || null,
         status: data.status,
         profileImage: finalProfileImageValue,
@@ -178,7 +188,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       console.log('✅ UserDialogForm - User form submitted successfully');
       
       // Only reset form on successful submission
-      form.reset();
+      form.reset(defaultValues);
     } catch (error) {
       console.error('❌ UserDialogForm - Error submitting user form:', error);
       

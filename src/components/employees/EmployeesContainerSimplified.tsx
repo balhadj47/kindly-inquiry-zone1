@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useUsersByRoleId } from '@/hooks/users';
-import { useEmployeeDataProcessor } from './data/EmployeeDataProcessor';
+import { useProcessedEmployees } from './EmployeesDataTransformer';
 import { useEmployeeFiltering } from './data/EmployeeFiltering';
 import { useEmployeePermissions } from '@/hooks/useEmployeePermissions';
 import { useCacheRefresh } from '@/hooks/useCacheRefresh';
@@ -29,8 +29,8 @@ const EmployeesContainerSimplified = () => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState<User | null>(null);
   
-  // Data processing
-  const { employees } = useEmployeeDataProcessor(rawEmployeesData || []);
+  // Data processing - now using the standardized transformer
+  const employees = useProcessedEmployees(rawEmployeesData || []);
   const { filteredEmployees } = useEmployeeFiltering(employees, searchTerm, statusFilter);
   const permissions = useEmployeePermissions();
 

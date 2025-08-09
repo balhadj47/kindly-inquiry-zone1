@@ -2,6 +2,7 @@
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Camera, X } from 'lucide-react';
 
 interface ProfileImageSectionProps {
@@ -17,87 +18,127 @@ const ProfileImageSection: React.FC<ProfileImageSectionProps> = ({
   onImageChange,
   isSubmitting,
 }) => {
-  const userInitials = userName
-    ? userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-    : 'U';
+  const [imageUrl, setImageUrl] = React.useState(profileImage || '');
+  const [isEditing, setIsEditing] = React.useState(false);
 
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const result = e.target?.result as string;
-        console.log('📤 Setting image from FileReader:', result ? 'Data URL loaded' : 'No data');
-        onImageChange(result);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setImageUrl(e.target.value);
+  };
+
+  const handleSaveImage = () => {
+    onImageChange(imageUrl);
+    setIsEditing(false);
+  };
+
+  const handleCancelEdit = () => {
+    setImageUrl(profileImage || '');
+    setIsEditing(false);
   };
 
   const handleRemoveImage = () => {
-    console.log('🗑️ Removing image - setting empty string');
+    setImageUrl('');
     onImageChange('');
+    setIsEditing(false);
+  };
+
+  // Get user initials for fallback
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(n => n[0])
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
-    <div className="flex flex-col items-center space-y-4">
-      <div className="relative">
-        <Avatar className="h-24 w-24 ring-4 ring-white shadow-lg">
-          <AvatarImage src={profileImage} />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xl">
-            {userInitials}
-          </AvatarFallback>
-        </Avatar>
-        
-        {profileImage && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="icon"
-            className="absolute -top-2 -right-2 h-6 w-6 rounded-full"
-            onClick={handleRemoveImage}
-            disabled={isSubmitting}
-          >
-            <X className="h-3 w-3" />
-          </Button>
-        )}
+    <div className="space-y-6">
+      <div className="border-b border-border/50 pb-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          📸 Photo de profil
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Image représentant l'utilisateur
+        </p>
       </div>
-      
-      <div className="flex items-center space-x-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={() => document.getElementById('profile-image-upload')?.click()}
-          disabled={isSubmitting}
-          className="flex items-center space-x-2"
-        >
-          <Camera className="h-4 w-4" />
-          <span>Changer la photo</span>
-        </Button>
-        
-        {profileImage && (
-          <Button
-            type="button"
-            variant="destructive"
-            size="sm"
-            onClick={handleRemoveImage}
-            disabled={isSubmitting}
-            className="flex items-center space-x-2"
-          >
-            <X className="h-4 w-4" />
-            <span>Supprimer</span>
-          </Button>
+
+      <div className="flex flex-col items-center space-y-4">
+        {/* Avatar Display */}
+        <div className="relative">
+          <Avatar className="w-24 h-24 border-4 border-border/50">
+            <AvatarImage src={profileImage} alt={userName || 'User'} />
+            <AvatarFallback className="text-xl font-semibold bg-muted text-muted-foreground">
+              {userName ? getInitials(userName) : 'U'}
+            </AvatarFallback>
+          </Avatar>
+          
+          {!isEditing && (
+            <Button
+              type="button"
+              size="sm"
+              className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+              onClick={() => setIsEditing(true)}
+              disabled={isSubmitting}
+            >
+              <Camera className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+
+        {/* Image URL Input (when editing) */}
+        {isEditing && (
+          <div className="w-full max-w-md space-y-3">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">URL de l'image</label>
+              <Input
+                type="url"
+                placeholder="https://exemple.com/image.jpg"
+                value={imageUrl}
+                onChange={handleImageChange}
+                disabled={isSubmitting}
+                className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+              />
+            </div>
+            
+            <div className="flex justify-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                onClick={handleSaveImage}
+                disabled={isSubmitting}
+              >
+                Enregistrer
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={isSubmitting}
+              >
+                Annuler
+              </Button>
+              {profileImage && (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="destructive"
+                  onClick={handleRemoveImage}
+                  disabled={isSubmitting}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </div>
         )}
-        
-        <input
-          id="profile-image-upload"
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="hidden"
-          disabled={isSubmitting}
-        />
+
+        {/* Info Text */}
+        {!isEditing && (
+          <p className="text-xs text-muted-foreground text-center max-w-xs">
+            Cliquez sur l'icône caméra pour modifier la photo de profil
+          </p>
+        )}
       </div>
     </div>
   );

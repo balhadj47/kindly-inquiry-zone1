@@ -17,52 +17,70 @@ const MedicalInfoSection: React.FC<MedicalInfoSectionProps> = ({
   const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Informations médicales</h3>
-      
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <FormField
-          control={control}
-          name="bloodType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Groupe sanguin</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value} disabled={isSubmitting}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner un groupe sanguin" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {bloodTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="space-y-6">
+      <div className="border-b border-border/50 pb-4">
+        <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+          ❤️ Informations médicales
+        </h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          Informations médicales et de santé
+        </p>
+      </div>
 
-        <FormField
-          control={control}
-          name="companyAssignmentDate"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Date d'affectation à l'entreprise</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="date"
+      <div className="bg-muted/20 rounded-lg p-4 border border-border/30">
+        <h4 className="text-sm font-medium text-foreground mb-4 flex items-center gap-2">
+          🩸 Groupe sanguin
+        </h4>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={control}
+            name="bloodType"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">Groupe sanguin</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
                   disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                >
+                  <FormControl>
+                    <SelectTrigger className="transition-all duration-200 focus:ring-2 focus:ring-primary/20">
+                      <SelectValue placeholder="Sélectionner un groupe sanguin" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {bloodTypes.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {type}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={control}
+            name="companyAssignmentDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="text-sm font-medium">📅 Date d'affectation</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="date"
+                    disabled={isSubmitting}
+                    className="transition-all duration-200 focus:ring-2 focus:ring-primary/20"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
       </div>
     </div>
   );

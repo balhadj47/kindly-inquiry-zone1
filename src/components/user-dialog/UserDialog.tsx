@@ -38,26 +38,20 @@ const UserDialog: React.FC<UserDialogProps> = ({
         `Modifier ${userType === 'employee' ? 'l\'employé' : userType === 'driver' ? 'le chauffeur' : 'l\'utilisateur'}` :
         `Ajouter ${userType === 'employee' ? 'un employé' : userType === 'driver' ? 'un chauffeur' : 'un utilisateur'}`,
       description: user ? 'Modifier les informations' : 'Créer un nouvel utilisateur',
-      defaultRoleId: userType === 'employee' ? 2 : userType === 'driver' ? 3 : 4, // Default role IDs
+      defaultRoleId: userType === 'employee' ? 2 : userType === 'driver' ? 3 : 4,
       requireEmail: true,
       showEmployeeFields: userType === 'employee',
       showDriverFields: userType === 'driver',
     };
 
     return baseConfig;
-  }, [user?.id, userType]); // Only depend on user.id and userType
-
-  const handleSuccess = () => {
-    if (onRefresh) {
-      onRefresh();
-    }
-    onClose();
-  };
+  }, [user?.id, userType]);
 
   const handleSubmit = async (userData: Partial<UserType>) => {
     setIsSubmitting(true);
+    
     try {
-      console.log('🔍 UserDialog - Starting submit with data:', userData);
+      console.log('🔍 UserDialog - Starting submit with data:', Object.keys(userData));
       
       if (user) {
         console.log('📝 UserDialog - Updating user:', user.id);
@@ -76,32 +70,20 @@ const UserDialog: React.FC<UserDialogProps> = ({
       }
       
       console.log('✅ UserDialog - Operation completed successfully');
-      handleSuccess();
+      
+      // Refresh and close only on success
+      if (onRefresh) {
+        onRefresh();
+      }
+      onClose();
+      
     } catch (error) {
       console.error('❌ UserDialog - Error saving user:', error);
       
-      let errorMessage = 'Impossible de sauvegarder l\'utilisateur';
+      // Don't show toast here - let the form handle error display
+      // Just re-throw the error so the form can handle it
+      throw error;
       
-      if (error instanceof Error) {
-        // Don't show the generic error message if we have a specific one
-        if (error.message.includes('Cette adresse email') || 
-            error.message.includes('Cette valeur est déjà') ||
-            error.message.includes('permissions nécessaires') ||
-            error.message.includes('Erreur de sécurité') ||
-            error.message.includes('Format de données invalide')) {
-          errorMessage = error.message;
-        } else if (error.message && error.message !== 'Cette adresse email est déjà utilisée par un autre utilisateur') {
-          errorMessage = error.message;
-        }
-      }
-      
-      toast({
-        title: 'Erreur',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      
-      // Don't re-throw - let the form handle the error display
     } finally {
       setIsSubmitting(false);
     }

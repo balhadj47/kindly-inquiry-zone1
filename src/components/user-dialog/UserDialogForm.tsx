@@ -43,7 +43,6 @@ interface FormData {
   placeOfBirth?: string;
   address?: string;
   driverLicense?: string;
-  // New fields
   identificationNational?: string;
   carteNational?: string;
   carteNationalStartDate?: string;
@@ -56,7 +55,7 @@ interface FormData {
   companyAssignmentDate?: string;
 }
 
-// Helper function to safely extract string values
+// Helper functions remain the same
 const extractStringValue = (value: any): string => {
   if (value === null || value === undefined) return '';
   if (typeof value === 'string') return value;
@@ -66,14 +65,12 @@ const extractStringValue = (value: any): string => {
   return '';
 };
 
-// Helper function to safely extract array values
 const extractArrayValue = (value: any): string[] => {
   if (Array.isArray(value)) return value;
   if (value === null || value === undefined) return [];
   return [];
 };
 
-// Helper function to safely extract object values
 const extractObjectValue = (value: any): Record<string, any> => {
   if (typeof value === 'object' && value !== null && !Array.isArray(value)) return value;
   return {};
@@ -87,13 +84,14 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   config,
   activeTab = 'personal',
 }) => {
-  const [isEmailValid, setIsEmailValid] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [hasSubmitFailed, setHasSubmitFailed] = useState(false);
   
-  // Memoize default values with stable references - only recalculate when user.id changes
+  // Create stable default values - only recalculate when user changes
   const defaultValues = useMemo(() => {
-    console.log('🔄 UserDialogForm - Creating default values for user:', user?.id);
-    return {
+    console.log('🔄 UserDialogForm - Creating default values for user:', user?.id || 'new user');
+    
+    const values = {
       name: user?.name || '',
       email: extractStringValue(user?.email),
       phone: user?.phone || '',
@@ -104,7 +102,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       placeOfBirth: extractStringValue(user?.placeOfBirth),
       address: extractStringValue(user?.address),
       driverLicense: extractStringValue(user?.driverLicense),
-      // New fields with proper mapping and safe extraction
       identificationNational: extractStringValue((user as any)?.identification_national),
       carteNational: extractStringValue((user as any)?.carte_national),
       carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date),
@@ -116,44 +113,47 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       bloodType: extractStringValue((user as any)?.blood_type),
       companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date),
     };
-  }, [user?.id]); // Only depend on user.id to prevent unnecessary recalculations
+    
+    console.log('✅ UserDialogForm - Default values created:', Object.keys(values));
+    return values;
+  }, [user?.id, user?.name, user?.email, user?.phone]); // Minimal dependencies
   
   const form = useForm<FormData>({
     defaultValues,
     mode: 'onChange',
   });
 
-  // Only reset form when user ID changes, not on every render
+  // Reset form only when user changes or on initial load
   useEffect(() => {
-    console.log('🔄 UserDialogForm - User ID changed, resetting form:', user?.id);
-    form.reset(defaultValues);
-  }, [user?.id, form.reset]); // Remove defaultValues from dependencies
+    if (!hasSubmitFailed) { // Don't reset if there was a submit failure
+      console.log('🔄 UserDialogForm - Resetting form for user:', user?.id || 'new user');
+      form.reset(defaultValues);
+    }
+  }, [user?.id, form, defaultValues, hasSubmitFailed]);
 
-  const watchedEmail = form.watch('email') || '';
+  // Clear error when form data changes
+  useEffect(() => {
+    if (submitError && !hasSubmitFailed) {
+      setSubmitError(null);
+    }
+  }, [form.watch(), submitError, hasSubmitFailed]);
 
   const handleSubmit = useCallback(async (data: FormData) => {
-    console.log('🔍 UserDialogForm - Submitting user form with data:', data);
-    setSubmitError(null);
+    console.log('🔍 UserDialogForm - Starting form submission with data:', Object.keys(data));
     
     try {
-      // Safely handle profile image
-      const profileImageValue = data.profileImage?.trim() || undefined;
+      setSubmitError(null);
+      setHasSubmitFailed(false);
+      
+      // Process profile image safely
+      const profileImageValue = data.profileImage?.trim() || null;
       
       console.log('🖼️ UserDialogForm - Processing profileImage:', { 
         original: data.profileImage, 
         final: profileImageValue 
       });
       
-      // Create clean copies to avoid circular references
-      const cleanDriverLicenseCategory = Array.isArray(data.driverLicenseCategory) 
-        ? [...data.driverLicenseCategory] 
-        : [];
-      
-      const cleanDriverLicenseCategoryDates = data.driverLicenseCategoryDates && typeof data.driverLicenseCategoryDates === 'object'
-        ? JSON.parse(JSON.stringify(data.driverLicenseCategoryDates))
-        : {};
-      
-      // Map form data to proper field names
+      // Create clean data for submission
       const submitData = {
         name: data.name,
         email: data.email || null,
@@ -166,32 +166,36 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         address: data.address || null,
         driverLicense: data.driverLicense || null,
         role_id: config.defaultRoleId,
-        // Map to database field names
         identification_national: data.identificationNational || null,
         carte_national: data.carteNational || null,
         carte_national_start_date: data.carteNationalStartDate || null,
         carte_national_expiry_date: data.carteNationalExpiryDate || null,
         driver_license_start_date: data.driverLicenseStartDate || null,
         driver_license_expiry_date: data.driverLicenseExpiryDate || null,
-        driver_license_category: cleanDriverLicenseCategory.length > 0 ? cleanDriverLicenseCategory : null,
-        driver_license_category_dates: Object.keys(cleanDriverLicenseCategoryDates).length > 0 ? cleanDriverLicenseCategoryDates : null,
+        driver_license_category: data.driverLicenseCategory?.length ? [...data.driverLicenseCategory] : null,
+        driver_license_category_dates: data.driverLicenseCategoryDates && Object.keys(data.driverLicenseCategoryDates).length 
+          ? JSON.parse(JSON.stringify(data.driverLicenseCategoryDates)) 
+          : null,
         blood_type: data.bloodType || null,
         company_assignment_date: data.companyAssignmentDate || null,
       };
       
-      console.log('🚀 UserDialogForm - Final submit data:', submitData);
+      console.log('🚀 UserDialogForm - Submitting data to parent:', Object.keys(submitData));
       
       await onSubmit(submitData);
-      console.log('✅ UserDialogForm - User form submitted successfully');
+      
+      console.log('✅ UserDialogForm - Submission successful');
+      
+      // Only reset form after successful submission
+      setHasSubmitFailed(false);
       
     } catch (error) {
-      console.error('❌ UserDialogForm - Error submitting user form:', error);
+      console.error('❌ UserDialogForm - Submission failed:', error);
       
-      // Handle specific errors and show them to the user
+      setHasSubmitFailed(true);
+      
+      // Handle specific errors
       if (error instanceof Error) {
-        console.error('❌ Error message:', error.message);
-        console.error('❌ Error stack:', error.stack);
-        
         if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
           if (error.message.includes('email')) {
             setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente.');
@@ -208,22 +212,29 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           setSubmitError(`Erreur: ${error.message}`);
         }
       } else {
-        console.error('❌ Unknown error type:', typeof error, error);
         setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
       }
       
-      // Don't re-throw - keep the form open to show the error
-      return;
+      // Do NOT reset form on error - keep user data
+      console.log('❌ UserDialogForm - Keeping form data after error');
     }
   }, [onSubmit, config.defaultRoleId]);
 
+  const watchedEmail = form.watch('email') || '';
+
   const canSubmit = () => {
     if (isSubmitting) return false;
-    if (config.requireEmail && (!watchedEmail?.trim() || !isEmailValid)) return false;
+    if (config.requireEmail && (!watchedEmail?.trim())) return false;
     return true;
   };
 
-  // Determine if we should show advanced sections based on config
+  const handleCancel = () => {
+    setSubmitError(null);
+    setHasSubmitFailed(false);
+    onCancel();
+  };
+
+  // Determine which sections to show
   const shouldShowEmployeeSection = config.showEmployeeFields;
   const shouldShowDriverSection = config.showDriverFields;
 
@@ -233,7 +244,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'personal':
         return (
           <div className="space-y-6">
-            {/* Error Alert */}
             {submitError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -241,7 +251,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               </Alert>
             )}
 
-            {/* Profile Photo Section */}
             <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
               <ProfileImageSection
                 profileImage={form.watch('profileImage') || ''}
@@ -254,7 +263,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               />
             </div>
             
-            {/* Basic Information */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <BasicInfoSection 
                 control={form.control} 
@@ -268,7 +276,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'documents':
         return (
           <div className="space-y-6">
-            {/* Error Alert */}
             {submitError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -276,7 +283,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               </Alert>
             )}
 
-            {/* Identity Documents */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <IdCard className="h-5 w-5 text-purple-600" />
@@ -288,7 +294,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               />
             </div>
             
-            {/* Driver License */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Car className="h-5 w-5 text-green-600" />
@@ -305,7 +310,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'professional':
         return (
           <div className="space-y-6">
-            {/* Error Alert */}
             {submitError && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
@@ -313,7 +317,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               </Alert>
             )}
 
-            {/* Employee Details */}
             {shouldShowEmployeeSection && (
               <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
                 <div className="flex items-center gap-2 mb-4">
@@ -327,7 +330,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               </div>
             )}
             
-            {/* Driver Details */}
             {shouldShowDriverSection && (
               <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
                 <div className="flex items-center gap-2 mb-4">
@@ -341,7 +343,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               </div>
             )}
             
-            {/* Medical Information */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <Heart className="h-5 w-5 text-red-500" />
@@ -365,15 +366,11 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         {renderTabContent()}
 
-        {/* Save/Cancel buttons at bottom */}
         <DialogFooter className="flex flex-col-reverse sm:flex-row gap-2 sm:gap-0 sm:space-x-2 pt-6 mt-6 border-t border-border/50">
           <Button
             type="button"
             variant="outline"
-            onClick={() => {
-              setSubmitError(null);
-              onCancel();
-            }}
+            onClick={handleCancel}
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >

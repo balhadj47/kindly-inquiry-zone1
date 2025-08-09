@@ -3,25 +3,31 @@ import React from 'react';
 import { Control } from 'react-hook-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { User as UserIcon, IdCard, Car, Heart } from 'lucide-react';
+import { User as UserIcon, IdCard, Car, Heart, FileText } from 'lucide-react';
+import { User } from '@/types/rbac';
 import BasicInfoSection from './BasicInfoSection';
 import IdentityDocumentsSection from './IdentityDocumentsSection';
 import DriverLicenseSection from './DriverLicenseSection';
 import MedicalInfoSection from '../../user-dialog/MedicalInfoSection';
+import EmployeeNotesTab from './EmployeeNotesTab';
 
 interface FormTabsProps {
   control: Control<any>;
   isSubmitting: boolean;
+  employee?: User | null;
 }
 
 const FormTabs: React.FC<FormTabsProps> = ({
   control,
   isSubmitting,
+  employee,
 }) => {
+  const showNotesTab = !!employee; // Only show notes tab when editing existing employee
+
   return (
     <TooltipProvider>
       <Tabs defaultValue="basic" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-12 bg-gray-100 rounded-lg border border-gray-200">
+        <TabsList className={`grid w-full ${showNotesTab ? 'grid-cols-5' : 'grid-cols-4'} h-12 bg-gray-100 rounded-lg border border-gray-200`}>
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger 
@@ -81,6 +87,23 @@ const FormTabs: React.FC<FormTabsProps> = ({
               <p>Informations médicales</p>
             </TooltipContent>
           </Tooltip>
+
+          {showNotesTab && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <TabsTrigger 
+                  value="notes"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-orange-600 data-[state=active]:shadow-sm hover:text-orange-500"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden sm:inline">Notes</span>
+                </TabsTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <p>Historique des notes</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
         </TabsList>
         
         {/* Basic Info Tab */}
@@ -102,6 +125,13 @@ const FormTabs: React.FC<FormTabsProps> = ({
         <TabsContent value="medical" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
           <MedicalInfoSection control={control} isSubmitting={isSubmitting} />
         </TabsContent>
+
+        {/* Notes Tab */}
+        {showNotesTab && (
+          <TabsContent value="notes" className="mt-4 p-6 bg-white rounded-lg border border-gray-200">
+            <EmployeeNotesTab employee={employee} />
+          </TabsContent>
+        )}
       </Tabs>
     </TooltipProvider>
   );

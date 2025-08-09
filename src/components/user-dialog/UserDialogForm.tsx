@@ -13,6 +13,8 @@ import ProfileImageSection from './ProfileImageSection';
 import IdentityDocumentsSection from './IdentityDocumentsSection';
 import DriverLicenseSection from './DriverLicenseSection';
 import MedicalInfoSection from './MedicalInfoSection';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 import { User as UserIcon, IdCard, Car, Heart, Briefcase } from 'lucide-react';
 
 interface UserDialogFormProps {
@@ -87,6 +89,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   activeTab = 'personal',
 }) => {
   const [isEmailValid, setIsEmailValid] = useState(true);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   
   const form = useForm<FormData>({
     defaultValues: {
@@ -119,6 +122,7 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   const handleSubmit = async (data: FormData) => {
     try {
       console.log('🔍 UserDialogForm - Submitting user form with data:', data);
+      setSubmitError(null);
       
       // Safely handle profile image - ensure it's a string or undefined
       const profileImageValue = data.profileImage;
@@ -127,6 +131,11 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       if (profileImageValue && typeof profileImageValue === 'string' && profileImageValue.trim() !== '') {
         finalProfileImageValue = profileImageValue.trim();
       }
+      
+      console.log('🖼️ UserDialogForm - Processing profileImage:', { 
+        original: profileImageValue, 
+        final: finalProfileImageValue 
+      });
       
       // Create a clean copy of driver license categories to avoid circular references
       const cleanDriverLicenseCategory = Array.isArray(data.driverLicenseCategory) 
@@ -167,10 +176,39 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       
       await onSubmit(submitData);
       console.log('✅ UserDialogForm - User form submitted successfully');
+      
+      // Only reset form on successful submission
       form.reset();
     } catch (error) {
       console.error('❌ UserDialogForm - Error submitting user form:', error);
-      // Don't throw the error here, let the parent component handle it
+      
+      // Handle specific errors and show them to the user
+      if (error instanceof Error) {
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error stack:', error.stack);
+        
+        if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+          if (error.message.includes('email')) {
+            setSubmitError('Cette adresse email est déjà utilisée par un autre utilisateur. Veuillez utiliser une adresse email différente.');
+          } else {
+            setSubmitError('Cette valeur est déjà utilisée. Veuillez en choisir une autre.');
+          }
+        } else if (error.message.includes('permission')) {
+          setSubmitError('Vous n\'avez pas les permissions nécessaires pour effectuer cette action.');
+        } else if (error.message.includes('violates row-level security')) {
+          setSubmitError('Erreur de sécurité lors de l\'enregistrement. Vérifiez vos permissions.');
+        } else if (error.message.includes('invalid input syntax')) {
+          setSubmitError('Format de données invalide. Vérifiez les dates et autres champs.');
+        } else {
+          setSubmitError(`Erreur: ${error.message}`);
+        }
+      } else {
+        console.error('❌ Unknown error type:', typeof error, error);
+        setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
+      }
+      
+      // Re-throw the error so the parent component knows it failed
+      throw error;
     }
   };
 
@@ -190,6 +228,14 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'personal':
         return (
           <div className="space-y-6">
+            {/* Error Alert */}
+            {submitError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
             {/* Profile Photo Section */}
             <div className="bg-muted/30 rounded-lg p-4 border border-border/50">
               <ProfileImageSection
@@ -217,6 +263,14 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'documents':
         return (
           <div className="space-y-6">
+            {/* Error Alert */}
+            {submitError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
             {/* Identity Documents */}
             <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
               <div className="flex items-center gap-2 mb-4">
@@ -246,6 +300,14 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       case 'professional':
         return (
           <div className="space-y-6">
+            {/* Error Alert */}
+            {submitError && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{submitError}</AlertDescription>
+              </Alert>
+            )}
+
             {/* Employee Details */}
             {shouldShowEmployeeSection && (
               <div className="bg-card/50 rounded-lg p-4 border border-border/50 space-y-4">
@@ -303,7 +365,10 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
           <Button
             type="button"
             variant="outline"
-            onClick={onCancel}
+            onClick={() => {
+              setSubmitError(null);
+              onCancel();
+            }}
             disabled={isSubmitting}
             className="w-full sm:w-auto"
           >

@@ -41,27 +41,51 @@ const UserDialog: React.FC<UserDialogProps> = ({
   const handleSubmit = async (userData: Partial<UserType>) => {
     setIsSubmitting(true);
     try {
+      console.log('🔍 UserDialog - Starting submit with data:', userData);
+      
       if (user) {
+        console.log('📝 UserDialog - Updating user:', user.id);
         await updateUser(user.id.toString(), userData);
         toast({
           title: 'Succès',
           description: 'Utilisateur modifié avec succès',
         });
       } else {
+        console.log('➕ UserDialog - Creating new user');
         await addUser(userData);
         toast({
           title: 'Succès',
           description: 'Utilisateur créé avec succès',
         });
       }
+      
+      console.log('✅ UserDialog - Operation completed successfully');
       handleSuccess();
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('❌ UserDialog - Error saving user:', error);
+      
+      let errorMessage = 'Impossible de sauvegarder l\'utilisateur';
+      
+      if (error instanceof Error) {
+        // Don't show the generic error message if we have a specific one
+        if (error.message.includes('Cette adresse email') || 
+            error.message.includes('Cette valeur est déjà') ||
+            error.message.includes('permissions nécessaires') ||
+            error.message.includes('Erreur de sécurité') ||
+            error.message.includes('Format de données invalide')) {
+          errorMessage = error.message;
+        } else if (error.message && error.message !== 'Cette adresse email est déjà utilisée par un autre utilisateur') {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: 'Erreur',
-        description: 'Impossible de sauvegarder l\'utilisateur',
+        description: errorMessage,
         variant: 'destructive',
       });
+      
+      // Don't close the dialog on error - let user fix the issue
     } finally {
       setIsSubmitting(false);
     }

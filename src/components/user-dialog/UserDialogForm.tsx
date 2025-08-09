@@ -65,6 +65,19 @@ const extractStringValue = (value: any): string | undefined => {
   return undefined;
 };
 
+// Helper function to safely extract array values
+const extractArrayValue = (value: any): string[] => {
+  if (Array.isArray(value)) return value;
+  if (value === null || value === undefined) return [];
+  return [];
+};
+
+// Helper function to safely extract object values
+const extractObjectValue = (value: any): Record<string, any> => {
+  if (typeof value === 'object' && value !== null && !Array.isArray(value)) return value;
+  return {};
+};
+
 const UserDialogForm: React.FC<UserDialogFormProps> = ({
   user,
   onSubmit,
@@ -87,15 +100,15 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       placeOfBirth: extractStringValue(user?.placeOfBirth) || '',
       address: extractStringValue(user?.address) || '',
       driverLicense: extractStringValue(user?.driverLicense) || '',
-      // New fields with proper mapping
+      // New fields with proper mapping and safe extraction
       identificationNational: extractStringValue((user as any)?.identification_national) || '',
       carteNational: extractStringValue((user as any)?.carte_national) || '',
       carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date) || '',
       carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date) || '',
       driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date) || '',
       driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date) || '',
-      driverLicenseCategory: (user as any)?.driver_license_category || [],
-      driverLicenseCategoryDates: (user as any)?.driver_license_category_dates || {},
+      driverLicenseCategory: extractArrayValue((user as any)?.driver_license_category),
+      driverLicenseCategoryDates: extractObjectValue((user as any)?.driver_license_category_dates),
       bloodType: extractStringValue((user as any)?.blood_type) || '',
       companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date) || '',
     },
@@ -105,45 +118,59 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
 
   const handleSubmit = async (data: FormData) => {
     try {
-      console.log('Submitting user form with data:', data);
+      console.log('🔍 UserDialogForm - Submitting user form with data:', data);
       
       // Safely handle profile image - ensure it's a string or undefined
       const profileImageValue = data.profileImage;
       let finalProfileImageValue: string | undefined = undefined;
       
-      if (profileImageValue) {
-        if (typeof profileImageValue === 'string') {
-          finalProfileImageValue = profileImageValue;
-        } else if (typeof profileImageValue === 'object' && profileImageValue !== null && 'value' in profileImageValue) {
-          const extractedValue = (profileImageValue as any).value;
-          finalProfileImageValue = typeof extractedValue === 'string' ? extractedValue : undefined;
-        }
+      if (profileImageValue && typeof profileImageValue === 'string' && profileImageValue.trim() !== '') {
+        finalProfileImageValue = profileImageValue.trim();
       }
+      
+      // Create a clean copy of driver license categories to avoid circular references
+      const cleanDriverLicenseCategory = Array.isArray(data.driverLicenseCategory) 
+        ? [...data.driverLicenseCategory] 
+        : [];
+      
+      const cleanDriverLicenseCategoryDates = data.driverLicenseCategoryDates && typeof data.driverLicenseCategoryDates === 'object'
+        ? JSON.parse(JSON.stringify(data.driverLicenseCategoryDates))
+        : {};
       
       // Map form data to proper field names and include the default role_id
       const submitData = {
-        ...data,
+        name: data.name,
+        email: data.email,
+        phone: data.phone || null,
+        status: data.status,
         profileImage: finalProfileImageValue,
-        role_id: config.defaultRoleId, // Use the default role from config
-        identification_national: data.identificationNational,
-        carte_national: data.carteNational,
-        carte_national_start_date: data.carteNationalStartDate,
-        carte_national_expiry_date: data.carteNationalExpiryDate,
-        driver_license_start_date: data.driverLicenseStartDate,
-        driver_license_expiry_date: data.driverLicenseExpiryDate,
-        driver_license_category: data.driverLicenseCategory,
-        driver_license_category_dates: data.driverLicenseCategoryDates,
-        blood_type: data.bloodType,
-        company_assignment_date: data.companyAssignmentDate,
+        badgeNumber: data.badgeNumber || null,
+        dateOfBirth: data.dateOfBirth || null,
+        placeOfBirth: data.placeOfBirth || null,
+        address: data.address || null,
+        driverLicense: data.driverLicense || null,
+        role_id: config.defaultRoleId,
+        // Map to database field names
+        identification_national: data.identificationNational || null,
+        carte_national: data.carteNational || null,
+        carte_national_start_date: data.carteNationalStartDate || null,
+        carte_national_expiry_date: data.carteNationalExpiryDate || null,
+        driver_license_start_date: data.driverLicenseStartDate || null,
+        driver_license_expiry_date: data.driverLicenseExpiryDate || null,
+        driver_license_category: cleanDriverLicenseCategory.length > 0 ? cleanDriverLicenseCategory : null,
+        driver_license_category_dates: Object.keys(cleanDriverLicenseCategoryDates).length > 0 ? cleanDriverLicenseCategoryDates : null,
+        blood_type: data.bloodType || null,
+        company_assignment_date: data.companyAssignmentDate || null,
       };
       
-      console.log('Final submit data:', submitData);
+      console.log('🚀 UserDialogForm - Final submit data:', submitData);
       
       await onSubmit(submitData);
-      console.log('User form submitted successfully');
+      console.log('✅ UserDialogForm - User form submitted successfully');
       form.reset();
     } catch (error) {
-      console.error('Error submitting user form:', error);
+      console.error('❌ UserDialogForm - Error submitting user form:', error);
+      // Don't throw the error here, let the parent component handle it
     }
   };
 
@@ -168,7 +195,10 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
               <ProfileImageSection
                 profileImage={form.watch('profileImage') || ''}
                 userName={form.watch('name')}
-                onImageChange={(url) => form.setValue('profileImage', url)}
+                onImageChange={(url) => {
+                  console.log('🖼️ UserDialogForm - Profile image changed:', url);
+                  form.setValue('profileImage', url);
+                }}
                 isSubmitting={isSubmitting}
               />
             </div>

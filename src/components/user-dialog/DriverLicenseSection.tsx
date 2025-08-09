@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Control, useWatch } from 'react-hook-form';
+import { Control, useWatch, useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -20,6 +20,10 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [expiryDate, setExpiryDate] = useState<string>('');
+
+  // Get form context for setValue access
+  const formContext = useFormContext();
+  const setValue = formContext?.setValue;
 
   const licenseCategories = ['A', 'A1', 'A2', 'B', 'BE', 'C', 'CE', 'C1', 'C1E', 'D', 'DE', 'D1', 'D1E'];
 
@@ -47,18 +51,82 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
     control,
     name: 'driverLicenseCategory',
     defaultValue: []
-  });
+  }) || [];
 
   const currentCategoryDates = useWatch({
     control,
     name: 'driverLicenseCategoryDates',
     defaultValue: {}
-  });
+  }) || {};
 
   // Get available categories (not already added)
   const availableCategories = licenseCategories.filter(
-    category => !currentCategories?.includes(category)
+    category => !currentCategories.includes(category)
   );
+
+  const handleAddCategory = () => {
+    if (!selectedCategory || !startDate || !setValue) {
+      console.warn('🔴 Cannot add category: missing data or setValue function');
+      return;
+    }
+
+    try {
+      // Create clean copies to avoid circular references
+      const updatedCategories = [...currentCategories, selectedCategory];
+      
+      const updatedDates = {
+        ...currentCategoryDates,
+        [selectedCategory]: {
+          start: startDate,
+          expiry: expiryDate || undefined
+        }
+      };
+
+      console.log('🔍 DriverLicenseSection - Adding category:', selectedCategory);
+      console.log('🔍 DriverLicenseSection - Updated categories:', updatedCategories);
+      console.log('🔍 DriverLicenseSection - Updated dates:', updatedDates);
+
+      // Update form values
+      setValue('driverLicenseCategory', updatedCategories);
+      setValue('driverLicenseCategoryDates', updatedDates);
+
+      // Reset form
+      setSelectedCategory('');
+      setStartDate('');
+      setExpiryDate('');
+      
+      console.log('✅ DriverLicenseSection - Category added successfully:', selectedCategory);
+    } catch (error) {
+      console.error('🔴 DriverLicenseSection - Error adding category:', error);
+    }
+  };
+
+  const handleRemoveCategory = (category: string) => {
+    if (!setValue) {
+      console.warn('🔴 Cannot remove category: missing setValue function');
+      return;
+    }
+
+    try {
+      // Create clean copies to avoid circular references
+      const updatedCategories = currentCategories.filter((cat: string) => cat !== category);
+      
+      const updatedDates = { ...currentCategoryDates };
+      delete updatedDates[category];
+
+      console.log('🔍 DriverLicenseSection - Removing category:', category);
+      console.log('🔍 DriverLicenseSection - Updated categories:', updatedCategories);
+      console.log('🔍 DriverLicenseSection - Updated dates:', updatedDates);
+
+      // Update form values
+      setValue('driverLicenseCategory', updatedCategories);
+      setValue('driverLicenseCategoryDates', updatedDates);
+      
+      console.log('✅ DriverLicenseSection - Category removed successfully:', category);
+    } catch (error) {
+      console.error('🔴 DriverLicenseSection - Error removing category:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -164,61 +232,17 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
               />
             </div>
 
-            {/* Add Button - Updated with proper form field update */}
-            <FormField
-              control={control}
-              name="driverLicenseCategory"
-              render={({ field: categoryField }) => (
-                <FormField
-                  control={control}
-                  name="driverLicenseCategoryDates"
-                  render={({ field: datesField }) => (
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        if (!selectedCategory || !startDate) {
-                          console.warn('🔴 Cannot add category: missing data');
-                          return;
-                        }
-
-                        try {
-                          // Add to categories array
-                          const updatedCategories = [...(categoryField.value || []), selectedCategory];
-                          
-                          // Add to dates object
-                          const updatedDates = {
-                            ...(datesField.value || {}),
-                            [selectedCategory]: {
-                              start: startDate,
-                              expiry: expiryDate
-                            }
-                          };
-
-                          // Update form values
-                          categoryField.onChange(updatedCategories);
-                          datesField.onChange(updatedDates);
-
-                          // Reset form
-                          setSelectedCategory('');
-                          setStartDate('');
-                          setExpiryDate('');
-                          
-                          console.log('✅ Category added successfully:', selectedCategory);
-                        } catch (error) {
-                          console.error('🔴 Error adding category:', error);
-                        }
-                      }}
-                      disabled={!selectedCategory || !startDate || isSubmitting}
-                      size="sm"
-                      className="h-9"
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Ajouter
-                    </Button>
-                  )}
-                />
-              )}
-            />
+            {/* Add Button */}
+            <Button
+              type="button"
+              onClick={handleAddCategory}
+              disabled={!selectedCategory || !startDate || isSubmitting || !setValue}
+              size="sm"
+              className="h-9"
+            >
+              <Plus className="h-4 w-4 mr-1" />
+              Ajouter
+            </Button>
           </div>
         </div>
 
@@ -258,46 +282,17 @@ const DriverLicenseSection: React.FC<DriverLicenseSectionProps> = ({
                       </div>
                     </div>
                     
-                    {/* Remove Button - Updated with proper form field update */}
-                    <FormField
-                      control={control}
-                      name="driverLicenseCategory"
-                      render={({ field: categoryField }) => (
-                        <FormField
-                          control={control}
-                          name="driverLicenseCategoryDates"
-                          render={({ field: datesField }) => (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                try {
-                                  // Remove from categories array
-                                  const updatedCategories = (categoryField.value || []).filter((cat: string) => cat !== category);
-                                  
-                                  // Remove from dates object
-                                  const updatedDates = { ...(datesField.value || {}) };
-                                  delete updatedDates[category];
-
-                                  // Update form values
-                                  categoryField.onChange(updatedCategories);
-                                  datesField.onChange(updatedDates);
-                                  
-                                  console.log('✅ Category removed successfully:', category);
-                                } catch (error) {
-                                  console.error('🔴 Error removing category:', error);
-                                }
-                              }}
-                              disabled={isSubmitting}
-                              className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          )}
-                        />
-                      )}
-                    />
+                    {/* Remove Button */}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveCategory(category)}
+                      disabled={isSubmitting || !setValue}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
                   </div>
                 );
               })}

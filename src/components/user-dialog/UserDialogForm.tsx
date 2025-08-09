@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -58,13 +57,13 @@ interface FormData {
 }
 
 // Helper function to safely extract string values
-const extractStringValue = (value: any): string | undefined => {
-  if (value === null || value === undefined) return undefined;
+const extractStringValue = (value: any): string => {
+  if (value === null || value === undefined) return '';
   if (typeof value === 'string') return value;
   if (typeof value === 'object' && value !== null && 'value' in value) {
-    return typeof value.value === 'string' ? value.value : undefined;
+    return typeof value.value === 'string' ? value.value : '';
   }
-  return undefined;
+  return '';
 };
 
 // Helper function to safely extract array values
@@ -91,63 +90,61 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
   const [isEmailValid, setIsEmailValid] = useState(true);
   const [submitError, setSubmitError] = useState<string | null>(null);
   
-  // Memoize default values to prevent re-initialization
-  const defaultValues = useMemo(() => ({
-    name: user?.name || '',
-    email: extractStringValue(user?.email) || '',
-    phone: user?.phone || '',
-    status: user?.status || 'Active' as UserStatus,
-    profileImage: extractStringValue(user?.profileImage) || '',
-    badgeNumber: extractStringValue(user?.badgeNumber) || '',
-    dateOfBirth: extractStringValue(user?.dateOfBirth) || '',
-    placeOfBirth: extractStringValue(user?.placeOfBirth) || '',
-    address: extractStringValue(user?.address) || '',
-    driverLicense: extractStringValue(user?.driverLicense) || '',
-    // New fields with proper mapping and safe extraction
-    identificationNational: extractStringValue((user as any)?.identification_national) || '',
-    carteNational: extractStringValue((user as any)?.carte_national) || '',
-    carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date) || '',
-    carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date) || '',
-    driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date) || '',
-    driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date) || '',
-    driverLicenseCategory: extractArrayValue((user as any)?.driver_license_category),
-    driverLicenseCategoryDates: extractObjectValue((user as any)?.driver_license_category_dates),
-    bloodType: extractStringValue((user as any)?.blood_type) || '',
-    companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date) || '',
-  }), [user]);
+  // Memoize default values with stable references - only recalculate when user.id changes
+  const defaultValues = useMemo(() => {
+    console.log('🔄 UserDialogForm - Creating default values for user:', user?.id);
+    return {
+      name: user?.name || '',
+      email: extractStringValue(user?.email),
+      phone: user?.phone || '',
+      status: user?.status || 'Active' as UserStatus,
+      profileImage: extractStringValue(user?.profileImage),
+      badgeNumber: extractStringValue(user?.badgeNumber),
+      dateOfBirth: extractStringValue(user?.dateOfBirth),
+      placeOfBirth: extractStringValue(user?.placeOfBirth),
+      address: extractStringValue(user?.address),
+      driverLicense: extractStringValue(user?.driverLicense),
+      // New fields with proper mapping and safe extraction
+      identificationNational: extractStringValue((user as any)?.identification_national),
+      carteNational: extractStringValue((user as any)?.carte_national),
+      carteNationalStartDate: extractStringValue((user as any)?.carte_national_start_date),
+      carteNationalExpiryDate: extractStringValue((user as any)?.carte_national_expiry_date),
+      driverLicenseStartDate: extractStringValue((user as any)?.driver_license_start_date),
+      driverLicenseExpiryDate: extractStringValue((user as any)?.driver_license_expiry_date),
+      driverLicenseCategory: extractArrayValue((user as any)?.driver_license_category),
+      driverLicenseCategoryDates: extractObjectValue((user as any)?.driver_license_category_dates),
+      bloodType: extractStringValue((user as any)?.blood_type),
+      companyAssignmentDate: extractStringValue((user as any)?.company_assignment_date),
+    };
+  }, [user?.id]); // Only depend on user.id to prevent unnecessary recalculations
   
   const form = useForm<FormData>({
     defaultValues,
-    mode: 'onChange', // Enable real-time validation
+    mode: 'onChange',
   });
 
-  // Reset form only when user changes (not on tab changes)
+  // Only reset form when user ID changes, not on every render
   useEffect(() => {
-    console.log('🔄 UserDialogForm - User changed, resetting form with:', defaultValues);
+    console.log('🔄 UserDialogForm - User ID changed, resetting form:', user?.id);
     form.reset(defaultValues);
-  }, [user?.id, form, defaultValues]);
+  }, [user?.id, form.reset]); // Remove defaultValues from dependencies
 
   const watchedEmail = form.watch('email') || '';
 
-  const handleSubmit = async (data: FormData) => {
+  const handleSubmit = useCallback(async (data: FormData) => {
+    console.log('🔍 UserDialogForm - Submitting user form with data:', data);
+    setSubmitError(null);
+    
     try {
-      console.log('🔍 UserDialogForm - Submitting user form with data:', data);
-      setSubmitError(null);
-      
-      // Safely handle profile image - ensure it's a string or undefined
-      const profileImageValue = data.profileImage;
-      let finalProfileImageValue: string | undefined = undefined;
-      
-      if (profileImageValue && typeof profileImageValue === 'string' && profileImageValue.trim() !== '') {
-        finalProfileImageValue = profileImageValue.trim();
-      }
+      // Safely handle profile image
+      const profileImageValue = data.profileImage?.trim() || undefined;
       
       console.log('🖼️ UserDialogForm - Processing profileImage:', { 
-        original: profileImageValue, 
-        final: finalProfileImageValue 
+        original: data.profileImage, 
+        final: profileImageValue 
       });
       
-      // Create a clean copy of driver license categories to avoid circular references
+      // Create clean copies to avoid circular references
       const cleanDriverLicenseCategory = Array.isArray(data.driverLicenseCategory) 
         ? [...data.driverLicenseCategory] 
         : [];
@@ -156,13 +153,13 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         ? JSON.parse(JSON.stringify(data.driverLicenseCategoryDates))
         : {};
       
-      // Map form data to proper field names and include the default role_id
+      // Map form data to proper field names
       const submitData = {
         name: data.name,
         email: data.email || null,
         phone: data.phone || null,
         status: data.status,
-        profileImage: finalProfileImageValue,
+        profileImage: profileImageValue,
         badgeNumber: data.badgeNumber || null,
         dateOfBirth: data.dateOfBirth || null,
         placeOfBirth: data.placeOfBirth || null,
@@ -187,8 +184,6 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
       await onSubmit(submitData);
       console.log('✅ UserDialogForm - User form submitted successfully');
       
-      // Only reset form on successful submission
-      form.reset(defaultValues);
     } catch (error) {
       console.error('❌ UserDialogForm - Error submitting user form:', error);
       
@@ -217,10 +212,10 @@ const UserDialogForm: React.FC<UserDialogFormProps> = ({
         setSubmitError('Une erreur inattendue s\'est produite. Veuillez réessayer.');
       }
       
-      // Re-throw the error so the parent component knows it failed
-      throw error;
+      // Don't re-throw - keep the form open to show the error
+      return;
     }
-  };
+  }, [onSubmit, config.defaultRoleId]);
 
   const canSubmit = () => {
     if (isSubmitting) return false;

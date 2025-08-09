@@ -45,7 +45,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
     };
 
     return baseConfig;
-  }, [user, userType]);
+  }, [user?.id, userType]); // Only depend on user.id and userType
 
   const handleSuccess = () => {
     if (onRefresh) {
@@ -101,8 +101,7 @@ const UserDialog: React.FC<UserDialogProps> = ({
         variant: 'destructive',
       });
       
-      // Re-throw to prevent dialog from closing
-      throw error;
+      // Don't re-throw - let the form handle the error display
     } finally {
       setIsSubmitting(false);
     }

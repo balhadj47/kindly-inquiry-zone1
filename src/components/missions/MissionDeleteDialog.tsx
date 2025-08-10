@@ -33,6 +33,14 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
   if (!mission) return null;
 
   const getDriverInfo = (driverName: string) => {
+    if (!driverName || driverName.trim() === '') {
+      return {
+        name: 'Conducteur non défini',
+        role: null,
+        firstName: 'Conducteur'
+      };
+    }
+
     const roleMatch = driverName.match(/^(.+?)\s*\((.+?)\)$/);
     if (roleMatch) {
       const [, name, role] = roleMatch;
@@ -51,10 +59,13 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
   };
 
   const getMissionTitle = (mission: Trip) => {
+    const company = mission.company || 'Entreprise inconnue';
+    const branch = mission.branch || 'Succursale inconnue';
     const driverInfo = getDriverInfo(mission.driver);
+    
     return isMobile 
-      ? `${mission.company} - ${driverInfo.firstName}`
-      : `${mission.company} - ${mission.branch} - ${driverInfo.firstName}`;
+      ? `${company} - ${driverInfo.firstName}`
+      : `${company} - ${branch} - ${driverInfo.firstName}`;
   };
 
   return (

@@ -1,22 +1,19 @@
-
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useFastVanData } from '@/hooks/useFastVanData';
-import { useMissionsPermissions } from './MissionsPermissions';
+import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
-import { useTripMutationsOptimized } from '@/hooks/trips/useTripMutationsOptimized';
-import { useVanRefreshService } from '@/hooks/useVanRefreshService';
+import { useTripWizard } from '@/hooks/useTripWizard';
+import { useDialogState } from '@/hooks/useDialogState';
 import { useRealtimeCache } from '@/hooks/useRealtimeCache';
-import MissionsHeader from './MissionsHeader';
+import { isVanDataCached } from '@/services/vanCacheService';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
-
+import MissionTerminateDialog from './MissionTerminateDialog';
 import { Trip } from '@/contexts/TripContext';
 
 const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
@@ -38,20 +35,20 @@ const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
   userRoles: databaseTrip.user_roles || [],
   timestamp: databaseTrip.created_at || new Date().toISOString(),
   companies_data: databaseTrip.companies_data || [],
+  planned_start_date: databaseTrip.planned_start_date,
+  planned_end_date: databaseTrip.planned_end_date,
+  start_km: databaseTrip.start_km,
+  end_km: databaseTrip.end_km,
 });
 
 const MissionsContainerOptimized = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
+  const [terminateDialog, setTerminateDialog] = useState<{
+    isOpen: boolean;
+    mission: Trip | null;
+  }>({ isOpen: false, mission: null });
 
-  const { user: authUser } = useAuth();
-  const { isVanDataCached } = useFastVanData();
-  const { forceRefreshVans } = useVanRefreshService();
-  const permissions = useMissionsPermissions();
-  const { createTrip } = useTripMutationsOptimized();
-  
-  // Initialize real-time cache invalidation
   const { invalidateAll } = useRealtimeCache();
   
   const {
@@ -60,32 +57,33 @@ const MissionsContainerOptimized = () => {
     isLoading: isActionLoading
   } = useMissionsActionsOptimized();
 
-  // Use React Query for trips data with improved caching
-  const { data: trips = [], isLoading, error, refetch } = useQuery({
+  const { 
+    dialogState: detailsDialog,
+    openDialog: openDetailsDialog,
+    closeDialog: closeDetailsDialog
+  } = useDialogState<Trip>();
+
+  const permissions = useMissionsPermissions();
+  const showVanLoadingWarning = !isVanDataCached();
+
+  const {
+    isOpen: isNewTripOpen,
+    openDialog: openNewTrip,
+    closeDialog: closeNewTrip
+  } = useTripWizard();
+
+  const {
+    data: tripsData,
+    isLoading,
+    error,
+    refetch,
+    isFetching
+  } = useQuery({
     queryKey: ['trips'],
-    queryFn: async (): Promise<Trip[]> => {
-      console.log('🚗 Fetching trips with React Query...');
-      const startTime = performance.now();
-      
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('trips')
-        .select(`
-          id,
-          van,
-          driver,
-          company,
-          branch,
-          created_at,
-          notes,
-          user_ids,
-          user_roles,
-          start_km,
-          end_km,
-          status,
-          planned_start_date,
-          planned_end_date,
-          companies_data
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -93,162 +91,168 @@ const MissionsContainerOptimized = () => {
         throw error;
       }
 
-      const endTime = performance.now();
-      console.log('🚗 Fetched trips in:', endTime - startTime, 'ms');
-      
-      return (data || []).map(transformDatabaseToTrip);
+      return data;
     },
-    staleTime: 5000, // 5 seconds for mission-critical data
-    gcTime: 30000, // Keep in cache for 30 seconds
-    refetchOnWindowFocus: true, // Enable window focus refetch
+    select: (data) => {
+      return data.map(transformDatabaseToTrip);
+    },
+    onSuccess: () => {
+      console.log('✅ Trips fetched successfully');
+    },
+    onError: (err) => {
+      console.error('❌ Error fetching trips:', err);
+    },
   });
 
-  const showVanLoadingWarning = !isVanDataCached();
+  const handleEditMission = useCallback((mission: Trip) => {
+    openDetailsDialog(mission);
+  }, [openDetailsDialog]);
 
-  const handleAddMission = () => {
-    setIsNewMissionDialogOpen(true);
-  };
+  const handleTerminateClick = useCallback((mission: Trip) => {
+    setTerminateDialog({
+      isOpen: true,
+      mission
+    });
+  }, []);
 
-  const handleEditMission = (mission: Trip) => {
-    // Implementation for edit functionality
-  };
+  const handleTerminateConfirm = useCallback(async (mission: Trip, finalKm: number) => {
+    await handleTerminateMission(mission, finalKm);
+  }, [handleTerminateMission]);
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
-  };
+  const handleTerminateClose = useCallback(() => {
+    setTerminateDialog({
+      isOpen: false,
+      mission: null
+    });
+  }, []);
 
-  const handleRefresh = async () => {
-    console.log('🔄 Manual refresh triggered');
-    
-    // Use the cache invalidation system for coordinated refresh
-    await Promise.all([
-      refetch(),
-      forceRefreshVans(),
-      invalidateAll()
-    ]);
-    
-    console.log('✅ Manual refresh completed');
-  };
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+    invalidateAll();
+  }, [refetch, invalidateAll]);
+
+  const filteredMissions = useMemo(() => {
+    if (!tripsData) return [];
+
+    let filtered = [...tripsData];
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      filtered = filtered.filter(mission =>
+        mission.company?.toLowerCase().includes(term) ||
+        mission.branch?.toLowerCase().includes(term) ||
+        mission.driver?.toLowerCase().includes(term) ||
+        mission.van?.toLowerCase().includes(term)
+      );
+    }
+
+    if (statusFilter !== 'all') {
+      filtered = filtered.filter(mission => mission.status === statusFilter);
+    }
+
+    return filtered;
+  }, [tripsData, searchTerm, statusFilter]);
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des missions...</div>
-      </div>
-    );
-  }
-
-  if (!authUser) {
-    return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
-        <p className="text-gray-600">Vous devez être connecté pour accéder aux missions.</p>
-      </div>
-    );
-  }
-
-  // Check for permission errors
-  const getErrorMessage = (error: unknown): string => {
-    if (typeof error === 'string') return error;
-    if (error && typeof error === 'object' && 'message' in error) {
-      return String((error as any).message);
-    }
-    return '';
-  };
-
-  const showPermissionError = error && getErrorMessage(error).includes('Insufficient permissions');
-
-  if (showPermissionError || !permissions.canRead) {
-    return (
-      <div className="h-full flex flex-col">
-        <div className="mb-6">
-          <MissionsHeader missionsCount={0} />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Chargement des missions...</p>
         </div>
+      </div>
+    );
+  }
 
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            <strong>Permissions insuffisantes</strong>
-            <br />
-            Vous n'avez pas les permissions nécessaires pour accéder à cette fonctionnalité.
-            Seuls les utilisateurs autorisés peuvent gérer les missions.
-          </AlertDescription>
-        </Alert>
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">Erreur lors du chargement des missions</p>
+        <Button onClick={handleRefresh} variant="outline">
+          Réessayer
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Missions</h1>
+          <p className="text-gray-600 mt-2">
+            Gérer et suivre toutes les missions en cours
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={isFetching}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+          {permissions.canCreate && (
+            <Button 
+              onClick={openNewTrip}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nouvelle Mission
+            </Button>
+          )}
+        </div>
+      </div>
+
       {showVanLoadingWarning && (
-        <Alert className="border-blue-200 bg-blue-50 mb-6">
-          <AlertTriangle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            Données des véhicules en cours de chargement pour optimiser les performances...
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            Les données des véhicules sont en cours de chargement. 
+            Certaines informations peuvent être temporairement indisponibles.
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <MissionsHeader missionsCount={trips.filter(trip => trip.status === 'active').length} />
-          <div className="flex items-center gap-3">
-            {permissions.canCreate && (
-              <Button 
-                onClick={handleAddMission} 
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Mission
-              </Button>
-            )}
-            <Button 
-              onClick={handleRefresh} 
-              disabled={isLoading}
-              variant="outline"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-          </div>
-        </div>
-      </div>
+      <MissionsFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onRefresh={handleRefresh}
+        isRefreshing={isFetching}
+      />
+      
+      <MissionsList
+        missions={filteredMissions}
+        loading={false}
+        searchTerm={searchTerm}
+        statusFilter={statusFilter}
+        onEditMission={handleEditMission}
+        onDeleteMission={handleDeleteMission}
+        onTerminateMission={handleTerminateClick}
+        canEdit={permissions.canEdit}
+        canDelete={permissions.canDelete}
+        actionLoading={isActionLoading ? 'loading' : null}
+      />
 
-      <div className="mb-6">
-        <MissionsFilters
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          clearFilters={clearFilters}
-          missions={trips}
-        />
-      </div>
-
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
-          <MissionsList
-            missions={trips}
-            searchTerm={searchTerm}
-            statusFilter={statusFilter}
-            onEditMission={handleEditMission}
-            onDeleteMission={handleDeleteMission}
-            onTerminateMission={(mission) => handleTerminateMission(mission, 0)}
-            canEdit={permissions.canEdit}
-            canDelete={permissions.canDelete}
-            actionLoading={isActionLoading ? 'loading' : null}
-          />
-        </div>
-      </div>
-
-      {permissions.canCreate && (
+      {isNewTripOpen && (
         <NewTripDialog
-          isOpen={isNewMissionDialogOpen}
-          onClose={() => setIsNewMissionDialogOpen(false)}
+          isOpen={isNewTripOpen}
+          onClose={closeNewTrip}
         />
       )}
 
+      <MissionTerminateDialog
+        mission={terminateDialog.mission}
+        isOpen={terminateDialog.isOpen}
+        onClose={handleTerminateClose}
+        onConfirm={handleTerminateConfirm}
+        isLoading={isActionLoading}
+      />
     </div>
   );
 };

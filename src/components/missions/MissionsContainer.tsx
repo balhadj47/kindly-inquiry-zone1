@@ -1,28 +1,34 @@
-
-import React, { useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import React, { useState, useCallback } from 'react';
+import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Plus, RefreshCw, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useTrip } from '@/contexts/TripContext';
-import { useFastVanData } from '@/hooks/useFastVanData';
-import { useMissionsPermissions } from './MissionsPermissions';
+import { useTrips } from '@/hooks/useTrips';
+import { useMissions } from '@/hooks/useMissions';
+import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActions } from './useMissionsActions';
-import MissionsHeader from './MissionsHeader';
+import { useTripWizard } from '@/hooks/useTripWizard';
+import { isVanDataCached } from '@/services/vanCacheService';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
-
+import MissionTerminateDialog from './MissionTerminateDialog';
 import { Trip } from '@/contexts/TripContext';
 
 const MissionsContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [isNewMissionDialogOpen, setIsNewMissionDialogOpen] = useState(false);
+  const [terminateDialog, setTerminateDialog] = useState<{
+    isOpen: boolean;
+    mission: Trip | null;
+  }>({ isOpen: false, mission: null });
 
-  const { user: authUser } = useAuth();
-  const { trips, loading, error } = useTrip();
-  const { isVanDataCached } = useFastVanData();
+  const { missions, loading, error } = useTrips();
+  const { 
+    selectedMission, 
+    setSelectedMission,
+    isDetailsDialogOpen,
+    setIsDetailsDialogOpen 
+  } = useMissions();
   const permissions = useMissionsPermissions();
   const {
     isRefreshing,
@@ -33,132 +39,144 @@ const MissionsContainer = () => {
 
   const showVanLoadingWarning = !isVanDataCached();
 
-  const handleAddMission = () => {
-    setIsNewMissionDialogOpen(true);
-  };
+  const {
+    isOpen: isNewTripOpen,
+    openDialog: openNewTrip,
+    closeDialog: closeNewTrip
+  } = useTripWizard();
 
-  const handleEditMission = (mission: Trip) => {
-    // Implementation for edit functionality
-  };
+  const handleEditMission = useCallback((mission: Trip) => {
+    setSelectedMission(mission);
+    setIsDetailsDialogOpen(true);
+  }, [setSelectedMission, setIsDetailsDialogOpen]);
 
-  const clearFilters = () => {
-    setSearchTerm('');
-    setStatusFilter('all');
-  };
+  const handleTerminateClick = useCallback((mission: Trip) => {
+    setTerminateDialog({
+      isOpen: true,
+      mission
+    });
+  }, []);
+
+  const handleTerminateConfirm = useCallback(async (mission: Trip, finalKm: number) => {
+    await handleTerminateMission(mission, finalKm);
+  }, [handleTerminateMission]);
+
+  const handleTerminateClose = useCallback(() => {
+    setTerminateDialog({
+      isOpen: false,
+      mission: null
+    });
+  }, []);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-lg">Chargement des missions...</div>
-      </div>
-    );
-  }
-
-  if (!authUser) {
-    return (
-      <div className="text-center py-8">
-        <h2 className="text-xl font-semibold mb-2">Authentification requise</h2>
-        <p className="text-gray-600">Vous devez être connecté pour accéder aux missions.</p>
-      </div>
-    );
-  }
-
-  const showPermissionError = error && typeof error === 'string' && error.includes('Insufficient permissions');
-
-  if (showPermissionError || !permissions.canRead) {
-    return (
-      <div className="h-full flex flex-col">
-        {/* Fixed Header Section */}
-        <div className="flex-shrink-0 mb-6">
-          <MissionsHeader missionsCount={0} />
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Chargement des missions...</p>
         </div>
+      </div>
+    );
+  }
 
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            <strong>Permissions insuffisantes</strong>
-            <br />
-            Vous n'avez pas les permissions nécessaires pour accéder à cette fonctionnalité.
-            Seuls les utilisateurs autorisés peuvent gérer les missions.
-          </AlertDescription>
-        </Alert>
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 mb-4">Erreur lors du chargement des missions</p>
+        <Button onClick={handleRefresh} variant="outline">
+          Réessayer
+        </Button>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Missions</h1>
+          <p className="text-gray-600 mt-2">
+            Gérer et suivre toutes les missions en cours
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            size="sm"
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
+          {permissions.canCreate && (
+            <Button 
+              onClick={openNewTrip}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              Nouvelle Mission
+            </Button>
+          )}
+        </div>
+      </div>
+
       {showVanLoadingWarning && (
-        <Alert className="border-blue-200 bg-blue-50 mb-6">
-          <AlertTriangle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            Données des véhicules en cours de chargement pour optimiser les performances...
+        <Alert className="border-amber-200 bg-amber-50">
+          <AlertTriangle className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-800">
+            Les données des véhicules sont en cours de chargement. 
+            Certaines informations peuvent être temporairement indisponibles.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Fixed Header Section */}
-      <div className="flex-shrink-0 mb-6">
-        <div className="flex items-center justify-between">
-          <MissionsHeader missionsCount={trips?.length || 0} />
-          <div className="flex items-center gap-3">
-            {permissions.canCreate && (
-              <Button 
-                onClick={handleAddMission} 
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nouvelle Mission
-              </Button>
-            )}
-            <Button 
-              onClick={handleRefresh} 
-              disabled={isRefreshing}
-              variant="outline"
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Actualiser
-            </Button>
-          </div>
+      <MissionsFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        statusFilter={statusFilter}
+        onStatusFilterChange={setStatusFilter}
+        onRefresh={handleRefresh}
+        isRefreshing={isRefreshing}
+      />
+      
+      {error ? (
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">Erreur lors du chargement des missions</p>
+          <Button onClick={handleRefresh} variant="outline">
+            Réessayer
+          </Button>
         </div>
-      </div>
-
-      {/* Fixed Filters Section */}
-      <div className="flex-shrink-0 mb-6">
-        <MissionsFilters
+      ) : (
+        <MissionsList
+          missions={missions}
+          loading={loading}
           searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
           statusFilter={statusFilter}
-          setStatusFilter={setStatusFilter}
-          clearFilters={clearFilters}
-          missions={trips || []}
-        />
-      </div>
-
-      {/* Scrollable Content Area */}
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
-          <MissionsList
-            missions={trips || []}
-            searchTerm={searchTerm}
-            statusFilter={statusFilter}
-            onEditMission={handleEditMission}
-            onDeleteMission={handleDeleteMission}
-            onTerminateMission={(mission) => handleTerminateMission(mission, 0)}
-            canEdit={permissions.canEdit}
-            canDelete={permissions.canDelete}
-            actionLoading={isRefreshing ? 'loading' : null}
-          />
-        </div>
-      </div>
-
-      {permissions.canCreate && (
-        <NewTripDialog
-          isOpen={isNewMissionDialogOpen}
-          onClose={() => setIsNewMissionDialogOpen(false)}
+          onEditMission={handleEditMission}
+          onDeleteMission={handleDeleteMission}
+          onTerminateMission={handleTerminateClick}
+          canEdit={permissions.canEdit}
+          canDelete={permissions.canDelete}
+          actionLoading={isRefreshing ? 'loading' : null}
         />
       )}
 
+      {isNewTripOpen && (
+        <NewTripDialog
+          isOpen={isNewTripOpen}
+          onClose={closeNewTrip}
+        />
+      )}
+
+      <MissionTerminateDialog
+        mission={terminateDialog.mission}
+        isOpen={terminateDialog.isOpen}
+        onClose={handleTerminateClose}
+        onConfirm={handleTerminateConfirm}
+        isLoading={isRefreshing}
+      />
     </div>
   );
 };

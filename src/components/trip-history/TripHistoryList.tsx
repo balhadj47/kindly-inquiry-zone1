@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { type Trip } from '@/contexts/TripContext';
 import TripHistoryEmptyState from './TripHistoryEmptyState';
 import TripCard from './TripCard';
-import TripEndDialog from './TripEndDialog';
 import TripDeleteDialog from './TripDeleteDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -24,12 +23,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
   deletingTripId
 }) => {
   const isMobile = useIsMobile();
-  const [endDialogTrip, setEndDialogTrip] = useState<Trip | null>(null);
   const [deleteDialogTrip, setDeleteDialogTrip] = useState<Trip | null>(null);
-
-  const handleEndTrip = (trip: Trip) => {
-    setEndDialogTrip(trip);
-  };
 
   const handleDeleteTrip = (trip: Trip) => {
     setDeleteDialogTrip(trip);
@@ -62,7 +56,7 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
                 key={trip.id}
                 trip={trip}
                 onTripClick={onTripClick}
-                onEndTrip={handleEndTrip}
+                onEndTrip={() => {}} // Remove end trip functionality
                 onDeleteTrip={handleDeleteTrip}
                 deletingTripId={deletingTripId}
               />
@@ -70,12 +64,6 @@ const TripHistoryList: React.FC<TripHistoryListProps> = ({
           )}
         </CardContent>
       </Card>
-
-      <TripEndDialog
-        trip={endDialogTrip}
-        isOpen={!!endDialogTrip}
-        onClose={() => setEndDialogTrip(null)}
-      />
 
       <TripDeleteDialog
         trip={deleteDialogTrip}

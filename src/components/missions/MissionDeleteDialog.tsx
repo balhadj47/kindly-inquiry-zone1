@@ -12,8 +12,8 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { useVans } from '@/hooks/vans/useVansQuery';
-import { useUsers } from '@/hooks/users/useUsersQuery';
+import { useVans } from '@/hooks/useVansOptimized';
+import { useUsers } from '@/hooks/users';
 import { getDriverName, getCompanyDisplayText } from './utils/missionCardUtils';
 
 interface MissionDeleteDialogProps {
@@ -33,7 +33,8 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
 }) => {
   const isMobile = useIsMobile();
   const { data: vans = [] } = useVans();
-  const { data: users = [] } = useUsers();
+  const { data: usersData } = useUsers();
+  const users = usersData?.users || [];
 
   if (!mission) return null;
 

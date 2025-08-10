@@ -43,15 +43,9 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
     return van?.reference_code || vanId || 'Van inconnu';
   };
 
-  const getMissionTitle = (mission: Trip) => {
-    const driverName = getDriverName(mission, users);
-    const companyDisplayText = getCompanyDisplayText(mission);
-    const vanDisplayName = getVanDisplayName(mission.van);
-    
-    return isMobile 
-      ? `${companyDisplayText} - ${vanDisplayName}`
-      : `${companyDisplayText} - ${vanDisplayName} - ${driverName}`;
-  };
+  const driverName = getDriverName(mission, users);
+  const companyDisplayText = getCompanyDisplayText(mission);
+  const vanDisplayName = getVanDisplayName(mission.van);
 
   return (
     <AlertDialog open={isOpen} onOpenChange={onClose}>
@@ -61,8 +55,17 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
             Supprimer la mission
           </AlertDialogTitle>
           <AlertDialogDescription className={isMobile ? 'text-sm' : ''}>
-            Êtes-vous sûr de vouloir supprimer la mission "{getMissionTitle(mission)}" ? 
-            Cette action ne peut pas être annulée et libérera le véhicule pour d'autres missions.
+            <div className="space-y-2">
+              <p>Êtes-vous sûr de vouloir supprimer cette mission ?</p>
+              <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-left">
+                <div><strong>Entreprise:</strong> {companyDisplayText}</div>
+                <div><strong>Véhicule:</strong> {vanDisplayName}</div>
+                <div><strong>Chauffeur:</strong> {driverName}</div>
+              </div>
+              <p className="text-red-600 font-medium">
+                Cette action ne peut pas être annulée et libérera le véhicule pour d'autres missions.
+              </p>
+            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter className={isMobile ? 'flex-col gap-2' : ''}>

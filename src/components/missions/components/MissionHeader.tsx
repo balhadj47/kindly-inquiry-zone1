@@ -10,14 +10,34 @@ interface MissionHeaderProps {
 }
 
 const MissionHeader: React.FC<MissionHeaderProps> = ({ mission }) => {
+  // Get meaningful title - prefer mission ID over N/A company
+  const getTitle = () => {
+    if (mission.company && mission.company !== 'N/A') {
+      return mission.company;
+    }
+    return `Mission #${mission.id}`;
+  };
+
+  // Get meaningful subtitle - show branch if available, otherwise show van info
+  const getSubtitle = () => {
+    if (mission.branch && mission.branch !== 'N/A') {
+      return mission.branch;
+    }
+    // You could also show destination or van info as fallback
+    if (mission.destination) {
+      return `Destination: ${mission.destination}`;
+    }
+    return `Mission créée le ${new Date(mission.created_at || mission.timestamp).toLocaleDateString('fr-FR')}`;
+  };
+
   return (
     <div className="flex items-start justify-between">
       <div className="space-y-2">
         <DialogTitle className="text-2xl font-semibold text-gray-900">
-          {mission.company || 'Mission Details'}
+          {getTitle()}
         </DialogTitle>
         <DialogDescription className="text-base text-gray-600">
-          {mission.branch}
+          {getSubtitle()}
         </DialogDescription>
       </div>
       <div className="flex items-center gap-3">

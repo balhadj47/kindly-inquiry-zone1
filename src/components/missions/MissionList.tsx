@@ -64,7 +64,7 @@ const MissionList: React.FC<MissionListProps> = ({
         </div>
       ) : (
         <div className="p-6">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
             {trips.slice(0, 10).map((trip) => (
               <MissionCard 
                 key={trip.id}

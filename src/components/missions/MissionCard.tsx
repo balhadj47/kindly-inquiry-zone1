@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
@@ -72,42 +73,42 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   return (
     <div 
-      className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden w-full"
       onClick={() => onMissionClick(mission)}
     >
       {/* Header Section */}
-      <div className="p-6 border-b border-gray-100">
+      <div className="p-7 border-b border-gray-100">
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-4 flex-1 min-w-0">
-            <Avatar className="h-14 w-14 ring-2 ring-blue-100 shadow-sm">
+          <div className="flex items-center space-x-5 flex-1 min-w-0">
+            <Avatar className="h-16 w-16 ring-2 ring-blue-100 shadow-sm">
               <AvatarImage 
                 src={`https://api.dicebear.com/7.x/initials/svg?seed=${missionTitle}`}
                 alt={missionTitle}
               />
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-lg">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-blue-600 text-white font-bold text-xl">
                 {getMissionInitials(missionTitle)}
               </AvatarFallback>
             </Avatar>
             
             <div className="flex-1 min-w-0">
               <div className="mb-1">
-                <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
+                <h3 className="text-2xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
                   {chefDeGroupeName}
                 </h3>
-                <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
+                <p className="text-xl font-semibold text-blue-600 leading-tight line-clamp-1">
                   {vanReference}
                 </p>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-base text-gray-500">
                 {formatDate(mission.timestamp || mission.created_at || new Date().toISOString())}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             <Badge 
               variant={statusConfig.variant as any}
-              className={`text-xs font-medium ${
+              className={`text-sm font-medium px-3 py-1 ${
                 statusConfig.color === 'emerald' 
                   ? 'bg-green-100 text-green-800 border-green-200' 
                   : statusConfig.color === 'blue'
@@ -130,11 +131,11 @@ const MissionCard: React.FC<MissionCardProps> = ({
                   }}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
+                  className="h-10 w-10 p-0 bg-orange-50 text-orange-600 hover:bg-orange-100"
                   title="Terminer la mission"
                   disabled={isTerminating}
                 >
-                  <StopCircle className="h-4 w-4" />
+                  <StopCircle className="h-5 w-5" />
                 </Button>
               )}
               {canDelete && (
@@ -145,11 +146,11 @@ const MissionCard: React.FC<MissionCardProps> = ({
                   }}
                   variant="ghost"
                   size="sm"
-                  className="h-9 w-9 p-0 bg-red-50 text-red-600 hover:bg-red-100"
+                  className="h-10 w-10 p-0 bg-red-50 text-red-600 hover:bg-red-100"
                   title="Supprimer la mission"
                   disabled={actionLoading === 'loading'}
                 >
-                  <Trash2 className="h-4 w-4" />
+                  <Trash2 className="h-5 w-5" />
                 </Button>
               )}
             </div>
@@ -158,10 +159,10 @@ const MissionCard: React.FC<MissionCardProps> = ({
       </div>
 
       {/* Companies Section */}
-      <div className="px-6 py-4 border-b border-gray-100">
-        <div className="flex items-center gap-2 mb-3">
-          <Building2 className="h-4 w-4 text-blue-600" />
-          <span className="text-sm font-semibold text-gray-900">
+      <div className="px-7 py-5 border-b border-gray-100">
+        <div className="flex items-center gap-3 mb-4">
+          <Building2 className="h-5 w-5 text-blue-600" />
+          <span className="text-base font-semibold text-gray-900">
             {mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 1 
               ? `Entreprises (${mission.companies_data.length})` 
               : 'Entreprise'
@@ -169,28 +170,28 @@ const MissionCard: React.FC<MissionCardProps> = ({
           </span>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           {mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 0 ? (
             mission.companies_data.map((company, index) => (
               <Card key={index} className="transition-all duration-200 hover:shadow-sm border-gray-100">
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Building2 className="h-4 w-4 text-blue-600" />
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <Building2 className="h-5 w-5 text-blue-600" />
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
+                      <div className="flex items-center gap-2 mb-2">
                         <Badge 
                           variant="secondary" 
-                          className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-xs"
+                          className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-sm"
                         >
                           {company.companyName}
                         </Badge>
                       </div>
                       
-                      <div className="flex items-center gap-2 text-xs text-gray-600">
-                        <MapPin className="h-3 w-3 text-gray-400" />
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <MapPin className="h-4 w-4 text-gray-400" />
                         <span className="font-medium">{company.branchName}</span>
                       </div>
                     </div>
@@ -200,24 +201,24 @@ const MissionCard: React.FC<MissionCardProps> = ({
             ))
           ) : (
             <Card className="transition-all duration-200 hover:shadow-sm border-gray-100">
-              <CardContent className="p-3">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                    <Building2 className="h-4 w-4 text-blue-600" />
+              <CardContent className="p-4">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-5 w-5 text-blue-600" />
                   </div>
                   
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-2">
                       <Badge 
                         variant="secondary" 
-                        className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-xs"
+                        className="bg-blue-100 text-blue-800 border-blue-200 font-medium text-sm"
                       >
                         {mission.company}
                       </Badge>
                     </div>
                     
-                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                      <MapPin className="h-3 w-3 text-gray-400" />
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <MapPin className="h-4 w-4 text-gray-400" />
                       <span className="font-medium">{mission.branch}</span>
                     </div>
                   </div>
@@ -229,11 +230,11 @@ const MissionCard: React.FC<MissionCardProps> = ({
       </div>
 
       {/* Mission Information Section */}
-      <div className="px-6 py-4 bg-gray-50">
-        <div className="grid grid-cols-1 gap-3">
+      <div className="px-7 py-5 bg-gray-50">
+        <div className="grid grid-cols-1 gap-4">
           {mission.destination && (
-            <div className="flex items-center text-sm">
-              <MapPin className="h-4 w-4 text-purple-600 mr-3 flex-shrink-0" />
+            <div className="flex items-center text-base">
+              <MapPin className="h-5 w-5 text-purple-600 mr-4 flex-shrink-0" />
               <span className="text-gray-700 truncate" title={mission.destination}>
                 {mission.destination.length > 40 ? `${mission.destination.substring(0, 40)}...` : mission.destination}
               </span>
@@ -241,8 +242,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
           )}
 
           {(mission.startKm || mission.start_km) && (
-            <div className="flex items-center text-sm">
-              <Clock className="h-4 w-4 text-orange-600 mr-3 flex-shrink-0" />
+            <div className="flex items-center text-base">
+              <Clock className="h-5 w-5 text-orange-600 mr-4 flex-shrink-0" />
               <span className="text-gray-700">
                 {mission.startKm || mission.start_km}
                 {(mission.endKm || mission.end_km) ? ` → ${mission.endKm || mission.end_km} km` : ' km'}
@@ -254,17 +255,17 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
       {/* Notes Section */}
       {mission.notes && (
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="px-7 py-5">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center">
-              <Building2 className="h-5 w-5 text-gray-600 mr-2" />
-              <span className="text-sm font-semibold text-gray-900">
+              <Building2 className="h-6 w-6 text-gray-600 mr-3" />
+              <span className="text-base font-semibold text-gray-900">
                 Notes
               </span>
             </div>
           </div>
 
-          <div className="text-sm bg-blue-50 rounded-lg p-3">
+          <div className="text-base bg-blue-50 rounded-lg p-4">
             <span className="text-blue-800">
               {mission.notes.length > 100 ? `${mission.notes.substring(0, 100)}...` : mission.notes}
             </span>

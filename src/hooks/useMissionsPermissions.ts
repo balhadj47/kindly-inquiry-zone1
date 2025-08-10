@@ -1,3 +1,4 @@
+
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
 
 interface MissionsPermissions {

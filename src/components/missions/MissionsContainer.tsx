@@ -12,7 +12,7 @@ import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
-import MissionActionDialog from './MissionActionDialog';
+
 import { Trip } from '@/contexts/TripContext';
 
 const MissionsContainer = () => {
@@ -26,12 +26,9 @@ const MissionsContainer = () => {
   const permissions = useMissionsPermissions();
   const {
     isRefreshing,
-    actionDialog,
-    setActionDialog,
     handleRefresh,
     handleDeleteMission,
-    handleTerminateMission,
-    handleActionConfirm
+    handleTerminateMission
   } = useMissionsActions();
 
   const showVanLoadingWarning = !isVanDataCached();
@@ -147,7 +144,7 @@ const MissionsContainer = () => {
             statusFilter={statusFilter}
             onEditMission={handleEditMission}
             onDeleteMission={handleDeleteMission}
-            onTerminateMission={handleTerminateMission}
+            onTerminateMission={(mission) => handleTerminateMission(mission, 0)}
             canEdit={permissions.canEdit}
             canDelete={permissions.canDelete}
             actionLoading={isRefreshing ? 'loading' : null}
@@ -162,14 +159,6 @@ const MissionsContainer = () => {
         />
       )}
 
-      <MissionActionDialog
-        mission={actionDialog.mission}
-        action={actionDialog.action}
-        isOpen={actionDialog.isOpen}
-        onClose={() => setActionDialog({ isOpen: false, mission: null, action: null })}
-        onConfirm={handleActionConfirm}
-        isLoading={isRefreshing}
-      />
     </div>
   );
 };

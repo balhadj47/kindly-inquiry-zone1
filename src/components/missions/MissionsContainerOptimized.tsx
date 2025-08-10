@@ -16,7 +16,7 @@ import MissionsHeader from './MissionsHeader';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
-import MissionActionDialog from './MissionActionDialog';
+
 import { Trip } from '@/contexts/TripContext';
 
 const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
@@ -55,11 +55,8 @@ const MissionsContainerOptimized = () => {
   const { invalidateAll } = useRealtimeCache();
   
   const {
-    actionDialog,
-    setActionDialog,
     handleDeleteMission,
     handleTerminateMission,
-    handleActionConfirm,
     isLoading: isActionLoading
   } = useMissionsActionsOptimized();
 
@@ -237,7 +234,7 @@ const MissionsContainerOptimized = () => {
             statusFilter={statusFilter}
             onEditMission={handleEditMission}
             onDeleteMission={handleDeleteMission}
-            onTerminateMission={handleTerminateMission}
+            onTerminateMission={(mission) => handleTerminateMission(mission, 0)}
             canEdit={permissions.canEdit}
             canDelete={permissions.canDelete}
             actionLoading={isActionLoading ? 'loading' : null}
@@ -252,14 +249,6 @@ const MissionsContainerOptimized = () => {
         />
       )}
 
-      <MissionActionDialog
-        mission={actionDialog.mission}
-        action={actionDialog.action}
-        isOpen={actionDialog.isOpen}
-        onClose={() => setActionDialog({ isOpen: false, mission: null, action: null })}
-        onConfirm={handleActionConfirm}
-        isLoading={isActionLoading}
-      />
     </div>
   );
 };

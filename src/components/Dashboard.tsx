@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSecurePermissions } from '@/hooks/useSecurePermissions';
@@ -9,7 +8,6 @@ import { useCompanies } from '@/hooks/useCompanies';
 import { calculateDashboardStats, createChartData } from './dashboard/DashboardStats';
 import EnhancedStatsGrid from './dashboard/EnhancedStatsGrid';
 import EnhancedChartsSection from './dashboard/EnhancedChartsSection';
-import QuickActions from './dashboard/QuickActions';
 
 const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
@@ -123,8 +121,6 @@ const Dashboard = () => {
       </div>
       
       <EnhancedStatsGrid stats={stats} />
-      
-      <QuickActions />
       
       <EnhancedChartsSection chartData={chartData} />
     </div>

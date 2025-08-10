@@ -14,7 +14,7 @@ import { Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useUsers } from '@/hooks/users';
-import { getDriverName, getCompanyDisplayText } from './utils/missionCardUtils';
+import { getDriverName, getChefDeGroupeName } from './utils/missionCardUtils';
 
 interface MissionDeleteDialogProps {
   mission: Trip | null;
@@ -44,7 +44,7 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
   };
 
   const driverName = getDriverName(mission, users);
-  const companyDisplayText = getCompanyDisplayText(mission);
+  const chefDeGroupeName = getChefDeGroupeName(mission, users);
   const vanDisplayName = getVanDisplayName(mission.van);
 
   return (
@@ -58,7 +58,7 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
             <div className="space-y-2">
               <p>Êtes-vous sûr de vouloir supprimer cette mission ?</p>
               <div className="bg-gray-50 p-3 rounded-lg space-y-1 text-left">
-                <div><strong>Entreprise:</strong> {companyDisplayText}</div>
+                <div><strong>Chef de Groupe:</strong> {chefDeGroupeName}</div>
                 <div><strong>Véhicule:</strong> {vanDisplayName}</div>
                 <div><strong>Chauffeur:</strong> {driverName}</div>
               </div>

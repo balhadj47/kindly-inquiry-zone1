@@ -1,33 +1,24 @@
 
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback } from 'react';
 import { RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
 import { useTripWizardDialog } from '@/hooks/useTripWizardDialog';
 import { useDialogState } from '@/hooks/useDialogState';
 import { useRealtimeCache } from '@/hooks/useRealtimeCache';
+import { useMissionsData, useFilteredMissions } from './hooks/useMissionsData';
+import { useMissionsDialogs } from './hooks/useMissionsDialogs';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
 import MissionDeleteDialog from './MissionDeleteDialog';
 import { Trip } from '@/contexts/TripContext';
-import { transformTripsToContextFormat } from '@/utils/tripDataTransformer';
 
 const MissionsContainerOptimized = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [terminateDialog, setTerminateDialog] = useState<{
-    isOpen: boolean;
-    mission: Trip | null;
-  }>({ isOpen: false, mission: null });
-  const [deleteDialog, setDeleteDialog] = useState<{
-    isOpen: boolean;
-    mission: Trip | null;
-  }>({ isOpen: false, mission: null });
 
   const { invalidateAll } = useRealtimeCache();
   
@@ -57,95 +48,38 @@ const MissionsContainerOptimized = () => {
     error,
     refetch,
     isFetching
-  } = useQuery({
-    queryKey: ['trips'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trips')
-        .select('*')
-        .order('created_at', { ascending: false });
+  } = useMissionsData();
 
-      if (error) {
-        console.error('Error fetching trips:', error);
-        throw error;
-      }
+  const filteredMissions = useFilteredMissions(tripsData, searchTerm, statusFilter);
 
-      return data;
-    },
-    select: (data) => {
-      return transformTripsToContextFormat(data);
-    },
-  });
+  const {
+    terminateDialog,
+    deleteDialog,
+    handleTerminateClick,
+    handleTerminateClose,
+    handleDeleteClick,
+    handleDeleteClose,
+  } = useMissionsDialogs();
 
   const handleEditMission = useCallback((mission: Trip) => {
     openDetailsDialog(mission);
   }, [openDetailsDialog]);
 
-  const handleDeleteClick = useCallback((mission: Trip) => {
-    setDeleteDialog({
-      isOpen: true,
-      mission
-    });
-  }, []);
-
   const handleDeleteConfirm = useCallback(async () => {
     if (deleteDialog.mission) {
       await handleDeleteMission(deleteDialog.mission);
-      setDeleteDialog({ isOpen: false, mission: null });
+      handleDeleteClose();
     }
-  }, [deleteDialog.mission, handleDeleteMission]);
-
-  const handleDeleteClose = useCallback(() => {
-    setDeleteDialog({
-      isOpen: false,
-      mission: null
-    });
-  }, []);
-
-  const handleTerminateClick = useCallback((mission: Trip) => {
-    setTerminateDialog({
-      isOpen: true,
-      mission
-    });
-  }, []);
+  }, [deleteDialog.mission, handleDeleteMission, handleDeleteClose]);
 
   const handleTerminateConfirm = useCallback(async (mission: Trip, finalKm: number) => {
     await handleTerminateMission(mission, finalKm);
   }, [handleTerminateMission]);
 
-  const handleTerminateClose = useCallback(() => {
-    setTerminateDialog({
-      isOpen: false,
-      mission: null
-    });
-  }, []);
-
   const handleRefresh = useCallback(async () => {
     await refetch();
     invalidateAll();
   }, [refetch, invalidateAll]);
-
-  const filteredMissions = useMemo(() => {
-    if (!tripsData) return [];
-
-    let filtered = [...tripsData];
-
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      filtered = filtered.filter(mission =>
-        mission.company?.toLowerCase().includes(term) ||
-        mission.branch?.toLowerCase().includes(term) ||
-        mission.driver?.toLowerCase().includes(term) ||
-        mission.van?.toLowerCase().includes(term)
-      );
-    }
-
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(mission => mission.status === statusFilter);
-    }
-
-    return filtered;
-  }, [tripsData, searchTerm, statusFilter]);
 
   if (isLoading) {
     return (

@@ -2,17 +2,18 @@ import React, { useState, useCallback } from 'react';
 import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useTrips } from '@/hooks/useTrips';
+import { useTrips } from '@/hooks/trips/useTripsQuery';
 import { useMissions } from '@/hooks/useMissions';
 import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActions } from './useMissionsActions';
-import { useTripWizard } from '@/hooks/useTripWizard';
+import { useTripWizardDialog } from '@/hooks/useTripWizardDialog';
 import { isVanDataCached } from '@/services/vanCacheService';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
 import { Trip } from '@/contexts/TripContext';
+import { transformTripsToContextFormat } from '@/utils/tripDataTransformer';
 
 const MissionsContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,7 +23,8 @@ const MissionsContainer = () => {
     mission: Trip | null;
   }>({ isOpen: false, mission: null });
 
-  const { missions, loading, error } = useTrips();
+  const { data: tripsData, isLoading: loading, error } = useTrips();
+  const missions = transformTripsToContextFormat(tripsData?.trips || []);
   const { 
     selectedMission, 
     setSelectedMission,
@@ -43,7 +45,7 @@ const MissionsContainer = () => {
     isOpen: isNewTripOpen,
     openDialog: openNewTrip,
     closeDialog: closeNewTrip
-  } = useTripWizard();
+  } = useTripWizardDialog();
 
   const handleEditMission = useCallback((mission: Trip) => {
     setSelectedMission(mission);
@@ -134,11 +136,14 @@ const MissionsContainer = () => {
 
       <MissionsFilters
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        onRefresh={handleRefresh}
-        isRefreshing={isRefreshing}
+        setStatusFilter={setStatusFilter}
+        clearFilters={() => {
+          setSearchTerm('');
+          setStatusFilter('all');
+        }}
+        missions={missions}
       />
       
       {error ? (
@@ -151,7 +156,6 @@ const MissionsContainer = () => {
       ) : (
         <MissionsList
           missions={missions}
-          loading={loading}
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           onEditMission={handleEditMission}

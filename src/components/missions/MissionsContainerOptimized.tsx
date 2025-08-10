@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
-import { useTripWizard } from '@/hooks/useTripWizard';
+import { useTripWizardDialog } from '@/hooks/useTripWizardDialog';
 import { useDialogState } from '@/hooks/useDialogState';
 import { useRealtimeCache } from '@/hooks/useRealtimeCache';
 import { isVanDataCached } from '@/services/vanCacheService';
@@ -15,31 +15,7 @@ import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
 import { Trip } from '@/contexts/TripContext';
-
-const transformDatabaseToTrip = (databaseTrip: any): Trip => ({
-  id: parseInt(databaseTrip.id),
-  van: databaseTrip.van || '',
-  driver: databaseTrip.driver || '',
-  company: databaseTrip.company || '',
-  branch: databaseTrip.branch || '',
-  startDate: databaseTrip.planned_start_date ? new Date(databaseTrip.planned_start_date) : undefined,
-  endDate: databaseTrip.planned_end_date ? new Date(databaseTrip.planned_end_date) : undefined,
-  startKm: databaseTrip.start_km || 0,
-  endKm: databaseTrip.end_km || null,
-  destination: databaseTrip.destination || '',
-  notes: databaseTrip.notes || '',
-  created_at: databaseTrip.created_at || new Date().toISOString(),
-  updated_at: databaseTrip.updated_at || new Date().toISOString(),
-  status: databaseTrip.status || 'active',
-  userIds: databaseTrip.user_ids || [],
-  userRoles: databaseTrip.user_roles || [],
-  timestamp: databaseTrip.created_at || new Date().toISOString(),
-  companies_data: databaseTrip.companies_data || [],
-  planned_start_date: databaseTrip.planned_start_date,
-  planned_end_date: databaseTrip.planned_end_date,
-  start_km: databaseTrip.start_km,
-  end_km: databaseTrip.end_km,
-});
+import { transformTripsToContextFormat } from '@/utils/tripDataTransformer';
 
 const MissionsContainerOptimized = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -70,7 +46,7 @@ const MissionsContainerOptimized = () => {
     isOpen: isNewTripOpen,
     openDialog: openNewTrip,
     closeDialog: closeNewTrip
-  } = useTripWizard();
+  } = useTripWizardDialog();
 
   const {
     data: tripsData,
@@ -94,13 +70,7 @@ const MissionsContainerOptimized = () => {
       return data;
     },
     select: (data) => {
-      return data.map(transformDatabaseToTrip);
-    },
-    onSuccess: () => {
-      console.log('✅ Trips fetched successfully');
-    },
-    onError: (err) => {
-      console.error('❌ Error fetching trips:', err);
+      return transformTripsToContextFormat(data);
     },
   });
 
@@ -219,16 +189,18 @@ const MissionsContainerOptimized = () => {
 
       <MissionsFilters
         searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}
-        onStatusFilterChange={setStatusFilter}
-        onRefresh={handleRefresh}
-        isRefreshing={isFetching}
+        setStatusFilter={setStatusFilter}
+        clearFilters={() => {
+          setSearchTerm('');
+          setStatusFilter('all');
+        }}
+        missions={filteredMissions}
       />
       
       <MissionsList
         missions={filteredMissions}
-        loading={false}
         searchTerm={searchTerm}
         statusFilter={statusFilter}
         onEditMission={handleEditMission}

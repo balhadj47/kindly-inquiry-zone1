@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,6 +11,7 @@ import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
 import MissionTerminateDialog from './MissionTerminateDialog';
+import MissionDeleteDialog from './MissionDeleteDialog';
 import { Trip } from '@/contexts/TripContext';
 import { transformTripsToContextFormat } from '@/utils/tripDataTransformer';
 
@@ -17,6 +19,10 @@ const MissionsContainer = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [terminateDialog, setTerminateDialog] = useState<{
+    isOpen: boolean;
+    mission: Trip | null;
+  }>({ isOpen: false, mission: null });
+  const [deleteDialog, setDeleteDialog] = useState<{
     isOpen: boolean;
     mission: Trip | null;
   }>({ isOpen: false, mission: null });
@@ -47,6 +53,27 @@ const MissionsContainer = () => {
     setSelectedMission(mission);
     setIsDetailsDialogOpen(true);
   }, [setSelectedMission, setIsDetailsDialogOpen]);
+
+  const handleDeleteClick = useCallback((mission: Trip) => {
+    setDeleteDialog({
+      isOpen: true,
+      mission
+    });
+  }, []);
+
+  const handleDeleteConfirm = useCallback(async () => {
+    if (deleteDialog.mission) {
+      await handleDeleteMission(deleteDialog.mission);
+      setDeleteDialog({ isOpen: false, mission: null });
+    }
+  }, [deleteDialog.mission, handleDeleteMission]);
+
+  const handleDeleteClose = useCallback(() => {
+    setDeleteDialog({
+      isOpen: false,
+      mission: null
+    });
+  }, []);
 
   const handleTerminateClick = useCallback((mission: Trip) => {
     setTerminateDialog({
@@ -145,7 +172,7 @@ const MissionsContainer = () => {
           searchTerm={searchTerm}
           statusFilter={statusFilter}
           onEditMission={handleEditMission}
-          onDeleteMission={handleDeleteMission}
+          onDeleteMission={handleDeleteClick}
           onTerminateMission={handleTerminateClick}
           canEdit={permissions.canEdit}
           canDelete={permissions.canDelete}
@@ -165,6 +192,14 @@ const MissionsContainer = () => {
         isOpen={terminateDialog.isOpen}
         onClose={handleTerminateClose}
         onConfirm={handleTerminateConfirm}
+        isLoading={isRefreshing}
+      />
+
+      <MissionDeleteDialog
+        mission={deleteDialog.mission}
+        isOpen={deleteDialog.isOpen}
+        onClose={handleDeleteClose}
+        onConfirm={handleDeleteConfirm}
         isLoading={isRefreshing}
       />
     </div>

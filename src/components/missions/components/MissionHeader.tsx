@@ -14,7 +14,7 @@ const MissionHeader: React.FC<MissionHeaderProps> = ({ mission }) => {
     <div className="flex items-start justify-between">
       <div className="space-y-2">
         <DialogTitle className="text-2xl font-semibold text-gray-900">
-          {mission.company}
+          {mission.company || 'Mission Details'}
         </DialogTitle>
         <DialogDescription className="text-base text-gray-600">
           {mission.branch}

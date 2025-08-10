@@ -12,6 +12,9 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trip } from '@/contexts/TripContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useVans } from '@/hooks/vans/useVansQuery';
+import { useUsers } from '@/hooks/users/useUsersQuery';
+import { getDriverName, getCompanyDisplayText } from './utils/missionCardUtils';
 
 interface MissionDeleteDialogProps {
   mission: Trip | null;
@@ -29,43 +32,24 @@ const MissionDeleteDialog: React.FC<MissionDeleteDialogProps> = ({
   isLoading = false
 }) => {
   const isMobile = useIsMobile();
+  const { data: vans = [] } = useVans();
+  const { data: users = [] } = useUsers();
 
   if (!mission) return null;
 
-  const getDriverInfo = (driverName: string) => {
-    if (!driverName || driverName.trim() === '') {
-      return {
-        name: 'Conducteur non défini',
-        role: null,
-        firstName: 'Conducteur'
-      };
-    }
-
-    const roleMatch = driverName.match(/^(.+?)\s*\((.+?)\)$/);
-    if (roleMatch) {
-      const [, name, role] = roleMatch;
-      return {
-        name: name.trim(),
-        role: role.trim(),
-        firstName: name.trim().split(' ')[0]
-      };
-    }
-    
-    return {
-      name: driverName,
-      role: null,
-      firstName: driverName.split(' ')[0]
-    };
+  const getVanDisplayName = (vanId: string) => {
+    const van = vans.find(v => v.id === vanId || v.reference_code === vanId);
+    return van?.reference_code || vanId || 'Van inconnu';
   };
 
   const getMissionTitle = (mission: Trip) => {
-    const company = mission.company || 'Entreprise inconnue';
-    const branch = mission.branch || 'Succursale inconnue';
-    const driverInfo = getDriverInfo(mission.driver);
+    const driverName = getDriverName(mission, users);
+    const companyDisplayText = getCompanyDisplayText(mission);
+    const vanDisplayName = getVanDisplayName(mission.van);
     
     return isMobile 
-      ? `${company} - ${driverInfo.firstName}`
-      : `${company} - ${branch} - ${driverInfo.firstName}`;
+      ? `${companyDisplayText} - ${vanDisplayName}`
+      : `${companyDisplayText} - ${vanDisplayName} - ${driverName}`;
   };
 
   return (

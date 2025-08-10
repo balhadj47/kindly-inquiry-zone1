@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,8 +8,6 @@ import {
 import { Trip } from '@/contexts/TripContext';
 import { useVans } from '@/hooks/useVansOptimized';
 import { useUsers } from '@/hooks/users';
-import { useTripMutations } from '@/hooks/trips/useTripMutations';
-import { useToast } from '@/hooks/use-toast';
 import MissionHeader from './components/MissionHeader';
 import MissionOverview from './components/MissionOverview';
 import MissionTimeline from './components/MissionTimeline';
@@ -16,6 +15,7 @@ import MissionDestination from './components/MissionDestination';
 import MissionNotes from './components/MissionNotes';
 import MissionTeam from './components/MissionTeam';
 import MissionCompanies from './components/MissionCompanies';
+import MissionActions from './components/MissionActions';
 
 interface MissionDetailsDialogProps {
   mission: Trip | null;
@@ -30,15 +30,9 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
   onClose,
   getVanDisplayName,
 }) => {
-  const [showCompleteForm, setShowCompleteForm] = useState(false);
-  const [finalKm, setFinalKm] = useState('');
-  const [isCompleting, setIsCompleting] = useState(false);
-  
   const { data: vans = [] } = useVans();
   const { data: usersData } = useUsers();
   const users = usersData?.users || [];
-  const { updateTrip } = useTripMutations();
-  const { toast } = useToast();
   
   console.log('🎯 MissionDetailsDialog: Rendering with mission:', mission?.id || 'null');
   console.log('🎯 Mission status:', mission?.status);
@@ -94,69 +88,6 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
     };
   };
 
-  const handleCompleteMission = async () => {
-    if (!mission || !finalKm) {
-      toast({
-        title: 'Erreur',
-        description: 'Veuillez saisir le kilométrage final',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    const kmNumber = parseInt(finalKm, 10);
-    if (isNaN(kmNumber) || kmNumber < 0) {
-      toast({
-        title: 'Erreur',
-        description: 'Veuillez saisir un kilométrage valide',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    if (mission.start_km && kmNumber < mission.start_km) {
-      toast({
-        title: 'Erreur',
-        description: 'Le kilométrage final ne peut pas être inférieur au kilométrage initial',
-        variant: 'destructive',
-      });
-      return;
-    }
-
-    setIsCompleting(true);
-    try {
-      console.log('🎯 Completing mission with data:', {
-        id: mission.id,
-        end_km: kmNumber,
-        status: 'completed'
-      });
-      
-      await updateTrip.mutateAsync({
-        id: mission.id.toString(),
-        end_km: kmNumber,
-        status: 'completed'
-      });
-      
-      toast({
-        title: 'Succès',
-        description: 'Mission terminée avec succès',
-      });
-      
-      setShowCompleteForm(false);
-      setFinalKm('');
-      onClose();
-    } catch (error) {
-      console.error('Error completing mission:', error);
-      toast({
-        title: 'Erreur',
-        description: 'Impossible de terminer la mission',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsCompleting(false);
-    }
-  };
-
   if (!mission) {
     console.log('🎯 MissionDetailsDialog: No mission provided');
     return (
@@ -196,6 +127,8 @@ const MissionDetailsDialog: React.FC<MissionDetailsDialogProps> = ({
           <MissionNotes mission={mission} />
           
           <MissionTeam mission={mission} />
+          
+          <MissionActions mission={mission} onClose={onClose} />
         </div>
       </DialogContent>
     </Dialog>

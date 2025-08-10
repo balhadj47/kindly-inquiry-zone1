@@ -1,13 +1,11 @@
 import React, { useState, useCallback } from 'react';
-import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTrips } from '@/hooks/trips/useTripsQuery';
 import { useMissions } from '@/hooks/useMissions';
 import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';
 import { useMissionsActions } from './useMissionsActions';
 import { useTripWizardDialog } from '@/hooks/useTripWizardDialog';
-import { isVanDataCached } from '@/services/vanCacheService';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
@@ -38,8 +36,6 @@ const MissionsContainer = () => {
     handleDeleteMission,
     handleTerminateMission
   } = useMissionsActions();
-
-  const showVanLoadingWarning = !isVanDataCached();
 
   const {
     isOpen: isNewTripOpen,
@@ -123,16 +119,6 @@ const MissionsContainer = () => {
           )}
         </div>
       </div>
-
-      {showVanLoadingWarning && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            Les données des véhicules sont en cours de chargement. 
-            Certaines informations peuvent être temporairement indisponibles.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <MissionsFilters
         searchTerm={searchTerm}

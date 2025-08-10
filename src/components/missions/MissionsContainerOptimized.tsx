@@ -1,7 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMissionsPermissions } from '@/hooks/useMissionsPermissions';

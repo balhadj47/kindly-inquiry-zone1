@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import { RefreshCw, Plus, AlertTriangle } from 'lucide-react';
+import { RefreshCw, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,7 +8,6 @@ import { useMissionsActionsOptimized } from './useMissionsActionsOptimized';
 import { useTripWizardDialog } from '@/hooks/useTripWizardDialog';
 import { useDialogState } from '@/hooks/useDialogState';
 import { useRealtimeCache } from '@/hooks/useRealtimeCache';
-import { isVanDataCached } from '@/services/vanCacheService';
 import MissionsFilters from './MissionsFilters';
 import MissionsList from './MissionsList';
 import NewTripDialog from '@/components/NewTripDialog';
@@ -39,7 +38,6 @@ const MissionsContainerOptimized = () => {
   } = useDialogState<Trip>();
 
   const permissions = useMissionsPermissions();
-  const showVanLoadingWarning = !isVanDataCached();
 
   const {
     isOpen: isNewTripOpen,
@@ -175,16 +173,6 @@ const MissionsContainerOptimized = () => {
           )}
         </div>
       </div>
-
-      {showVanLoadingWarning && (
-        <Alert className="border-amber-200 bg-amber-50">
-          <AlertTriangle className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            Les données des véhicules sont en cours de chargement. 
-            Certaines informations peuvent être temporairement indisponibles.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <MissionsFilters
         searchTerm={searchTerm}

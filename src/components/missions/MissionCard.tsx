@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Trip } from '@/contexts/TripContext';
 import { useUsers } from '@/hooks/users';
@@ -91,10 +92,10 @@ const MissionCard: React.FC<MissionCardProps> = ({
             
             <div className="flex-1 min-w-0">
               <div className="mb-1">
-                <h3 className="text-xl font-bold text-gray-900 leading-tight line-clamp-1 hover:text-primary transition-colors">
+                <h3 className="text-xl font-bold text-gray-900 leading-tight break-words hover:text-primary transition-colors">
                   {chefDeGroupeName}
                 </h3>
-                <p className="text-lg font-semibold text-blue-600 leading-tight line-clamp-1">
+                <p className="text-lg font-semibold text-blue-600 leading-tight break-words">
                   {vanReference}
                 </p>
               </div>
@@ -234,8 +235,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
           {mission.destination && (
             <div className="flex items-center text-sm">
               <MapPin className="h-4 w-4 text-purple-600 mr-3 flex-shrink-0" />
-              <span className="text-gray-700 truncate" title={mission.destination}>
-                {mission.destination.length > 40 ? `${mission.destination.substring(0, 40)}...` : mission.destination}
+              <span className="text-gray-700 break-words" title={mission.destination}>
+                {mission.destination}
               </span>
             </div>
           )}
@@ -265,8 +266,8 @@ const MissionCard: React.FC<MissionCardProps> = ({
           </div>
 
           <div className="text-sm bg-blue-50 rounded-lg p-3">
-            <span className="text-blue-800">
-              {mission.notes.length > 100 ? `${mission.notes.substring(0, 100)}...` : mission.notes}
+            <span className="text-blue-800 break-words">
+              {mission.notes}
             </span>
           </div>
         </div>

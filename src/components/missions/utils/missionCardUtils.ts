@@ -1,190 +1,34 @@
 
 import { Trip } from '@/contexts/TripContext';
-import { User } from '@/hooks/users/types';
-import { Van } from '@/types/van';
+import { User } from '@/types/rbac';
 
-export const getMissionTitle = (mission: Trip, vans: Van[]) => {
-  const van = vans.find(v => v.id === mission.van || v.reference_code === mission.van);
-  const vanReference = van?.reference_code || mission.van || 'Van inconnu';
+export const getDriverName = (mission: Trip, users: User[]): string => {
+  if (!mission.driver) return 'Aucun chauffeur';
   
-  // Handle multiple companies
-  if (mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 1) {
-    const baseTitle = "Multiples Entreprises";
-    return vanReference ? `${baseTitle} - ${vanReference}` : baseTitle;
+  const driver = users.find(user => user.id.toString() === mission.driver.toString());
+  return driver?.name || mission.driver || 'Chauffeur inconnu';
+};
+
+export const getChefDeGroupeName = (mission: Trip, users: User[]): string => {
+  if (!mission.userIds || mission.userIds.length === 0) {
+    return 'Aucun chef de groupe';
+  }
+
+  // Find the chef de groupe (assuming it's the first user or has a specific role)
+  const chefDeGroupeId = mission.userIds[0];
+  const chefDeGroupe = users.find(user => user.id.toString() === chefDeGroupeId.toString());
+  
+  return chefDeGroupe?.name || 'Chef de groupe inconnu';
+};
+
+export const getCompanyDisplayText = (mission: Trip): string => {
+  if (!mission.company && !mission.branch) {
+    return 'Aucune entreprise';
   }
   
-  // Single company (existing logic)
-  const baseTitle = `${mission.company} - ${mission.branch}`;
-  return vanReference ? `${baseTitle} - ${vanReference}` : baseTitle;
-};
-
-export const getCompanyDisplayText = (mission: Trip) => {
-  if (mission.companies_data && Array.isArray(mission.companies_data) && mission.companies_data.length > 1) {
-    return mission.companies_data
-      .map(company => `${company.companyName} - ${company.branchName}`)
-      .join(', ');
+  if (mission.branch && mission.company) {
+    return `${mission.company} - ${mission.branch}`;
   }
   
-  // Fallback to single company
-  return `${mission.company} - ${mission.branch}`;
-};
-
-export const getChefDeGroupeName = (mission: Trip, users: User[]) => {
-  console.log('👑 getChefDeGroupeName: Mission data:', {
-    id: mission.id,
-    userRoles: mission.userRoles
-  });
-  console.log('👑 getChefDeGroupeName: Available users count:', users.length);
-
-  // Try to get Chef de Groupe name from userRoles
-  if (mission?.userRoles && mission.userRoles.length > 0) {
-    console.log('👑 getChefDeGroupeName: Checking userRoles...');
-    const chefUserRole = mission.userRoles.find(userRole => 
-      userRole.roles.some(role => {
-        if (typeof role === 'string') {
-          return role === 'Chef de Groupe';
-        } else if (typeof role === 'object' && role !== null) {
-          const roleObj = role as any;
-          return roleObj.name === 'Chef de Groupe';
-        }
-        return false;
-      })
-    );
-
-    if (chefUserRole) {
-      console.log('👑 getChefDeGroupeName: Found Chef de Groupe userRole:', chefUserRole);
-      // Try to find user in users array
-      const user = users.find(u => {
-        const userIdStr = u.id.toString();
-        const missionUserIdStr = chefUserRole.userId.toString();
-        console.log('👑 getChefDeGroupeName: Comparing user IDs:', { userIdStr, missionUserIdStr });
-        return userIdStr === missionUserIdStr;
-      });
-      
-      if (user) {
-        console.log('👑 getChefDeGroupeName: Found user by userRole:', user.name);
-        return user.name;
-      } else {
-        console.log('👑 getChefDeGroupeName: User not found in users array for userId:', chefUserRole.userId);
-      }
-    }
-  }
-
-  // Final fallback
-  console.log('👑 getChefDeGroupeName: No Chef de Groupe found, using fallback');
-  return 'Aucun Chef de Groupe assigné';
-};
-
-export const getDriverName = (mission: Trip, users: User[]) => {
-  console.log('🚗 getDriverName: Mission data:', {
-    id: mission.id,
-    driver: mission.driver,
-    userRoles: mission.userRoles,
-    userIds: mission.userIds
-  });
-  console.log('🚗 getDriverName: Available users count:', users.length);
-
-  // First, try to get driver name from userRoles (most accurate)
-  if (mission?.userRoles && mission.userRoles.length > 0) {
-    console.log('🚗 getDriverName: Checking userRoles...');
-    const driverUserRole = mission.userRoles.find(userRole => 
-      userRole.roles.some(role => {
-        if (typeof role === 'string') {
-          return role === 'Chauffeur';
-        } else if (typeof role === 'object' && role !== null) {
-          const roleObj = role as any;
-          return roleObj.name === 'Chauffeur';
-        }
-        return false;
-      })
-    );
-
-    if (driverUserRole) {
-      console.log('🚗 getDriverName: Found driver userRole:', driverUserRole);
-      // Try to find user in users array
-      const user = users.find(u => {
-        const userIdStr = u.id.toString();
-        const missionUserIdStr = driverUserRole.userId.toString();
-        console.log('🚗 getDriverName: Comparing user IDs:', { userIdStr, missionUserIdStr });
-        return userIdStr === missionUserIdStr;
-      });
-      
-      if (user) {
-        console.log('🚗 getDriverName: Found user by userRole:', user.name);
-        return user.name;
-      } else {
-        console.log('🚗 getDriverName: User not found in users array for userId:', driverUserRole.userId);
-      }
-    }
-  }
-
-  // Second, use mission.driver field directly (this should contain the actual name)
-  if (mission?.driver && mission.driver.trim() !== '') {
-    console.log('🚗 getDriverName: Checking mission.driver field:', mission.driver);
-    // Check if it's not just a user ID (numeric string)
-    const isNumericId = /^\d+$/.test(mission.driver.trim());
-    if (!isNumericId) {
-      console.log('🚗 getDriverName: Using mission.driver as name:', mission.driver);
-      return mission.driver;
-    }
-    
-    // If it is a numeric ID, try to find the user by ID
-    console.log('🚗 getDriverName: mission.driver is numeric, searching users...');
-    const userById = users.find(u => {
-      const match = u.id.toString() === mission.driver;
-      console.log('🚗 getDriverName: Comparing:', { userId: u.id, driverId: mission.driver, match });
-      return match;
-    });
-    if (userById) {
-      console.log('🚗 getDriverName: Found user by ID:', userById.name);
-      return userById.name;
-    } else {
-      console.log('🚗 getDriverName: No user found for ID:', mission.driver);
-    }
-  }
-
-  // Check if there's a user in userIds as fallback
-  if (mission?.userIds && mission.userIds.length > 0) {
-    console.log('🚗 getDriverName: Checking userIds as fallback...');
-    for (const userId of mission.userIds) {
-      const user = users.find(u => u.id.toString() === userId);
-      if (user) {
-        console.log('🚗 getDriverName: Found user from userIds:', user.name);
-        return user.name;
-      }
-    }
-  }
-
-  // Final fallback
-  console.log('🚗 getDriverName: No driver found, using fallback');
-  return 'Aucun chauffeur assigné';
-};
-
-export const getStatusConfig = (status: string) => {
-  switch (status) {
-    case 'active':
-      return { 
-        label: 'Active', 
-        variant: 'default' as const, 
-        color: 'emerald' 
-      };
-    case 'completed':
-      return { 
-        label: 'Terminée', 
-        variant: 'outline' as const, 
-        color: 'blue' 
-      };
-    case 'terminated':
-      return { 
-        label: 'Annulée', 
-        variant: 'destructive' as const, 
-        color: 'red' 
-      };
-    default:
-      return { 
-        label: 'Inconnu', 
-        variant: 'secondary' as const, 
-        color: 'gray' 
-      };
-  }
+  return mission.company || mission.branch || 'Entreprise inconnue';
 };

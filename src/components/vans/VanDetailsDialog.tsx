@@ -1,8 +1,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Edit, MapPin, User, Gauge, Calendar, Shield, FileText } from 'lucide-react';
+import { MapPin, User, Gauge, Calendar, Shield, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { Van } from '@/types/van';
 import { useUsers } from '@/hooks/useUsers';
@@ -11,26 +10,18 @@ interface VanDetailsDialogProps {
   van: Van | null;
   isOpen: boolean;
   onClose: () => void;
-  onEdit: (van: Van) => void;
 }
 
 const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
   van,
   isOpen,
-  onClose,
-  onEdit
+  onClose
 }) => {
   const { users } = useUsers();
 
   if (!van) return null;
 
   const responsible = users.find(user => user.id === van.current_responsible_id);
-  
-  const handleEditClick = () => {
-    console.log('🚐 VanDetailsDialog: Edit clicked, passing van:', van);
-    onEdit(van);
-    onClose(); // Close the details dialog when opening edit
-  };
 
   const isInsuranceExpired = van.insurance_date && new Date(van.insurance_date) < new Date();
   const isControlExpired = van.control_date && new Date(van.control_date) < new Date();
@@ -39,20 +30,9 @@ const VanDetailsDialog: React.FC<VanDetailsDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl font-semibold">
-              Détails du véhicule
-            </DialogTitle>
-            <Button
-              onClick={handleEditClick}
-              variant="outline"
-              size="sm"
-              className="flex items-center gap-2"
-            >
-              <Edit className="h-4 w-4" />
-              Modifier
-            </Button>
-          </div>
+          <DialogTitle className="text-xl font-semibold">
+            Détails du véhicule
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">

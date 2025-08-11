@@ -1,50 +1,57 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
-import { useTheme } from 'next-themes';
 
 const ThemeToggleButton = () => {
-  const { theme, setTheme, resolvedTheme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState('light');
 
   useEffect(() => {
     setMounted(true);
-    // Force light theme on mount
-    if (resolvedTheme !== 'light') {
-      setTheme('light');
-    }
-  }, [resolvedTheme, setTheme]);
+    
+    // Always start with light theme
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    setCurrentTheme('light');
+    
+    console.log('🎨 ThemeToggleButton: Initialized with light theme');
+  }, []);
 
   const toggleTheme = () => {
-    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
-    console.log('Toggle theme to:', newTheme);
-    setTheme(newTheme);
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    // Apply theme to document
+    document.documentElement.classList.remove('dark', 'light');
+    document.documentElement.classList.add(newTheme);
+    
+    setCurrentTheme(newTheme);
+    
+    console.log('🎨 Theme toggled to:', newTheme);
   };
 
   if (!mounted) {
     return (
-      <Button variant="ghost" size="sm" disabled>
+      <Button variant="ghost" size="icon" disabled>
         <Sun className="h-4 w-4" />
       </Button>
     );
   }
 
-  const isDark = resolvedTheme === 'dark';
+  const isDark = currentTheme === 'dark';
 
   return (
     <Button
       variant="ghost"
-      size="sm"
+      size="icon"
       onClick={toggleTheme}
-      className="w-9 h-9 p-0"
+      className="h-8 w-8"
     >
       {isDark ? (
-        <Sun className="h-4 w-4 transition-all" />
+        <Sun className="h-4 w-4" />
       ) : (
-        <Moon className="h-4 w-4 transition-all" />
+        <Moon className="h-4 w-4" />
       )}
-      <span className="sr-only">Toggle theme</span>
     </Button>
   );
 };

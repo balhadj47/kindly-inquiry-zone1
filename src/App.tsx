@@ -14,6 +14,7 @@ import Index from '@/pages/Index'
 import AuthPage from '@/pages/AuthPage'
 import NotFound from '@/pages/NotFound'
 import './App.css'
+import { useEffect } from 'react'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -24,6 +25,23 @@ const queryClient = new QueryClient({
   },
 })
 
+// Component to force light theme
+const ThemeForcer = ({ children }: { children: React.ReactNode }) => {
+  useEffect(() => {
+    // Clear any stored theme preference
+    localStorage.removeItem('app-theme');
+    
+    // Force light theme on document
+    document.documentElement.classList.remove('dark');
+    document.documentElement.classList.add('light');
+    document.documentElement.setAttribute('data-theme', 'light');
+    
+    console.log('🎨 Forced light theme applied');
+  }, []);
+
+  return <>{children}</>;
+};
+
 const App = () => {
   return (
     <ThemeProvider 
@@ -31,33 +49,35 @@ const App = () => {
       defaultTheme="light" 
       enableSystem={false}
       forcedTheme="light"
-      storageKey="app-theme"
+      storageKey="app-theme-disabled"
     >
-      <QueryClientProvider client={queryClient}>
-        <LanguageProvider>
-          <AuthProvider>
-            <RBACProvider>
-              <ProgressiveLoadingProvider>
-                <TripProvider>
-                  <Router>
-                    <Routes>
-                      <Route path="auth" element={<AuthPage />} />
-                      <Route path="*" element={
-                        <ProtectedRoute>
-                          <SidebarProvider>
-                            <Index />
-                          </SidebarProvider>
-                        </ProtectedRoute>
-                      } />
-                    </Routes>
-                  </Router>
-                </TripProvider>
-              </ProgressiveLoadingProvider>
-            </RBACProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </QueryClientProvider>
-      <Toaster />
+      <ThemeForcer>
+        <QueryClientProvider client={queryClient}>
+          <LanguageProvider>
+            <AuthProvider>
+              <RBACProvider>
+                <ProgressiveLoadingProvider>
+                  <TripProvider>
+                    <Router>
+                      <Routes>
+                        <Route path="auth" element={<AuthPage />} />
+                        <Route path="*" element={
+                          <ProtectedRoute>
+                            <SidebarProvider>
+                              <Index />
+                            </SidebarProvider>
+                          </ProtectedRoute>
+                        } />
+                      </Routes>
+                    </Router>
+                  </TripProvider>
+                </ProgressiveLoadingProvider>
+              </RBACProvider>
+            </AuthProvider>
+          </LanguageProvider>
+        </QueryClientProvider>
+        <Toaster />
+      </ThemeForcer>
     </ThemeProvider>
   )
 }

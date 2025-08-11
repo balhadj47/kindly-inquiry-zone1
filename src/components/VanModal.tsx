@@ -18,7 +18,7 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
   const { t } = useLanguage();
   
   // Add debugging
-  console.log('🚐 VanModal: Received props:', { isOpen, van, hasVan: !!van });
+  console.log('🚐 VanModal: Received props:', { isOpen, van: van ? { id: van.id, reference_code: van.reference_code } : null });
   
   const { formData, handleInputChange, handleDateChange } = useVanForm(van);
   const { isSubmitting, handleSubmit } = useVanSubmit(van, onClose, onSaveSuccess);
@@ -26,8 +26,12 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     console.log('🚐 VanModal: Submitting form with data:', formData);
+    console.log('🚐 VanModal: Van being edited:', van);
     await handleSubmit(formData);
   };
+
+  const isEditing = !!(van && van.id);
+  console.log('🚐 VanModal: Is editing mode:', isEditing);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -36,10 +40,10 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
           <div className="p-4 sm:p-6 flex-shrink-0">
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl font-semibold">
-                {van ? t.editVan : t.addNewVan}
+                {isEditing ? t.editVan : t.addNewVan}
               </DialogTitle>
               <DialogDescription className="text-sm sm:text-base text-muted-foreground">
-                {van ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
+                {isEditing ? 'Modifiez les informations de la camionnette' : 'Ajoutez une nouvelle camionnette à votre flotte'}
               </DialogDescription>
             </DialogHeader>
           </div>
@@ -54,7 +58,7 @@ const VanModal = ({ isOpen, onClose, van, onSaveSuccess }: VanModalProps) => {
 
               <VanFormActions
                 isSubmitting={isSubmitting}
-                isEditing={!!van}
+                isEditing={isEditing}
                 onCancel={onClose}
               />
             </form>

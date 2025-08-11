@@ -36,7 +36,7 @@ export const useVanForm = (van: any) => {
     if (van) {
       const newFormData = {
         referenceCode: van.reference_code || '',
-        plateNumber: van.license_plate || van.plateNumber || '',
+        plateNumber: van.license_plate || '',
         model: van.model || '',
         status: van.status || 'Active',
         insurer: van.insurer || '',
@@ -48,10 +48,10 @@ export const useVanForm = (van: any) => {
         currentOdometerKm: van.current_odometer_km || 0,
       };
       
-      console.log('🚐 useVanForm: Setting form data:', newFormData);
+      console.log('🚐 useVanForm: Setting form data for editing:', newFormData);
       setFormData(newFormData);
     } else {
-      console.log('🚐 useVanForm: No van data, resetting form');
+      console.log('🚐 useVanForm: No van data, resetting form for new van');
       setFormData({
         referenceCode: '',
         plateNumber: '',

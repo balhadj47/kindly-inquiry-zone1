@@ -11,6 +11,9 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
   const { t } = useLanguage();
 
   const handleSubmit = async (formData: VanFormData) => {
+    console.log('🚐 useVanSubmit: Starting submission with data:', formData);
+    console.log('🚐 useVanSubmit: Van being edited:', van);
+    
     setIsSubmitting(true);
 
     try {
@@ -29,46 +32,58 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         current_odometer_km: formData.currentOdometerKm,
       };
 
-      if (van) {
+      console.log('🚐 useVanSubmit: Prepared van data:', vanData);
+
+      if (van && van.id) {
         // Update existing van
-        const { error } = await supabase
+        console.log('🚐 useVanSubmit: Updating existing van with ID:', van.id);
+        
+        const { data, error } = await supabase
           .from('vans')
           .update(vanData)
-          .eq('id', van.id);
+          .eq('id', van.id)
+          .select()
+          .single();
 
         if (error) {
-          console.error('Error updating van:', error);
+          console.error('❌ Error updating van:', error);
           toast({
             title: t.error,
-            description: "Impossible de modifier la camionnette",
+            description: `Impossible de modifier la camionnette: ${error.message}`,
             variant: "destructive",
           });
           return;
         }
 
+        console.log('✅ Van updated successfully:', data);
         toast({
           title: t.success,
-          description: `La camionnette ${formData.plateNumber} a été modifiée avec succès`,
+          description: `La camionnette ${formData.plateNumber || formData.referenceCode} a été modifiée avec succès`,
         });
       } else {
         // Create new van
-        const { error } = await supabase
+        console.log('🚐 useVanSubmit: Creating new van');
+        
+        const { data, error } = await supabase
           .from('vans')
-          .insert([vanData]);
+          .insert([vanData])
+          .select()
+          .single();
 
         if (error) {
-          console.error('Error creating van:', error);
+          console.error('❌ Error creating van:', error);
           toast({
             title: t.error,
-            description: "Impossible de créer la camionnette",
+            description: `Impossible de créer la camionnette: ${error.message}`,
             variant: "destructive",
           });
           return;
         }
 
+        console.log('✅ Van created successfully:', data);
         toast({
           title: t.success,
-          description: `La camionnette ${formData.plateNumber} a été créée avec succès`,
+          description: `La camionnette ${formData.plateNumber || formData.referenceCode} a été créée avec succès`,
         });
       }
 
@@ -76,7 +91,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
       onClose();
       onSaveSuccess?.();
     } catch (error) {
-      console.error('Error saving van:', error);
+      console.error('❌ Error saving van:', error);
       toast({
         title: t.error,
         description: "Une erreur s'est produite lors de la sauvegarde",

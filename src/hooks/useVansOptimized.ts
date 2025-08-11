@@ -26,7 +26,10 @@ export const useAllVans = () => {
           insurer,
           insurance_date,
           control_date,
-          notes
+          notes,
+          current_location,
+          current_responsible_id,
+          current_odometer_km
         `)
         .order('license_plate');
 
@@ -35,11 +38,8 @@ export const useAllVans = () => {
         throw error;
       }
 
-      // Transform data to match Van interface, adding updated_at as fallback
-      const vansData = (data || []).map(van => ({
-        ...van,
-        updated_at: van.created_at // Use created_at as fallback for updated_at
-      })) as Van[];
+      // Return data as is since all fields are now included in the select
+      const vansData = (data || []) as Van[];
       
       const endTime = performance.now();
       console.log('🚐 useVansOptimized: Fetch completed -', vansData.length, 'vans in', endTime - startTime, 'ms');

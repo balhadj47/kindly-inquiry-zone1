@@ -154,7 +154,6 @@ const VansIndex = ({ onRefresh, isRefreshing }: VansIndexProps) => {
         van={selectedVan}
         isOpen={isDetailsDialogOpen}
         onClose={handleDetailsDialogClose}
-        onEdit={handleEditVan}
       />
     </div>
   );

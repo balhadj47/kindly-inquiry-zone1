@@ -138,7 +138,6 @@ const VansContainer = () => {
         van={selectedVan}
         isOpen={isDetailsDialogOpen}
         onClose={handleDetailsDialogClose}
-        onEdit={handleEditVan}
       />
 
       <div className="flex items-center justify-between">

@@ -19,22 +19,23 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     try {
       // Prepare van data with all fields including new ones
       const vanData = {
-        reference_code: formData.referenceCode,
-        license_plate: formData.plateNumber,
-        model: formData.model,
+        reference_code: formData.referenceCode.trim(),
+        license_plate: formData.plateNumber.trim(),
+        model: formData.model.trim(),
         status: formData.status,
-        insurer: formData.insurer,
+        insurer: formData.insurer?.trim() || null,
         insurance_date: formData.insuranceDate?.toISOString().split('T')[0] || null,
         control_date: formData.controlDate?.toISOString().split('T')[0] || null,
-        notes: formData.notes,
-        current_location: formData.currentLocation,
-        current_responsible_id: formData.currentResponsibleId,
-        current_odometer_km: formData.currentOdometerKm,
+        notes: formData.notes?.trim() || null,
+        current_location: formData.currentLocation?.trim() || null,
+        current_responsible_id: formData.currentResponsibleId || null,
+        current_odometer_km: formData.currentOdometerKm || 0,
+        updated_at: new Date().toISOString(),
       };
 
       console.log('🚐 useVanSubmit: Prepared van data:', vanData);
 
-      if (van && van.id) {
+      if (van?.id) {
         // Update existing van
         console.log('🚐 useVanSubmit: Updating existing van with ID:', van.id);
         
@@ -48,7 +49,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         if (error) {
           console.error('❌ Error updating van:', error);
           toast({
-            title: t.error,
+            title: t.error || 'Error',
             description: `Impossible de modifier la camionnette: ${error.message}`,
             variant: "destructive",
           });
@@ -57,8 +58,8 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
 
         console.log('✅ Van updated successfully:', data);
         toast({
-          title: t.success,
-          description: `La camionnette ${formData.plateNumber || formData.referenceCode} a été modifiée avec succès`,
+          title: t.success || 'Success',
+          description: `La camionnette ${formData.referenceCode || formData.plateNumber} a été modifiée avec succès`,
         });
       } else {
         // Create new van
@@ -73,7 +74,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         if (error) {
           console.error('❌ Error creating van:', error);
           toast({
-            title: t.error,
+            title: t.error || 'Error',
             description: `Impossible de créer la camionnette: ${error.message}`,
             variant: "destructive",
           });
@@ -82,8 +83,8 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
 
         console.log('✅ Van created successfully:', data);
         toast({
-          title: t.success,
-          description: `La camionnette ${formData.plateNumber || formData.referenceCode} a été créée avec succès`,
+          title: t.success || 'Success',
+          description: `La camionnette ${formData.referenceCode || formData.plateNumber} a été créée avec succès`,
         });
       }
 
@@ -93,7 +94,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     } catch (error) {
       console.error('❌ Error saving van:', error);
       toast({
-        title: t.error,
+        title: t.error || 'Error',
         description: "Une erreur s'est produite lors de la sauvegarde",
         variant: "destructive",
       });

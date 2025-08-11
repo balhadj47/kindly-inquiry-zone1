@@ -17,7 +17,7 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Prepare van data with all fields including new ones
+      // Prepare van data with all fields including new ones (removed updated_at)
       const vanData = {
         reference_code: formData.referenceCode.trim(),
         license_plate: formData.plateNumber.trim(),
@@ -30,7 +30,6 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
         current_location: formData.currentLocation?.trim() || null,
         current_responsible_id: formData.currentResponsibleId || null,
         current_odometer_km: formData.currentOdometerKm || 0,
-        updated_at: new Date().toISOString(),
       };
 
       console.log('🚐 useVanSubmit: Prepared van data:', vanData);

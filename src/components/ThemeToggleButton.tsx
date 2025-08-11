@@ -1,11 +1,26 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Sun, Moon } from 'lucide-react';
-import { useThemeToggle } from '@/hooks/useThemeToggle';
+import { useTheme } from 'next-themes';
 
 const ThemeToggleButton = () => {
-  const { isDark, mounted, toggleTheme } = useThemeToggle();
+  const { theme, setTheme, resolvedTheme } = useTheme();
+  const [mounted, setMounted] = React.useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    // Force light theme on mount
+    if (resolvedTheme !== 'light') {
+      setTheme('light');
+    }
+  }, [resolvedTheme, setTheme]);
+
+  const toggleTheme = () => {
+    const newTheme = resolvedTheme === 'dark' ? 'light' : 'dark';
+    console.log('Toggle theme to:', newTheme);
+    setTheme(newTheme);
+  };
 
   if (!mounted) {
     return (
@@ -14,6 +29,8 @@ const ThemeToggleButton = () => {
       </Button>
     );
   }
+
+  const isDark = resolvedTheme === 'dark';
 
   return (
     <Button

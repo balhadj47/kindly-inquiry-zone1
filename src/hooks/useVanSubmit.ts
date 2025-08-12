@@ -17,7 +17,37 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Prepare van data with all fields including new ones (removed updated_at)
+      // Check for duplicate reference code before submission
+      if (formData.referenceCode.trim()) {
+        const { data: existingVan, error: checkError } = await supabase
+          .from('vans')
+          .select('id, reference_code')
+          .eq('reference_code', formData.referenceCode.trim())
+          .neq('id', van?.id || 'non-existent-id') // Exclude current van if editing
+          .single();
+
+        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is good
+          console.error('❌ Error checking duplicate reference code:', checkError);
+          toast({
+            title: t.error || 'Error',
+            description: 'Erreur lors de la vérification du code de référence',
+            variant: "destructive",
+          });
+          return;
+        }
+
+        if (existingVan) {
+          console.error('❌ Duplicate reference code found:', existingVan);
+          toast({
+            title: t.error || 'Error',
+            description: `Le code de référence "${formData.referenceCode}" est déjà utilisé par une autre camionnette`,
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
+      // Prepare van data with all fields including new ones
       const vanData = {
         reference_code: formData.referenceCode.trim(),
         license_plate: formData.plateNumber.trim(),

@@ -46,10 +46,15 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
           .single();
 
         if (error) {
-          console.error('❌ Error updating van:', error);
+          console.error('❌ Error updating van - Full error object:', error);
+          console.error('❌ Error code:', error.code);
+          console.error('❌ Error message:', error.message);
+          console.error('❌ Error details:', error.details);
+          console.error('❌ Error hint:', error.hint);
+          
           toast({
             title: t.error || 'Error',
-            description: `Impossible de modifier la camionnette: ${error.message}`,
+            description: `Impossible de modifier la camionnette: ${error.message || 'Erreur inconnue'}`,
             variant: "destructive",
           });
           return;
@@ -71,10 +76,15 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
           .single();
 
         if (error) {
-          console.error('❌ Error creating van:', error);
+          console.error('❌ Error creating van - Full error object:', error);
+          console.error('❌ Error code:', error.code);
+          console.error('❌ Error message:', error.message);
+          console.error('❌ Error details:', error.details);
+          console.error('❌ Error hint:', error.hint);
+          
           toast({
             title: t.error || 'Error',
-            description: `Impossible de créer la camionnette: ${error.message}`,
+            description: `Impossible de créer la camionnette: ${error.message || 'Erreur inconnue'}`,
             variant: "destructive",
           });
           return;
@@ -91,7 +101,10 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
       onClose();
       onSaveSuccess?.();
     } catch (error) {
-      console.error('❌ Error saving van:', error);
+      console.error('❌ Error saving van - Catch block:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error stringified:', JSON.stringify(error, null, 2));
+      
       toast({
         title: t.error || 'Error',
         description: "Une erreur s'est produite lors de la sauvegarde",

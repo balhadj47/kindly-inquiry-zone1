@@ -19,14 +19,22 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     try {
       // Check for duplicate reference code before submission
       if (formData.referenceCode.trim()) {
-        const { data: existingVan, error: checkError } = await supabase
+        console.log('🔍 Checking for duplicate reference code:', formData.referenceCode);
+        
+        // Build query to check for duplicates
+        let query = supabase
           .from('vans')
           .select('id, reference_code')
-          .eq('reference_code', formData.referenceCode.trim())
-          .neq('id', van?.id || 'non-existent-id') // Exclude current van if editing
-          .single();
+          .eq('reference_code', formData.referenceCode.trim());
+        
+        // If editing an existing van, exclude it from the duplicate check
+        if (van?.id) {
+          query = query.neq('id', van.id);
+        }
 
-        if (checkError && checkError.code !== 'PGRST116') { // PGRST116 means no rows found, which is good
+        const { data: existingVans, error: checkError } = await query;
+
+        if (checkError) {
           console.error('❌ Error checking duplicate reference code:', checkError);
           toast({
             title: t.error || 'Error',
@@ -36,8 +44,9 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
           return;
         }
 
-        if (existingVan) {
-          console.error('❌ Duplicate reference code found:', existingVan);
+        // Check if any duplicates were found
+        if (existingVans && existingVans.length > 0) {
+          console.error('❌ Duplicate reference code found:', existingVans[0]);
           toast({
             title: t.error || 'Error',
             description: `Le code de référence "${formData.referenceCode}" est déjà utilisé par une autre camionnette`,
@@ -45,6 +54,8 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
           });
           return;
         }
+        
+        console.log('✅ No duplicate reference code found, proceeding with save');
       }
 
       // Prepare van data with all fields including new ones

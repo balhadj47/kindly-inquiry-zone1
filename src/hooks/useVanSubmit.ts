@@ -17,45 +17,53 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
     setIsSubmitting(true);
 
     try {
-      // Check for duplicate reference code before submission
+      // Check for duplicate reference code before submission - ONLY if reference code has changed
       if (formData.referenceCode.trim()) {
-        console.log('🔍 Checking for duplicate reference code:', formData.referenceCode);
+        const isReferenceCodeChanged = van?.reference_code !== formData.referenceCode.trim();
         
-        // Build query to check for duplicates
-        let query = supabase
-          .from('vans')
-          .select('id, reference_code')
-          .eq('reference_code', formData.referenceCode.trim());
-        
-        // If editing an existing van, exclude it from the duplicate check
-        if (van?.id) {
-          query = query.neq('id', van.id);
-        }
+        if (isReferenceCodeChanged || !van?.id) {
+          console.log('🔍 Checking for duplicate reference code:', formData.referenceCode);
+          console.log('🔍 Reference code changed?', isReferenceCodeChanged);
+          console.log('🔍 Original reference code:', van?.reference_code);
+          
+          // Build query to check for duplicates
+          let query = supabase
+            .from('vans')
+            .select('id, reference_code, license_plate')
+            .eq('reference_code', formData.referenceCode.trim());
+          
+          // If editing an existing van, exclude it from the duplicate check
+          if (van?.id) {
+            query = query.neq('id', van.id);
+          }
 
-        const { data: existingVans, error: checkError } = await query;
+          const { data: existingVans, error: checkError } = await query;
 
-        if (checkError) {
-          console.error('❌ Error checking duplicate reference code:', checkError);
-          toast({
-            title: t.error || 'Error',
-            description: 'Erreur lors de la vérification du code de référence',
-            variant: "destructive",
-          });
-          return;
-        }
+          if (checkError) {
+            console.error('❌ Error checking duplicate reference code:', checkError);
+            toast({
+              title: t.error || 'Error',
+              description: 'Erreur lors de la vérification du code de référence',
+              variant: "destructive",
+            });
+            return;
+          }
 
-        // Check if any duplicates were found
-        if (existingVans && existingVans.length > 0) {
-          console.error('❌ Duplicate reference code found:', existingVans[0]);
-          toast({
-            title: t.error || 'Error',
-            description: `Le code de référence "${formData.referenceCode}" est déjà utilisé par une autre camionnette`,
-            variant: "destructive",
-          });
-          return;
+          // Check if any duplicates were found
+          if (existingVans && existingVans.length > 0) {
+            console.error('❌ Duplicate reference code found:', existingVans[0]);
+            toast({
+              title: t.error || 'Error',
+              description: `Le code de référence "${formData.referenceCode}" est déjà utilisé par la camionnette ${existingVans[0].license_plate}`,
+              variant: "destructive",
+            });
+            return;
+          }
+          
+          console.log('✅ No duplicate reference code found, proceeding with save');
+        } else {
+          console.log('🔍 Reference code unchanged, skipping duplicate check');
         }
-        
-        console.log('✅ No duplicate reference code found, proceeding with save');
       }
 
       // Prepare van data with all fields including new ones
@@ -93,9 +101,23 @@ export const useVanSubmit = (van: any, onClose: () => void, onSaveSuccess?: () =
           console.error('❌ Error details:', error.details);
           console.error('❌ Error hint:', error.hint);
           
+          // Provide more specific error messages
+          let errorMessage = 'Erreur inconnue';
+          if (error.code === '23505') {
+            if (error.message.includes('reference_code_unique')) {
+              errorMessage = `Le code de référence "${formData.referenceCode}" est déjà utilisé par une autre camionnette`;
+            } else if (error.message.includes('license_plate')) {
+              errorMessage = `La plaque d'immatriculation "${formData.plateNumber}" est déjà utilisée`;
+            } else {
+              errorMessage = 'Une valeur existe déjà dans la base de données';
+            }
+          } else {
+            errorMessage = error.message || 'Erreur inconnue';
+          }
+          
           toast({
             title: t.error || 'Error',
-            description: `Impossible de modifier la camionnette: ${error.message || 'Erreur inconnue'}`,
+            description: `Impossible de modifier la camionnette: ${errorMessage}`,
             variant: "destructive",
           });
           return;

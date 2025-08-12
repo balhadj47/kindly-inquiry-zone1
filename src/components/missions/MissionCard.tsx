@@ -73,7 +73,7 @@ const MissionCard: React.FC<MissionCardProps> = ({
 
   return (
     <div 
-      className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden"
+      className="group bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-lg transition-all duration-300 cursor-pointer overflow-hidden min-w-[420px]"
       onClick={() => onMissionClick(mission)}
     >
       {/* Header Section */}
